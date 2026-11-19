@@ -1,13 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -17,10 +10,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Tests for <see cref="RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer"/>
+/// Test methods for <see cref="RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider"/>: what is reported, the shift the fix writes, the whitespace of the closing line, and the line breaks of the document and the literal
 /// </summary>
 [TestClass]
-public partial class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer, RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider>
+public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer, RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -526,913 +519,6 @@ public partial class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string in an interpolation hole as written when it shifts the literal to the right
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringInHoleWhenShiftingRight()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-                                b"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-                                  b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string in an interpolation hole as written when it shifts the literal to the right, under CRLF line endings
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringInHoleWhenShiftingRightWithCrLf()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-                                b"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-                                  b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string in an interpolation hole as written when it shifts the literal to the left
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringInHoleWhenShiftingLeft()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                                         Hello {@"a
-                                                  b"}
-                                                         """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-                                                    b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string in an interpolation hole as written when it shifts the literal to the left, under CRLF line endings
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringInHoleWhenShiftingLeftWithCrLf()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                                         Hello {@"a
-                                                  b"}
-                                                         """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-                                                    b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the following line of a multi-line comment behind a token in a hole as written, and shifts the line of the hole's closing brace that follows the comment
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesFollowingLineOfTrailingCommentInHoleAndShiftsClosingBraceLine()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {name /* a
-                                  b */
-                                    }
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {name /* a
-                                    b */
-                                                   }
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the following line of a multi-line comment behind a token in a hole as written, and shifts the line of the hole's closing brace that follows the comment, under CRLF line endings
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesFollowingLineOfTrailingCommentInHoleAndShiftsClosingBraceLineWithCrLf()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {name /* a
-                                  b */
-                                    }
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {name /* a
-                                    b */
-                                                   }
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the following line of a multi-line comment in a hole as written when it shifts the literal to the left
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesFollowingLineOfCommentInHoleWhenShiftingLeft()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                                         Hello {name /* a
-                                                  b */
-                                                         }
-                                                         """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {name /* a
-                                                    b */
-                                                   }
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix writes no whitespace onto an empty line inside a verbatim string in a hole
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesEmptyLineInsideVerbatimStringInHoleEmpty()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-
-                                b"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-
-                                  b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix writes no whitespace onto an empty line inside a verbatim string in a hole, under CRLF line endings
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesEmptyLineInsideVerbatimStringInHoleEmptyWithCrLf()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-
-                                b"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-
-                                  b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of an interpolated verbatim string written <c>$@</c> in a hole as written, also when the line holds a hole of that string
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfInterpolatedVerbatimStringInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M(int name)
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {$@"a
-                                b{name}"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M(int name)
-                                      {
-                                          var a = $"""
-                                                   Hello {$@"a
-                                  b{name}"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of an interpolated verbatim string written <c>@$</c> in a hole as written
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfInterpolatedVerbatimStringWrittenAtDollarInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M(int name)
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@$"a
-                                b{name}"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M(int name)
-                                      {
-                                          var a = $"""
-                                                   Hello {@$"a
-                                  b{name}"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a UTF-8 verbatim string in a hole as written
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfUtf8VerbatimStringInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-                                b"u8.Length}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-                                  b"u8.Length}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves as written both the continuation line of a verbatim string in a hole of a nested interpolated verbatim string and the continuation line of that nested string
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesLinesOfVerbatimStringInHoleOfNestedInterpolatedVerbatimString()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {$@"x{@"a
-                                b"}
-                                y"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {$@"x{@"a
-                                  b"}
-                                  y"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string in a multi-line hole of a nested regular interpolated string as written, and shifts the lines of that hole on which the verbatim string begins and after it has ended
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringInMultiLineHoleOfNestedRegularInterpolatedString()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {$"x{
-                                    @"a
-                                b"
-                                    }"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {$"x{
-                                                   @"a
-                                  b"
-                                                   }"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string passed as an argument in a hole as written
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringArgumentInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {string.Concat("x", @"a
-                                b")}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {string.Concat("x", @"a
-                                  b")}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the following line of a multi-line comment in front of a token in a hole as written, and shifts the line on which the comment begins
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesFollowingLineOfLeadingCommentInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {
-                                    /* a
-                                  b */ name}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {
-                                                   /* a
-                                    b */ name}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the following line of a <c>/** */</c> comment in a hole as written
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesFollowingLineOfDocumentationStyleCommentInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {name /** a
-                                  b */
-                                    }
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {name /** a
-                                    b */
-                                                   }
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves as written the line that starts inside a comment in a hole and holds the comment's end and the hole's closing brace
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesLineHoldingEndOfCommentAndClosingBraceOfHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {name /* a
-                                  b */}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {name /* a
-                                    b */}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix leaves the continuation line of a verbatim string in a hole as written when the literal starts with two <c>$</c> characters
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesContinuationLineOfVerbatimStringInHoleOfDoubleDollarLiteral()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = $$"""
-                                    Hello {{@"a
-                                b"}}
-                                    """;
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $$"""
-                                                    Hello {{@"a
-                                  b"}}
-                                                    """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData,
-                     resultData,
-                     test =>
-                     {
-                         test.TestState.MarkupHandling = MarkupMode.None;
-                         test.FixedState.MarkupHandling = MarkupMode.None;
-                     },
-                     Diagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId).WithSpan(5, 17, 8, 8)
-                                                                                                       .WithMessage(MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix shifts a content line that follows the line on which a verbatim string in a hole ends
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixShiftsContentLineAfterVerbatimStringInHoleHasEnded()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-                                b"} tail
-                                    next
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a
-                                  b"} tail
-                                                   next
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix shifts the line that follows a single-line comment in a hole, because it does not start inside the comment
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixShiftsLineAfterSingleLineCommentInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {name // a
-                                    }
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {name // a
-                                                   }
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix shifts a line of a hole that follows a verbatim string ending on the line before
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixShiftsLineAfterSingleLineVerbatimStringInHole()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {@"a" +
-                                    @"b"}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {@"a" +
-                                                   @"b"}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix, also applied to every diagnostic of the document at once, leaves the lines of text nested in the holes of several literals as written
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixLeavesNestedTextAsWrittenForSeveralLiteralsInOneDocument()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var name = "x";
-                                        var a = {|#0:$"""
-                                    Hello {@"a
-                                b"}
-                                    """|};
-                                        var b = {|#1:$"""
-                                                         Hello {name /* a
-                                                  b */
-                                                         }
-                                                         """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var name = "x";
-                                          var a = $"""
-                                                   Hello {@"a
-                                  b"}
-                                                   """;
-                                          var b = $"""
-                                                   Hello {name /* a
-                                                    b */
-                                                   }
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies that the fix leaves an empty content line empty when it shifts the other lines to the right
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1668,55 +754,6 @@ public partial class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix shifts the lines of a raw string literal nested in a hole with the outer literal, and that
-    /// the nested literal is still reported after the outer literal's fix
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5202-004")]
-    public async Task VerifyFixShiftsLinesOfRawStringNestedInHoleAndNestedLiteralStaysReported()
-    {
-        const string testData = """"
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a = {|#0:$"""
-                                    Hello {{|#1:"""
-                                        x
-                                        """|}}
-                                    """|};
-                                    }
-                                }
-                                """";
-
-        const string resultData = """"
-                                  class C
-                                  {
-                                      void M()
-                                      {
-                                          var a = $"""
-                                                   Hello {{|#0:"""
-                                                       x
-                                                       """|}}
-                                                   """;
-                                      }
-                                  }
-                                  """";
-
-        await Verify(testData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
-
-        TestFileMarkupParser.GetSpans(testData, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
-        TestFileMarkupParser.GetSpans(resultData, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
-
-        var fixedSource = await ApplyCodeFixAsync(plainSource);
-
-        Assert.AreEqual(plainResult, fixedSource);
-
-        await Verify(resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
     /// Verifies that the fix lays out a literal with a verbatim string in a hole as the formatter lays it out, in both
     /// directions of the shift
     /// </summary>
@@ -1752,55 +789,671 @@ public partial class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTe
                                             """");
     }
 
+    /// <summary>
+    /// Verifies that the fix lays out a literal with a multi-line comment in a hole as the formatter lays it out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    public async Task VerifyFixMatchesFormatterForCommentInHole()
+    {
+        await VerifyCodeFixMatchesFormatter(""""
+                                            class C
+                                            {
+                                                void M()
+                                                {
+                                                    var name = "x";
+                                                    var a = {|RH5202:$"""
+                                                Hello {name /* a
+                                              b */
+                                                }
+                                                """|};
+                                                }
+                                            }
+                                            """");
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a literal with an empty line inside a verbatim string in a hole as the formatter
+    /// lays it out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-004")]
+    public async Task VerifyFixMatchesFormatterForEmptyLineInsideVerbatimStringInHole()
+    {
+        await VerifyCodeFixMatchesFormatter(""""
+                                            class C
+                                            {
+                                                void M()
+                                                {
+                                                    var a = {|RH5202:$"""
+                                                Hello {@"a
+
+                                            b"}
+                                                """|};
+                                                }
+                                            }
+                                            """");
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a literal with an empty content line as the formatter lays it out, for a plain
+    /// and an interpolated literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-005")]
+    public async Task VerifyFixMatchesFormatterForEmptyContentLine()
+    {
+        await VerifyCodeFixMatchesFormatter(""""
+                                            class C
+                                            {
+                                                void M()
+                                                {
+                                                    var a = {|RH5202:"""
+                                                one
+
+                                                two
+                                                """|};
+                                                }
+                                            }
+                                            """");
+
+        await VerifyCodeFixMatchesFormatter(""""
+                                            class C
+                                            {
+                                                void M(int name)
+                                                {
+                                                    var a = {|RH5202:$"""
+                                                one
+
+                                                two {name}
+                                                """|};
+                                                }
+                                            }
+                                            """");
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithNoBreakSpaceWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a form feed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithFormFeed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\f'), resultData.Replace('¤', '\f'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a vertical tab
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsRightWhenClosingWhitespaceStartsWithVerticalTab()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\v'), resultData.Replace('¤', '\v'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a UTF-8 literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with an em space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsUtf8LiteralRightWhenClosingWhitespaceStartsWithEmSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤   x
+                                ¤   """u8|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                              ¤   x
+                                              ¤   """u8;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u2003'), resultData.Replace('¤', '\u2003'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts an interpolated literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsInterpolatedLiteralRightWhenClosingWhitespaceStartsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = {|#0:$"""
+                                ¤   {name}
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $"""
+                                               ¤   {name}
+                                               ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts an interpolated literal to the right by the full width of the whitespace in front of its closing quotes when that whitespace starts with a no-break space, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsInterpolatedLiteralRightWhenClosingWhitespaceStartsWithNoBreakSpaceWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = {|#0:$"""
+                                ¤   {name}
+                                ¤   """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $"""
+                                               ¤   {name}
+                                               ¤   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the left by the full width of the whitespace in front of its closing quotes when a no-break space follows the spaces of that whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsLeftWhenClosingWhitespaceEndsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                                    ¤x
+                                                    ¤"""|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                 ¤x
+                                                 ¤""";
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the left by the full width of the whitespace in front of its closing quotes when a no-break space follows the spaces of that whitespace, under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsLeftWhenClosingWhitespaceEndsWithNoBreakSpaceWithCrLf()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                                    ¤x
+                                                    ¤"""|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                 ¤x
+                                                 ¤""";
+                                      }
+                                  }
+                                  """";
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix shifts a literal to the left by removing leading whitespace that starts with a no-break space, so that its closing quotes start in the column of its opening quotes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyFixShiftsLeftWhenClosingWhitespaceStartsWithNoBreakSpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                ¤                    x
+                                ¤                    """|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the requirement's example in a document whose line breaks are all a lone carriage return: the aligned
+    /// literal is not reported and the misaligned interpolated literal is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralIsNotReportedAndMisalignedLiteralIsReportedWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                        var b = {|#0:$"""
+                                            Hello {1}
+                                            """|};
+                                    }
+                                }
+                                """";
+
+        await Verify(ConvertEndOfLine(testData, "\r"), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that aligned plain, UTF-8, and interpolated literals in a document whose line breaks are all a lone
+    /// carriage return are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                        var b = """
+                                                Hello
+                                                """u8;
+                                        var c = $"""
+                                                 Hello {1}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        await Verify(ConvertEndOfLine(testData, "\r"));
+    }
+
+    /// <summary>
+    /// Verifies the requirement's fix example in a document whose line breaks are all a lone carriage return: one
+    /// application aligns the literal, the analyzer no longer reports it, and the literal's lone carriage returns stay
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedInterpolatedLiteralIsFixedInOneApplicationWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var b = {|RH5202:$"""
+                                            Hello {1}
+                                            """|};
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var b = $"""
+                                                  Hello {1}
+                                                  """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r");
+    }
+
+    /// <summary>
+    /// Verifies that a misaligned plain literal in a document whose line breaks are all a lone carriage return is aligned
+    /// in one application, and that the analyzer no longer reports it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedPlainLiteralIsFixedInOneApplicationWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            Hello
+                                            """|};
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = """
+                                                 Hello
+                                                 """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r");
+    }
+
+    /// <summary>
+    /// Verifies that the formatter's output for a document whose line breaks are all a lone carriage return, which keeps
+    /// the lone carriage returns inside the literals, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyFormatterOutputForLoneCarriageReturnDocumentIsNotReported()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = """
+                                          Hello
+                                          """;
+                                      var b = $"""
+                                          Hello {1}
+                                          """;
+                                  }
+                              }
+                              """";
+
+        await Verify(Format(ConvertEndOfLine(source, "\r")));
+    }
+
+    /// <summary>
+    /// Verifies that aligned literals whose line breaks are U+0085 in an otherwise LF document are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithNextLineBreaksInTheLiteral()
+    {
+        await Verify(CreateAlignedLiteralsWithLiteralLineBreak("\u0085"));
+    }
+
+    /// <summary>
+    /// Verifies that aligned literals whose line breaks are U+2028 in an otherwise LF document are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithLineSeparatorsInTheLiteral()
+    {
+        await Verify(CreateAlignedLiteralsWithLiteralLineBreak("\u2028"));
+    }
+
+    /// <summary>
+    /// Verifies that aligned literals whose line breaks are U+2029 in an otherwise LF document are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithParagraphSeparatorsInTheLiteral()
+    {
+        await Verify(CreateAlignedLiteralsWithLiteralLineBreak("\u2029"));
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated literals whose line breaks are U+0085 are aligned in one
+    /// application, keep their line breaks, and are no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedLiteralsAreFixedWithNextLineBreaksInTheLiteral()
+    {
+        await VerifyMisalignedLiteralsWithLiteralLineBreak("\u0085");
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated literals whose line breaks are U+2028 are aligned in one
+    /// application, keep their line breaks, and are no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedLiteralsAreFixedWithLineSeparatorsInTheLiteral()
+    {
+        await VerifyMisalignedLiteralsWithLiteralLineBreak("\u2028");
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated literals whose line breaks are U+2029 are aligned in one
+    /// application, keep their line breaks, and are no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedLiteralsAreFixedWithParagraphSeparatorsInTheLiteral()
+    {
+        await VerifyMisalignedLiteralsWithLiteralLineBreak("\u2029");
+    }
+
     #endregion // Tests
 
     #region Methods
-
-    /// <summary>
-    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, that the code fix registers no
-    /// action for the outer literal, the first raw string literal of the document, and that it registers one action
-    /// for the raw string literal nested in it, the last raw string literal of the document
-    /// </summary>
-    /// <param name="source">Source text with markup for every expected diagnostic</param>
-    /// <param name="diagnosticCount">The number of expected diagnostics</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task VerifyOuterLiteralFixIsWithheldAndNestedLiteralFixIsOffered(string source, int diagnosticCount)
-    {
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, diagnosticCount));
-
-        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
-
-        var outerActions = await GetCodeFixActionsAsync(plainSource, RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, root => GetRawStringLiterals(root).First().GetLocation());
-
-        Assert.IsEmpty(outerActions, "No code fix may be offered for the outer literal.");
-
-        var nestedActions = await GetCodeFixActionsAsync(plainSource, RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, root => GetRawStringLiterals(root).Last().GetLocation());
-
-        Assert.HasCount(1, nestedActions, "The code fix must be offered for the nested literal.");
-    }
-
-    /// <summary>
-    /// Gets the multi-line raw string literal expressions of a syntax tree in document order
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <returns>The raw string literal expressions</returns>
-    private static IEnumerable<ExpressionSyntax> GetRawStringLiterals(SyntaxNode root)
-    {
-        foreach (var node in root.DescendantNodes())
-        {
-            if (node is LiteralExpressionSyntax literal
-                && (literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
-                    || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
-            {
-                yield return literal;
-            }
-            else if (node is InterpolatedStringExpressionSyntax interpolated
-                     && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
-            {
-                yield return interpolated;
-            }
-        }
-    }
 
     /// <summary>
     /// Creates an LF document holding aligned plain, UTF-8, and interpolated multi-line raw string literals whose own line

@@ -10,11 +10,287 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH4103MethodNameCasingAnalyzer"/> and <see cref="RH4103MethodNameCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH4103MethodNameCasingCodeFixProvider"/> on renames whose new name would change which method a call, a query, a deconstruction, or an interface implementation binds to
 /// </summary>
-public partial class RH4103MethodNameCasingAnalyzerTests
+[TestClass]
+public class RH4103MethodNameCasingNameBindingTests : BatchCodeFixTestsBase<RH4103MethodNameCasingAnalyzer, RH4103MethodNameCasingCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source of an extension method that a query expression would use as its <c>Select</c> clause after the rename
+    /// </summary>
+    private const string SelectExtensionSource = """
+                                                 using System;
+                                                 using System.Collections.Generic;
+
+                                                 namespace Ext;
+
+                                                 public static class MyLinq
+                                                 {
+                                                     public static IEnumerable<TResult> {|RH4103:select|}<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+                                                     {
+                                                         foreach (var item in source)
+                                                         {
+                                                             yield return selector(item);
+                                                         }
+                                                     }
+                                                 }
+                                                 """;
+
+    /// <summary>
+    /// Source of an extension method <c>first</c> whose derived name <c>First</c> is not a name the compiler looks up
+    /// </summary>
+    private const string FirstExtensionSource = """
+                                                using System.Collections.Generic;
+
+                                                namespace Ext;
+
+                                                public static class MyLinq
+                                                {
+                                                    public static TSource {|RH4103:first|}<TSource>(this IEnumerable<TSource> source)
+                                                    {
+                                                        foreach (var item in source)
+                                                        {
+                                                            return item;
+                                                        }
+
+                                                        return default;
+                                                    }
+                                                }
+                                                """;
+
+    #endregion // Constants
+
     #region Tests
+
+    /// <summary>
+    /// Verifies that a query method keeps its diagnostic but gets no fix when its new name would make a query expression of another, unchanged document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAQueryOfAnotherDocumentAmbiguous()
+    {
+        const string queryCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 using Ext;
+
+                                 public static class Use
+                                 {
+                                     public static IEnumerable<int> Run(List<int> values)
+                                     {
+                                         return from value in values select value * 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(SelectExtensionSource,
+                     SelectExtensionSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", queryCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", queryCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a query method keeps its diagnostic but gets no fix when its new name would make a query expression of the same document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAQueryOfTheSameDocumentAmbiguous()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                using Ext;
+
+                                namespace Ext
+                                {
+                                    public static class MyLinq
+                                    {
+                                        public static IEnumerable<TResult> {|RH4103:select|}<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+                                        {
+                                            foreach (var item in source)
+                                            {
+                                                yield return selector(item);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                public static class Use
+                                {
+                                    public static IEnumerable<int> Run(List<int> values)
+                                    {
+                                        return from value in values select value * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an extension method is renamed when a call of another document does not see it, so the new name makes nothing ambiguous and the fix stays offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAnExtensionMethodThatNoCallOfAnotherDocumentSees()
+    {
+        const string callCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                public static class Use
+                                {
+                                    public static int Run(List<int> values)
+                                    {
+                                        return values.First();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 namespace Ext;
+
+                                 public static class MyLinq
+                                 {
+                                     public static TSource First<TSource>(this IEnumerable<TSource> source)
+                                     {
+                                         foreach (var item in source)
+                                         {
+                                             return item;
+                                         }
+
+                                         return default;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(FirstExtensionSource,
+                     fixedCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", callCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", callCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a query method keeps its diagnostic but gets no fix when its new name would make a query expression of a dependent project ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesAQueryOfADependentProjectAmbiguous()
+    {
+        const string queryCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 using Ext;
+
+                                 public static class Use
+                                 {
+                                     public static IEnumerable<int> Run(List<int> values)
+                                     {
+                                         return from value in values select value * 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(SelectExtensionSource,
+                     SelectExtensionSource,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Consumer"].Sources.Add(("/Consumer/Use.cs", queryCode));
+                         test.TestState.AdditionalProjects["Consumer"].AdditionalProjectReferences.Add("TestProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would make a deconstruction of another, unchanged document ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameMakesADeconstructionOfAnotherDocumentAmbiguous()
+    {
+        const string extensionCode = """
+                                     namespace Shapes
+                                     {
+                                         public class Point
+                                         {
+                                             public int X { get; set; }
+
+                                             public int Y { get; set; }
+                                         }
+                                     }
+
+                                     namespace Ext
+                                     {
+                                         public static class PointExtensions
+                                         {
+                                             public static void {|RH4103:deconstruct|}(this Shapes.Point point, out int x, out int y)
+                                             {
+                                                 x = point.X;
+                                                 y = point.Y;
+                                             }
+                                         }
+                                     }
+
+                                     namespace Ext2
+                                     {
+                                         public static class PointExtensions
+                                         {
+                                             public static void Deconstruct(this Shapes.Point point, out int x, out int y)
+                                             {
+                                                 x = point.X;
+                                                 y = point.Y;
+                                             }
+                                         }
+                                     }
+                                     """;
+
+        const string useCode = """
+                               using Ext;
+                               using Ext2;
+
+                               using Shapes;
+
+                               public static class Use
+                               {
+                                   public static int Sum(Point point)
+                                   {
+                                       var (x, y) = point;
+
+                                       return x + y;
+                                   }
+                               }
+                               """;
+
+        await Verify(extensionCode,
+                     extensionCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", useCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", useCode));
+                     });
+    }
 
     /// <summary>
     /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would make a <c>foreach</c> of another, unchanged document ambiguous
@@ -2024,4 +2300,54 @@ public partial class RH4103MethodNameCasingAnalyzerTests
     }
 
     #endregion // Tests
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class Calculator
+                                    {
+                                        public int {|#0:computeTotal|}(int value)
+                                        {
+                                            return computeFactor(value) * 2;
+                                        }
+
+                                        private int {|#1:computeFactor|}(int value)
+                                        {
+                                            return value + 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class Calculator
+                                     {
+                                         public int ComputeTotal(int value)
+                                         {
+                                             return ComputeFactor(value) * 2;
+                                         }
+
+                                         private int ComputeFactor(int value)
+                                         {
+                                             return value + 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The first reported method calls the second, so the batch has to rewrite the invocation together
+        // with both declarations
+        return new FixAllScenario(testCode,
+                                  fixedCode,
+                                  Diagnostics(RH4103MethodNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }

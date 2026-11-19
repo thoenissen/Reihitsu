@@ -15,10 +15,10 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH5111AssignmentsMustHaveProperLineBreaksAnalyzer"/>
+/// Test methods for <see cref="RH5111AssignmentsMustHaveProperLineBreaksAnalyzer"/> and <see cref="RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider"/>: what is reported, the join the fix writes, and the comments and directives that withhold it
 /// </summary>
 [TestClass]
-public partial class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeFixTestsBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer, RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider>
+public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeFixTestsBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer, RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider>
 {
     #region Properties
 
@@ -1736,527 +1736,653 @@ public partial class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : Ba
     }
 
     /// <summary>
-    /// Verifies that the fix of a parameter that starts a later line of its parameter list joins it and keeps the parameter's
-    /// column as in the document
+    /// Verifies the specification example: an enum member's <c>=</c> below its name is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyParameterOnALaterLineIsJoinedInItsColumn()
-    {
-        const string testData = """
-                                class C
-                                {
-                                    void M(int a,
-                                               {|#0:int b =
-                                               5|})
-                                    {
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     void M(int a,
-                                                int b = 5)
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member that starts a later line of its enum joins it and keeps the member's column as
-    /// in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberOnALaterLineIsJoinedInItsColumn()
+    [Requirement("RH5111-001")]
+    public async Task VerifyEnumMemberEqualsBelowNameIsReported()
     {
         const string testData = """
                                 enum E
                                 {
-                                    A = 1,
-                                      {|#0:B =
-                                      2|}
+                                    {|#0:A
+                                        = 1|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member whose <c>=</c> stands below its name joins the member in one application and
+    /// keeps the trailing comma, which belongs to the enum, not to the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
+    public async Task VerifyEnumMemberEqualsBelowNameIsFixedInOneApplication()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|},
                                 }
                                 """;
         const string fixedData = """
                                  enum E
                                  {
                                      A = 1,
-                                       B = 2
                                  }
                                  """;
 
         await Verify(testData,
                      fixedData,
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
                      Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of a declarator that starts a later line of a declaration indented with tabs keeps the tabs and
-    /// spaces in front of the declarator as in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyDeclaratorOnALaterLineOfATabIndentedDeclarationKeepsTheWhitespaceInFrontOfIt()
-    {
-        const string testData = "internal class TestClass\n{\n\tvoid Method()\n\t{\n\t\tint a = 1,\n\t\t    {|#0:b =\n\t\t        2|};\n\t}\n}\n";
-        const string fixedData = "internal class TestClass\n{\n\tvoid Method()\n\t{\n\t\tint a = 1,\n\t\t    b = 2;\n\t}\n}\n";
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member whose documentation comment is written behind the member in front of it keeps
-    /// that line as written, with nothing inserted in front of the comment, and keeps the member's column
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-010")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberWithDocumentationCommentBehindThePreviousMemberKeepsThatLineAsWritten()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First, /// Doc
-                                    {|#0:Second =
-                                        2|},
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First, /// Doc
-                                     Second = 2,
-                                     Third,
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of a parameter whose documentation comment is written behind the parameter in front of it keeps
-    /// that line as written, with nothing inserted in front of the comment, and keeps the parameter's column
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-010")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyParameterWithDocumentationCommentBehindThePreviousParameterKeepsThatLineAsWritten()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method(int first, /// Doc
-                                                {|#0:int second =
-                                                    1|})
-                                    {
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method(int first, /// Doc
-                                                 int second = 1)
-                                     {
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member behind two blank lines keeps both blank lines, one of which document-level
-    /// formatting would remove, and the member's column as in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindTwoBlankLinesKeepsBothBlankLines()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First,
-
-
-                                  {|#0:Second =
-                                  2|},
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First,
-
-
-                                   Second = 2,
-                                     Third,
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member behind a conditional directive and a blank line keeps the directive, the blank
-    /// line, and the columns as in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindConditionalDirectiveKeepsTheDirectiveAndTheBlankLineAsInTheDocument()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First,
-                                  #if !DEBUG
-
-                                      {|#0:Second =
-                                      2|},
-                                #endif
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First,
-                                   #if !DEBUG
-
-                                       Second = 2,
-                                 #endif
-                                     Third,
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member behind a region directive adds none of the blank lines document-level formatting
-    /// puts around the directive, and keeps the directive and the member in their columns as in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindRegionDirectiveAddsNoBlankLineAndKeepsTheColumns()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First,
-                                  #region Values
-                                  {|#0:Second =
-                                  2|},
-                                  #endregion
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First,
-                                   #region Values
-                                   Second = 2,
-                                   #endregion
-                                     Third,
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member behind a documentation comment adds no blank line above the comment, and keeps
-    /// every line of the comment and the member in their columns as in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindDocumentationCommentAddsNoBlankLineAndKeepsTheColumns()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First,
-                                      /// <summary>
-                                      /// Second
-                                      /// </summary>
-                                  {|#0:Second =
-                                  2|},
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First,
-                                       /// <summary>
-                                       /// Second
-                                       /// </summary>
-                                   Second = 2,
-                                     Third,
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member behind two comments with a blank line between them keeps exactly that blank
-    /// line, and both comments and the member in their columns as in the document
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindSeveralCommentsKeepsThemAsInTheDocument()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First,
-                                      // b
-
-                                  /* c */
-                                      {|#0:Second =
-                                      2|},
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First,
-                                       // b
-
-                                   /* c */
-                                       Second = 2,
-                                     Third,
-                                 }
-                                 """;
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an enum member behind two comments with a blank line between them keeps them as in the document
-    /// under CRLF line endings
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyEnumMemberBehindSeveralCommentsKeepsThemAsInTheDocumentWithCrLf()
-    {
-        const string testData = """
-                                internal enum Values
-                                {
-                                    First,
-                                      // b
-
-                                  /* c */
-                                      {|#0:Second =
-                                      2|},
-                                    Third,
-                                }
-                                """;
-        const string fixedData = """
-                                 internal enum Values
-                                 {
-                                     First,
-                                       // b
-
-                                   /* c */
-                                       Second = 2,
-                                     Third,
-                                 }
-                                 """;
-
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
                      Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that the fix of a parameter behind two blank lines and a comment keeps both blank lines, the comment, and the
-    /// columns as in the document
+    /// Verifies that the fix of an enum member whose <c>=</c> stands alone on its line joins name, <c>=</c>, and value in one
+    /// application
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyParameterBehindTwoBlankLinesAndCommentKeepsThemAsInTheDocument()
+    public async Task VerifyLoneEnumMemberEqualsIsFixedInOneApplication()
     {
         const string testData = """
-                                internal class TestClass
+                                enum E
                                 {
-                                    void Method(int first,
-
-
-                                      // second
-                                                    {|#0:int second =
-                                                    1|})
-                                    {
-                                    }
+                                    {|#0:A
+                                        =
+                                        1|},
                                 }
                                 """;
         const string fixedData = """
-                                 internal class TestClass
+                                 enum E
                                  {
-                                     void Method(int first,
-
-
-                                       // second
-                                                     int second = 1)
-                                     {
-                                     }
+                                     A = 1,
                                  }
                                  """;
 
         await Verify(testData,
                      fixedData,
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
                      Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that the fix of a declarator behind a blank line on a later line of its declaration keeps the blank line and
-    /// the declarator's column as in the document
+    /// Verifies that Fix All joins two enum members whose <c>=</c> stands below the name in one iteration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-004")]
-    [Requirement("SHARED-FIX-006")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task VerifyDeclaratorBehindBlankLineKeepsTheBlankLineAndItsColumn()
+    public async Task VerifyFixAllJoinsSeveralEnumMembers()
     {
         const string testData = """
-                                internal class TestClass
+                                enum E
                                 {
-                                    void Method()
-                                    {
-                                        int first = 1,
-
-                                              {|#0:second =
-                                              2|};
-                                    }
+                                    {|#0:A
+                                        = 1|},
+                                    {|#1:B
+                                        = 2|}
                                 }
                                 """;
         const string fixedData = """
-                                 internal class TestClass
+                                 enum E
                                  {
-                                     void Method()
-                                     {
-                                         int first = 1,
-
-                                               second = 2;
-                                     }
+                                     A = 1,
+                                     B = 2
                                  }
                                  """;
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
-    /// Verifies that the fix of an assignment behind a conditional access whose assigned member stands on its own line behind a
-    /// member binding puts the member under the <c>?</c>, where formatting the document puts it, under LF and CRLF
+    /// Verifies that in a CRLF document the fix writes the LF behind the last member of an enum, which it joins, as CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixAlignsAWrappedMemberBehindAMemberBindingUnderTheAnchor()
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesTheDetectedLineEndingBehindTheLastEnumMemberInAMixedDocument()
+    {
+        const string testData = "enum E\r\n{\r\n    A = 1,\r\n    B =\r\n    2\n}\r\n";
+        const string resultData = "enum E\r\n{\r\n    A = 1,\r\n    B = 2\r\n}\r\n";
+
+        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the whitespace behind the last member of an enum, which it joins, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FixRemovesWhitespaceBehindTheLastEnumMember(string endOfLine)
+    {
+        const string testData = "enum E\n{\n    A = 1,\n    {|RH5111:B =\n    2|}   \n}\n";
+        const string resultData = "enum E\n{\n    A = 1,\n    B = 2\n}\n";
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a comment or a <c>#pragma</c> directive in each wrapped gap around the equals sign of an enum member, a property, a declarator, or an assignment keeps the report, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyCommentOrPragmaInEveryWrappedGapKeepsTheReportWithoutCodeFix()
     {
         const string testData = """
-                                class A
+                                enum E
                                 {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
+                                    {|RH5111:A // c
+                                        = 1|},
                                 }
 
-                                class D
+                                class C
                                 {
-                                    void M(A a)
+                                    {|RH5111:int Q { get; set; } // c
+                                        = 5;|}
+
+                                    void M()
                                     {
-                                        a?{|#0:.B
-                                          .C =
-                                            5|};
+                                        var {|RH5111:y // c
+                                            = 1|};
+                                        int z;
+                                        {|RH5111:z = /* c */
+                                            2|};
+                                        {|RH5111:z
+                                #pragma warning disable CS0168
+                                            = 3|};
+                                    }
+
+                                    void N()
+                                    {
+                                        int /* t */ {|RH5111:x
+                                #pragma warning disable CS0168
+                                            = 1|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region directive pair in the wrapped gap in front of the equals sign of an assignment, a comment on a line of its own behind the equals sign, and a comment behind a parameter in front of its wrapped default value keep the report, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyRegionDirectiveOrCommentInTheWrappedGapKeepsTheReportWithoutCodeFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int z;
+                                        {|RH5111:z
+                                #region Value
+                                #endregion
+                                            = 3|};
+                                        {|RH5111:z =
+                                            // c
+                                            4|};
+                                    }
+
+                                    void N({|RH5111:int a // c
+                                               = 1|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix of a declarator in the body of an assigned lambda joins only the declarator,
+    /// while the assignment and the other statement of the lambda stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInAssignedLambdaLeavesTheAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a;
+                                        a = () => { var {|RH5111:x
+                                            = 1|}; int  y = x; };
                                     }
                                 }
                                 """;
         const string fixedData = """
-                                 class A
+                                 using System;
+
+                                 class C
                                  {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
+                                     void M()
                                      {
-                                         return null;
+                                         Action a;
+                                         a = () => { var x = 1; int  y = x; };
                                      }
                                  }
+                                 """;
 
-                                 class D
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the one-line documentation comment above the property whose initializer the fix joins
+    /// stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheOneLineDocumentationCommentAboveTheProperty(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>P</summary>
+                                    {|RH5111:int P { get; set; }
+                                        = 5;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
                                  {
-                                     void M(A a)
+                                     /// <summary>P</summary>
+                                     int P { get; set; } = 5;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a default value of a local function parameter in the body of an assigned lambda joins
+    /// only the parameter, while the assignment, the local function, and the other statement of the lambda stay as
+    /// written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfParameterDefaultInAssignedLambdaLeavesTheAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a;
+                                        a = () => { int L({|RH5111:int p
+                                            = 1|}) => p; int  y = L(); };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
                                      {
-                                         a?.B
-                                          .C = 5;
+                                         Action a;
+                                         a = () => { int L(int p = 1) => p; int  y = L(); };
                                      }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a declarator in the body of an assigned anonymous method joins only the declarator,
+    /// while the assignment and the other statement stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInAssignedAnonymousMethodLeavesTheAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a;
+                                        a = delegate { var {|RH5111:x
+                                            = 1|}; int  y = x; };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action a;
+                                         a = delegate { var x = 1; int  y = x; };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a declarator in the body of a lambda assigned to a member in an object initializer
+    /// joins only the declarator, while the member assignment and the other statement stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInLambdaOfObjectInitializerLeavesTheMemberAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    Action X { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C { X = () => { var {|RH5111:x
+                                            = 1|}; int  y = x; } };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     Action X { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C { X = () => { var x = 1; int  y = x; } };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an assignment in the body of an assigned lambda joins only that assignment, while the
+    /// outer assignment and the other statement stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfAssignmentInAssignedLambdaJoinsOnlyTheInnerAssignment(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int b)
+                                    {
+                                        Action a;
+                                        a = () => { {|RH5111:b
+                                            = 1|}; int  y = 2; };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(int b)
+                                     {
+                                         Action a;
+                                         a = () => { b = 1; int  y = 2; };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a declarator in the body of a lambda that initializes a field joins only the
+    /// declarator, while the other statement of the lambda stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInLambdaOfFieldInitializerLeavesTheLambdaAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    Action _a = () => { var {|RH5111:x
+                                        = 1|}; int  y = x; };
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     Action _a = () => { var x = 1; int  y = x; };
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment that leads the assignment statement whose value the fix
+    /// joins, where formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheAssignment(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int b = 0;
+                                        // c
+                                        {|RH5111:b
+                                            = 1|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int b = 0;
+                                         // c
+                                         b = 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a property whose initializer the fix joins, and which shares its line with a field in front of it,
+    /// starts on the next line in the column of that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAPropertyThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a; {|RH5111:public int P { get; } =
+                                        1;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+                                     public int P { get; } = 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a property whose initializer the fix joins, and which shares its line with a field behind it, keeps
+    /// its own line, and that the field behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAPropertyThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5111:public int P { get; } =
+                                        1;|} private int _b;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public int P { get; } = 1;
+                                     private int _b;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which formats the property through the formatter, joins the initializer of a property whose
+    /// setter carries two <c>param:</c> lists, and that the lists come back merged with one space behind the comma, under LF
+    /// and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixForPropertyWithMergedSetterParamListsKeepsTheCommaSpace()
+    {
+        const string testData = """
+                                class TestClass
+                                {
+                                    {|#0:int Property { get; [param: A] [param: B] set; }
+                                        = 1;|}
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class TestClass
+                                 {
+                                     int Property { get; [param: A, B] set; } = 1;
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
                                  }
                                  """;
 
@@ -2264,450 +2390,15 @@ public partial class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : Ba
     }
 
     /// <summary>
-    /// Verifies that the fix keeps a wrapped assigned member behind a member binding that already stands in the anchor's column,
-    /// under the <c>?</c>, under LF and CRLF
+    /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
+    /// <param name="testData">The source with LF line endings</param>
+    /// <param name="fixedData">The fixed source with LF line endings</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixKeepsAWrappedMemberThatStandsInTheAnchorColumn()
+    private static async Task VerifyUnderBothLineEndings(string testData, string fixedData)
     {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?{|#0:.B
-                                         .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.B
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix moves a wrapped assigned member written left of the anchor's column into that column, under LF and
-    /// CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixMovesAWrappedMemberLeftOfTheAnchorIntoTheAnchorColumn()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?{|#0:.B
-                                        .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.B
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix moves a wrapped assigned member written right of the assignment's first token into the anchor's
-    /// column, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixMovesAWrappedMemberRightOfTheAssignmentStartIntoTheAnchorColumn()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?{|#0:.B
-                                              .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.B
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an assignment behind a conditional access whose assigned member stands on its own line behind an
-    /// element binding joins the member to the line of the binding, as formatting the document does, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixJoinsAMemberBehindAnElementBinding()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?{|#0:[0]
-                                          .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?[0].C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an assignment behind a nested conditional access whose assigned member stands on its own line puts
-    /// the member under the first <c>?</c>, where formatting the document puts it, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixAlignsAWrappedMemberBehindANestedConditionalAccessUnderTheAnchor()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?.B?{|#0:.B
-                                            .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.B?.B
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix moves a wrapped assigned member written under the dot of the last binding of a nested conditional
-    /// access into the anchor's column, under the first <c>?</c>, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixMovesAWrappedMemberUnderTheLastBindingOfANestedConditionalAccessIntoTheAnchorColumn()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?.B?{|#0:.B
-                                             .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.B?.B
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an assignment behind a conditional access whose assigned member stands on its own line behind an
-    /// invoked binding puts the member under the <c>?</c>, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixAlignsAWrappedMemberBehindAnInvokedBindingUnderTheAnchor()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?{|#0:.N()
-                                          .C =
-                                            5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.N()
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
-    }
-
-    /// <summary>
-    /// Verifies that the fix of an assignment behind a conditional access whose assigned member and whose operator each stand on
-    /// their own line puts the member under the <c>?</c> and joins the operator and the value to it, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5111-006")]
-    public async Task VerifyFixAlignsAWrappedMemberWhoseOperatorIsWrappedUnderTheAnchor()
-    {
-        const string testData = """
-                                class A
-                                {
-                                    public A B;
-                                    public A this[int i] => null;
-                                    public int C;
-                                    public A N()
-                                    {
-                                        return null;
-                                    }
-                                }
-
-                                class D
-                                {
-                                    void M(A a)
-                                    {
-                                        a?{|#0:.B
-                                          .C
-                                            = 5|};
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class A
-                                 {
-                                     public A B;
-                                     public A this[int i] => null;
-                                     public int C;
-                                     public A N()
-                                     {
-                                         return null;
-                                     }
-                                 }
-
-                                 class D
-                                 {
-                                     void M(A a)
-                                     {
-                                         a?.B
-                                          .C = 5;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyUnderBothLineEndings(testData, fixedData);
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

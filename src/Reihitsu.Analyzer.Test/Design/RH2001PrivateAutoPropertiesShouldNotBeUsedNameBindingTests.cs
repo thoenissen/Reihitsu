@@ -1,9 +1,5 @@
-﻿using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,245 +10,12 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Design;
 
 /// <summary>
-/// Test methods for <see cref="RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer"/> and <see cref="RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider"/>
+/// Test methods for <see cref="RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider"/> on the names the field and the renamed references bind to, and the inferred names that a rename would change
 /// </summary>
-public partial class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests
+[TestClass]
+public class RH2001PrivateAutoPropertiesShouldNotBeUsedNameBindingTests : BatchCodeFixTestsBase<RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
     #region Tests
-
-    /// <summary>
-    /// Verifies the specification example of a group behind a property with an initializer: the property ends in
-    /// <c>;</c>, so the excluded <c>static</c> belongs to the next member in every build, and the fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
-    [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAConditionalModifierBehindAPropertyWithAnInitializer(string endOfLine)
-    {
-        const string source = """
-                              class C
-                              {
-                                  private int {|RH2001:Value|} { get; } = 5;
-                              #if DEBUG
-                                  static
-                              #endif
-                                  private int _other;
-
-                                  int Read() => Value;
-                              }
-                              """;
-
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private readonly int _value = 5;
-                                   #if DEBUG
-                                       static
-                                   #endif
-                                       private int _other;
-
-                                       int Read() => _value;
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the specification example of a group of a whole member in front of the first modifier inside the active
-    /// branch of a group that wraps the file: the wrapping group has no directive in front of the first modifier or behind
-    /// the property, so it is not read, and the fix is offered as in multi-targeting code
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
-    [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAGroupOfAWholeMemberInsideTheActiveBranchOfAGroupThatWrapsTheFile(string endOfLine)
-    {
-        const string source = """
-                              #define NET
-                              #if NET
-                              class C
-                              {
-                              #if DEBUG
-                                  private int _trace;
-                              #endif
-                                  private int {|RH2001:Value|} { get; }
-
-                                  int Read() => Value;
-                              }
-                              #endif
-                              """;
-
-        const string fixedSource = """
-                                   #define NET
-                                   #if NET
-                                   class C
-                                   {
-                                   #if DEBUG
-                                       private int _trace;
-                                   #endif
-                                       private readonly int _value;
-
-                                       int Read() => _value;
-                                   }
-                                   #endif
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies that Fix All replaces the property behind which a group of a whole member stands and leaves the property
-    /// behind which an excluded initializer stands reported without a fix
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-010")]
-    [Requirement("SHARED-FIX-002")]
-    public async Task VerifyFixAllSkipsThePropertyBehindWhichAnExcludedInitializerStands()
-    {
-        const string testData = """
-                                class C
-                                {
-                                    private int {|RH2001:Second|} { get; }
-                                #if DEBUG
-                                    private int _trace;
-                                #endif
-
-                                    private int {|RH2001:Third|} { get; }
-
-                                    private int {|RH2001:First|} { get; }
-                                #if X
-                                    = 5;
-                                #endif
-
-                                    int Read() => First + Second + Third;
-                                }
-                                """;
-
-        const string resultData = """
-                                  class C
-                                  {
-                                      private readonly int _second;
-                                  #if DEBUG
-                                      private int _trace;
-                                  #endif
-
-                                      private readonly int _third;
-
-                                      private int {|RH2001:First|} { get; }
-                                  #if X
-                                      = 5;
-                                  #endif
-
-                                      int Read() => First + _second + _third;
-                                  }
-                                  """;
-
-        await Verify(testData,
-                     resultData,
-                     test =>
-                     {
-                         // The diagnostic whose fix is withheld stays and is marked in the expected source
-                         test.FixedState.MarkupHandling = MarkupMode.Allow;
-                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
-                     });
-    }
-
-    /// <summary>
-    /// Verifies that Fix All replaces the property behind a group of a whole member and leaves the property behind a group
-    /// holding <c>extern</c> reported without a fix
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-010")]
-    [Requirement("SHARED-FIX-002")]
-    public async Task VerifyFixAllSkipsThePropertyBehindAConditionalExternInFrontOfTheFirstModifier()
-    {
-        const string testData = """
-                                class C
-                                {
-                                #if DEBUG
-                                    extern
-                                #endif
-                                    private int {|RH2001:First|} { get; }
-
-                                #if DEBUG
-                                    private int _trace;
-                                #endif
-                                    private int {|RH2001:Second|} { get; }
-
-                                    private int {|RH2001:Third|} { get; }
-
-                                    int Read() => First + Second + Third;
-                                }
-                                """;
-
-        const string resultData = """
-                                  class C
-                                  {
-                                  #if DEBUG
-                                      extern
-                                  #endif
-                                      private int {|RH2001:First|} { get; }
-
-                                  #if DEBUG
-                                      private int _trace;
-                                  #endif
-                                      private readonly int _second;
-
-                                      private readonly int _third;
-
-                                      int Read() => First + _second + _third;
-                                  }
-                                  """;
-
-        await Verify(testData,
-                     resultData,
-                     test =>
-                     {
-                         // The diagnostic whose fix is withheld stays and is marked in the expected source
-                         test.FixedState.MarkupHandling = MarkupMode.Allow;
-                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
-                     });
-    }
-
-    /// <summary>
-    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
-    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-FIX-011")]
-    public async Task NoFixIsOfferedInAFileWithASyntaxError()
-    {
-        const string source = """
-                              namespace Reihitsu.Analyzer.Test.Design.Resources
-                              {
-                                  internal class RH2001
-                                  {
-                                      public int Sum()
-                                      {
-                                          return Alpha + Beta;
-                                      }
-
-                                      private int Alpha { get; set; }
-
-                                      private int Beta { get; set; }
-                                  }
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
-    }
 
     /// <summary>
     /// Verifies that the fix is withheld for an inherited field that is read unqualified, which the rename would rewrite to
@@ -3165,220 +2928,64 @@ public partial class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests
         await Verify(testData, resultData);
     }
 
-    /// <summary>
-    /// Verifies that the fix, which replaces the property by a field, keeps the one-line documentation comment above it
-    /// and inserts no blank line between the field in front of it and that comment
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("SHARED-FIX-006")]
-    public async Task VerifyFixKeepsTheOneLineDocumentationCommentAndInsertsNoBlankLine(string endOfLine)
-    {
-        const string testData = """
-                                class C
-                                {
-                                    private int _a;
-                                    /// <summary>The value.</summary>
-                                    private int {|RH2001:Value|} { get; set; }
-                                }
-                                """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     private int _a;
-                                     /// <summary>The value.</summary>
-                                     private int _value;
-                                 }
-                                 """;
+    #endregion // Tests
 
-        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
     }
 
-    /// <summary>
-    /// Verifies that a property the fix replaces by a field, and which shares its line with a field in front of it,
-    /// starts on the next line in the column of that line
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("SHARED-FIX-007")]
-    public async Task VerifyFixGivesAFieldThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
     {
         const string testData = """
-                                class C
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
                                 {
-                                    private int _a; private int {|RH2001:Value|} { get; set; }
-
-                                    public int M()
+                                    internal class RH2001
                                     {
-                                        Value = 1;
-                                        return _a + Value;
+                                        public int Sum()
+                                        {
+                                            return Alpha + Beta;
+                                        }
+
+                                        private int {|#0:Alpha|} { get; set; }
+
+                                        private int {|#1:Beta|} { get; set; }
                                     }
-                                }
-                                """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     private int _a;
-                                     private int _value;
-
-                                     public int M()
-                                     {
-                                         _value = 1;
-                                         return _a + _value;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
-    }
-
-    /// <summary>
-    /// Verifies that a property the fix replaces by a field, and which shares its line with a field behind it, keeps
-    /// its own line, and that the field behind it starts on the next line
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("SHARED-FIX-007")]
-    public async Task VerifyFixGivesAFieldThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
-    {
-        const string testData = """
-                                class C
-                                {
-                                    private int {|RH2001:Value|} { get; set; } private int _b;
-
-                                    public int M()
-                                    {
-                                        Value = 1;
-                                        return Value + _b;
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     private int _value;
-                                     private int _b;
-
-                                     public int M()
-                                     {
-                                         _value = 1;
-                                         return _value + _b;
-                                     }
-                                 }
-                                 """;
-
-        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
-    }
-
-    /// <summary>
-    /// Verifies that the fix for a get-only auto-property with the preview <c>safe</c> modifier writes <c>readonly</c> in
-    /// front of <c>safe</c>, the order RH7105 asks for, and that the field compiles
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-004")]
-    public async Task VerifyPrivateGetOnlySafeAutoPropertyCodeFixWritesReadonlyInFrontOfSafe()
-    {
-        const string testData = """
-                                internal class RH2001
-                                {
-                                    private safe int {|#0:Count|} { get; } = 1;
                                 }
                                 """;
 
         const string resultData = """
-                                  internal class RH2001
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources
                                   {
-                                      private readonly safe int _count = 1;
+                                      internal class RH2001
+                                      {
+                                          public int Sum()
+                                          {
+                                              return _alpha + _beta;
+                                          }
+
+                                          private int _alpha;
+
+                                          private int _beta;
+                                      }
                                   }
                                   """;
 
-        await Verify(testData,
-                     resultData,
-                     test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is Microsoft.CodeAnalysis.CSharp.CSharpParseOptions parseOptions
-                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion.Preview))
-                                                                                      : solution),
-                     Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+        return new FixAllScenario(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
-    /// <summary>
-    /// Verifies the specification example: a comment in front of an argument list of the initializer's value withholds the fix,
-    /// because the formatter refuses the field the fix builds, and the diagnostic stays
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-007")]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnArgumentListOfTheInitializerValue(string endOfLine)
-    {
-        const string testData = """
-                                class C
-                                {
-                                    private int {|RH2001:Value|} { get; set; } = Offset /* three */ (3);
-
-                                    private static int Offset(int value)
-                                    {
-                                        return value;
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the change example: a line comment that keeps the argument list of the initializer's value on the line below
-    /// withholds the fix
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-007")]
-    public async Task VerifyNoFixIsOfferedForALineCommentInFrontOfAnArgumentListOfTheInitializerValue()
-    {
-        const string testData = """
-                                class C
-                                {
-                                    private int {|RH2001:Value|} { get; set; } = Offset // three
-                                                                                   (3);
-
-                                    private static int Offset(int value)
-                                    {
-                                        return value;
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    /// <summary>
-    /// Verifies that a comment in front of an element access, in front of a null-forgiving operator, or between the <c>?</c> and the
-    /// <c>[</c> of a conditional element access in the initializer's value withholds the fix
-    /// </summary>
-    /// <param name="value">The initializer's value</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-007")]
-    [DataRow("Values /* c */ [0]", DisplayName = "In front of an element access")]
-    [DataRow("(Text /* c */ !).Length", DisplayName = "In front of a null-forgiving operator")]
-    [DataRow("Values? /* c */ [0] ?? 0", DisplayName = "Between the question mark and the bracket")]
-    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnAttachedPartOfTheInitializerValue(string value)
-    {
-        var testData = $"#nullable enable\n\nclass C\n{{\n    private int {{|RH2001:Value|}} {{ get; set; }} = {value};\n\n    private static int[] Values = [];\n\n    private static string? Text = \"\";\n}}";
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    #endregion // Tests
+    #endregion // BatchCodeFixTestsBase
 }

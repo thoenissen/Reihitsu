@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -18,11 +17,757 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH7101DoNotCombineFieldsAnalyzer"/> and <see cref="RH7101DoNotCombineFieldsCodeFixProvider"/>
+/// Test methods for <see cref="RH7101DoNotCombineFieldsCodeFixProvider"/> on comments, documentation comments, and directives in and around the declaration and its type, which the fix keeps or for which it is withheld
 /// </summary>
-public partial class RH7101DoNotCombineFieldsAnalyzerTests
+[TestClass]
+public class RH7101DoNotCombineFieldsCommentAndDirectiveTests : BatchCodeFixTestsBase<RH7101DoNotCombineFieldsAnalyzer, RH7101DoNotCombineFieldsCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// A document with a combined field declaration in front of a <c>/* */</c> comment that starts inside the <c>#if !X</c> group
+    /// and holds the line <c>#else</c>, so a build with <c>X</c> reads the lines behind it as the content of the verbatim string
+    /// <c>s</c>
+    /// </summary>
+    private const string CarrierDocumentSource = """
+                                                 internal class OtherClass
+                                                 {
+                                                     private int c, {|RH7101:d|};
+
+                                                     int M(int a)
+                                                     {
+                                                 #if !X
+                                                         /*
+                                                 #else
+                                                         var s = @"
+                                                         */
+                                                         a = 1; //";
+                                                 #endif
+                                                         return a;
+                                                     }
+                                                 }
+                                                 """;
+
+    #endregion // Constants
+
     #region Tests
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a combined declaration in a type that holds a conditional with comments between its
+    /// operators and its branches: the fix formats the type, which the formatter refuses as unsupported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedInATypeThatHoldsACommentBehindAConditionalOperator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(bool a)
+                                  {
+                                      var x = a ? /* yes */ 1 : /* no */ 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation-style comment in front of the semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task DocumentationStyleCommentInFrontOfTheSemicolonWithholdsTheFix()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int firstField, {|RH7101:secondField|} /** Trailing note. */;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation-style comment in front of a separating comma withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task DocumentationStyleCommentInFrontOfASeparatingCommaWithholdsTheFix()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int firstField /** First field. */, {|RH7101:secondField|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment in front of a later declarator withholds the fix: it is no
+    /// documentation comment of the declaration, and the formatter refuses it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    [Requirement("RH7101-007")]
+    public async Task SingleLineDocumentationCommentInFrontOfALaterDeclaratorWithholdsTheFix()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int firstField,
+                                              /// <summary>Second field.</summary>
+                                              {|RH7101:secondField|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a later declarator withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    [Requirement("RH7101-007")]
+    public async Task DelimitedDocumentationCommentInFrontOfALaterDeclaratorWithholdsTheFix()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int firstField,
+                                              /** Second field. */
+                                              {|RH7101:secondField|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind a binary operator, in an initializer value or elsewhere in the type,
+    /// withholds the fix for every combined declaration of the type
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleCommentBehindABinaryOperatorWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a = 1 + /* c */ 2, {|RH7101:_b|};
+
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(int value)
+                                  {
+                                      return value + /* c */ 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a binary operator in an initializer value of the declaration withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBehindABinaryOperatorInAnInitializerValueWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a = 1 + /* c */ 2, {|RH7101:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a binary operator in a method of the type, far from the declaration, withholds the fix, also
+    /// in a nested type
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int value)\n    {\n        return value + /* c */ 1;\n    }\n}", DisplayName = "In a method of the type")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        bool M(bool a, bool b)\n        {\n            return a &&\n                // c\n                b;\n        }\n    }\n}", DisplayName = "In a nested type")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int value)\n    {\n        return value +\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive in a method of the type")]
+    public async Task CommentBehindABinaryOperatorElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind the arrow of an expression body elsewhere in the type withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleCommentBehindTheArrowOfAnExpressionBodyWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a, {|RH7101:_b|};
+
+                                  int A => // c
+                                      _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment or directive behind the arrow of an expression body withholds the fix wherever the type holds it:
+    /// in a method, in an accessor, in a local function in an initializer value of the declaration, and in a nested type
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M() => /* c */ 1;\n}", DisplayName = "Block comment behind the arrow of a method on one line")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int P\n    {\n        get =>\n            // c\n            _x;\n    }\n}", DisplayName = "Comment line behind the arrow of a getter")]
+    [DataRow("using System;\n\nclass C\n{\n    private Func<int> _f = () =>\n    {\n        int L() => /* c */ 1;\n\n        return L();\n    }, {|RH7101:_g|};\n}", DisplayName = "Local function in an initializer value")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P =>\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive behind the arrow in a nested type")]
+    public async Task CommentBehindTheArrowOfAnExpressionBodyElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a conditional expression's operator, or between a list element and a comma on a later line,
+    /// elsewhere in the type withholds the fix
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(bool b)\n    {\n        return b ? /* c */ 1 : 2;\n    }\n}", DisplayName = "Behind a conditional operator")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    void M()\n    {\n        N(1 // c\n          , 2);\n    }\n\n    void N(int a, int b)\n    {\n    }\n}", DisplayName = "In front of a comma on a later line")]
+    public async Task CommentOfAnotherRefusedShapeElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a binary operator elsewhere in the type does not withhold the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentInFrontOfABinaryOperatorElsewhereInTheTypeDoesNotWithholdTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(int value)
+                                  {
+                                      return value /* c */ + 1;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y;
+
+                                       int M(int value)
+                                       {
+                                           return value /* c */ + 1;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment written at column zero in front of the first declarator's name, on a later line than the type,
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentAtColumnZeroInFrontOfTheFirstNameWithholdsTheFix()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int
+                              /* c */ firstField, {|RH7101:secondField|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a separating comma withholds the fix: the formatter refuses the type the fix formats the
+    /// declaration in, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBehindASeparatingCommaWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _first, // first
+                                              {|RH7101:_second|}; // second
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a region in front of one declaration and a conditional group around another do not
+    /// withhold the fix, which splits both declarations and keeps each directive in front of the first field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [Requirement("RH7101-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleDirectiveInFrontOfTheDeclarationDoesNotWithholdTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  private int _x, {|RH7101:_y|};
+
+                                  #endregion // Fields
+
+                              #if !RELEASE
+                                  private int _p, {|RH7101:_q|} = 1;
+                              #endif
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       #region Fields
+
+                                       private int _x;
+                                       private int _y;
+
+                                       #endregion // Fields
+
+                                   #if !RELEASE
+                                       private int _p;
+                                       private int _q = 1;
+                                   #endif
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a region whose directives stand directly in front of and behind the declaration does not withhold the fix,
+    /// and the fix leaves both directives where they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [Requirement("RH7101-004")]
+    public async Task RegionDirectiveDirectlyInFrontOfTheDeclarationDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+                                  private int _a, {|RH7101:_b|};
+                                  #endregion
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       #region Fields
+                                       private int _a;
+                                       private int _b;
+                                       #endregion
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a pragma directive between the declarators withholds the fix, and the diagnostic is still
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    public async Task PragmaDirectiveBetweenTheDeclaratorsWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a,
+                              #pragma warning disable CS0169
+                                              {|RH7101:_b|};
+                              #pragma warning restore CS0169
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a later declarator, behind a comment that trails the separating comma, withholds
+    /// the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentInFrontOfALaterDeclaratorWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, // horizontal
+                                              /* vertical */ {|RH7101:_y|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a blank line in front of a later declarator withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBehindABlankLineInFrontOfALaterDeclaratorWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, // horizontal
+
+                                              /* vertical */ {|RH7101:_y|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that documentation comments in front of later declarators withhold the fix in every documentation mode
+    /// </summary>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    [Requirement("RH7101-007")]
+    [DataRow(DocumentationMode.Parse)]
+    [DataRow(DocumentationMode.Diagnose)]
+    [DataRow(DocumentationMode.None)]
+    public async Task DocumentationCommentsInFrontOfLaterDeclaratorsWithholdTheFixInEveryDocumentationMode(DocumentationMode documentationMode)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x,
+                                              /// <summary>Second field.</summary>
+                                              {|RH7101:_y|},
+                                              /** Third field. */
+                                              _z;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, documentationMode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with a comment that spans lines in each gap: the fix lays out the declaration
+    /// as the formatter lays it out, so the first field stays behind the closing <c>*/</c> in front, the member behind the
+    /// closing <c>*/</c> behind stays where it is, and only the later field starts a line of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheMembersBehindACommentThatSpansLinesInTheGapsWhereTheyAre()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ private int _x, {|RH7101:_y|}; /* c
+                                     d */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */ private int _x;
+                                       private int _y; /* c
+                                          d */ private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves the first field behind the closing <c>*/</c> of a comment that spans lines in the gap
+    /// in front of the declaration, as the formatter leaves it, and does not change the member in front
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheFirstFieldBehindACommentThatSpansLinesInTheGapInFront()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _p; /* a
+                                          b */ private int _x;
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves a member behind the closing <c>*/</c> of a comment that spans lines behind the
+    /// declaration where it is, as the formatter leaves it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixLeavesTheMemberBehindACommentThatSpansLinesInTheGapBehind()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /* a
+                                     b */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y; /* a
+                                          b */ private int _q;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingChangesNothing(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a comment that spans lines behind the separating comma withholds the fix, also with a member in front of
+    /// the declaration on its line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentThatSpansLinesBehindTheSeparatorWithholdsTheFixBehindAMemberInFront(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; private int _x, /* a
+                                     b */ {|RH7101:_y|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source.ReplaceLineEndings(endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment that spans lines behind the separating comma withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentThatSpansLinesBehindTheSeparatorWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, /* a
+                                     b */ {|RH7101:_y|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source.ReplaceLineEndings(endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment that spans lines in the gap in front of the declaration, with another one in the gap behind it, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesInTheGapInFrontWithholdsTheFixAlsoWithOneInTheGapBehind()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /** a
+                                     b */ private int _x, {|RH7101:_y|}; /** c
+                                     d */ private int _q;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment that spans lines in the gap in front of the declaration, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentThatSpansLinesInTheGapInFrontWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /** a
+                                     b */ private int _x, {|RH7101:_y|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
+    /// the target holds a documentation comment that spans lines, and that no blank line is written above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task FixStartsTheMemberBehindADocumentationCommentThatSpansLinesInTheGapBehindOnTheNextLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|}; /** c
+                                     d */ private int _q;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y;
+                                       /** c
+                                          d */ private int _q;
+                                   }
+                                   """;
+
+        const string formattedSource = """
+                                       class C
+                                       {
+                                           private int _x;
+                                           private int _y;
+
+                                           /** c
+                                              d */ private int _q;
+                                       }
+                                       """;
+
+        await Verify(source, fixedSource);
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, "_y");
+        AssertFormattingAddsOnlyBlankLines(source, fixedSource, formattedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment behind a comment that spans lines in the gap in front of the declaration, with the same pair in the gap behind it, which is in the declaration's leading trivia and documents it, withholds the fix in the
+    /// documentation modes Parse and Diagnose, and that the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-006")]
+    public async Task DocumentationCommentBehindACommentThatSpansLinesInTheGapInFrontWithholdsTheFixAlsoWithOneInTheGapBehind()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p; /* a
+                                     b */ /** c */ private int _x, {|RH7101:_y|}; /* d
+                                     e */ /** f */ private int _q;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
 
     /// <summary>
     /// Verifies that a documentation comment behind a comment that spans lines in the gap in front of the declaration, which is in the declaration's leading trivia and documents it, withholds the fix in the
@@ -561,47 +1306,6 @@ public partial class RH7101DoNotCombineFieldsAnalyzerTests
                                    """;
 
         await Verify(source, fixedSource);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered for a combined declaration in a block-scoped namespace, where the fix would
-    /// change nothing
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-FIX-005")]
-    public async Task NoCodeFixForACombinedDeclarationInABlockScopedNamespace()
-    {
-        const string source = """
-                              namespace N
-                              {
-                                  int a, b;
-                              }
-                              """;
-
-        var actions = await GetCodeFixActionsAsync(source, RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, GetSecondDeclaratorLocation);
-
-        Assert.IsEmpty(actions);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered for a combined declaration in a file-scoped namespace, where the fix would
-    /// change nothing
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-FIX-005")]
-    public async Task NoCodeFixForACombinedDeclarationInAFileScopedNamespace()
-    {
-        const string source = """
-                              namespace N;
-
-                              int a, b;
-                              """;
-
-        var actions = await GetCodeFixActionsAsync(source, RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, GetSecondDeclaratorLocation);
-
-        Assert.IsEmpty(actions);
     }
 
     /// <summary>
@@ -1606,129 +2310,6 @@ public partial class RH7101DoNotCombineFieldsAnalyzerTests
     }
 
     /// <summary>
-    /// Verifies that in a CRLF document the fix writes the LF behind the split declaration as CRLF behind its last field
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-010")]
-    [Requirement("SHARED-FIX-008")]
-    public async Task FixWritesTheDetectedLineEndingBehindTheLastFieldInAMixedDocument()
-    {
-        const string testData = "internal class TestClass\r\n{\r\n    private int _a, _b;\n    private int _c;\r\n}\r\n";
-        const string resultData = "internal class TestClass\r\n{\r\n    private int _a;\r\n    private int _b;\r\n    private int _c;\r\n}\r\n";
-
-        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
-    }
-
-    /// <summary>
-    /// Verifies that the fix removes the whitespace behind the split declaration, under LF and CRLF
-    /// </summary>
-    /// <param name="endOfLine">The line ending of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("FMT-PIPE-010")]
-    public async Task FixRemovesWhitespaceBehindTheLastField(string endOfLine)
-    {
-        const string testData = "internal class TestClass\n{\n    private int _a, {|RH7101:_b|};   \n    private int _c;\n}\n";
-        const string resultData = "internal class TestClass\n{\n    private int _a;\n    private int _b;\n    private int _c;\n}\n";
-
-        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
-    }
-
-    /// <summary>
-    /// Verifies that a combined static field declaration in a union declaration is reported and split by the fix
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task VerifyCombinedStaticFieldInAUnionIsSplit()
-    {
-        const string testData = """
-                                public union U7(int, string)
-                                {
-                                    public static int A = 1, {|#0:B|} = 2;
-                                }
-                                """;
-
-        const string fixedData = """
-                                 public union U7(int, string)
-                                 {
-                                     public static int A = 1;
-                                     public static int B = 2;
-                                 }
-                                 """;
-
-        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that the fix splits a combined static field declaration in a union declaration under CRLF line endings, and that
-    /// the result keeps them
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task VerifyCombinedStaticFieldInAUnionIsSplitWithCarriageReturnLineFeed()
-    {
-        const string testData = """
-                                public union U7(int, string)
-                                {
-                                    public static int A = 1, {|RH7101:B|} = 2;
-                                }
-                                """;
-
-        const string fixedData = """
-                                 public union U7(int, string)
-                                 {
-                                     public static int A = 1;
-                                     public static int B = 2;
-                                 }
-                                 """;
-
-        var source = ConvertEndOfLine(testData, "\r\n");
-        var expected = ConvertEndOfLine(fixedData, "\r\n");
-
-        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(source, expected, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
-
-        Assert.AreEqual(expected, await ApplyCodeFixAsync(RemoveMarkup(source)));
-    }
-
-    /// <summary>
-    /// Verifies that the fix splits a combined static and a combined constant declaration in one union declaration, each through
-    /// its own diagnostic, and that Fix All splits both
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH7101-004")]
-    public async Task VerifyCombinedFieldsInAUnionAreSplitTogether()
-    {
-        const string testData = """
-                                public union U7(int, string)
-                                {
-                                    public static int A = 1, {|#0:B|} = 2;
-                                    public const int C = 3, {|#1:D|} = 4;
-                                }
-                                """;
-
-        const string fixedData = """
-                                 public union U7(int, string)
-                                 {
-                                     public static int A = 1;
-                                     public static int B = 2;
-                                     public const int C = 3;
-                                     public const int D = 4;
-                                 }
-                                 """;
-
-        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat, 2));
-    }
-
-    /// <summary>
     /// Verifies the specification example: a declaration with a directive between its declarators, which the formatter refuses,
     /// withholds the fix of another declaration of the same type as well, and both stay reported
     /// </summary>
@@ -1963,96 +2544,6 @@ public partial class RH7101DoNotCombineFieldsAnalyzerTests
     }
 
     /// <summary>
-    /// Verifies the specification example through the code fix and Fix All: a line break behind the type and a line break
-    /// between two modifiers are repeated in every field the fix creates, and a line break behind a <c>,</c> stands in no
-    /// field, under LF and CRLF line endings
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-021")]
-    [Requirement("RH7101-004")]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    public async Task FixRepeatsLineBreaksInsideAndBehindTheHeadInEveryField(string endOfLine)
-    {
-        const string source = """
-                              using System;
-                              using System.Collections.Generic;
-
-                              class C
-                              {
-                                  private Dictionary<string, List<int>>
-                                      _map1, {|RH7101:_map2|} = new();
-
-                                  private static
-                                      readonly int _g = 1, {|RH7101:_h|};
-
-                                  [NonSerialized]
-                                  private int _x,
-                                      {|RH7101:_y|};
-                              }
-                              """;
-        const string fixedSource = """
-                                   using System;
-                                   using System.Collections.Generic;
-
-                                   class C
-                                   {
-                                       private Dictionary<string, List<int>>
-                                       _map1;
-                                       private Dictionary<string, List<int>>
-                                       _map2 = new();
-
-                                       private static
-                                       readonly int _g = 1;
-                                       private static
-                                       readonly int _h;
-
-                                       [NonSerialized]
-                                       private int _x;
-                                       [NonSerialized]
-                                       private int _y;
-                                   }
-                                   """;
-
-        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies that the fix repeats a line break behind the type in every field it creates, with the first declarator on a
-    /// deeper column, and writes every line break as the document's line ending
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-021")]
-    [Requirement("RH7101-004")]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    public async Task FixRepeatsALineBreakBehindTheTypeInEveryField(string endOfLine)
-    {
-        const string source = """
-                              internal class TestClass
-                              {
-                                  private int
-                                      _g, {|RH7101:_h|};
-                              }
-                              """;
-        const string fixedSource = """
-                                   internal class TestClass
-                                   {
-                                       private int
-                                       _g;
-                                       private int
-                                       _h;
-                                   }
-                                   """;
-
-        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
-    }
-
-    /// <summary>
     /// Verifies the change example: a comment in front of the arrow of an expression body elsewhere in the type withholds the fix,
     /// while the diagnostic stays
     /// </summary>
@@ -2139,4 +2630,121 @@ public partial class RH7101DoNotCombineFieldsAnalyzerTests
     }
 
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Applies the fix of the declaration whose declarator has the given name, under LF and under CRLF, and asserts the
+    /// document's text after the fix, with the document's line ending kept
+    /// </summary>
+    /// <param name="source">Source text without markup, with LF line endings</param>
+    /// <param name="fixedSource">Expected text after the fix, with LF line endings</param>
+    /// <param name="reportedDeclaratorName">Name of the declarator the diagnostic is reported on</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertSingleFixUnderBothLineEndings(string source, string fixedSource, string reportedDeclaratorName)
+    {
+        await AssertSingleFixUnderBothLineEndings(source, fixedSource, reportedDeclaratorName, DocumentationMode.Parse);
+    }
+
+    /// <summary>
+    /// Applies the fix of the declaration whose declarator has the given name, under LF and under CRLF, with the syntax
+    /// tree parsed in the given documentation mode, and asserts the document's text after the fix, with the document's
+    /// line ending kept
+    /// </summary>
+    /// <param name="source">Source text without markup, with LF line endings</param>
+    /// <param name="fixedSource">Expected text after the fix, with LF line endings</param>
+    /// <param name="reportedDeclaratorName">Name of the declarator the diagnostic is reported on</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertSingleFixUnderBothLineEndings(string source, string fixedSource, string reportedDeclaratorName, DocumentationMode documentationMode)
+    {
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        Assert.AreEqual(fixedSource, await ApplyFixOfDeclarationAsync(plainSource, reportedDeclaratorName, documentationMode), "Unexpected fix result under LF line endings.");
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedSource), await ApplyFixOfDeclarationAsync(NormalizeToCarriageReturnLineFeed(plainSource), reportedDeclaratorName, documentationMode), "Unexpected fix result under CRLF line endings.");
+    }
+
+    /// <summary>
+    /// Applies the one fix offered for the declaration whose declarator has the given name
+    /// </summary>
+    /// <param name="source">Source text without markup</param>
+    /// <param name="reportedDeclaratorName">Name of the declarator the diagnostic is reported on</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <returns>The document's text after the fix</returns>
+    private static async Task<string> ApplyFixOfDeclarationAsync(string source, string reportedDeclaratorName, DocumentationMode documentationMode)
+    {
+        var actions = await GetCodeFixActionsAsync(source,
+                                                   RH7101DoNotCombineFieldsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == reportedDeclaratorName)
+                                                               .Identifier
+                                                               .GetLocation(),
+                                                   documentationMode);
+
+        Assert.HasCount(1, actions, "Exactly one fix must be offered for the declaration.");
+
+        var operations = await actions[0].GetOperationsAsync(CancellationToken.None);
+        var changedDocument = operations.OfType<ApplyChangesOperation>()
+                                        .Single()
+                                        .ChangedSolution
+                                        .Projects
+                                        .Single()
+                                        .Documents
+                                        .Single();
+
+        return (await changedDocument.GetTextAsync(CancellationToken.None)).ToString();
+    }
+
+    /// <summary>
+    /// Asserts that formatting the source and formatting the fix result both give the formatted source, and that the fix
+    /// result differs from it only by the blank lines the formatter writes, which the fix does not write in the gaps
+    /// around the declaration
+    /// </summary>
+    /// <param name="source">Source text with markup, with LF line endings</param>
+    /// <param name="fixedSource">Expected text after the fix, with LF line endings</param>
+    /// <param name="formattedSource">Expected text after formatting, with LF line endings</param>
+    private static void AssertFormattingAddsOnlyBlankLines(string source, string fixedSource, string formattedSource)
+    {
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        Assert.AreEqual(formattedSource, Format(plainSource), "Formatting the source must give the formatted source.");
+        Assert.AreEqual(formattedSource, Format(fixedSource), "Formatting the fix result must give the formatted source.");
+        Assert.AreEqual(fixedSource, string.Join("\n", formattedSource.Split('\n').Where(line => line.Trim().Length > 0)), "The fix result must differ from the formatted source only by blank lines.");
+    }
+
+    #endregion // Methods
+
+    #region BatchCodeFixTestsBase
+
+    /// <inheritdoc/>
+    protected override FixAllScenario GetFixAllScenario()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstFieldA, {|#0:secondFieldA|};
+                                    private int firstFieldB, {|#1:secondFieldB|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstFieldA;
+                                     private int secondFieldA;
+                                     private int firstFieldB;
+                                     private int secondFieldB;
+                                 }
+                                 """;
+
+        // Two combined field declarations sit on adjacent lines with no blank line between them; the Fix All provider
+        // applies the fix of one declaration after the other, and each fix only splits its own declaration, so Fix All
+        // converges in one pass
+        return new FixAllScenario(testData,
+                                  fixedData,
+                                  Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    #endregion // BatchCodeFixTestsBase
 }
