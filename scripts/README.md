@@ -142,7 +142,7 @@ It first runs the text-only proof over the same range and prints its line, becau
 |---|---|
 | Change doc | `sdd/changes/**` |
 | Text | the rest of `sdd/**`, `squad/notes/**`, `documentation/**`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and C# under `src/` when the proof passed |
-| Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
+| Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, the root `reihitsu.json`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
 | Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
 | Production | every other file under `src/` |
 | Unknown | anything else |

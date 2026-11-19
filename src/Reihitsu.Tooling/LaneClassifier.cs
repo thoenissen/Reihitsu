@@ -25,9 +25,9 @@ public static class LaneClassifier
     private static readonly string[] _textFiles = ["LICENSE", ".github/PULL_REQUEST_TEMPLATE.md"];
 
     /// <summary>
-    /// Root files that are tooling: agent instructions and solution-wide build settings
+    /// Root files that are tooling: agent instructions, solution-wide build settings, and the repository's own analyzer configuration
     /// </summary>
-    private static readonly string[] _toolingRootFiles = ["AGENTS.md", "CLAUDE.md", "Reihitsu.sln", "Reihitsu.sln.DotSettings", ".gitignore", ".gitattributes"];
+    private static readonly string[] _toolingRootFiles = ["AGENTS.md", "CLAUDE.md", "Reihitsu.sln", "Reihitsu.sln.DotSettings", ".gitignore", ".gitattributes", "reihitsu.json"];
 
     /// <summary>
     /// File extensions that are build settings wherever they appear
