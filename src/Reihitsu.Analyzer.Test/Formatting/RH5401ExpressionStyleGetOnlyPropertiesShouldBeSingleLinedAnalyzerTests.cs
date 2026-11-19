@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -324,8 +325,8 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
 
     /// <summary>
     /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the expression stays wrapped,
-    /// when a comment in front of the arrow keeps it on a later line, and when a comment behind the arrow makes the formatter
-    /// refuse the property
+    /// also behind an attribute list, when a comment in front of the arrow keeps it on a later line, and when a comment behind
+    /// the arrow makes the formatter refuse the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -333,6 +334,8 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     public async Task VerifyFixIsWithheldWhenPropertyStaysOnSeveralLines()
     {
         const string testCode = """
+                                using System;
+
                                 class C
                                 {
                                     {|RH5401:int A =>
@@ -344,6 +347,11 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
 
                                     {|RH5401:int D => // note
                                         1;|}
+
+                                    {|RH5401:[Obsolete]
+                                    int E =>
+                                        1
+                                        + 2;|}
                                 }
                                 """;
 
@@ -524,6 +532,1849 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                               #pragma warning disable CS0618
                                       => 1;|}
                               #pragma warning restore CS0618
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix puts a property with attribute lists on one line, also when an
+    /// attribute list shares the property's line, and lays the attribute lists out on lines of their own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixPutsAPropertyWithAttributeListsOnOneLine(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+                                    [CLSCompliant(false)]
+                                    public int A
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete] int B
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete, CLSCompliant(false)]
+                                    int L
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     [CLSCompliant(false)]
+                                     public int A => 1;
+
+                                     [Obsolete]
+                                     int B => 1;
+
+                                     [Obsolete]
+                                     [CLSCompliant(false)]
+                                     int L => 1;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts a property whose attribute lists stand on lines of their own on one line and leaves
+    /// the attribute lists as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixPutsAPropertyBelowItsAttributeListsOnOneLine(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+                                    [CLSCompliant(false)]
+                                    public int A
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     [CLSCompliant(false)]
+                                     public int A => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix puts a property whose attribute list shares the property's line on one line, and moves the
+    /// attribute list onto a line of its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixMovesAnAttributeListOnThePropertysLineOntoALineOfItsOwn(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete] int B
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     int B => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out an attribute list with several attributes as the formatter does, one attribute per
+    /// list on lines of their own, and puts the property on one line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    public async Task VerifyFixSplitsAnAttributeListWithSeveralAttributesOnThePropertysLine(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete, CLSCompliant(false)] public int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     [CLSCompliant(false)]
+                                     public int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the line break the formatter writes between the lists it splits an attribute list with several
+    /// attributes into is no blank line behind an attribute list and does not keep the fix from being offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixSplitsAnAttributeListWithSeveralAttributesAboveTheProperty(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete, CLSCompliant(false)]
+                                    int L
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                     [CLSCompliant(false)]
+                                     int L => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list whose arguments span several lines does not keep the fix from being offered, and
+    /// that the attribute list keeps its lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsOfferedForAnAttributeListOnSeveralLines(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete("a",
+                                              false)]
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete("a",
+                                               false)]
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a property whose attribute list keeps the property's line, because it holds a comment between its
+    /// brackets, gets the fix, and that the attribute list stays on the property's line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsAnAttributeListWithACommentBetweenItsBracketsOnThePropertysLine(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete /* c */] int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete /* c */] int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment behind an attribute list on its line does not keep the fix from being offered, and
+    /// that it stays behind the attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsALineCommentBehindAnAttributeList(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete] // why
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete] // why
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment between an attribute list and the property on one line does not keep the fix from
+    /// being offered, and that it stays behind the attribute list when the property moves onto a line of its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsABlockCommentBehindAnAttributeListOnThePropertysLine(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete] /* c */ int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete] /* c */
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a blank line that the formatter keeps behind an attribute list, in front of a
+    /// comment or of the next attribute list, a comment behind the closing bracket of an attribute list, and a comment
+    /// between the brackets of an attribute list that shares its line with code in front of it do not keep the fix from
+    /// being offered and stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsTheBlankLinesAndCommentsOfAttributeListsThatTheFormatterKeeps(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+
+                                    // note
+                                    int E
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete]
+
+                                    [CLSCompliant(false)]
+                                    int F
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete] // note
+                                    int J
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete /* c */] int U
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete("a" /* c */)]
+                                    int V
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete("a", // c
+                                              false)]
+                                    int Y
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+
+                                     // note
+                                     int E => 1;
+
+                                     [Obsolete]
+
+                                     [CLSCompliant(false)]
+                                     int F => 1;
+
+                                     [Obsolete] // note
+                                     int J => 1;
+
+                                     [Obsolete /* c */] int U => 1;
+
+                                     [Obsolete("a" /* c */)]
+                                     int V => 1;
+
+                                     [Obsolete("a", // c
+                                               false)]
+                                     int Y => 1;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that one blank line in front of a comment behind an attribute list stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsOneBlankLineInFrontOfACommentBehindAnAttributeList(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+
+                                    // note
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+
+                                     // note
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that one blank line between two attribute lists stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsOneBlankLineBetweenTwoAttributeLists(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+
+                                    [CLSCompliant(false)]
+                                    int F
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+
+                                     [CLSCompliant(false)]
+                                     int F => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that one blank line between an attribute list and the property's own code, without a comment, stays as
+    /// written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsOneBlankLineBetweenAnAttributeListAndTheProperty(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the formatter would insert
+    /// a blank line in front of a comment behind an attribute list or collapse several blank lines behind an attribute list
+    /// into one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldWhenFormattingWouldChangeTheBlankLinesBehindAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+                                  // note
+                                  int D
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete]
+                                  // note
+                                  [CLSCompliant(false)]
+                                  int G
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete]
+
+
+                                  // note
+                                  int H
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete]
+
+
+                                  [CLSCompliant(false)]
+                                  int K
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete]
+
+
+                                  int M
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a comment on its own line directly behind an
+    /// attribute list, in front of which the formatter would insert a blank line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentDirectlyBehindAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+                                  // note
+                                  int D
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a comment on its own line directly between two
+    /// attribute lists, in front of which the formatter would insert a blank line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentDirectlyBetweenTwoAttributeLists(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+                                  // note
+                                  [CLSCompliant(false)]
+                                  int G
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for two blank lines in front of a comment behind an
+    /// attribute list, which the formatter would collapse into one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForTwoBlankLinesInFrontOfACommentBehindAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+
+
+                                  // note
+                                  int H
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for two blank lines between two attribute lists, which
+    /// the formatter would collapse into one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForTwoBlankLinesBetweenTwoAttributeLists(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+
+
+                                  [CLSCompliant(false)]
+                                  int K
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for two blank lines between an attribute list and the
+    /// property's own code, without a comment, which the formatter would collapse into one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForTwoBlankLinesBetweenAnAttributeListAndTheProperty(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+
+
+                                  int M
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All fixes a property whose blank lines behind its attribute list the formatter keeps, and leaves a
+    /// property whose blank lines it would change as written and reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixAllLeavesAPropertyWhoseBlankLinesTheFormatterWouldChange(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+
+                                    // note
+                                    int E
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete]
+                                    // note
+                                    int D
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete]
+                                    int A
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+
+                                     // note
+                                     int E => 1;
+
+                                     {|RH5401:[Obsolete]
+                                     // note
+                                     int D
+                                         => 1;|}
+
+                                     [Obsolete]
+                                     int A => 1;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine),
+                     ConvertEndOfLine(fixedCode, endOfLine),
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive between two attribute lists does not keep the fix from being offered, and
+    /// that the directives stay as written, without a blank line inserted next to them
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsAConditionalDirectiveBetweenTwoAttributeLists(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+                                #if DEBUG
+                                    [CLSCompliant(false)]
+                                #endif
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                 #if DEBUG
+                                     [CLSCompliant(false)]
+                                 #endif
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive around a comment between an attribute list and the property does not keep
+    /// the fix from being offered, and that the directives and the comment stay as written, without a blank line inserted
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsAConditionalCommentBetweenAnAttributeListAndTheProperty(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete]
+                                #if DEBUG
+                                    // note
+                                #endif
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete]
+                                 #if DEBUG
+                                     // note
+                                 #endif
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the one-line documentation comment above the attribute lists of the property the fix puts on one
+    /// line stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheOneLineDocumentationCommentAboveTheAttributeLists(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    /// <summary>Doc</summary>
+                                    {|RH5401:[Obsolete]
+                                    int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     /// <summary>Doc</summary>
+                                     [Obsolete]
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an attributed property the fix puts on one line, which shares its line with a member in front of it,
+    /// starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAnAttributedPropertyBehindAMemberALineOfItsOwn(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int _f; {|RH5401:[Obsolete] int E
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int _f;
+                                     [Obsolete]
+                                     int E => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the semicolon of the property does not keep the fix from being offered, with and
+    /// without an attribute list, and that it stays behind the semicolon
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsOfferedForACommentBehindTheSemicolon(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:int A
+                                        => 1;|} // a
+
+                                    {|RH5401:[Obsolete]
+                                    int B
+                                        => 1;|} // b
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int A => 1; // a
+
+                                     [Obsolete]
+                                     int B => 1; // b
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for an attributed property whose expression the
+    /// formatter keeps on several lines: a collection expression over several lines and a verbatim string over two lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForAnAttributedPropertyWhoseExpressionStaysOnSeveralLines(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+                                  public int[] Values =>
+                                  [
+                                      1,
+                                      2,
+                                  ];|}
+
+                                  {|RH5401:[Obsolete]
+                                  string E
+                                      => @"a
+                              b";|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of the arrow of an attributed property withholds the fix, while the diagnostic
+    /// stays: the comment belongs to the property's own code, unlike a comment between its attribute lists and its first
+    /// token
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentInFrontOfTheArrowOfAnAttributedProperty(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete]
+                                  int B // note
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a blank line inside the argument list of an
+    /// attribute in a list that the formatter does not split
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineInsideAnAttributeListTheFormatterDoesNotSplit(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+
+                                            false)]
+                                  int Q
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when an attribute list holds,
+    /// between its brackets, a blank line, a directive, disabled text, or a comment that starts its own line, whether or
+    /// not the formatter splits the list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineADirectiveDisabledTextOrACommentOnItsOwnLineBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.ComponentModel;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+
+                                   CLSCompliant(false)]
+                                  int N
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete
+
+                                   , CLSCompliant(false)]
+                                  int O
+                                      => 1;|}
+
+                                  {|RH5401:[
+
+                                   Obsolete, CLSCompliant(false)]
+                                  int P
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete("a",
+
+                                            false)]
+                                  int Q
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete(
+
+                                      "a"), CLSCompliant(false)]
+                                  int R
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete("a",
+                                            // why
+                                            false)]
+                                  int T
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete,
+
+                                   CLSCompliant(false)]
+                                  [DefaultValue(typeof(int),
+                                                // why
+                                                "1")]
+                                  int W
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete("a",
+                              #if DEBUG
+                                            false
+                              #else
+                                            true
+                              #endif
+                                            )]
+                                  int I
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete,
+                              #region R
+                                   CLSCompliant(false)
+                              #endregion
+                                  ]
+                                  int X
+                                      => 1;|}
+
+                                  #region R
+                                  {|RH5401:[Obsolete,
+                              #endregion
+                                   CLSCompliant(false)]
+                                  int Z
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a blank line behind the comma between two
+    /// attributes of one list, which the formatter drops when it splits the list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineBehindTheCommaOfAnAttributeListTheFormatterSplits(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+
+                                   CLSCompliant(false)]
+                                  int N
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a blank line in front of the comma between two
+    /// attributes of one list, which the formatter drops when it splits the list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineInFrontOfTheCommaOfAnAttributeListTheFormatterSplits(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete
+
+                                   , CLSCompliant(false)]
+                                  int O
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a blank line behind the opening bracket of an
+    /// attribute list with several attributes, which the formatter drops when it splits the list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineBehindTheOpeningBracketOfAnAttributeListTheFormatterSplits(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[
+
+                                   Obsolete, CLSCompliant(false)]
+                                  int P
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a blank line inside the argument list of an
+    /// attribute in a list with several attributes, which the formatter drops when it splits the list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineInsideTheArgumentsOfAnAttributeInAListTheFormatterSplits(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete(
+
+                                      "a"), CLSCompliant(false)]
+                                  int R
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a line comment on its own line inside the
+    /// argument list of an attribute in a list that the formatter does not split
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentOnItsOwnLineInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                                            // why
+                                            false)]
+                                  int T
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, when the formatter would drop a blank line inside an
+    /// attribute list it splits and insert one in front of a comment on its own line inside the arguments of an attribute
+    /// in another list, which leaves every count of blank lines unchanged
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldWhenABlankLineDroppedInOneAttributeListOffsetsOneInsertedInFrontOfACommentInAnother(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.ComponentModel;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+
+                                   CLSCompliant(false)]
+                                  [DefaultValue(typeof(int),
+                                                // why
+                                                "1")]
+                                  int W
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, when the formatter would collapse two blank lines
+    /// inside the arguments of an attribute into one and insert one in front of a comment on its own line inside the
+    /// arguments of an attribute in another list, with no list that it splits
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldWhenABlankLineCollapsedInOneAttributeListOffsetsOneInsertedInFrontOfACommentInAnother(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.ComponentModel;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+
+
+                                            false)]
+                                  [DefaultValue(typeof(int),
+                                                // why
+                                                "1")]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a block comment between the brackets of an
+    /// attribute list that has nothing but whitespace in front of it on its line, although code follows it on that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlockCommentThatStartsItsOwnLineInFrontOfCodeBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete(
+                                      /* c */ "a")]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a comment on its own line directly behind the
+    /// opening bracket of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentOnItsOwnLineBehindTheOpeningBracketOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[
+                                   // why
+                                   Obsolete]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a comment on its own line directly in front of
+    /// the closing bracket of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentOnItsOwnLineInFrontOfTheClosingBracketOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                                            false)
+                                   // why
+                                   ]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment between the brackets of an attribute list above the property, with code in front of
+    /// it on its line, does not keep the fix from being offered, and that it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsABlockCommentBehindCodeBetweenTheBracketsOfAnAttributeListAboveTheProperty(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete("a" /* c */)]
+                                    int V
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete("a" /* c */)]
+                                     int V => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment inside the argument list of an attribute, with code in front of it on its line, does
+    /// not keep the fix from being offered, and that the attribute list keeps its lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsALineCommentBehindCodeInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete("a", // c
+                                              false)]
+                                    int Y
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete("a", // c
+                                               false)]
+                                     int Y => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a conditional directive with disabled text inside
+    /// the argument list of an attribute
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForAConditionalDirectiveWithDisabledTextInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                              #if DEBUG
+                                            false
+                              #else
+                                            true
+                              #endif
+                                            )]
+                                  int I
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a <c>#region</c> and its <c>#endregion</c> between
+    /// the brackets of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForARegionBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+                              #region R
+                                   CLSCompliant(false)
+                              #endregion
+                                  ]
+                                  int X
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that one directive between the brackets of an attribute list withholds the fix, while the diagnostic
+    /// stays, also when its counterpart stands in front of the opening bracket
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForOneDirectiveBetweenTheBracketsOfAnAttributeListWhoseCounterpartStandsInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  #region R
+                                  {|RH5401:[Obsolete,
+                              #endregion
+                                   CLSCompliant(false)]
+                                  int Z
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a directive that is neither conditional nor a
+    /// region, here a pragma, inside the argument list of an attribute
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForAPragmaInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                              #pragma warning disable CS0618
+                              #pragma warning restore CS0618
+                                            false)]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a nullable directive inside the argument list of
+    /// an attribute
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForANullableDirectiveInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                              #nullable enable
+                                            false)]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for directives directly behind the opening bracket
+    /// and in front of the closing bracket of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForDirectivesBehindTheOpeningAndInFrontOfTheClosingBracketOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[
+                              #region R
+                                   Obsolete
+                              #endregion
+                                  ]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a directive in front of the closing bracket of an
+    /// attribute list that ends on the property's line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForADirectiveInFrontOfTheClosingBracketOfAnAttributeListOnThePropertysLine(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete
+                              #pragma warning disable CS0618
+                                  ] int G
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for disabled text of a branch the test compilation
+    /// does not compile between the brackets of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForDisabledTextOfAnInactiveBranchBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+                              #if NOT_DEFINED
+                                   CLSCompliant(false)
+                              #endif
+                                  ]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a directive in front of the opening bracket of an attribute list, which is not
+    /// between its brackets, does not keep the fix from being offered, and the directives stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsADirectiveInFrontOfTheOpeningBracketOfAnAttributeList(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                #pragma warning disable CS0618
+                                    {|RH5401:[Obsolete]
+                                    int E2
+                                        => 1;|}
+                                #pragma warning restore CS0618
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                 #pragma warning disable CS0618
+                                     [Obsolete]
+                                     int E2 => 1;
+                                 #pragma warning restore CS0618
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for an attributed property whose attribute list holds a
+    /// comment between an attribute argument and a comma on a later line, which the formatter refuses, although the
+    /// property's own code would fit on one line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyFixIsWithheldForAnAttributeListTheFormatterRefuses(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a" // c
+                                            , false)]
+                                  int E
+                                      => 1;|}
                               }
                               """;
 

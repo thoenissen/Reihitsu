@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -38,56 +37,34 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     }
 
     /// <summary>
-    /// Determines whether the list belongs to indexer/element access syntax
-    /// </summary>
-    /// <param name="bracketedArgumentList">Bracketed argument list</param>
-    /// <returns><see langword="true"/> when the parent is indexer/element access syntax; otherwise, <see langword="false"/></returns>
-    private static bool IsIndexerArgumentList(BracketedArgumentListSyntax bracketedArgumentList)
-    {
-        return bracketedArgumentList.Parent is ElementAccessExpressionSyntax or ImplicitElementAccessSyntax;
-    }
-
-    /// <summary>
-    /// Determines whether a bracketed argument list can be safely collapsed to one line
-    /// </summary>
-    /// <param name="bracketedArgumentList">Bracketed argument list</param>
-    /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// The interior-scoped check mirrors the analyzer, so the fix stays offered for exactly the
-    /// diagnostics the analyzer reports. The rewrite only joins the gaps between the brackets, which
-    /// leaves a comment behind the closing bracket untouched
-    /// </remarks>
-    private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
-    {
-        return SyntaxNodeUtilities.InteriorContainsCommentOrDirective(bracketedArgumentList) == false
-               && SyntaxNodeUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
-    }
-
-    /// <summary>
-    /// Gets the node the fix formats: the reported bracketed argument list, whose first token keeps its line and column, so
-    /// the code around it stays as written (RH5307-004, SHARED-FIX-006)
+    /// Gets the node the fix formats: the bracketed argument list the diagnostic is located on (RH5307-003), whose first token
+    /// keeps its line and column, so the code around it stays as written (RH5307-004, SHARED-FIX-006). The diagnostic covers
+    /// the whole element access, or, for an implicit element access, the list itself; the innermost node with exactly that
+    /// span is that element access or list, also where an argument or another node around it has the same span. Neither the
+    /// receiver of the element access nor the code around it decides which list is fixed
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>
-    /// <returns>The bracketed argument list, or <see langword="null"/> when there is none or it cannot be collapsed safely</returns>
+    /// <returns>The bracketed argument list, or <see langword="null"/> when there is none or the analyzer would not report it</returns>
     private static SyntaxNode TryGetFormatTarget(SyntaxNode root, Diagnostic diagnostic)
     {
-        var tokenParent = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
-        var bracketedArgumentList = tokenParent?.AncestorsAndSelf()
-                                               .OfType<BracketedArgumentListSyntax>()
-                                               .FirstOrDefault();
+        var span = diagnostic.Location.SourceSpan;
 
-        if (bracketedArgumentList == null)
+        if (root.FullSpan.Contains(span) == false)
         {
-            bracketedArgumentList = tokenParent?.AncestorsAndSelf()
-                                               .OfType<ElementAccessExpressionSyntax>()
-                                               .Select(node => node.ArgumentList)
-                                               .FirstOrDefault();
+            return null;
         }
 
+        var bracketedArgumentList = root.FindNode(span, getInnermostNodeForTie: true) switch
+                                    {
+                                        ElementAccessExpressionSyntax elementAccess when elementAccess.Span == span => elementAccess.ArgumentList,
+                                        BracketedArgumentListSyntax list when list.Span == span => list,
+                                        _ => null
+                                    };
+
         return bracketedArgumentList == null
-               || IsIndexerArgumentList(bracketedArgumentList) == false
-               || CanSafelyCollapseToSingleLine(bracketedArgumentList) == false
+               || RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.IsIndexerArgumentList(bracketedArgumentList) == false
+               || RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.CanSafelyCollapseToSingleLine(bracketedArgumentList) == false
                    ? null
                    : bracketedArgumentList;
     }
