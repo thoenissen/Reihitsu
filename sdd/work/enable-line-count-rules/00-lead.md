@@ -43,6 +43,7 @@
 | 9 | Spec author 03 | Resource naming as a spec requirement? | No: recorded in the change doc and the procedure doc only | No user-visible text changes | Internal | 65d58eb7 |
 | 10 | Spec author 03 | Test that the root `reihitsu.json` never sets a limit above the shipped default | Yes, a cheap unit test | Guards the maintainer's "never above the default" | Repository config only | — |
 | 11 | Spec author 03 | `AGENTS.md` names `DiagnosticAnalyzerBase<TAnalyzer>`, but the class is not generic | Adjacent text fix by the spec author after the implementer, matching the final base shape | Text the run's base change touches anyway | Text only | — |
+| 12 | Test implementer 04 | Who restructures the test code over the limits (11 test types > 3000, 9 test methods > 120) | A fresh test implementer after the implementer, so the split is verified against the finished scan; the implementer does production only | Test files belong to the test implementer; splitting changes no assertion, input or expected output | Test code only | — |
 
 ## Follow-up candidates
 
@@ -53,4 +54,5 @@
 - Done: 01 spec author (change doc Draft, `sdd/changes/2026-11/enable-line-count-rules.md`), 02 skeptic.
 - Output questions answered (1A, 2A, 3C).
 - Done: 03 spec author (65d58eb7). Lane check after it: confirmed.
-- Next: test implementer (04).
+- Done: 04 test implementer (d0c6e803).
+- Next: implementer (05): production API + production violations; then fresh test implementer (06) for test-code splits; then cleaner.
