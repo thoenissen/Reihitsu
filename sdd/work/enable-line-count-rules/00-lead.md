@@ -72,4 +72,5 @@
 - Done: 09 test implementer (b3175d4e): 11 classes → 29 by topic, no partial.
 - Done: 10 spec author (61092240).
 - Done: 11 cleaner (09c1e085), clean.
-- Next: spec checker (12), auditor, validator.
+- Done: 12 spec checker (d3043a11), consistent. main f597ab53 is merged (branch up to date).
+- Next: auditor (13) on head d3043a11 + this commit; then validator.
