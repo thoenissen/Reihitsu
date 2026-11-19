@@ -48,6 +48,9 @@
 | 14 | Implementer 05 | `CodeFixResourcesTests.cs:19` summary says "AnalyzerResources" | Adjacent text fix by the test implementer in its next stage | One word in a file the run's area touches | Text only | — |
 | 15 | Implementer 05 | Four new internal types from the production refactors | Accepted: they are the issue's own fix (fixing the violations the maintainer asked for), not a structural change under escalation 9 | `squad/README.md`, escalation 9 | Behavior unchanged | 261a706b |
 | 16 | Implementer 05 | Implementer stopped mid-run (large context) | Fresh implementer continues from 05-implementer.md | Agent large | — | — |
+| 17 | Implementer 06 | Fifth new production type `TargetWriteBackUtilities` | Accepted like decision 15 | Issue's own fix | Behavior unchanged | be29e3c8 |
+| 18 | Implementer 06 | Lane check: "no lane" because the root `reihitsu.json` is classified `Unknown` | Adjacent fix: classify the root `reihitsu.json` as tooling in `LaneClassifier` (Reihitsu.Tooling) and in the classification table of `scripts/README.md`; test first by the test implementer (Reihitsu.Tooling.Test), then the implementer | It is repository build configuration like `*.ruleset`/`.editorconfig`; small, tested, in tooling the run touches; no widening resolves an Unknown path | Repository tooling only | — |
+| 19 | Implementer 06 | `MSTEST0049` in `LineCountSelfHostingTests.cs:173` breaks the Release build | Test implementer fixes it in stage 07 | Test code | — | — |
 
 ## Follow-up candidates
 
@@ -60,4 +63,5 @@
 - Done: 03 spec author (65d58eb7). Lane check after it: confirmed.
 - Done: 04 test implementer (d0c6e803).
 - Done: 05 implementer (261a706b, handover aa355b4e) — stopped with items left.
-- Next: fresh implementer (06): remaining production violations after re-running the RH2008/RH2111 scan rows, decision 13, Release build check; then fresh test implementer (07): decision 13 test rework, decision 14, test-code splits (decision 12); then cleaner.
+- Done: 06 implementer (be29e3c8, handover 62c2372d): production clean; scan fails only on 9 test methods + 11 test types; lane check "no lane" (decision 18).
+- Next: fresh test implementer (07): decision 12 splits, decision 13 test rework, decision 14, decision 18 test, decision 19; then fresh implementer (08) for decision 18; then spec author for decision 11 (AGENTS.md base-class sentence); then cleaner.
