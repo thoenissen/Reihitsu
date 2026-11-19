@@ -21,7 +21,11 @@
 ## Maintainer answers
 
 - Q1 (RH2111 test default), first round: the maintainer weighs limits; goal of the defaults is to prompt design thought in time without being a big obstacle. Asked for counts at 60/120 (methods prod/test) and 1500/3000 (types prod/test); some test classes definitely need restructuring.
-- Q1, second round: the **shipped default** for production types is meant to be 1500. This repository **may set lower limits** (in its own configuration), but never higher than the shipped default — this replaces the earlier "no repository-specific limits" clarification. Partial classes are **not** an option for `AnalyzerResources`; the maintainer asks how such a class should be designed instead. Pending: confirmation of the full default set and the repository limits, and the `AnalyzerResources` design (asked 2026-11-19).
+- Q1, second round: the **shipped default** for production types is meant to be 1500. This repository **may set lower limits** (in its own configuration), but never higher than the shipped default — this replaces the earlier "no repository-specific limits" clarification. Partial classes are **not** an option for `AnalyzerResources`; the maintainer asks how such a class should be designed instead. 
+- Final answer (2026-11-19), options as asked in chat:
+  - **1A** — shipped defaults: RH2008 production methods 60 (unchanged), test methods **120** (was 100); RH2111 production types **1500** (was 500), test types **3000** (was 1000). Rules, specs and rule pages RH2008/RH2111 updated accordingly.
+  - **2A** — this repository sets lower limits in a root `reihitsu.json`, only where lower than the default: production types **500**. Methods 60/120 and test types 3000 follow the defaults. Never set a limit above the shipped default. Expected work: 18 production methods, 9 test methods, 11 test classes, production types over 500 (`CasingCodeFixProviderBase{T}`, `RH3002…Analyzer`, `OrderingDeclarationUtilities`, `SyntaxTriviaUtilities`, `AnalyzerResources`).
+  - **3C** (partial classes are not an option) — drop the per-rule properties of `AnalyzerResources`: the analyzer base derives the resource names from the rule ID (`<ID>Title`, `<ID>MessageFormat`); the class keeps the `ResourceManager`. The maintainer added: the texts can be published per property (on the analyzers), so a unit test can check for all analyzers that their texts exist; tests take the message texts from that property instead of `AnalyzerResources.RH####MessageFormat`.
 
 ## Decisions taken
 
@@ -42,5 +46,5 @@
 ## Worklist / next step
 
 - Done: 01 spec author (change doc Draft, `sdd/changes/2026-11/enable-line-count-rules.md`), 02 skeptic.
-- Open: output question 1 (RH2111 test-type default: A 1000 / B 3000 recommended / C 2000) asked to maintainer.
-- Next after answer: route to spec author (spec/rule page if default changes; set change doc Accepted), then test implementer.
+- Output questions answered (1A, 2A, 3C).
+- Next: fresh spec author (03) writes the answers into change doc Decisions, specs, rule pages, sets Accepted; then test implementer.
