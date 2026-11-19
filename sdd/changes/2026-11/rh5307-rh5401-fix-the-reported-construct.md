@@ -234,15 +234,20 @@ class C
     [Obsolete("a" /* c */)]
     int V
         => 1;
+
+    [Obsolete("a", // c
+              false)]
+    int Y
+        => 1;
 }
 ```
 
 ```csharp
-// before: RH5401 reports A, B, L, E, J, and V; no fix is offered
+// before: RH5401 reports A, B, L, E, J, V, and Y; no fix is offered
 ```
 
 ```csharp
-// after: RH5401 reports A, B, L, E, J, and V; the fix gives
+// after: RH5401 reports A, B, L, E, J, V, and Y; the fix gives
 using System;
 
 class C
@@ -268,6 +273,10 @@ class C
 
     [Obsolete("a" /* c */)]
     int V => 1;
+
+    [Obsolete("a", // c
+              false)]
+    int Y => 1;
 }
 ```
 
