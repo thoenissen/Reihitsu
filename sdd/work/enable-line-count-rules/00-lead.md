@@ -20,7 +20,8 @@
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (RH2111 test default), first round: the maintainer weighs limits; goal of the defaults is to prompt design thought in time without being a big obstacle. Asked for counts at 60/120 (methods prod/test) and 1500/3000 (types prod/test); some test classes definitely need restructuring.
+- Q1, second round: the **shipped default** for production types is meant to be 1500. This repository **may set lower limits** (in its own configuration), but never higher than the shipped default — this replaces the earlier "no repository-specific limits" clarification. Partial classes are **not** an option for `AnalyzerResources`; the maintainer asks how such a class should be designed instead. Pending: confirmation of the full default set and the repository limits, and the `AnalyzerResources` design (asked 2026-11-19).
 
 ## Decisions taken
 
