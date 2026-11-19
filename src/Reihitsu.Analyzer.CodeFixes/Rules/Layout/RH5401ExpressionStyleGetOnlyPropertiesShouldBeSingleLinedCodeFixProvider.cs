@@ -40,23 +40,37 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     }
 
     /// <summary>
-    /// Counts the blank lines of the property's attribute region: every gap from the <c>[</c> of its first attribute list
-    /// through the gap in front of its first token behind its attribute lists, with every comment, directive, and disabled
-    /// text in between (RH5401-004)
+    /// Determines whether an attribute list holds, between its brackets, a blank line or a comment that starts its own line
+    /// (RH5401-004). Between its brackets means the gaps between two tokens of the list, from its <c>[</c> through its
+    /// <c>]</c>; the trivia in front of the <c>[</c> and behind the <c>]</c> is outside. A comment with code in front of it
+    /// on its line, a directive, and disabled text do not count
     /// </summary>
-    /// <param name="propertyDeclaration">Property declaration with at least one attribute list</param>
-    /// <returns>The number of blank lines in the attribute region</returns>
-    private static int CountBlankLinesInAttributeRegion(PropertyDeclarationSyntax propertyDeclaration)
+    /// <param name="attributeList">Attribute list as written</param>
+    /// <returns><see langword="true"/> when the list holds such a blank line or comment; otherwise, <see langword="false"/></returns>
+    private static bool HoldsBlankLineOrOwnLineCommentBetweenBrackets(AttributeListSyntax attributeList)
     {
-        var firstOwnToken = propertyDeclaration.AttributeLists.Last().GetLastToken().GetNextToken();
-        var blankLineCount = 0;
-
-        for (var token = propertyDeclaration.AttributeLists.First().OpenBracketToken; token.SpanStart < firstOwnToken.SpanStart; token = token.GetNextToken())
+        for (var token = attributeList.OpenBracketToken; token != attributeList.CloseBracketToken; token = token.GetNextToken())
         {
-            blankLineCount += TokenGapAnalysis.Between(token, token.GetNextToken()).BlankLineCount;
+            var nextToken = token.GetNextToken();
+
+            if (TokenGapAnalysis.Between(token, nextToken).BlankLineCount > 0)
+            {
+                return true;
+            }
+
+            // A comment that starts its own line always lies in the leading trivia of the token behind it, because a
+            // token's trailing trivia ends with the first line break behind it
+            for (var triviaIndex = 0; triviaIndex < nextToken.LeadingTrivia.Count; triviaIndex++)
+            {
+                if (SyntaxTriviaUtilities.IsCommentTrivia(nextToken.LeadingTrivia[triviaIndex])
+                    && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(nextToken, triviaIndex))
+                {
+                    return true;
+                }
+            }
         }
 
-        return blankLineCount;
+        return false;
     }
 
     /// <summary>
@@ -111,12 +125,11 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     /// Determines whether formatting the property completes the fix (RH5401-003, RH5401-004): the formatter puts the
     /// property's own code on one line — from its first token behind its attribute lists through its <c>;</c>, without the
     /// trivia in front of that token or behind the <c>;</c>; the attribute lists, and a comment between them and that first
-    /// token, do not count — and it neither inserts nor removes a blank line among the attribute lists or between them and
-    /// the property, counted in the gap behind each list as written and over the attribute region in all
+    /// token, do not count — and it neither inserts nor removes a blank line in the gap behind each attribute list as written
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when formatting puts the property's own code on one line and keeps the blank lines of its attribute region; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> when formatting puts the property's own code on one line and keeps the blank lines behind its attribute lists; otherwise, <see langword="false"/></returns>
     private static bool FormatsOnOneLineKeepingBlankLines(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
         if (ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken).Output is not PropertyDeclarationSyntax formatted)
@@ -137,16 +150,8 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
             return false;
         }
 
-        if (propertyDeclaration.AttributeLists.Count == 0)
-        {
-            return true;
-        }
-
-        // The gaps behind the lists and the total over the attribute region each catch a change the other misses: a blank
-        // line inside a list the formatter splits lies in no gap behind a list, and a dropped blank line there can be offset
-        // by one the formatter inserts in front of a comment behind the lists
-        return KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted)
-               && CountBlankLinesInAttributeRegion(propertyDeclaration) == CountBlankLinesInAttributeRegion(formatted);
+        return propertyDeclaration.AttributeLists.Count == 0
+               || KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted);
     }
 
     #endregion // Methods
@@ -181,10 +186,13 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            // Only offer the action when formatting puts the property's own code on one line and keeps the blank lines of its
-            // attribute region; otherwise the fix would leave the diagnostic unresolved or change blank lines it does not own
+            // Only offer the action when no attribute list holds a blank line or an own-line comment between its brackets,
+            // where the formatter may drop or insert a blank line, and when formatting puts the property's own code on one
+            // line and keeps the blank lines behind its attribute lists; otherwise the fix would leave the diagnostic
+            // unresolved or change blank lines it does not own
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
                 && ReihitsuFormatter.FindUnsupportedSyntax(propertyDeclaration) == null
+                && propertyDeclaration.AttributeLists.Any(HoldsBlankLineOrOwnLineCommentBetweenBrackets) == false
                 && FormatsOnOneLineKeepingBlankLines(propertyDeclaration, context.CancellationToken))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5401Title,
