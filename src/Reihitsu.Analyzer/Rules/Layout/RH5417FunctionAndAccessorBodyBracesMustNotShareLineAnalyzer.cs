@@ -29,7 +29,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer : Diagn
     /// Constructor
     /// </summary>
     public RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5417Title), nameof(AnalyzerResources.RH5417MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

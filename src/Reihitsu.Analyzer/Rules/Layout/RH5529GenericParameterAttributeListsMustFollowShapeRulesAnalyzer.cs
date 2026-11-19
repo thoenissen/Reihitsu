@@ -28,8 +28,6 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer : 
     /// </summary>
     public RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5529Title),
-               nameof(AnalyzerResources.RH5529MessageFormat),
                AttributeTargets.GenericParameter,
                TargetAttributeListShapeMode.MergedList)
     {

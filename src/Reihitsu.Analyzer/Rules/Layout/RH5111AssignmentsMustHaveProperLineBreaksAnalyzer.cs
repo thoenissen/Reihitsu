@@ -29,7 +29,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
     /// Constructor
     /// </summary>
     public RH5111AssignmentsMustHaveProperLineBreaksAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5111Title), nameof(AnalyzerResources.RH5111MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

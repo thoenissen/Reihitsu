@@ -30,7 +30,7 @@ public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8031Title), nameof(AnalyzerResources.RH8031MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

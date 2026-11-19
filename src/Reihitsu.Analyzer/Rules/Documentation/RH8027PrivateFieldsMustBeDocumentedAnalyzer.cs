@@ -28,7 +28,7 @@ public class RH8027PrivateFieldsMustBeDocumentedAnalyzer : SplitElementDocumenta
     /// Constructor
     /// </summary>
     public RH8027PrivateFieldsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8027Title), nameof(AnalyzerResources.RH8027MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.FieldDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.FieldDeclaration)
     {
     }
 

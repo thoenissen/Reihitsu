@@ -43,7 +43,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     /// Constructor
     /// </summary>
     public RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Performance, nameof(AnalyzerResources.RH1001Title), nameof(AnalyzerResources.RH1001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Performance)
     {
     }
 

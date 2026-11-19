@@ -29,7 +29,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer : Statement
     /// Constructor
     /// </summary>
     public RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5001Title), nameof(AnalyzerResources.RH5001MessageFormat), SyntaxKind.TryStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.TryStatement)
     {
     }
 

@@ -32,7 +32,7 @@ public class RH4012UnionNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4012UnionNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4012Title), nameof(AnalyzerResources.RH4012MessageFormat), SyntaxKind.UnionDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.UnionDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

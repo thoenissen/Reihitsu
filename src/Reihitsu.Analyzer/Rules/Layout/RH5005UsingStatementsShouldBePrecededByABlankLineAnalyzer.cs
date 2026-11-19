@@ -29,7 +29,7 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5005Title), nameof(AnalyzerResources.RH5005MessageFormat), SyntaxKind.UsingStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.UsingStatement)
     {
     }
 

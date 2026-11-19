@@ -27,7 +27,7 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer :
     /// Constructor
     /// </summary>
     public RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7407Title), nameof(AnalyzerResources.RH7407MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

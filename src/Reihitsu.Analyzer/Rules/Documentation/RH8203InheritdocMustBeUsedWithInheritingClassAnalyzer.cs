@@ -33,7 +33,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8203Title), nameof(AnalyzerResources.RH8203MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

@@ -30,7 +30,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer 
     /// Constructor
     /// </summary>
     public RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5048Title), nameof(AnalyzerResources.RH5048MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

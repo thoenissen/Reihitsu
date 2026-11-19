@@ -33,7 +33,7 @@ public class RH4008NamespaceCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4008NamespaceCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4008Title), nameof(AnalyzerResources.RH4008MessageFormat), SyntaxKind.NamespaceDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.NamespaceDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

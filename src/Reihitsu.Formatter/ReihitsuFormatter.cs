@@ -780,6 +780,46 @@ public static class ReihitsuFormatter
 
         var memberIndentation = SyntaxFactory.Whitespace(new string(' ', SyntaxTokenPositionUtilities.GetColumn(formattedFields[1].GetFirstToken())));
         var lineBreak = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
+        var fields = WriteBackSplitFields(formattedFields,
+                                          originalFirstToken,
+                                          originalLastToken,
+                                          sharesLineWithPrecedingMember,
+                                          sharesLineWithFollowingMember,
+                                          memberIndentation,
+                                          lineBreak,
+                                          targetTokenAnnotation,
+                                          targetFieldAnnotation);
+        var updatedMembers = ReplaceTargetByFields(members, targetIndex, fields, sharesLineWithPrecedingMember, sharesLineWithFollowingMember, memberIndentation, lineBreak);
+
+        return new FormattingResult<Document>(document.WithSyntaxRoot(root.ReplaceNode(declaringType, declaringType.WithMembers(SyntaxFactory.List(updatedMembers)))), null);
+    }
+
+    /// <summary>
+    /// Writes back the target's trivia on the fields the split makes of it: the first field gets the target's leading trivia
+    /// as it stands in the document, behind the indentation of a member when it shares its line with the member in front;
+    /// the last field gets the target's trailing trivia, ending its line with the line break when it shares its line with
+    /// the member behind, and as the phases end every other line otherwise (FMT-PIPE-010, FMT-PIPE-018)
+    /// </summary>
+    /// <param name="formattedFields">The fields the split makes of the target, as the phases lay them out</param>
+    /// <param name="originalFirstToken">The target's first token in the document</param>
+    /// <param name="originalLastToken">The target's last token in the document</param>
+    /// <param name="sharesLineWithPrecedingMember">Whether the target shares its first line with the member in front</param>
+    /// <param name="sharesLineWithFollowingMember">Whether the target shares its last line with the member behind</param>
+    /// <param name="memberIndentation">The indentation the phases give a later field</param>
+    /// <param name="lineBreak">The line break of the document</param>
+    /// <param name="targetTokenAnnotation">The annotation that marks the target's first token</param>
+    /// <param name="targetFieldAnnotation">The annotation that marks every field the split makes of the target</param>
+    /// <returns>The fields to write back, in source order</returns>
+    private static List<MemberDeclarationSyntax> WriteBackSplitFields(List<FieldDeclarationSyntax> formattedFields,
+                                                                      SyntaxToken originalFirstToken,
+                                                                      SyntaxToken originalLastToken,
+                                                                      bool sharesLineWithPrecedingMember,
+                                                                      bool sharesLineWithFollowingMember,
+                                                                      SyntaxTrivia memberIndentation,
+                                                                      SyntaxTrivia lineBreak,
+                                                                      SyntaxAnnotation targetTokenAnnotation,
+                                                                      SyntaxAnnotation targetFieldAnnotation)
+    {
         var fields = new List<MemberDeclarationSyntax>(formattedFields.Count);
 
         for (var fieldIndex = 0; fieldIndex < formattedFields.Count; fieldIndex++)
@@ -811,6 +851,30 @@ public static class ReihitsuFormatter
             fields.Add(field);
         }
 
+        return fields;
+    }
+
+    /// <summary>
+    /// Replaces the target in the members of its type by the fields the split makes of it. A member that shares the
+    /// target's first line ends its line behind any comment that trails it, and a member that shares the target's last
+    /// line starts the next line with the indentation of a member, keeping its leading trivia
+    /// </summary>
+    /// <param name="members">The members of the type that declares the target</param>
+    /// <param name="targetIndex">The index of the target among the members</param>
+    /// <param name="fields">The fields to write back in place of the target</param>
+    /// <param name="sharesLineWithPrecedingMember">Whether the target shares its first line with the member in front</param>
+    /// <param name="sharesLineWithFollowingMember">Whether the target shares its last line with the member behind</param>
+    /// <param name="memberIndentation">The indentation the phases give a later field</param>
+    /// <param name="lineBreak">The line break of the document</param>
+    /// <returns>The members of the type with the fields in place of the target</returns>
+    private static List<MemberDeclarationSyntax> ReplaceTargetByFields(SyntaxList<MemberDeclarationSyntax> members,
+                                                                       int targetIndex,
+                                                                       List<MemberDeclarationSyntax> fields,
+                                                                       bool sharesLineWithPrecedingMember,
+                                                                       bool sharesLineWithFollowingMember,
+                                                                       SyntaxTrivia memberIndentation,
+                                                                       SyntaxTrivia lineBreak)
+    {
         var updatedMembers = new List<MemberDeclarationSyntax>(members.Count + fields.Count);
 
         for (var memberIndex = 0; memberIndex < members.Count; memberIndex++)
@@ -843,7 +907,7 @@ public static class ReihitsuFormatter
             }
         }
 
-        return new FormattingResult<Document>(document.WithSyntaxRoot(root.ReplaceNode(declaringType, declaringType.WithMembers(SyntaxFactory.List(updatedMembers)))), null);
+        return updatedMembers;
     }
 
     /// <summary>

@@ -28,7 +28,7 @@ public class RH8019DestructorsMustBeDocumentedAnalyzer : SplitElementDocumentati
     /// Constructor
     /// </summary>
     public RH8019DestructorsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8019Title), nameof(AnalyzerResources.RH8019MessageFormat), DocumentationAccessibilityGroup.Any, SyntaxKind.DestructorDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Any, SyntaxKind.DestructorDeclaration)
     {
     }
 

@@ -30,8 +30,6 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer : TargetAt
     /// </summary>
     public RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5531Title),
-               nameof(AnalyzerResources.RH5531MessageFormat),
                AttributeTargets.Method,
                TargetAttributeListShapeMode.SplitLists)
     {

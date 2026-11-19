@@ -29,7 +29,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH3001NotOperatorShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3001Title), nameof(AnalyzerResources.RH3001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

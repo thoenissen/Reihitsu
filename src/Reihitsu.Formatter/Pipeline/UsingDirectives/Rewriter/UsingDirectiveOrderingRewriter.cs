@@ -79,57 +79,19 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
         }
 
         var directivesStartingTheirLine = new HashSet<UsingDirectiveSyntax>(usingDirectives.Where(UsingDirectiveOrderingUtilities.StartsItsLine));
-        var sourceIndices = new Dictionary<UsingDirectiveSyntax, int>();
-        var directivesWithBlankLineAboveComment = new HashSet<UsingDirectiveSyntax>();
-
-        for (var sourceIndex = 0; sourceIndex < usingDirectives.Count; sourceIndex++)
-        {
-            sourceIndices[usingDirectives[sourceIndex]] = sourceIndex;
-
-            if (sourceIndex > 0
-                && UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[sourceIndex])
-                && UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[sourceIndex - 1], usingDirectives[sourceIndex]))
-            {
-                directivesWithBlankLineAboveComment.Add(usingDirectives[sourceIndex]);
-            }
-        }
+        var (sourceIndices, directivesWithBlankLineAboveComment) = GetSourceLayout(usingDirectives);
 
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         if (ReferenceEquals(canonical[0], originalFirst) == false)
         {
-            var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(originalFirst.GetLeadingTrivia());
-
-            if (header.Count > 0)
-            {
-                firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(header);
-
-                // A header that ends its line leaves the directive taking the first position on a line of its
-                // own, which starts at the whitespace of the original first directive's line (FMT-USING-011);
-                // that whitespace stays in the remainder for the directive moving away from the top
-                if (SyntaxTriviaUtilities.EndsLine(header.Last()))
-                {
-                    firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(scopeIndentation);
-                }
-
-                var detachedFirst = originalFirst.WithLeadingTrivia(remainder);
-
-                if (directivesStartingTheirLine.Contains(originalFirst))
-                {
-                    directivesStartingTheirLine.Add(detachedFirst);
-                }
-
-                sourceIndices[detachedFirst] = sourceIndices[originalFirst];
-
-                // The header ends with a blank line, so when a comment is left to lead the directive that moves
-                // away from the top, that blank line stood directly above the comment
-                if (UsingDirectiveOrderingUtilities.IsLedByComment(detachedFirst))
-                {
-                    directivesWithBlankLineAboveComment.Add(detachedFirst);
-                }
-
-                canonical = canonical.ConvertAll(current => ReferenceEquals(current, originalFirst) ? detachedFirst : current);
-            }
+            DetachHeaderOfOriginalFirst(originalFirst,
+                                        scopeIndentation,
+                                        ref firstLeadingTriviaPrefix,
+                                        ref canonical,
+                                        directivesStartingTheirLine,
+                                        sourceIndices,
+                                        directivesWithBlankLineAboveComment);
         }
 
         var originalBlockTerminalTrivia = UsingTrailingTriviaBuilder.GetTrailingLayoutTrivia(usingDirectives.Last().GetTrailingTrivia());
@@ -244,6 +206,86 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
         }
 
         return SyntaxFactory.List(result);
+    }
+
+    /// <summary>
+    /// Gets, for every directive of the block, its index in the source, and the directives that are led by a comment with
+    /// a blank line directly above that comment in the source (FMT-USING-010)
+    /// </summary>
+    /// <param name="usingDirectives">Using directives as written</param>
+    /// <returns>The source index of every directive, and the directives with a blank line above their leading comment</returns>
+    private static (Dictionary<UsingDirectiveSyntax, int> SourceIndices, HashSet<UsingDirectiveSyntax> DirectivesWithBlankLineAboveComment) GetSourceLayout(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    {
+        var sourceIndices = new Dictionary<UsingDirectiveSyntax, int>();
+        var directivesWithBlankLineAboveComment = new HashSet<UsingDirectiveSyntax>();
+
+        for (var sourceIndex = 0; sourceIndex < usingDirectives.Count; sourceIndex++)
+        {
+            sourceIndices[usingDirectives[sourceIndex]] = sourceIndex;
+
+            if (sourceIndex > 0
+                && UsingDirectiveOrderingUtilities.IsLedByComment(usingDirectives[sourceIndex])
+                && UsingDirectiveOrderingUtilities.HasBlankLineAbove(usingDirectives[sourceIndex - 1], usingDirectives[sourceIndex]))
+            {
+                directivesWithBlankLineAboveComment.Add(usingDirectives[sourceIndex]);
+            }
+        }
+
+        return (sourceIndices, directivesWithBlankLineAboveComment);
+    }
+
+    /// <summary>
+    /// Detaches the header trivia of the original first directive when another directive takes the first position: the
+    /// header joins the leading trivia of the first position, and the original first directive moves away with the rest of
+    /// its leading trivia, keeping its source index and whether it starts its line or has a blank line above its comment
+    /// </summary>
+    /// <param name="originalFirst">The first directive as written</param>
+    /// <param name="scopeIndentation">The indentation of the scope that holds the directives</param>
+    /// <param name="firstLeadingTriviaPrefix">The leading trivia that the first position starts with</param>
+    /// <param name="canonical">The directives in canonical order</param>
+    /// <param name="directivesStartingTheirLine">The directives that start their line in the source</param>
+    /// <param name="sourceIndices">The source index of every directive</param>
+    /// <param name="directivesWithBlankLineAboveComment">The directives with a blank line above their leading comment</param>
+    private static void DetachHeaderOfOriginalFirst(UsingDirectiveSyntax originalFirst,
+                                                    SyntaxTriviaList scopeIndentation,
+                                                    ref SyntaxTriviaList firstLeadingTriviaPrefix,
+                                                    ref List<UsingDirectiveSyntax> canonical,
+                                                    HashSet<UsingDirectiveSyntax> directivesStartingTheirLine,
+                                                    Dictionary<UsingDirectiveSyntax, int> sourceIndices,
+                                                    HashSet<UsingDirectiveSyntax> directivesWithBlankLineAboveComment)
+    {
+        var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(originalFirst.GetLeadingTrivia());
+
+        if (header.Count > 0)
+        {
+            firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(header);
+
+            // A header that ends its line leaves the directive taking the first position on a line of its
+            // own, which starts at the whitespace of the original first directive's line (FMT-USING-011);
+            // that whitespace stays in the remainder for the directive moving away from the top
+            if (SyntaxTriviaUtilities.EndsLine(header.Last()))
+            {
+                firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(scopeIndentation);
+            }
+
+            var detachedFirst = originalFirst.WithLeadingTrivia(remainder);
+
+            if (directivesStartingTheirLine.Contains(originalFirst))
+            {
+                directivesStartingTheirLine.Add(detachedFirst);
+            }
+
+            sourceIndices[detachedFirst] = sourceIndices[originalFirst];
+
+            // The header ends with a blank line, so when a comment is left to lead the directive that moves
+            // away from the top, that blank line stood directly above the comment
+            if (UsingDirectiveOrderingUtilities.IsLedByComment(detachedFirst))
+            {
+                directivesWithBlankLineAboveComment.Add(detachedFirst);
+            }
+
+            canonical = canonical.ConvertAll(current => ReferenceEquals(current, originalFirst) ? detachedFirst : current);
+        }
     }
 
     /// <summary>

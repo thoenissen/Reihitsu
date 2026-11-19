@@ -33,7 +33,7 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAna
     /// Constructor
     /// </summary>
     public RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7002Title), nameof(AnalyzerResources.RH7002MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

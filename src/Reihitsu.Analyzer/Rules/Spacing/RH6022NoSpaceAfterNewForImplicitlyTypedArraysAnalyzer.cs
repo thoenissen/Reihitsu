@@ -30,7 +30,7 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6022Title), nameof(AnalyzerResources.RH6022MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

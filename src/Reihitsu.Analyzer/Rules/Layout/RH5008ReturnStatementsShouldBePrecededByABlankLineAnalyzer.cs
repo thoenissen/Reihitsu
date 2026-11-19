@@ -29,7 +29,7 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer : Statem
     /// Constructor
     /// </summary>
     public RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5008Title), nameof(AnalyzerResources.RH5008MessageFormat), SyntaxKind.ReturnStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.ReturnStatement)
     {
     }
 

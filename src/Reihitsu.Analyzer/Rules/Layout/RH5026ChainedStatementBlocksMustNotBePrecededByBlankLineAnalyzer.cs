@@ -30,7 +30,7 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer : 
     /// Constructor
     /// </summary>
     public RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5026Title), nameof(AnalyzerResources.RH5026MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

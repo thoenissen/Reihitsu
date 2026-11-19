@@ -34,8 +34,6 @@ public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase
     public RH4102EventNameCasingAnalyzer()
         : base(DiagnosticId,
                DiagnosticCategory.Naming,
-               nameof(AnalyzerResources.RH4102Title),
-               nameof(AnalyzerResources.RH4102MessageFormat),
                [SyntaxKind.EventFieldDeclaration, SyntaxKind.EventDeclaration],
                CasingUtilities.IsPascalCase)
     {

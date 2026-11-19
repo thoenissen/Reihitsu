@@ -30,7 +30,7 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5010Title), nameof(AnalyzerResources.RH5010MessageFormat), SyntaxKind.BreakStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.BreakStatement)
     {
     }
 

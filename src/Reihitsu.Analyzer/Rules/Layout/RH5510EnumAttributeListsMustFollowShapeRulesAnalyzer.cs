@@ -28,8 +28,6 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer : TargetAttrib
     /// </summary>
     public RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5510Title),
-               nameof(AnalyzerResources.RH5510MessageFormat),
                AttributeTargets.Enum,
                TargetAttributeListShapeMode.SplitLists)
     {

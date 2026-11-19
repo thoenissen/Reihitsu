@@ -28,7 +28,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer : SplitElemen
     /// Constructor
     /// </summary>
     public RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8009Title), nameof(AnalyzerResources.RH8009MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.RecordStructDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.RecordStructDeclaration)
     {
     }
 

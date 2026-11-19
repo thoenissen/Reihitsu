@@ -30,7 +30,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5102Title), nameof(AnalyzerResources.RH5102MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

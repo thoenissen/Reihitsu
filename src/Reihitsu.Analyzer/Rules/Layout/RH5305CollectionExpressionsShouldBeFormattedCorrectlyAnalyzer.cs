@@ -30,7 +30,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer : Dia
     /// Constructor
     /// </summary>
     public RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5305Title), nameof(AnalyzerResources.RH5305MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

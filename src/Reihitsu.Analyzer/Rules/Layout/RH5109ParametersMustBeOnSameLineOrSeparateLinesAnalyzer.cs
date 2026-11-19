@@ -30,7 +30,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5109Title), nameof(AnalyzerResources.RH5109MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -32,7 +32,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH2007DebugFailMustProvideMessageTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2007Title), nameof(AnalyzerResources.RH2007MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

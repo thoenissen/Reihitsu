@@ -28,8 +28,6 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer : Targe
     /// </summary>
     public RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5528Title),
-               nameof(AnalyzerResources.RH5528MessageFormat),
                AttributeTargets.ReturnValue,
                TargetAttributeListShapeMode.SplitLists)
     {

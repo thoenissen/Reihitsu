@@ -32,7 +32,7 @@ public class RH4103MethodNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4103MethodNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4103Title), nameof(AnalyzerResources.RH4103MessageFormat), SyntaxKind.MethodDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.MethodDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

@@ -29,7 +29,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer : Diagnost
     /// Constructor
     /// </summary>
     public RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5114Title), nameof(AnalyzerResources.RH5114MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

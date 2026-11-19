@@ -36,7 +36,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer : Di
     /// Constructor
     /// </summary>
     public RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5308Title), nameof(AnalyzerResources.RH5308MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

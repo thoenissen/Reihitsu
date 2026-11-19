@@ -24,14 +24,10 @@ public abstract class AttributeTargetRuleAnalyzerBase : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message resource name</param>
     /// <param name="target">Target analyzed by this rule</param>
     protected AttributeTargetRuleAnalyzerBase(string diagnosticId,
-                                              string titleResourceName,
-                                              string messageFormatResourceName,
                                               AttributeTargets target)
-        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
+        : base(diagnosticId, DiagnosticCategory.Layout)
     {
         _target = target;
     }

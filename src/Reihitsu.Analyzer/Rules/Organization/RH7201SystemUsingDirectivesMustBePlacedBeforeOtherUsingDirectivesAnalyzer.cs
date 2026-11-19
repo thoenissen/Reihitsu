@@ -30,7 +30,7 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// Constructor
     /// </summary>
     public RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7201Title), nameof(AnalyzerResources.RH7201MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

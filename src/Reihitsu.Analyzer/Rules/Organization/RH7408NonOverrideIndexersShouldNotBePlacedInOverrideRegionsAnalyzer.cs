@@ -27,7 +27,7 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     /// Constructor
     /// </summary>
     public RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7408Title), nameof(AnalyzerResources.RH7408MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

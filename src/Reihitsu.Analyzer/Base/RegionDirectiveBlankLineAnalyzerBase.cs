@@ -30,11 +30,9 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">The diagnostic ID</param>
-    /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
-    /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
     /// <param name="requirePrecedingBlankLine">Whether the analyzer checks for a blank line preceding the directive</param>
-    private protected RegionDirectiveBlankLineAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, bool requirePrecedingBlankLine)
-        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
+    private protected RegionDirectiveBlankLineAnalyzerBase(string diagnosticId, bool requirePrecedingBlankLine)
+        : base(diagnosticId, DiagnosticCategory.Layout)
     {
         _requirePrecedingBlankLine = requirePrecedingBlankLine;
     }

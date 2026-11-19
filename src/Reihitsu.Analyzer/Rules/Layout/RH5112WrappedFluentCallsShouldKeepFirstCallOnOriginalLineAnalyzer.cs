@@ -27,7 +27,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
     /// Constructor
     /// </summary>
     public RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5112Title), nameof(AnalyzerResources.RH5112MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

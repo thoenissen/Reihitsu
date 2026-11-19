@@ -9,6 +9,7 @@ using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Reihitsu.SelfHosting.Test.Utilities;
@@ -19,6 +20,15 @@ namespace Reihitsu.SelfHosting.Test.Utilities;
 /// </summary>
 internal sealed class SelfHostingSolution
 {
+    #region Constants
+
+    /// <summary>
+    /// File name of the repository's root configuration file, which the build passes to the analyzers of every project
+    /// </summary>
+    private const string ConfigurationFileName = "reihitsu.json";
+
+    #endregion // Constants
+
     #region Fields
 
     /// <summary>
@@ -26,6 +36,11 @@ internal sealed class SelfHostingSolution
     /// one thread build it while concurrent rows wait for the result, and a build failure is rethrown to every row
     /// </summary>
     private static readonly Lazy<SelfHostingSolution> _instance = new(Create, LazyThreadSafetyMode.ExecutionAndPublication);
+
+    /// <summary>
+    /// The analyzer options the build gives each project, by assembly name
+    /// </summary>
+    private readonly ImmutableDictionary<string, AnalyzerOptions> _analyzerOptions;
 
     #endregion // Fields
 
@@ -36,10 +51,12 @@ internal sealed class SelfHostingSolution
     /// </summary>
     /// <param name="solutionRoot">Solution root path</param>
     /// <param name="compilations">Project compilations, in project-path order</param>
-    private SelfHostingSolution(string solutionRoot, ImmutableArray<CSharpCompilation> compilations)
+    /// <param name="analyzerOptions">The analyzer options of each project, by assembly name</param>
+    private SelfHostingSolution(string solutionRoot, ImmutableArray<CSharpCompilation> compilations, ImmutableDictionary<string, AnalyzerOptions> analyzerOptions)
     {
         SolutionRoot = solutionRoot;
         Compilations = compilations;
+        _analyzerOptions = analyzerOptions;
     }
 
     #endregion // Constructor
@@ -66,6 +83,23 @@ internal sealed class SelfHostingSolution
     #region Methods
 
     /// <summary>
+    /// Gets the analyzer options the repository's build gives a scanned project: <c>build_property.IsTestProject</c> and
+    /// <c>build_property.IsTestingPlatformApplication</c>, which the package's build file makes visible to the analyzers,
+    /// and the repository's root <c>reihitsu.json</c> as additional file
+    /// </summary>
+    /// <param name="assemblyName">Assembly name of a scanned project</param>
+    /// <returns>The analyzer options of the project</returns>
+    internal AnalyzerOptions GetAnalyzerOptions(string assemblyName)
+    {
+        if (_analyzerOptions.TryGetValue(assemblyName, out var options) == false)
+        {
+            Assert.Fail($"No scanned project has the assembly name '{assemblyName}'.");
+        }
+
+        return options;
+    }
+
+    /// <summary>
     /// Builds the compilations of every self-hostable project
     /// </summary>
     /// <returns>The created instance</returns>
@@ -84,8 +118,30 @@ internal sealed class SelfHostingSolution
         var compilationStack = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var compilations = projects.Select(project => CreateCompilation(project, projectsByFilePath, compilationCache, compilationStack, solutionRoot))
                                    .ToImmutableArray();
+        var configurationFile = new SelfHostingAdditionalText(Path.Combine(solutionRoot, ConfigurationFileName));
+        var analyzerOptions = projects.ToImmutableDictionary(project => project.AssemblyName,
+                                                             project => CreateAnalyzerOptions(project, configurationFile),
+                                                             StringComparer.Ordinal);
 
-        return new SelfHostingSolution(solutionRoot, compilations);
+        return new SelfHostingSolution(solutionRoot, compilations, analyzerOptions);
+    }
+
+    /// <summary>
+    /// Creates the analyzer options the repository's build gives a project. MSBuild writes an empty value for a visible
+    /// property the project does not set; no project of the repository sets <c>IsTestingPlatformApplication</c>
+    /// </summary>
+    /// <param name="project">Project metadata</param>
+    /// <param name="configurationFile">The repository's root configuration file</param>
+    /// <returns>The analyzer options</returns>
+    private static AnalyzerOptions CreateAnalyzerOptions(SelfHostingProject project, AdditionalText configurationFile)
+    {
+        var globalOptions = ImmutableDictionary.CreateRange(StringComparer.Ordinal,
+                                                            [
+                                                                KeyValuePair.Create("build_property.IsTestProject", project.IsTestProject ? "true" : string.Empty),
+                                                                KeyValuePair.Create("build_property.IsTestingPlatformApplication", string.Empty)
+                                                            ]);
+
+        return new AnalyzerOptions([configurationFile], new SelfHostingAnalyzerConfigOptionsProvider(new SelfHostingAnalyzerConfigOptions(globalOptions)));
     }
 
     /// <summary>

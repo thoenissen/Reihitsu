@@ -28,7 +28,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4001TypeNameShouldMatchFileNameAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4001Title), nameof(AnalyzerResources.RH4001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

@@ -28,7 +28,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer : ExpressionB
     /// Constructor
     /// </summary>
     public RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH3205Title), nameof(AnalyzerResources.RH3205MessageFormat), SyntaxKind.OperatorDeclaration)
+        : base(DiagnosticId, SyntaxKind.OperatorDeclaration)
     {
     }
 

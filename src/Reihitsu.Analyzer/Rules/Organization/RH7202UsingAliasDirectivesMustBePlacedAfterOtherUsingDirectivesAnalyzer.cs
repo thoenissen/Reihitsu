@@ -30,7 +30,7 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     /// Constructor
     /// </summary>
     public RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7202Title), nameof(AnalyzerResources.RH7202MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

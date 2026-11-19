@@ -29,7 +29,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer : CommentR
     /// Constructor
     /// </summary>
     public RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5035Title), nameof(AnalyzerResources.RH5035MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

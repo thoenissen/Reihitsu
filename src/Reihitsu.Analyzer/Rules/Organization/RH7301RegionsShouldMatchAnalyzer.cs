@@ -32,7 +32,7 @@ public class RH7301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH7301RegionsShouldMatchAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7301Title), nameof(AnalyzerResources.RH7301MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

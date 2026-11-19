@@ -30,7 +30,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
     /// Constructor
     /// </summary>
     public RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5306Title), nameof(AnalyzerResources.RH5306MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

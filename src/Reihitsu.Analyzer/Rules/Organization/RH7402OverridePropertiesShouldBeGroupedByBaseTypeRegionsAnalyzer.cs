@@ -30,7 +30,7 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer : 
     /// Constructor
     /// </summary>
     public RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7402Title), nameof(AnalyzerResources.RH7402MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

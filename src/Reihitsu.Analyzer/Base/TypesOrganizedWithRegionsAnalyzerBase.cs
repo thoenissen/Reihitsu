@@ -22,11 +22,9 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase : DiagnosticAnalyzer
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
     /// <param name="isEnabledByDefault">Whether the rule is enabled by default</param>
-    private protected TypesOrganizedWithRegionsAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, bool isEnabledByDefault)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName, isEnabledByDefault)
+    private protected TypesOrganizedWithRegionsAnalyzerBase(string diagnosticId, DiagnosticCategory category, bool isEnabledByDefault)
+        : base(diagnosticId, category, isEnabledByDefault)
     {
     }
 

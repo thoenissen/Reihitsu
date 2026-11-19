@@ -29,7 +29,7 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer : CommentRe
     /// Constructor
     /// </summary>
     public RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5038Title), nameof(AnalyzerResources.RH5038MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

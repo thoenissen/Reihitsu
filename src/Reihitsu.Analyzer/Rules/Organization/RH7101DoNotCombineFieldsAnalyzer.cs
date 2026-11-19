@@ -30,7 +30,7 @@ public class RH7101DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH7101DoNotCombineFieldsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7101Title), nameof(AnalyzerResources.RH7101MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

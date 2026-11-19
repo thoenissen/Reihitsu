@@ -29,7 +29,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
     /// Constructor
     /// </summary>
     public RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8110Title), nameof(AnalyzerResources.RH8110MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

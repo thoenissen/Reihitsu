@@ -32,7 +32,7 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyze
     /// Constructor
     /// </summary>
     public RH2006DebugAssertMustProvideMessageTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2006Title), nameof(AnalyzerResources.RH2006MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

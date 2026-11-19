@@ -99,81 +99,31 @@ public static class AttributeTargetUtilities
     /// <returns><see langword="true"/> when a supported target was resolved</returns>
     public static bool TryResolveTarget(AttributeListSyntax attributeList, out AttributeTargets target)
     {
-        target = default;
-
         var explicitTarget = attributeList.Target?.Identifier.ValueText;
 
-        if (string.IsNullOrWhiteSpace(explicitTarget) == false)
+        if (string.IsNullOrWhiteSpace(explicitTarget)
+            || explicitTarget == "type")
         {
-            switch (explicitTarget)
-            {
-                case "assembly":
-                    {
-                        target = AttributeTargets.Assembly;
-
-                        return true;
-                    }
-                case "module":
-                    {
-                        target = AttributeTargets.Module;
-
-                        return true;
-                    }
-                case "field":
-                    {
-                        target = AttributeTargets.Field;
-
-                        return true;
-                    }
-                case "event":
-                    {
-                        target = AttributeTargets.Event;
-
-                        return true;
-                    }
-                case "method":
-                    {
-                        target = AttributeTargets.Method;
-
-                        return true;
-                    }
-                case "param":
-                    {
-                        target = AttributeTargets.Parameter;
-
-                        return true;
-                    }
-                case "property":
-                    {
-                        target = AttributeTargets.Property;
-
-                        return true;
-                    }
-                case "return":
-                    {
-                        target = AttributeTargets.ReturnValue;
-
-                        return true;
-                    }
-                case "typevar":
-                    {
-                        target = AttributeTargets.GenericParameter;
-
-                        return true;
-                    }
-                case "type":
-                    {
-                        return TryResolveImplicitTarget(attributeList.Parent, out target);
-                    }
-
-                default:
-                    {
-                        return false;
-                    }
-            }
+            return TryResolveImplicitTarget(attributeList.Parent, out target);
         }
 
-        return TryResolveImplicitTarget(attributeList.Parent, out target);
+        AttributeTargets? resolvedTarget = explicitTarget switch
+                                           {
+                                               "assembly" => AttributeTargets.Assembly,
+                                               "module" => AttributeTargets.Module,
+                                               "field" => AttributeTargets.Field,
+                                               "event" => AttributeTargets.Event,
+                                               "method" => AttributeTargets.Method,
+                                               "param" => AttributeTargets.Parameter,
+                                               "property" => AttributeTargets.Property,
+                                               "return" => AttributeTargets.ReturnValue,
+                                               "typevar" => AttributeTargets.GenericParameter,
+                                               _ => null
+                                           };
+
+        target = resolvedTarget.GetValueOrDefault();
+
+        return resolvedTarget != null;
     }
 
     /// <summary>
@@ -472,105 +422,35 @@ public static class AttributeTargetUtilities
     /// <returns><see langword="true"/> when target was resolved</returns>
     private static bool TryResolveImplicitTarget(SyntaxNode parent, out AttributeTargets target)
     {
-        target = default;
+        AttributeTargets? resolvedTarget = parent switch
+                                           {
+                                               ClassDeclarationSyntax => AttributeTargets.Class,
+                                               StructDeclarationSyntax or UnionDeclarationSyntax => AttributeTargets.Struct,
+                                               RecordDeclarationSyntax recordDeclaration => recordDeclaration.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
+                                                                                                ? AttributeTargets.Struct
+                                                                                                : AttributeTargets.Class,
+                                               InterfaceDeclarationSyntax => AttributeTargets.Interface,
+                                               EnumDeclarationSyntax => AttributeTargets.Enum,
+                                               DelegateDeclarationSyntax => AttributeTargets.Delegate,
+                                               MethodDeclarationSyntax
+                                               or OperatorDeclarationSyntax
+                                               or ConversionOperatorDeclarationSyntax
+                                               or DestructorDeclarationSyntax
+                                               or LocalFunctionStatementSyntax
+                                               or LambdaExpressionSyntax
+                                               or AccessorDeclarationSyntax => AttributeTargets.Method,
+                                               ConstructorDeclarationSyntax => AttributeTargets.Constructor,
+                                               PropertyDeclarationSyntax or IndexerDeclarationSyntax => AttributeTargets.Property,
+                                               FieldDeclarationSyntax or EnumMemberDeclarationSyntax => AttributeTargets.Field,
+                                               EventDeclarationSyntax or EventFieldDeclarationSyntax => AttributeTargets.Event,
+                                               ParameterSyntax => AttributeTargets.Parameter,
+                                               TypeParameterSyntax => AttributeTargets.GenericParameter,
+                                               _ => null
+                                           };
 
-        switch (parent)
-        {
-            case ClassDeclarationSyntax:
-                {
-                    target = AttributeTargets.Class;
+        target = resolvedTarget.GetValueOrDefault();
 
-                    return true;
-                }
-            case StructDeclarationSyntax:
-            case UnionDeclarationSyntax:
-                {
-                    target = AttributeTargets.Struct;
-
-                    return true;
-                }
-            case RecordDeclarationSyntax recordDeclaration:
-                {
-                    target = recordDeclaration.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)
-                                 ? AttributeTargets.Struct
-                                 : AttributeTargets.Class;
-
-                    return true;
-                }
-            case InterfaceDeclarationSyntax:
-                {
-                    target = AttributeTargets.Interface;
-
-                    return true;
-                }
-            case EnumDeclarationSyntax:
-                {
-                    target = AttributeTargets.Enum;
-
-                    return true;
-                }
-            case DelegateDeclarationSyntax:
-                {
-                    target = AttributeTargets.Delegate;
-
-                    return true;
-                }
-            case MethodDeclarationSyntax:
-            case OperatorDeclarationSyntax:
-            case ConversionOperatorDeclarationSyntax:
-            case DestructorDeclarationSyntax:
-            case LocalFunctionStatementSyntax:
-            case LambdaExpressionSyntax:
-            case AccessorDeclarationSyntax:
-                {
-                    target = AttributeTargets.Method;
-
-                    return true;
-                }
-            case ConstructorDeclarationSyntax:
-                {
-                    target = AttributeTargets.Constructor;
-
-                    return true;
-                }
-            case PropertyDeclarationSyntax:
-            case IndexerDeclarationSyntax:
-                {
-                    target = AttributeTargets.Property;
-
-                    return true;
-                }
-            case FieldDeclarationSyntax:
-            case EnumMemberDeclarationSyntax:
-                {
-                    target = AttributeTargets.Field;
-
-                    return true;
-                }
-            case EventDeclarationSyntax:
-            case EventFieldDeclarationSyntax:
-                {
-                    target = AttributeTargets.Event;
-
-                    return true;
-                }
-            case ParameterSyntax:
-                {
-                    target = AttributeTargets.Parameter;
-
-                    return true;
-                }
-            case TypeParameterSyntax:
-                {
-                    target = AttributeTargets.GenericParameter;
-
-                    return true;
-                }
-            default:
-                {
-                    return false;
-                }
-        }
+        return resolvedTarget != null;
     }
 
     #endregion // Methods

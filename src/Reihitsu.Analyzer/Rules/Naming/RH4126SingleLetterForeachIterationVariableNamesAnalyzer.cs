@@ -30,7 +30,7 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH4126SingleLetterForeachIterationVariableNamesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4126Title), nameof(AnalyzerResources.RH4126MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

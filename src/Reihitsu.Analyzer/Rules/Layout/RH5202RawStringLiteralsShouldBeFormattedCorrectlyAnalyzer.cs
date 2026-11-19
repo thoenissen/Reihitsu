@@ -30,7 +30,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// Constructor
     /// </summary>
     public RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5202Title), nameof(AnalyzerResources.RH5202MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -31,7 +31,7 @@ public class RH4007FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4007FileScopedNamespaceCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4007Title), nameof(AnalyzerResources.RH4007MessageFormat), SyntaxKind.FileScopedNamespaceDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.FileScopedNamespaceDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

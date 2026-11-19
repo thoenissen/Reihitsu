@@ -30,7 +30,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer : Diagn
     /// Constructor
     /// </summary>
     public RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6014Title), nameof(AnalyzerResources.RH6014MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

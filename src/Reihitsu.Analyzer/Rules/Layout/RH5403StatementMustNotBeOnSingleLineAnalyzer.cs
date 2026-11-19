@@ -30,7 +30,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
     /// Constructor
     /// </summary>
     public RH5403StatementMustNotBeOnSingleLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5403Title), nameof(AnalyzerResources.RH5403MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

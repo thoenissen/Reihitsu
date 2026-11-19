@@ -31,7 +31,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     /// Constructor
     /// </summary>
     public RH3104DoNotUseDefaultValueTypeConstructorAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3104Title), nameof(AnalyzerResources.RH3104MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

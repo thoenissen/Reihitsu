@@ -31,7 +31,7 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer : 
     /// Constructor
     /// </summary>
     public RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6020Title), nameof(AnalyzerResources.RH6020MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

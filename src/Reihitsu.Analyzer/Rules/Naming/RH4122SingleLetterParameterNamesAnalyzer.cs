@@ -30,7 +30,7 @@ public class RH4122SingleLetterParameterNamesAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4122SingleLetterParameterNamesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4122Title), nameof(AnalyzerResources.RH4122MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

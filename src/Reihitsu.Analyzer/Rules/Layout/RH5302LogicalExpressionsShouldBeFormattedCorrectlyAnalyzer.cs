@@ -30,7 +30,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5302Title), nameof(AnalyzerResources.RH5302MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -31,7 +31,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8305Title), nameof(AnalyzerResources.RH8305MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

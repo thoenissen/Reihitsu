@@ -32,7 +32,7 @@ public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4105MethodParameterCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4105Title), nameof(AnalyzerResources.RH4105MessageFormat), SyntaxKind.Parameter, CasingUtilities.IsCamelCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.Parameter, CasingUtilities.IsCamelCase)
     {
     }
 

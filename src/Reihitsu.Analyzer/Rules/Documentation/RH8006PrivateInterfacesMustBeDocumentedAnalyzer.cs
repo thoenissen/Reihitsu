@@ -28,7 +28,7 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzer : SplitElementDocum
     /// Constructor
     /// </summary>
     public RH8006PrivateInterfacesMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8006Title), nameof(AnalyzerResources.RH8006MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.InterfaceDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.InterfaceDeclaration)
     {
     }
 

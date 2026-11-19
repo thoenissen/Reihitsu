@@ -30,7 +30,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH7106ProtectedMustComeBeforeInternalAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7106Title), nameof(AnalyzerResources.RH7106MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

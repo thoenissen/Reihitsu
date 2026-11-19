@@ -56,6 +56,17 @@
      <Analyzer Include="$(MSBuildThisFileDirectory)binaries\Reihitsu.Formatter.dll" />
    </ItemGroup>
 
+   <!--
+      The analyzers above are loaded directly, not through the package, so the package's build file is imported
+      here: it makes the MSBuild properties that tell test code from production code visible to the analyzers.
+      The root reihitsu.json holds the repository's own limits, lower than the shipped defaults.
+   -->
+   <Import Project="$(MSBuildThisFileDirectory)src\Reihitsu.Analyzer.Package\buildTransitive\Reihitsu.Analyzer.targets" />
+
+   <ItemGroup>
+     <AdditionalFiles Include="$([System.IO.Path]::GetDirectoryName('$(MSBuildThisFileFullPath)'))\reihitsu.json" />
+   </ItemGroup>
+
    <ItemGroup>
      <PackageReference Include="SonarAnalyzer.CSharp" Version="10.36.0.15337" PrivateAssets="all" />
    </ItemGroup>

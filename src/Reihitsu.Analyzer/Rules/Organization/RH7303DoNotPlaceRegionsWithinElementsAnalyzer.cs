@@ -28,7 +28,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH7303DoNotPlaceRegionsWithinElementsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7303Title), nameof(AnalyzerResources.RH7303MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

@@ -12,8 +12,8 @@ public class StructEqualityPerformanceAnalyzerBase : DiagnosticAnalyzerBase
     #region Constructor
 
     /// <inheritdoc />
-    internal StructEqualityPerformanceAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    internal StructEqualityPerformanceAnalyzerBase(string diagnosticId, DiagnosticCategory category)
+        : base(diagnosticId, category)
     {
     }
 

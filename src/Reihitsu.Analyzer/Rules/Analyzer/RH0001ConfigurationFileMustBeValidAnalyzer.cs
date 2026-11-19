@@ -29,7 +29,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH0001ConfigurationFileMustBeValidAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Analyzer, nameof(AnalyzerResources.RH0001Title), nameof(AnalyzerResources.RH0001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Analyzer)
     {
     }
 

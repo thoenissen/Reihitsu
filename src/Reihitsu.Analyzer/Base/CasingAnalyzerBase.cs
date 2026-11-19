@@ -34,12 +34,10 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     /// </summary>
     /// <param name="diagnosticId">The diagnostic ID</param>
     /// <param name="category">The diagnostic category</param>
-    /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
-    /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
     /// <param name="type">The syntax kind to analyze</param>
     /// <param name="casingValidation">The function to validate the casing</param>
-    private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind type, Func<string, bool> casingValidation)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, SyntaxKind type, Func<string, bool> casingValidation)
+        : base(diagnosticId, category)
     {
         _types = [type];
         _casingValidation = casingValidation;
@@ -50,12 +48,10 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     /// </summary>
     /// <param name="diagnosticId">The diagnostic ID</param>
     /// <param name="category">The diagnostic category</param>
-    /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
-    /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
     /// <param name="types">The syntax kinds to analyze</param>
     /// <param name="casingValidation">The function to validate the casing</param>
-    private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind[] types, Func<string, bool> casingValidation)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, SyntaxKind[] types, Func<string, bool> casingValidation)
+        : base(diagnosticId, category)
     {
         _types = types;
         _casingValidation = casingValidation;

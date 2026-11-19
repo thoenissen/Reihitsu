@@ -28,7 +28,7 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzer : SplitElementDocume
     /// Constructor
     /// </summary>
     public RH8016PrivateDelegatesMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8016Title), nameof(AnalyzerResources.RH8016MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.DelegateDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.DelegateDeclaration)
     {
     }
 

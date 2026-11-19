@@ -32,7 +32,7 @@ public class RH4005InterfaceNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4005InterfaceNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4005Title), nameof(AnalyzerResources.RH4005MessageFormat), SyntaxKind.InterfaceDeclaration, IsInterfacePascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.InterfaceDeclaration, IsInterfacePascalCase)
     {
     }
 

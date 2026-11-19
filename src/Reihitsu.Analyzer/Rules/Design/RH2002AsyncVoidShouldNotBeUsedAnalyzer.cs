@@ -30,7 +30,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2002AsyncVoidShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2002Title), nameof(AnalyzerResources.RH2002MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

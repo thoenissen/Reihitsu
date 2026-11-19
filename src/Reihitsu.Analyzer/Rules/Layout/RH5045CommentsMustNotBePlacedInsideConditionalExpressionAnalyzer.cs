@@ -29,7 +29,7 @@ public class RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzer : 
     /// Constructor
     /// </summary>
     public RH5045CommentsMustNotBePlacedInsideConditionalExpressionAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5045Title), nameof(AnalyzerResources.RH5045MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

@@ -30,7 +30,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
     /// Constructor
     /// </summary>
     public RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3107Title), nameof(AnalyzerResources.RH3107MessageFormat), SyntaxKind.Attribute)
+        : base(DiagnosticId, DiagnosticCategory.Clarity, SyntaxKind.Attribute)
     {
     }
 

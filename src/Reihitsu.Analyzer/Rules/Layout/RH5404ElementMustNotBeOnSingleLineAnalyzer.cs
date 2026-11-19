@@ -29,7 +29,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5404ElementMustNotBeOnSingleLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5404Title), nameof(AnalyzerResources.RH5404MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -30,7 +30,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6016Title), nameof(AnalyzerResources.RH6016MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

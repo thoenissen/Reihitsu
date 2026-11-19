@@ -27,7 +27,7 @@ public class RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer : EmptyType
     /// Constructor
     /// </summary>
     public RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5418Title), nameof(AnalyzerResources.RH5418MessageFormat), SyntaxKind.UnionDeclaration, LanguageVersion.CSharp15)
+        : base(DiagnosticId, SyntaxKind.UnionDeclaration, LanguageVersion.CSharp15)
     {
     }
 

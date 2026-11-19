@@ -33,7 +33,7 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     /// Constructor
     /// </summary>
     public RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8307Title), nameof(AnalyzerResources.RH8307MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

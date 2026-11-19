@@ -28,7 +28,7 @@ public class RH8034OperatorsMustBeDocumentedAnalyzer : SplitElementDocumentation
     /// Constructor
     /// </summary>
     public RH8034OperatorsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8034Title), nameof(AnalyzerResources.RH8034MessageFormat), DocumentationAccessibilityGroup.Any, SyntaxKind.OperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Any, SyntaxKind.OperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration)
     {
     }
 

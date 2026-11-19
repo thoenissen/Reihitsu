@@ -133,30 +133,38 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // FMT-UNSUP-010 keeps its reason for a directive on either side of the arrow of an expression body, that they refuse as well.
         // FMT-UNSUP-014 is listed after them, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive in
         // the gap of an attached part that they refuse as well
-        var candidates = isDeclaratorComma
-                             ? new List<(SyntaxTrivia? Trivia, string Reason)>
-                               {
-                                   (firstComment, VariableDeclarationCommentReason),
-                                   (firstSeparatorTrivia, ListSeparatorCommentReason),
-                                   (firstFieldDirective, FieldDeclarationDirectiveReason),
-                                   (firstOperatorTrivia, ConditionalOperatorCommentReason),
-                                   (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
-                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason),
-                                   (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason),
-                                   (firstAttachedPartTrivia, AttachedPartCommentReason)
-                               }
-                             : new List<(SyntaxTrivia? Trivia, string Reason)>
-                               {
-                                   (firstFieldDirective, FieldDeclarationDirectiveReason),
-                                   (firstSeparatorTrivia, ListSeparatorCommentReason),
-                                   (firstComment, VariableDeclarationCommentReason),
-                                   (firstOperatorTrivia, ConditionalOperatorCommentReason),
-                                   (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
-                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason),
-                                   (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason),
-                                   (firstAttachedPartTrivia, AttachedPartCommentReason)
-                               };
+        List<(SyntaxTrivia? Trivia, string Reason)> candidates = isDeclaratorComma
+                                                                     ? [
+                                                                           (firstComment, VariableDeclarationCommentReason),
+                                                                           (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                                                           (firstFieldDirective, FieldDeclarationDirectiveReason)
+                                                                       ]
+                                                                     : [
+                                                                           (firstFieldDirective, FieldDeclarationDirectiveReason),
+                                                                           (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                                                           (firstComment, VariableDeclarationCommentReason)
+                                                                       ];
 
+        candidates.AddRange([
+                                (firstOperatorTrivia, ConditionalOperatorCommentReason),
+                                (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
+                                (firstArrowTrivia, ExpressionBodyArrowCommentReason),
+                                (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason),
+                                (firstAttachedPartTrivia, AttachedPartCommentReason)
+                            ]);
+
+        return CreateFirstUnsupportedSyntax(node, candidates);
+    }
+
+    /// <summary>
+    /// Creates the unsupported shape of the candidate whose trivia starts first; of two candidates that start at the same
+    /// trivia, the one listed first wins
+    /// </summary>
+    /// <param name="node">The node the candidates were found in</param>
+    /// <param name="candidates">The first trivia of every shape, or <see langword="null"/> for a shape the node does not hold, with the shape's reason</param>
+    /// <returns>The shape with its location in the node's syntax tree, or <see langword="null"/> when the node holds none</returns>
+    private static UnsupportedSyntax CreateFirstUnsupportedSyntax(SyntaxNode node, List<(SyntaxTrivia? Trivia, string Reason)> candidates)
+    {
         (SyntaxTrivia? Trivia, string Reason) first = (null, null);
 
         foreach (var candidate in candidates)

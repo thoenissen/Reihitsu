@@ -32,11 +32,9 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// </summary>
     /// <param name="diagnosticId">The diagnostic ID</param>
     /// <param name="category">The diagnostic category</param>
-    /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
-    /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
     /// <param name="syntaxKinds"><see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/></param>
-    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, params SyntaxKind[] syntaxKinds)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, params SyntaxKind[] syntaxKinds)
+        : base(diagnosticId, category)
     {
         _syntaxKinds = syntaxKinds;
     }

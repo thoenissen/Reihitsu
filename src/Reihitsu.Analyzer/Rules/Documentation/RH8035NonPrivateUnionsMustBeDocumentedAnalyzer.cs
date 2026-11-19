@@ -28,7 +28,7 @@ public class RH8035NonPrivateUnionsMustBeDocumentedAnalyzer : SplitElementDocume
     /// Constructor
     /// </summary>
     public RH8035NonPrivateUnionsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8035Title), nameof(AnalyzerResources.RH8035MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.UnionDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.UnionDeclaration)
     {
     }
 

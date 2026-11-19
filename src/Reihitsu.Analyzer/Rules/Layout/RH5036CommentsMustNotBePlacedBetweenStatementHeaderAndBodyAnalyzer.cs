@@ -29,7 +29,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer 
     /// Constructor
     /// </summary>
     public RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5036Title), nameof(AnalyzerResources.RH5036MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

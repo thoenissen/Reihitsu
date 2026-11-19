@@ -26,16 +26,12 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message resource name</param>
     /// <param name="target">Target analyzed by this rule</param>
     /// <param name="defaultPlacementMode">Default placement mode</param>
     protected TargetAttributePlacementAnalyzerBase(string diagnosticId,
-                                                   string titleResourceName,
-                                                   string messageFormatResourceName,
                                                    AttributeTargets target,
                                                    TargetAttributePlacementMode defaultPlacementMode)
-        : base(diagnosticId, titleResourceName, messageFormatResourceName, target)
+        : base(diagnosticId, target)
     {
         _defaultPlacementMode = defaultPlacementMode;
     }

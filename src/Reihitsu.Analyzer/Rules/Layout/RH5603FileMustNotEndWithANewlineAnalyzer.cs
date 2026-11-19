@@ -29,7 +29,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5603FileMustNotEndWithANewlineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5603Title), nameof(AnalyzerResources.RH5603MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

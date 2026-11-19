@@ -29,7 +29,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     /// Constructor
     /// </summary>
     public RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8103Title), nameof(AnalyzerResources.RH8103MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

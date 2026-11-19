@@ -30,7 +30,7 @@ public class RH4127SingleLetterCatchExceptionVariableNamesAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH4127SingleLetterCatchExceptionVariableNamesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4127Title), nameof(AnalyzerResources.RH4127MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

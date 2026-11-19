@@ -29,7 +29,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer : Diagn
     /// Constructor
     /// </summary>
     public RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8111Title), nameof(AnalyzerResources.RH8111MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

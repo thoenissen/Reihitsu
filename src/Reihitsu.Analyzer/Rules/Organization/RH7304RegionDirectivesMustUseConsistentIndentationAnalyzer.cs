@@ -31,7 +31,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7304Title), nameof(AnalyzerResources.RH7304MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

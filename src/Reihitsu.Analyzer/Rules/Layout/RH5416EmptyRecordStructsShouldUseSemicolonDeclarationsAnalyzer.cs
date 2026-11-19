@@ -27,7 +27,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer : Em
     /// Constructor
     /// </summary>
     public RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5416Title), nameof(AnalyzerResources.RH5416MessageFormat), SyntaxKind.RecordStructDeclaration, LanguageVersion.CSharp10)
+        : base(DiagnosticId, SyntaxKind.RecordStructDeclaration, LanguageVersion.CSharp10)
     {
     }
 

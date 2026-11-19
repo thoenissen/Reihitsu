@@ -30,7 +30,7 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
     /// Constructor
     /// </summary>
     public RH2108NestedDelegatesShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2108Title), nameof(AnalyzerResources.RH2108MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

@@ -28,8 +28,6 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzer : TargetAttr
     /// </summary>
     public RH5507StructAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5507Title),
-               nameof(AnalyzerResources.RH5507MessageFormat),
                AttributeTargets.Struct,
                TargetAttributePlacementMode.SeparateLine)
     {

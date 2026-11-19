@@ -29,7 +29,7 @@ public class RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer : CommentP
     /// Constructor
     /// </summary>
     public RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5049Title), nameof(AnalyzerResources.RH5049MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

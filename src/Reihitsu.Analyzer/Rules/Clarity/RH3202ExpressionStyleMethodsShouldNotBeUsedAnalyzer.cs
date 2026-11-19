@@ -30,7 +30,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer : DiagnosticAna
     /// Constructor
     /// </summary>
     public RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3202Title), nameof(AnalyzerResources.RH3202MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

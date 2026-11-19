@@ -29,7 +29,7 @@ public class RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer : CommentRegion
     /// Constructor
     /// </summary>
     public RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5043Title), nameof(AnalyzerResources.RH5043MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

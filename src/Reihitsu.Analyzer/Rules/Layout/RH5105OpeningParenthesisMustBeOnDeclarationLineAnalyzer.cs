@@ -31,7 +31,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5105Title), nameof(AnalyzerResources.RH5105MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -31,7 +31,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : Diagnost
     /// Constructor
     /// </summary>
     public RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6008Title), nameof(AnalyzerResources.RH6008MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

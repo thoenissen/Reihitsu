@@ -28,7 +28,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer : Expres
     /// Constructor
     /// </summary>
     public RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH3208Title), nameof(AnalyzerResources.RH3208MessageFormat), SyntaxKind.LocalFunctionStatement)
+        : base(DiagnosticId, SyntaxKind.LocalFunctionStatement)
     {
     }
 

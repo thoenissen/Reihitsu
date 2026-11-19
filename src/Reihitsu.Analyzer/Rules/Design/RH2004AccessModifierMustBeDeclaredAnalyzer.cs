@@ -33,7 +33,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2004AccessModifierMustBeDeclaredAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2004Title), nameof(AnalyzerResources.RH2004MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

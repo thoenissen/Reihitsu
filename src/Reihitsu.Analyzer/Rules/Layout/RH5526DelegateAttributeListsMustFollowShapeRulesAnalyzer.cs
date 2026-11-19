@@ -28,8 +28,6 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer : TargetAt
     /// </summary>
     public RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5526Title),
-               nameof(AnalyzerResources.RH5526MessageFormat),
                AttributeTargets.Delegate,
                TargetAttributeListShapeMode.SplitLists)
     {

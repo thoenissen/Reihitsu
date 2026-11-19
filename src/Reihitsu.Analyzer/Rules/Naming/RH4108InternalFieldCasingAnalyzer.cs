@@ -33,7 +33,7 @@ public class RH4108InternalFieldCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4108InternalFieldCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4108Title), nameof(AnalyzerResources.RH4108MessageFormat), SyntaxKind.FieldDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.FieldDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

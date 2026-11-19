@@ -30,7 +30,7 @@ public class RH4123SingleLetterLocalFunctionParameterNamesAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH4123SingleLetterLocalFunctionParameterNamesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4123Title), nameof(AnalyzerResources.RH4123MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

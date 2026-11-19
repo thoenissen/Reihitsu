@@ -27,7 +27,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer : Empty
     /// Constructor
     /// </summary>
     public RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5414Title), nameof(AnalyzerResources.RH5414MessageFormat), SyntaxKind.InterfaceDeclaration, LanguageVersion.CSharp12)
+        : base(DiagnosticId, SyntaxKind.InterfaceDeclaration, LanguageVersion.CSharp12)
     {
     }
 

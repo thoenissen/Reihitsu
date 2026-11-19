@@ -30,7 +30,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
     /// Constructor
     /// </summary>
     public RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6012Title), nameof(AnalyzerResources.RH6012MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

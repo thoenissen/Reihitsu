@@ -30,7 +30,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer : Me
     /// Constructor
     /// </summary>
     public RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7411Title), nameof(AnalyzerResources.RH7411MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

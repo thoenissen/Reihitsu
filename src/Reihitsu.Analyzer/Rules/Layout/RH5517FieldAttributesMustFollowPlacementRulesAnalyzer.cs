@@ -28,8 +28,6 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzer : TargetAttri
     /// </summary>
     public RH5517FieldAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5517Title),
-               nameof(AnalyzerResources.RH5517MessageFormat),
                AttributeTargets.Field,
                TargetAttributePlacementMode.SeparateLine)
     {

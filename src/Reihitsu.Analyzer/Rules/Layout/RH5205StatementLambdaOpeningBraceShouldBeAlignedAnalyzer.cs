@@ -30,7 +30,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer : Diagnost
     /// Constructor
     /// </summary>
     public RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5205Title), nameof(AnalyzerResources.RH5205MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

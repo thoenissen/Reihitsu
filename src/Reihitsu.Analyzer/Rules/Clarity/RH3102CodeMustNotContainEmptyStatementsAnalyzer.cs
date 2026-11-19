@@ -29,7 +29,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzer : DiagnosticAnalyze
     /// Constructor
     /// </summary>
     public RH3102CodeMustNotContainEmptyStatementsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3102Title), nameof(AnalyzerResources.RH3102MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

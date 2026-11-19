@@ -29,7 +29,7 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer : Diagnos
     /// Constructor
     /// </summary>
     public RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8106Title), nameof(AnalyzerResources.RH8106MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

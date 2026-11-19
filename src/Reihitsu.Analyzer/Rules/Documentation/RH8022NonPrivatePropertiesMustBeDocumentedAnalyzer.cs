@@ -28,7 +28,7 @@ public class RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer : SplitElementDo
     /// Constructor
     /// </summary>
     public RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8022Title), nameof(AnalyzerResources.RH8022MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.PropertyDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.PropertyDeclaration)
     {
     }
 

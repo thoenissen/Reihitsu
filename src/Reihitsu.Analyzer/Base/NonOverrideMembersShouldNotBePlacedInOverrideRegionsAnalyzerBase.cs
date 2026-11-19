@@ -22,10 +22,8 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    private protected NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, DiagnosticCategory.Organization, titleResourceName, messageFormatResourceName)
+    private protected NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase(string diagnosticId)
+        : base(diagnosticId, DiagnosticCategory.Organization)
     {
     }
 

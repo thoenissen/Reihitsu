@@ -29,8 +29,6 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzer : TargetAttr
     /// </summary>
     public RH5513MethodAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5513Title),
-               nameof(AnalyzerResources.RH5513MessageFormat),
                AttributeTargets.Method,
                TargetAttributePlacementMode.SeparateLine)
     {
