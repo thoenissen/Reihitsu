@@ -878,9 +878,10 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies the specification example: a blank line that the formatter keeps, behind an attribute list in front of a
-    /// comment or of the next attribute list, or inside an attribute list it does not split, does not keep the fix from
-    /// being offered and stays as written
+    /// Verifies the specification example: a blank line that the formatter keeps behind an attribute list, in front of a
+    /// comment or of the next attribute list, a comment behind the closing bracket of an attribute list, and a comment
+    /// between the brackets of an attribute list that shares its line with code in front of it do not keep the fix from
+    /// being offered and stay as written
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -889,7 +890,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     [DataRow("\r\n")]
     [Requirement("RH5401-003")]
     [Requirement("RH5401-004")]
-    public async Task VerifyFixKeepsABlankLineBehindAnAttributeListThatTheFormatterKeeps(string endOfLine)
+    public async Task VerifyFixKeepsTheBlankLinesAndCommentsOfAttributeListsThatTheFormatterKeeps(string endOfLine)
     {
         const string testCode = """
                                 using System;
@@ -908,10 +909,20 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                                     int F
                                         => 1;|}
 
-                                    {|RH5401:[Obsolete("a",
+                                    {|RH5401:[Obsolete] // note
+                                    int J
+                                        => 1;|}
 
+                                    {|RH5401:[Obsolete /* c */] int U
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete("a" /* c */)]
+                                    int V
+                                        => 1;|}
+
+                                    {|RH5401:[Obsolete("a", // c
                                               false)]
-                                    int Q
+                                    int Y
                                         => 1;|}
                                 }
                                 """;
@@ -930,10 +941,17 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                                      [CLSCompliant(false)]
                                      int F => 1;
 
-                                     [Obsolete("a",
+                                     [Obsolete] // note
+                                     int J => 1;
 
+                                     [Obsolete /* c */] int U => 1;
+
+                                     [Obsolete("a" /* c */)]
+                                     int V => 1;
+
+                                     [Obsolete("a", // c
                                                false)]
-                                     int Q => 1;
+                                     int Y => 1;
                                  }
                                  """;
 
@@ -1574,48 +1592,8 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that a blank line inside the argument list of an attribute in a list that the formatter does not split
-    /// stays as written
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH5401-003")]
-    [Requirement("RH5401-004")]
-    public async Task VerifyFixKeepsABlankLineInsideAnAttributeListTheFormatterDoesNotSplit(string endOfLine)
-    {
-        const string testCode = """
-                                using System;
-
-                                class C
-                                {
-                                    {|RH5401:[Obsolete("a",
-
-                                              false)]
-                                    int Q
-                                        => 1;|}
-                                }
-                                """;
-        const string fixedCode = """
-                                 using System;
-
-                                 class C
-                                 {
-                                     [Obsolete("a",
-
-                                               false)]
-                                     int Q => 1;
-                                 }
-                                 """;
-
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
-    }
-
-    /// <summary>
-    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the formatter would drop
-    /// a blank line inside an attribute list with several attributes that it splits into one list per attribute
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a blank line inside the argument list of an
+    /// attribute in a list that the formatter does not split
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1623,10 +1601,40 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH5401-004")]
-    public async Task VerifyFixIsWithheldWhenFormattingWouldDropABlankLineInsideAnAttributeListItSplits(string endOfLine)
+    public async Task VerifyFixIsWithheldForABlankLineInsideAnAttributeListTheFormatterDoesNotSplit(string endOfLine)
     {
         const string source = """
                               using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+
+                                            false)]
+                                  int Q
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when an attribute list holds
+    /// a blank line, or a comment that starts its own line, between its brackets, whether or not the formatter splits the
+    /// list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlankLineOrACommentOnItsOwnLineBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.ComponentModel;
 
                               class C
                               {
@@ -1648,17 +1656,31 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                                   int P
                                       => 1;|}
 
+                                  {|RH5401:[Obsolete("a",
+
+                                            false)]
+                                  int Q
+                                      => 1;|}
+
                                   {|RH5401:[Obsolete(
 
                                       "a"), CLSCompliant(false)]
                                   int R
                                       => 1;|}
 
+                                  {|RH5401:[Obsolete("a",
+                                            // why
+                                            false)]
+                                  int T
+                                      => 1;|}
+
                                   {|RH5401:[Obsolete,
 
                                    CLSCompliant(false)]
-                                  // note
-                                  int S
+                                  [DefaultValue(typeof(int),
+                                                // why
+                                                "1")]
+                                  int W
                                       => 1;|}
                               }
                               """;
@@ -1779,9 +1801,8 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix is withheld, while the diagnostic stays, when the formatter would drop a blank line inside an
-    /// attribute list it splits and insert one in front of a comment behind the lists, which leaves the total number of
-    /// blank lines unchanged
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a line comment on its own line inside the
+    /// argument list of an attribute in a list that the formatter does not split
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1789,23 +1810,247 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH5401-004")]
-    public async Task VerifyFixIsWithheldWhenTheFormatterDropsABlankLineInsideASplitListAndInsertsOneInFrontOfAComment(string endOfLine)
+    public async Task VerifyFixIsWithheldForACommentOnItsOwnLineInsideTheArgumentsOfAnAttribute(string endOfLine)
     {
         const string source = """
                               using System;
 
                               class C
                               {
-                                  {|RH5401:[Obsolete,
-
-                                   CLSCompliant(false)]
-                                  // note
-                                  int S
+                                  {|RH5401:[Obsolete("a",
+                                            // why
+                                            false)]
+                                  int T
                                       => 1;|}
                               }
                               """;
 
         await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, when the formatter would drop a blank line inside an
+    /// attribute list it splits and insert one in front of a comment on its own line inside the arguments of an attribute
+    /// in another list, which leaves every count of blank lines unchanged
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldWhenABlankLineDroppedInOneAttributeListOffsetsOneInsertedInFrontOfACommentInAnother(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.ComponentModel;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+
+                                   CLSCompliant(false)]
+                                  [DefaultValue(typeof(int),
+                                                // why
+                                                "1")]
+                                  int W
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, when the formatter would collapse two blank lines
+    /// inside the arguments of an attribute into one and insert one in front of a comment on its own line inside the
+    /// arguments of an attribute in another list, with no list that it splits
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldWhenABlankLineCollapsedInOneAttributeListOffsetsOneInsertedInFrontOfACommentInAnother(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.ComponentModel;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+
+
+                                            false)]
+                                  [DefaultValue(typeof(int),
+                                                // why
+                                                "1")]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a block comment between the brackets of an
+    /// attribute list that has nothing but whitespace in front of it on its line, although code follows it on that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForABlockCommentThatStartsItsOwnLineInFrontOfCodeBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete(
+                                      /* c */ "a")]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a comment on its own line directly behind the
+    /// opening bracket of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentOnItsOwnLineBehindTheOpeningBracketOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[
+                                   // why
+                                   Obsolete]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a comment on its own line directly in front of
+    /// the closing bracket of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentOnItsOwnLineInFrontOfTheClosingBracketOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                                            false)
+                                   // why
+                                   ]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment between the brackets of an attribute list above the property, with code in front of
+    /// it on its line, does not keep the fix from being offered, and that it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsABlockCommentBehindCodeBetweenTheBracketsOfAnAttributeListAboveTheProperty(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete("a" /* c */)]
+                                    int V
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete("a" /* c */)]
+                                     int V => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment inside the argument list of an attribute, with code in front of it on its line, does
+    /// not keep the fix from being offered, and that the attribute list keeps its lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsALineCommentBehindCodeInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    {|RH5401:[Obsolete("a", // c
+                                              false)]
+                                    int Y
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     [Obsolete("a", // c
+                                               false)]
+                                     int Y => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
     /// <summary>
