@@ -27,6 +27,12 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Lane | `behavior-change` for both issues | Binding scope fixes production violations next to tooling changes; only `behavior-change` with a change doc admits that diff. #1866 joins it as the maintainer bundled it | Lane is internal | — |
+| 2 | Skeptic | Architecture finding: the build properties the analyzers see would be listed twice (package `buildTransitive` targets and the repository build) | The repository build imports the package's `buildTransitive/Reihitsu.Analyzer.targets` instead of copying its items, so one file states the list | One statement of the rule; cheap; within components the run changes | Repository build only; no shipped output changes | — |
+| 3 | Skeptic | How the self-hosting scan tells test projects from production | Skeptic's recommendation: from the project and package data the scan already reads, plus a self-hosting test with one over-limit test method and one over-limit production method through the scan's own path; implementer keeps it a cheap check (FC-044) | Generated editorconfig is missing in focused runs | Test tooling only | — |
+| 4 | Skeptic | #1865 goals "build reports no new diagnostics" and "self-hosting scans under `scripts/`" | Adjusted: the committed `binaries/` predate the rules, so the build check is met trivially; the self-hosting scan in `src/Reihitsu.SelfHosting.Test` is the real check. PR states it | Evidence in 02-skeptic | No visible output | — |
+| 5 | Skeptic | Ruleset values | `Release.ruleset`: `Action="Error"` like the other enabled entries; `Debug.ruleset`: delete the two `None` lines | Consistency | Repository build only | — |
+| 6 | Skeptic | #1866: rename vs drop; ruleset-ID test | Rename `RH08402` → `RH8402`; add a cheap test that every Reihitsu ID in both rulesets names a shipped rule (adjacent fix, guards the class) | Both rulesets read the same; small, tested | RH8402 reports nothing without a copyright config; no output changes | — |
+| 7 | Skeptic | `AnalyzerResources` over 500 lines | Split into partial parts by category, update `.claude/commands/add-resource-texts.md`; watch FC-036 (resource manifest name, `nameof`, reflection) | Fixes the violation without custom limits | Resource strings unchanged | — |
 
 ## Follow-up candidates
 
@@ -34,4 +40,6 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (01).
+- Done: 01 spec author (change doc Draft, `sdd/changes/2026-11/enable-line-count-rules.md`), 02 skeptic.
+- Open: output question 1 (RH2111 test-type default: A 1000 / B 3000 recommended / C 2000) asked to maintainer.
+- Next after answer: route to spec author (spec/rule page if default changes; set change doc Accepted), then test implementer.
