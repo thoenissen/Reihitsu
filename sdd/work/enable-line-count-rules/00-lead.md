@@ -44,10 +44,14 @@
 | 10 | Spec author 03 | Test that the root `reihitsu.json` never sets a limit above the shipped default | Yes, a cheap unit test | Guards the maintainer's "never above the default" | Repository config only | — |
 | 11 | Spec author 03 | `AGENTS.md` names `DiagnosticAnalyzerBase<TAnalyzer>`, but the class is not generic | Adjacent text fix by the spec author after the implementer, matching the final base shape | Text the run's base change touches anyway | Text only | — |
 | 12 | Test implementer 04 | Who restructures the test code over the limits (11 test types > 3000, 9 test methods > 120) | A fresh test implementer after the implementer, so the split is verified against the finished scan; the implementer does production only | Test files belong to the test implementer; splitting changes no assertion, input or expected output | Test code only | — |
+| 13 | Implementer 05 | The committed `binaries/` (1.4.0) RH0001 does not know the `design` section and would report the root `reihitsu.json` in every project, failing Release/CI | The repository build does not pass the root `reihitsu.json` as `AdditionalFiles` until `binaries/` is rebuilt (the build cannot run RH2008/RH2111 before that anyway); the self-hosting scan, which runs the analyzers built from source, reads it and enforces 500. `BuildConfigurationTests.RepositoryBuildPassesRootConfigurationToTheAnalyzers` is wrong for this state and is reworked by the test implementer to assert the item is absent / or removed. Passing it to the build once `binaries/` know the section is a follow-up | Avoids a suppression or ruleset change (escalation 6) and a version bump outside the run | Repository build only | — |
+| 14 | Implementer 05 | `CodeFixResourcesTests.cs:19` summary says "AnalyzerResources" | Adjacent text fix by the test implementer in its next stage | One word in a file the run's area touches | Text only | — |
+| 15 | Implementer 05 | Four new internal types from the production refactors | Accepted: they are the issue's own fix (fixing the violations the maintainer asked for), not a structural change under escalation 9 | `squad/README.md`, escalation 9 | Behavior unchanged | 261a706b |
+| 16 | Implementer 05 | Implementer stopped mid-run (large context) | Fresh implementer continues from 05-implementer.md | Agent large | — | — |
 
 ## Follow-up candidates
 
-(none yet)
+- Pass the root `reihitsu.json` to the repository build as `AdditionalFiles` once `binaries/` are rebuilt with an RH0001 that knows the `design` section (so the build enforces the repository's 500 type limit too) — from 05-implementer.md, decision 13.
 
 ## Worklist / next step
 
@@ -55,4 +59,5 @@
 - Output questions answered (1A, 2A, 3C).
 - Done: 03 spec author (65d58eb7). Lane check after it: confirmed.
 - Done: 04 test implementer (d0c6e803).
-- Next: implementer (05): production API + production violations; then fresh test implementer (06) for test-code splits; then cleaner.
+- Done: 05 implementer (261a706b, handover aa355b4e) — stopped with items left.
+- Next: fresh implementer (06): remaining production violations after re-running the RH2008/RH2111 scan rows, decision 13, Release build check; then fresh test implementer (07): decision 13 test rework, decision 14, test-code splits (decision 12); then cleaner.
