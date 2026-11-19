@@ -52,6 +52,8 @@
 | 18 | Implementer 06 | Lane check: "no lane" because the root `reihitsu.json` is classified `Unknown` | Adjacent fix: classify the root `reihitsu.json` as tooling in `LaneClassifier` (Reihitsu.Tooling) and in the classification table of `scripts/README.md`; test first by the test implementer (Reihitsu.Tooling.Test), then the implementer | It is repository build configuration like `*.ruleset`/`.editorconfig`; small, tested, in tooling the run touches; no widening resolves an Unknown path | Repository tooling only | — |
 | 19 | Implementer 06 | `MSTEST0049` in `LineCountSelfHostingTests.cs:173` breaks the Release build | Test implementer fixes it in stage 07 | Test code | — | — |
 | 20 | Test implementer 07 | The 11 test types over 3000 were split by size into `partial` parts (`<Class>.Part2.cs`); is `partial` acceptable for test classes? | No. Each of the 11 is split into separate classes by topic (feature / construct the tests cover), no `partial`, with whatever each new class needs (`GetFixAllScenario`, base tests); test names keep their method names, fully qualified names may change. The 9 test-method fixes (constants moved to class level) stay | The maintainer ruled out `partial` as a way to meet the type limit (answer 3C) and said some test classes must be structured differently; a by-size partial split only satisfies RH2111-004 mechanically and defeats the purpose of the limit | Test code only | — |
+| 21 | Test implementer 09 | New split classes copy the original class's `GetFixAllScenario` verbatim | Accepted: no spec example gives a topic scenario with two fixable diagnostics in 10 of 17 classes; inventing outputs is worse than a redundant run | Avoids invented expected output | Test code only | b3175d4e |
+| 22 | Test implementer 09 | Shared private test helpers copied into each split class | Accepted: keeps every test method's text identical; same pattern as existing copies of `WithEndOfLine`/`DefineDebug` | Proof of no change stays exact | Test code only | b3175d4e |
 
 ## Follow-up candidates
 
@@ -67,4 +69,5 @@
 - Done: 06 implementer (be29e3c8, handover 62c2372d): production clean; scan fails only on 9 test methods + 11 test types; lane check "no lane" (decision 18).
 - Done: 07 test implementer (61883ae1, dfa65bd8): decisions 13, 14, 18 (test), 19 done; type splits used `partial` → decision 20.
 - Done: 08 implementer (f4f4f348), lane check confirmed behavior-change.
-- Next: fresh test implementer (09) for decision 20; then spec author for decision 11 (AGENTS.md base-class sentence); then cleaner.
+- Done: 09 test implementer (b3175d4e): 11 classes → 29 by topic, no partial.
+- Next: spec author (10) for decision 11; then cleaner, spec checker, auditor, validator.
