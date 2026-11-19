@@ -24,7 +24,7 @@ Every analyzer rule has exactly two resources, named after its diagnostic ID:
 - `RH####Title`
 - `RH####MessageFormat`
 
-`DiagnosticAnalyzerBase` derives both names from the diagnostic ID the analyzer passes to it and reads them through `AnalyzerResources.ResourceManager` as `LocalizableResourceString`s. An analyzer names no resource itself. The base publishes the two texts as properties of the analyzer (`Title` and `MessageFormat`), so a unit test checks for every analyzer that both texts exist, and analyzer tests take a message from the analyzer's `MessageFormat` property.
+`DiagnosticAnalyzerBase` derives both names from the diagnostic ID the analyzer passes to it and reads them through `AnalyzerResources.ResourceManager` as `LocalizableResourceString`s. An analyzer names no resource itself. The base publishes the two texts as properties of the analyzer (`Title` and `MessageFormat`), so `AnalyzerResourcesTests` checks for every analyzer that both texts exist and are the resources its ID names, and analyzer tests take a message from the analyzer's `MessageFormat` property.
 
 ### Code-fix texts
 
@@ -70,7 +70,7 @@ If you add a new analyzer rule `RH9999`:
 
 1. Add `RH9999Title` and `RH9999MessageFormat` to `src/Reihitsu.Analyzer/AnalyzerResources.resx`.
 2. Pass the analyzer's diagnostic ID to the base; it reads `RH9999Title` and `RH9999MessageFormat` from the resources.
-3. In the analyzer's tests, take the expected message from the analyzer's `MessageFormat` property, not from a string literal.
+3. In the analyzer's tests, take the expected message from the analyzer's `MessageFormat` property, which `AnalyzerTestsBase<TAnalyzer>` exposes as `MessageFormat`, not from a string literal.
 
 If you add a matching code fix:
 
