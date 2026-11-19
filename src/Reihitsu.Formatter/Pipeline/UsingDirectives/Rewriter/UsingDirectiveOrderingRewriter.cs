@@ -118,41 +118,74 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            // A directive that shared a line before the rebuild has no indentation of its own; once it
-            // begins a line - behind a line break or behind its group separator - it is placed at the
-            // scope's indentation instead
             var startsNewGroup = UsingGrouping.AreInSameGroup(canonical[usingIndex - 1], current) == false;
             var beginsLine = startsNewGroup || UsingTrailingTriviaBuilder.ContainsLineBreak(result[usingIndex - 1].GetTrailingTrivia());
-            SyntaxTriviaList? lineIndentation = beginsLine && directivesStartingTheirLine.Contains(current) == false
-                                                    ? scopeIndentation
-                                                    : null;
-
-            var leadingTrivia = UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup, isFirst: false, lineIndentation, endOfLine);
-
-            // A directive that continues its group gets no blank line, except the one kept above the comment that
-            // leads it when a blank line stood directly above that comment in the source - however many stood
-            // there, exactly one is written (FMT-USING-010)
-            if (startsNewGroup == false
-                && directivesWithBlankLineAboveComment.Contains(current))
-            {
-                leadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
-            }
-
-            // The rebuilt leading trivia drops the layout in front of its first comment, because the line in front
-            // normally already ends. When it does not, a line break in that layout is the one that puts the comment
-            // on a line of its own behind the directive in front - the documentation-comment phase writes it there
-            // when it moves a delimited documentation comment written behind that directive - so it is kept
-            if (beginsLine == false
-                && UsingLeadingTriviaBuilder.HasLineBreakBeforeSignificantTrivia(current.GetLeadingTrivia()))
-            {
-                leadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
-            }
+            var leadingTrivia = CreateLeadingTriviaOfLaterDirective(current,
+                                                                    firstLeadingTriviaPrefix,
+                                                                    startsNewGroup,
+                                                                    beginsLine,
+                                                                    directivesStartingTheirLine.Contains(current) ? null : scopeIndentation,
+                                                                    directivesWithBlankLineAboveComment.Contains(current),
+                                                                    endOfLine);
 
             result.Add(current.WithLeadingTrivia(leadingTrivia)
                               .WithTrailingTrivia(trailingTrivia));
         }
 
         return SyntaxFactory.List(result);
+    }
+
+    /// <summary>
+    /// Creates the leading trivia of a directive that is not the first of the organized block. A directive that shared a
+    /// line before the rebuild is placed at the scope's indentation once it begins a line; a directive that continues its
+    /// group gets no blank line other than the one kept above the comment that leads it (FMT-USING-010); and a line break
+    /// that puts a leading comment on a line of its own behind the directive in front is kept
+    /// </summary>
+    /// <param name="current">The directive</param>
+    /// <param name="firstLeadingTriviaPrefix">The whitespace prefix of the block's first leading trivia</param>
+    /// <param name="startsNewGroup">Whether the directive starts a new group</param>
+    /// <param name="beginsLine">Whether the directive begins a line, behind a line break or behind its group separator</param>
+    /// <param name="scopeIndentation">The scope's indentation, or <see langword="null"/> when the directive started its line in the source</param>
+    /// <param name="hasBlankLineAboveComment">Whether a blank line stood directly above the comment that leads the directive in the source</param>
+    /// <param name="endOfLine">Preferred end-of-line sequence</param>
+    /// <returns>The leading trivia of the directive</returns>
+    private static SyntaxTriviaList CreateLeadingTriviaOfLaterDirective(UsingDirectiveSyntax current,
+                                                                        SyntaxTriviaList firstLeadingTriviaPrefix,
+                                                                        bool startsNewGroup,
+                                                                        bool beginsLine,
+                                                                        SyntaxTriviaList? scopeIndentation,
+                                                                        bool hasBlankLineAboveComment,
+                                                                        string endOfLine)
+    {
+        // A directive that shared a line before the rebuild has no indentation of its own; once it
+        // begins a line - behind a line break or behind its group separator - it is placed at the
+        // scope's indentation instead
+        var lineIndentation = beginsLine
+                                  ? scopeIndentation
+                                  : null;
+
+        var leadingTrivia = UsingLeadingTriviaBuilder.CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup, isFirst: false, lineIndentation, endOfLine);
+
+        // A directive that continues its group gets no blank line, except the one kept above the comment that
+        // leads it when a blank line stood directly above that comment in the source - however many stood
+        // there, exactly one is written (FMT-USING-010)
+        if (startsNewGroup == false
+            && hasBlankLineAboveComment)
+        {
+            leadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+        }
+
+        // The rebuilt leading trivia drops the layout in front of its first comment, because the line in front
+        // normally already ends. When it does not, a line break in that layout is the one that puts the comment
+        // on a line of its own behind the directive in front - the documentation-comment phase writes it there
+        // when it moves a delimited documentation comment written behind that directive - so it is kept
+        if (beginsLine == false
+            && UsingLeadingTriviaBuilder.HasLineBreakBeforeSignificantTrivia(current.GetLeadingTrivia()))
+        {
+            leadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+        }
+
+        return leadingTrivia;
     }
 
     /// <summary>
