@@ -66,4 +66,5 @@
 - Done: 05 implementer (261a706b, handover aa355b4e) — stopped with items left.
 - Done: 06 implementer (be29e3c8, handover 62c2372d): production clean; scan fails only on 9 test methods + 11 test types; lane check "no lane" (decision 18).
 - Done: 07 test implementer (61883ae1, dfa65bd8): decisions 13, 14, 18 (test), 19 done; type splits used `partial` → decision 20.
-- Next: implementer (08) for decision 18; then fresh test implementer (09) for decision 20; then spec author for decision 11 (AGENTS.md base-class sentence); then cleaner.
+- Done: 08 implementer (f4f4f348), lane check confirmed behavior-change.
+- Next: fresh test implementer (09) for decision 20; then spec author for decision 11 (AGENTS.md base-class sentence); then cleaner.
