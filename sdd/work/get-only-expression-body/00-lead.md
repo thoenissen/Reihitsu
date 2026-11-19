@@ -43,12 +43,14 @@ Batch 1 (before test implementer):
 | 15 | Tests 12 | Line that does not begin with a member (type written on one line, sibling's wrapped initializer, multi-line literal tail) | SHARED-GETONLY adopts the same exception RH3202-002 / RH5417-003 state, through the shared-line helper the fix reuses; test for a one-line type added | One owner of the shared-line rule; consistent with the sibling family | Decided by the existing RH3202-002/RH5417-003 requirements the reused helper implements | — |
 | 16 | Impl 16 (repair round 1) | Fix All switched from BatchFixer to `DocumentOrderFixAllProvider` | Accept | Needed by the shared-line Fix All tests; RH3202/RH5417 precedent | Fix All results equal one-at-a-time results (SHARED-FIX-007) | af77361 |
 | 17 | Impl 16 | Structural option of decision 12 taken: `ExpressionBodyCodeFixUtilities.ReplaceBodyAsync` shared by RH3202/3203/3208 and RH3209/3210 | Accept (~40 code lines, no new type) | Resolves the audit's architecture finding | RH3202 family outputs unchanged (analyzer project 11052/11052 green) | af77361 |
+| 18 | Audit 21 | Findings 4 (doc comment `/** c */` in the sibling gap escapes the comment-gap check; repeats finding 1's class) and 5 (private `IndexOf('\n')` line-break test instead of the Core helper) | Architecture finding: refuse the class by its cause — the fix is withheld when the gap between the member and a sibling member holds any trivia other than whitespace and is not separated by an end of line as the Core helpers (`SyntaxTriviaUtilities.EndsLine`/`AreSeparatedByEndOfLine`) define it; so a multi-line comment gap is withheld too. Not a repair round | Enumerated comment kinds miss the next kind; one cheap check on the cause, using the Core definition of a line break | Withholding a fix for a rare class (input already breaks one-member-per-line) puts nothing in question | — |
+| 19 | Audit 21 | One-line type: member converted in place, nothing separated | Keep decision 15 | Adopts the existing RH3202-002 / RH5417-003 exception through the shared helper | Covered by those unchanged requirements | — |
 ## Follow-up candidates
 
 - A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
 
 - Five copies of "remove trailing whitespace trivia" across Formatter, Core, CodeFixes could share one Core owner (06-implementer)
-- The RH3202 family's fix (`BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync`) keeps a converted member and a sibling on one line when a comment sits in the gap between them, against SHARED-FIX-007 and the formatter (12-test-implementer, `FixKeepsACommentBetweenTheConvertedMethodAndTheMemberBehindItAndDoesNotSeparateThem`)
+- The RH3202 family's fix (`BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync`) keeps a converted member and a sibling on one line when a comment sits in the gap between them, against SHARED-FIX-007 and the formatter (12-test-implementer, `FixKeepsACommentBetweenTheConvertedMethodAndTheMemberBehindItAndDoesNotSeparateThem`); the same family also misses `/** c */` documentation comments in that gap (21-auditor)
 
 ## Worklist / next step
 
@@ -72,5 +74,6 @@ Batch 1 (before test implementer):
 - Cleaner 17 done (400352d): member reorder only, Release clean.
 - Spec checker 18 (03aa494): one low finding — SHARED-GETONLY code owners miss ExpressionBodyCodeFixUtilities (and possibly BlankLineCodeFixUtilities).
 - Spec author 19 (e6012b7): owners named in intro (one-spec-per-type rule). Merged main e3cf4cd (formatter line-break changes); Release build green; RH3202/3203/3208/3209/3210 tests 311/311.
-- Next: spec checker 20 and auditor 21 (repair + merge, base e3cf4cd) in parallel; validator 22. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
+- Spec checker 20 consistent. Auditor 21 (5819614): findings 4 (high, repeats class) and 5 (medium) -> decision 18 (architecture finding, refuse by cause; no repair round used).
+- Next: spec author 22 + test implementer 23 in parallel, then implementer 24, cleaner, spec checker, auditor (delta), validator. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
