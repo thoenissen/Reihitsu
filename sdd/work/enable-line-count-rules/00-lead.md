@@ -74,5 +74,6 @@
 - Done: 11 cleaner (09c1e085), clean.
 - Done: 12 spec checker (d3043a11), consistent. main f597ab53 is merged (branch up to date).
 - Done: 13 auditor (3383e64a) on e3d15260: findings (2 low, #1865). Audited SHA e3d15260.
-- Repair round 1 done: 14 implementer (4e85796c), 15 cleaner (2e574b2b). Next: spec checker (16), auditor on the repair (17), validator.
+- Repair round 1 done: 14 implementer (4e85796c), 15 cleaner (2e574b2b), 16 spec checker consistent, 17 auditor PASS on 4fc75c5c. **Audited SHA: 4fc75c5c.**
+- Next: validator (18); lane check; issue manager with the one follow-up; note; delete sdd/work; trigger commit; PR.
 - Repair round 1 worklist (was): finding 2 (move `UnnecessaryParenthesesTypeArgumentListUtilities` out of `Analyzer/Core` to RH3002's area, no logic change) → implementer (14); finding 1 (stale FC-031 comments in self-hosting test harness) → cleaner (15); then spec checker, auditor on the repair, validator. Auditor hints not taken (test restating expected defaults is normal; others negligible).
