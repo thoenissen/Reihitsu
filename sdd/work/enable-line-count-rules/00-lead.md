@@ -71,4 +71,5 @@
 - Done: 08 implementer (f4f4f348), lane check confirmed behavior-change.
 - Done: 09 test implementer (b3175d4e): 11 classes → 29 by topic, no partial.
 - Done: 10 spec author (61092240).
-- Next: cleaner (11), spec checker (12), auditor, validator.
+- Done: 11 cleaner (09c1e085), clean.
+- Next: spec checker (12), auditor, validator.
