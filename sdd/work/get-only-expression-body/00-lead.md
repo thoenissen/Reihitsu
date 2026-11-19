@@ -69,5 +69,6 @@ Batch 1 (before test implementer):
 - Spec author 13 (1976629), test implementer 12 (6fb5a80) done; decisions 14, 15.
 - Spec author 14 (9095b22, SHARED-GETONLY-008) and test implementer 15 (c191c72; 26 expected failures) done.
 - Implementer 16 done (af77361, d170808): all green.
-- Next: cleaner 17, spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
+- Cleaner 17 done (400352d): member reorder only, Release clean.
+- Next: spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
