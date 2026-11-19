@@ -70,4 +70,5 @@
 - Done: 07 test implementer (61883ae1, dfa65bd8): decisions 13, 14, 18 (test), 19 done; type splits used `partial` → decision 20.
 - Done: 08 implementer (f4f4f348), lane check confirmed behavior-change.
 - Done: 09 test implementer (b3175d4e): 11 classes → 29 by topic, no partial.
-- Next: spec author (10) for decision 11; then cleaner, spec checker, auditor, validator.
+- Done: 10 spec author (61092240).
+- Next: cleaner (11), spec checker (12), auditor, validator.
