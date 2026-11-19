@@ -1655,6 +1655,34 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         Assert.AreEqual(ConvertEndOfLine(fixedData, endOfLine), Format(ConvertEndOfLine(RemoveMarkup(testData), endOfLine)));
     }
 
+    /// <summary>
+    /// Verifies the change example: the chain the fix formats holds a comment in front of its conditional element access, which the
+    /// formatter refuses, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5112-001")]
+    [Requirement("FMT-UNSUP-014")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnAttachedElementAccess(string endOfLine)
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static string Run(int[] items)
+                                    {
+                                        return items // element
+                                            ?[0]
+                                            {|RH5112:.|}ToString();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

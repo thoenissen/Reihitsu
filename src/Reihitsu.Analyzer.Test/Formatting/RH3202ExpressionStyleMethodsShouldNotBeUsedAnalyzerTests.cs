@@ -2000,6 +2000,46 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies the change example: the fix formats the method it builds, the formatter refuses a method that holds a comment in
+    /// front of an element access, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-014")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnElementAccess(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int[] arr) {|RH3202:=> arr // first
+                                                      [0]|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a method that holds a block comment in front of an argument list on one line, or
+    /// between the <c>?</c> and the <c>[</c> of a conditional element access, and the diagnostic stays
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-014")]
+    [DataRow("class C\n{\n    int M() {|RH3202:=> Foo /* c */ (1)|};\n\n    int Foo(int x)\n    {\n        return x;\n    }\n}", DisplayName = "Block comment in front of an argument list")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    int? M(int[]? n) {|RH3202:=> n? /* c */ [0]|};\n}", DisplayName = "Block comment between the question mark and the bracket")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnAttachedPart(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

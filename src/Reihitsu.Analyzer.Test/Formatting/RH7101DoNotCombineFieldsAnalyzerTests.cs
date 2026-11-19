@@ -392,7 +392,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     [TestMethod]
     [Requirement("RH7101-007")]
     [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int value)\n    {\n        return value + /* c */ 1;\n    }\n}", DisplayName = "In a method of the type")]
-    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        bool M(bool a, bool b)\n        {\n            return a &&\n                // c\n                b;\n        }\n    }\n}", DisplayName = "In a nested type")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        bool M(bool a, bool b)\n        {\n            return a &&\n                // c\n                b;\n        }\n    }\n}", DisplayName = "In a nested type")]
     [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int value)\n    {\n        return value +\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive in a method of the type")]
     public async Task CommentBehindABinaryOperatorElsewhereInTheTypeWithholdsTheFix(string source)
     {
@@ -434,7 +434,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M() => /* c */ 1;\n}", DisplayName = "Block comment behind the arrow of a method on one line")]
     [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int P\n    {\n        get =>\n            // c\n            _x;\n    }\n}", DisplayName = "Comment line behind the arrow of a getter")]
     [DataRow("using System;\n\nclass C\n{\n    private Func<int> _f = () =>\n    {\n        int L() => /* c */ 1;\n\n        return L();\n    }, {|RH7101:_g|};\n}", DisplayName = "Local function in an initializer value")]
-    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P =>\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive behind the arrow in a nested type")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P =>\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive behind the arrow in a nested type")]
     public async Task CommentBehindTheArrowOfAnExpressionBodyElsewhereInTheTypeWithholdsTheFix(string source)
     {
         await VerifyNoCodeFixIsOffered(source);
@@ -4088,8 +4088,52 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M() /* c */ => 1;\n}", DisplayName = "Block comment in front of the arrow of a method on one line")]
     [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int P\n    {\n        get\n            // c\n            => _x;\n    }\n}", DisplayName = "Comment line in front of the arrow of a getter")]
     [DataRow("using System;\n\nclass C\n{\n    private Func<int> _f = () =>\n    {\n        int L() /* c */ => 1;\n\n        return L();\n    }, {|RH7101:_g|};\n}", DisplayName = "Local function in an initializer value")]
-    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P\n#pragma warning disable CS0001\n            => 1;\n    }\n}", DisplayName = "Directive in front of the arrow in a nested type")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P\n#pragma warning disable CS0001\n            => 1;\n    }\n}", DisplayName = "Directive in front of the arrow in a nested type")]
     public async Task CommentInFrontOfTheArrowOfAnExpressionBodyElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the change example: a line comment that keeps an argument list of an initializer value on the line below withholds
+    /// the fix, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentInFrontOfAnArgumentListInAnInitializerValueWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a = Offset // one
+                                                   (1), {|RH7101:_b|};
+
+                                  private static int Offset(int value)
+                                  {
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of an argument list on one line, in front of an element access, or between the <c>?</c> and
+    /// the <c>[</c> of a conditional element access anywhere in the type withholds the fix for its combined declaration
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _a = Offset /* one */ (1), {|RH7101:_b|};\n\n    private static int Offset(int value)\n    {\n        return value;\n    }\n}", DisplayName = "Block comment in front of an argument list in an initializer value")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int[] arr)\n    {\n        return arr // c\n            [0];\n    }\n}", DisplayName = "Comment in front of an element access in a method of the type")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int? M(int[]? n)\n        {\n            return n? /* c */ [0];\n        }\n    }\n}", DisplayName = "Comment between the question mark and the bracket in a nested type")]
+    public async Task CommentInFrontOfAnAttachedPartWithholdsTheFix(string source)
     {
         await VerifyNoCodeFixIsOffered(source);
     }

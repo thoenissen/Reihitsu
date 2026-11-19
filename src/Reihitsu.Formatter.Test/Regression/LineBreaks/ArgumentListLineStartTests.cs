@@ -8,7 +8,8 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
 /// Full-pipeline tests for the opening parenthesis of an argument list written on the line below the code in front of it: the
-/// line-break phase joins it onto that line, unless a comment, a directive, or disabled text stands in the gap
+/// line-break phase joins it onto that line, and an input with a comment, a directive, or disabled text in the gap is refused as
+/// unsupported
 /// </summary>
 [TestClass]
 public class ArgumentListLineStartTests : FormatterTestsBase
@@ -242,11 +243,12 @@ public class ArgumentListLineStartTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the requirement's fourth example: a single-line comment, a delimited comment, or a conditional directive with disabled
-    /// text in the gap keeps the opening parenthesis on its own line
+    /// text in the gap refuses the input as a whole, which is returned unchanged and reported as unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-039")]
-    public void RequirementExampleKeepsTheLineBreakWhenTheGapHoldsCommentDirectiveOrDisabledText()
+    [Requirement("FMT-UNSUP-014")]
+    public void RequirementExampleRefusesTheInputWhenTheGapHoldsCommentDirectiveOrDisabledText()
     {
         // Arrange
         const string input = """
@@ -273,7 +275,7 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// four");
     }
 
     /// <summary>
@@ -1583,11 +1585,11 @@ public class ArgumentListLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a delimited comment at the start of the opening parenthesis's line, which is in the gap, keeps the line break
+    /// Verifies that a delimited comment at the start of the opening parenthesis's line, which is in the gap, refuses the input
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void DelimitedCommentInFrontOfOpeningParenthesisKeepsTheLineBreak()
+    [Requirement("FMT-UNSUP-014")]
+    public void DelimitedCommentInFrontOfOpeningParenthesisIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1606,15 +1608,15 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/* c */");
     }
 
     /// <summary>
-    /// Verifies that a comment on a line of its own between the name and the argument list keeps the line break
+    /// Verifies that a comment on a line of its own between the name and the argument list refuses the input
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void CommentLineInTheGapKeepsTheLineBreak()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentLineInTheGapIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1633,33 +1635,16 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo
-
-                                        // c
-                                        (4);
-                                    }
-
-                                    void Foo(int x)
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that a <c>#pragma</c> directive between the name and the argument list keeps the line break
+    /// Verifies that a <c>#pragma</c> directive between the name and the argument list refuses the input
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void PragmaDirectiveInTheGapKeepsTheLineBreak()
+    [Requirement("FMT-UNSUP-014")]
+    public void PragmaDirectiveInTheGapIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1680,15 +1665,15 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "#pragma warning disable CS0168");
     }
 
     /// <summary>
-    /// Verifies that a <c>#region</c> directive between the name and the argument list keeps the line break
+    /// Verifies that a <c>#region</c> directive between the name and the argument list refuses the input
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void RegionDirectiveInTheGapKeepsTheLineBreak()
+    [Requirement("FMT-UNSUP-014")]
+    public void RegionDirectiveInTheGapIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1708,37 +1693,17 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo
-
-                                        #region R
-
-                                        (4);
-
-                                        #endregion // R
-                                    }
-
-                                    void Foo(int x)
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "#region R");
     }
 
     /// <summary>
-    /// Verifies that a fully inactive <c>#if false</c> block with disabled text between the name and the argument list keeps the line
-    /// break
+    /// Verifies that a fully inactive <c>#if false</c> block with disabled text between the name and the argument list refuses the
+    /// input
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void InactiveConditionalBlockInTheGapKeepsTheLineBreak()
+    [Requirement("FMT-UNSUP-014")]
+    public void InactiveConditionalBlockInTheGapIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1761,7 +1726,7 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "#if false");
     }
 
     /// <summary>
@@ -1865,59 +1830,15 @@ public class ArgumentListLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a <c>/** */</c> comment behind the name, in the gap, keeps the line break in the documentation modes that
-    /// parse documentation, where it goes onto a line of its own
+    /// Verifies that a <c>/** */</c> comment behind the name, in the gap, refuses the input in the documentation modes that parse
+    /// documentation
     /// </summary>
     /// <param name="documentationMode">The documentation mode the input is parsed with</param>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
+    [Requirement("FMT-UNSUP-014")]
     [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
     [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
-    public void DelimitedDocumentationCommentBehindTheNameKeepsTheLineBreak(DocumentationMode documentationMode)
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo /** c */
-                                     (4);
-                                 }
-
-                                 void Foo(int x)
-                                 {
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo
-
-                                        /** c */
-                                        (4);
-                                    }
-
-                                    void Foo(int x)
-                                    {
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
-    }
-
-    /// <summary>
-    /// Verifies that a <c>/** */</c> comment behind the name, in the gap, keeps the line break when documentation is not parsed
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void DelimitedDocumentationCommentBehindTheNameKeepsTheLineBreakWithoutDocumentationParsing()
+    public void DelimitedDocumentationCommentBehindTheNameIsUnsupported(DocumentationMode documentationMode)
     {
         // Arrange
         const string input = """
@@ -1936,19 +1857,46 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input, null, CreateParseOptions(DocumentationMode.None));
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/** c */", parseOptions: CreateParseOptions(documentationMode));
     }
 
     /// <summary>
-    /// Verifies that a <c>/** */</c> comment at the start of the opening parenthesis's line, in the gap, keeps the line break in
-    /// the documentation modes that parse documentation
+    /// Verifies that a <c>/** */</c> comment behind the name, in the gap, refuses the input when documentation is not parsed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-014")]
+    public void DelimitedDocumentationCommentBehindTheNameIsUnsupportedWithoutDocumentationParsing()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo /** c */
+                                     (4);
+                                 }
+
+                                 void Foo(int x)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/** c */", parseOptions: CreateParseOptions(DocumentationMode.None));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment at the start of the opening parenthesis's line, in the gap, refuses the input in the
+    /// documentation modes that parse documentation
     /// </summary>
     /// <param name="documentationMode">The documentation mode the input is parsed with</param>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
+    [Requirement("FMT-UNSUP-014")]
     [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
     [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
-    public void DelimitedDocumentationCommentInFrontOfOpeningParenthesisKeepsTheLineBreak(DocumentationMode documentationMode)
+    public void DelimitedDocumentationCommentInFrontOfOpeningParenthesisIsUnsupported(DocumentationMode documentationMode)
     {
         // Arrange
         const string input = """
@@ -1966,33 +1914,17 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo
-
-                                        /** c */ (4);
-                                    }
-
-                                    void Foo(int x)
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/** c */", parseOptions: CreateParseOptions(documentationMode));
     }
 
     /// <summary>
-    /// Verifies that a <c>/** */</c> comment at the start of the opening parenthesis's line, in the gap, keeps the line break
-    /// when documentation is not parsed
+    /// Verifies that a <c>/** */</c> comment at the start of the opening parenthesis's line, in the gap, refuses the input when
+    /// documentation is not parsed
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void DelimitedDocumentationCommentInFrontOfOpeningParenthesisKeepsTheLineBreakWithoutDocumentationParsing()
+    [Requirement("FMT-UNSUP-014")]
+    public void DelimitedDocumentationCommentInFrontOfOpeningParenthesisIsUnsupportedWithoutDocumentationParsing()
     {
         // Arrange
         const string input = """
@@ -2011,20 +1943,20 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input, null, CreateParseOptions(DocumentationMode.None));
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/** c */", parseOptions: CreateParseOptions(DocumentationMode.None));
     }
 
     /// <summary>
-    /// Verifies that a <c>///</c> comment on a line of its own between the name and the argument list keeps the line break in
-    /// every documentation mode, with a blank line above the comment
+    /// Verifies that a <c>///</c> comment on a line of its own between the name and the argument list refuses the input in every
+    /// documentation mode
     /// </summary>
     /// <param name="documentationMode">The documentation mode the input is parsed with</param>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
+    [Requirement("FMT-UNSUP-014")]
     [DataRow(DocumentationMode.None, DisplayName = "None")]
     [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
     [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
-    public void SingleLineDocumentationCommentInTheGapKeepsTheLineBreak(DocumentationMode documentationMode)
+    public void SingleLineDocumentationCommentInTheGapIsUnsupported(DocumentationMode documentationMode)
     {
         // Arrange
         const string input = """
@@ -2043,35 +1975,17 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo
-
-                                        /// c
-                                        (4);
-                                    }
-
-                                    void Foo(int x)
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/// c", parseOptions: CreateParseOptions(documentationMode));
     }
 
     /// <summary>
     /// Verifies that a comment in the gap in front of the argument list of a constructor initializer, a primary-constructor base
-    /// type, an object creation, and a <c>with(…)</c> element keeps each opening parenthesis at the start of its own line; the
-    /// columns of those lines are not decided by the requirement, so only the line starts and stability are checked
+    /// type, an object creation, and a <c>with(…)</c> element refuses the input, which is reported at the first comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-039")]
-    public void CommentInTheGapKeepsTheLineBreakForEveryOwner()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentInTheGapIsUnsupportedForEveryOwner()
     {
         // Arrange
         const string input = """
@@ -2109,7 +2023,7 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertBlankLinesAbove(input, ("(1)", false), ("(2);", false), ("(3);", false), ("(4)", false));
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// c");
     }
 
     /// <summary>

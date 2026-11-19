@@ -15,7 +15,8 @@ namespace Reihitsu.Cli.Test.EndToEnd;
 /// and its branch, which the formatter refuses as unsupported (FMT-UNSUP-008); and for files with directives inside and in front of
 /// combined field declarations (FMT-UNSUP-010, FMT-STRUCT-022); and for files with a comment or directive between a binary operator
 /// and its right operand (FMT-UNSUP-011); and for files with a comment or directive between the arrow of an expression body and its
-/// expression (FMT-UNSUP-012) or the code in front of it (FMT-UNSUP-013)
+/// expression (FMT-UNSUP-012) or the code in front of it (FMT-UNSUP-013); and for files with a comment or directive in front of an
+/// argument list, an element access, or a null-forgiving operator (FMT-UNSUP-014)
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -184,6 +185,47 @@ public class CliHiddenCodeEndToEndTests
     /// type of a property that close in front of a shared arrow, the first <c>#endif</c> of which starts in line 9, column 1
     /// </summary>
     private const string LeadingArrowSharedArrowSource = "using System.Numerics;\n\nclass C\n{\n#if NET8_0\n    public int M(int a)\n#else\n    public int M(long a)\n#endif\n        => 1;\n\n    T Make<T>()\n#if NET7_0_OR_GREATER\n        where T : INumber<T>\n#endif\n        => default;\n\n#if NET8_0\n    public int P\n#else\n    public long P\n#endif\n        => 1;\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of an element access below a line comment, which starts in line 5, column 21
+    /// </summary>
+    private const string AttachedElementAccessCommentSource = "class C\n{\n    int M(int[] arr)\n    {\n        var a = arr // first\n            [0];\n\n        return a;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of a null-forgiving operator below a comment line, which starts in line 8,
+    /// column 13
+    /// </summary>
+    private const string AttachedNullForgivingCommentSource = "#nullable enable\n\nclass C\n{\n    string M(string? s)\n    {\n        var t = s\n            // known to be set\n            !;\n\n        return t;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of an element access in a chain with links below a comment, which starts in
+    /// line 8, column 32
+    /// </summary>
+    private const string AttachedChainElementAccessCommentSource = "using System.Linq;\n\nclass C\n{\n    int M(int[] items)\n    {\n        return items.Where(x => x > 0)\n                    .ToArray() // the first one\n                    [0];\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of a conditional group that chooses between two argument lists, whose
+    /// <c>#if DEBUG</c> starts in line 6, column 1
+    /// </summary>
+    private const string AttachedArgumentListDirectiveSource = "class C\n{\n    int M()\n    {\n        return Foo\n#if DEBUG\n            (1);\n#else\n            (2);\n#endif\n    }\n\n    int Foo(int x)\n    {\n        return x;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of block comments in the gaps on one line, the first of which starts in line
+    /// 4, column 20, in a file whose <c>class C{</c> the formatter would otherwise correct
+    /// </summary>
+    private const string AttachedSameLineCommentSource = "class C{\n    int M(int[] arr)\n    {\n        return Foo /* x */ (arr /* first */ [0]);\n    }\n\n    int Foo(int x)\n    {\n        return x;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of a block comment between a collection expression's <c>with</c> and its
+    /// argument list, which starts in line 7, column 32
+    /// </summary>
+    private const string AttachedWithElementCommentSource = "using System.Collections.Generic;\n\nclass C\n{\n    List<string> M()\n    {\n        List<string> d = [with /* size */ (4)];\n\n        return d;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-014 change's example of a comment between the <c>?</c> and the <c>[</c> of a conditional element
+    /// access, which starts in line 5, column 19
+    /// </summary>
+    private const string AttachedConditionalElementAccessCommentSource = "class C\n{\n    int? M(int[]? n)\n    {\n        return n? // first\n            [0];\n    }\n}\n";
 
     /// <summary>
     /// A formatted file
@@ -524,6 +566,40 @@ public class CliHiddenCodeEndToEndTests
 
             Assert.AreEqual(ExitCodes.Error, exitCode);
             Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive between the arrow of an expression body and the code in front of it. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output examples of FMT-UNSUP-014: files with a comment, a directive, or a conditional group in front of
+    /// an argument list, an element access, a conditional element access, or a null-forgiving operator, or between the <c>?</c> and
+    /// the <c>[</c> of a conditional element access — behind the element, on a line of its own, in a chain with links, on one line
+    /// beside code the formatter would correct, and in front of the argument list of a <c>with(…)</c> element — are each left
+    /// unchanged, reported with the reason and the first comment's or directive's line and column, and the run exits with code 2
+    /// </summary>
+    /// <param name="source">The file's text</param>
+    /// <param name="line">The reported line</param>
+    /// <param name="column">The reported column</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-014")]
+    [DataRow(AttachedElementAccessCommentSource, 5, 21, DisplayName = "Element access below a line comment")]
+    [DataRow(AttachedNullForgivingCommentSource, 8, 13, DisplayName = "Null-forgiving operator below a comment line")]
+    [DataRow(AttachedChainElementAccessCommentSource, 8, 32, DisplayName = "Element access in a chain with links below a comment")]
+    [DataRow(AttachedArgumentListDirectiveSource, 6, 1, DisplayName = "Conditional group that chooses between two argument lists")]
+    [DataRow(AttachedSameLineCommentSource, 4, 20, DisplayName = "Block comments in the gaps on one line")]
+    [DataRow(AttachedWithElementCommentSource, 7, 32, DisplayName = "Block comment in front of the argument list of a with element")]
+    [DataRow(AttachedConditionalElementAccessCommentSource, 5, 19, DisplayName = "Comment between the question mark and the bracket")]
+    public async Task CommentOrDirectiveInFrontOfAnAttachedPartIsReportedAsUnsupported(string source, int line, int column)
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("a.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged." }, Lines(error));
             Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
