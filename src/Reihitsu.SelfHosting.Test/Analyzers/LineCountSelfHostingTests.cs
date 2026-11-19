@@ -170,10 +170,11 @@ public sealed class LineCountSelfHostingTests
                                         .Where(file => string.Equals(Path.GetFileName(file.Path), "reihitsu.json", StringComparison.OrdinalIgnoreCase))
                                         .Select(file => Path.GetFullPath(file.Path))
                                         .ToList();
-        var diagnostics = compilation.WithAnalyzers([new RH0001ConfigurationFileMustBeValidAnalyzer()], options)
-                                     .GetAnalyzerDiagnosticsAsync(TestContext.CancellationToken)
-                                     .GetAwaiter()
-                                     .GetResult();
+        var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, concurrentAnalysis: true, logAnalyzerExecutionTime: false);
+        var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, [new RH0001ConfigurationFileMustBeValidAnalyzer()], analysisOptions);
+        var diagnostics = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(TestContext.CancellationToken)
+                                                  .GetAwaiter()
+                                                  .GetResult();
 
         // Assert
         Assert.AreSequenceEqual(new[] { Path.Combine(solution.SolutionRoot, "reihitsu.json") }, configurationFiles);

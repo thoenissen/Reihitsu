@@ -10,6 +10,165 @@ namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 [TestClass]
 public class BlankLineRegionTests : FormatterTestsBase
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of <see cref="BlankLinesAroundRegionsWithFieldsAndConstructorsAreCorrect"/>
+    /// </summary>
+    private const string RegionsWithFieldsAndConstructorsInput = """
+                                                                 using System;
+                                                                 using System.Net.Http;
+
+                                                                 namespace N;
+
+                                                                 /// <summary>
+                                                                 /// Connector for accessing a remote API
+                                                                 /// </summary>
+                                                                 public sealed class ServiceConnector : IDisposable
+                                                                 {
+                                                                     #region Fields
+
+                                                                     /// <summary>
+                                                                     /// Maximum retry count
+                                                                     /// </summary>
+                                                                     private const int MaxRetryCount = 3;
+
+                                                                     /// <summary>
+                                                                     /// Authentication token
+                                                                     /// </summary>
+                                                                     private readonly string _authToken;
+
+                                                                     /// <summary>
+                                                                     /// HTTP client instance
+                                                                     /// </summary>
+                                                                     private HttpClient _httpClient;
+
+                                                                     #endregion // Fields
+
+                                                                     #region Constructor
+
+                                                                     /// <summary>
+                                                                     /// Constructor
+                                                                     /// </summary>
+                                                                     /// <param name="authToken">Authentication token</param>
+                                                                     public ServiceConnector(string authToken)
+                                                                     {
+                                                                         _authToken = authToken;
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Constructor
+                                                                     /// </summary>
+                                                                     /// <param name="httpClient">HTTP client</param>
+                                                                     /// <param name="authToken">Authentication token</param>
+                                                                     public ServiceConnector(HttpClient httpClient, string authToken)
+                                                                     {
+                                                                         _authToken = authToken;
+                                                                         _httpClient = httpClient;
+                                                                     }
+                                                                     #endregion // Constructor
+
+                                                                     #region Properties
+
+                                                                     /// <summary>
+                                                                     /// Gets the HTTP client
+                                                                     /// </summary>
+                                                                     public HttpClient Client => _httpClient;
+
+                                                                     #endregion // Properties
+
+                                                                     #region IDisposable
+
+                                                                     /// <inheritdoc/>
+                                                                     public void Dispose()
+                                                                     {
+                                                                         _httpClient?.Dispose();
+                                                                     }
+
+                                                                     #endregion // IDisposable
+                                                                 }
+                                                                 """;
+
+    /// <summary>
+    /// Expected output of <see cref="BlankLinesAroundRegionsWithFieldsAndConstructorsAreCorrect"/>
+    /// </summary>
+    private const string RegionsWithFieldsAndConstructorsExpected = """
+                                                                    using System;
+                                                                    using System.Net.Http;
+
+                                                                    namespace N;
+
+                                                                    /// <summary>
+                                                                    /// Connector for accessing a remote API
+                                                                    /// </summary>
+                                                                    public sealed class ServiceConnector : IDisposable
+                                                                    {
+                                                                        #region Fields
+
+                                                                        /// <summary>
+                                                                        /// Maximum retry count
+                                                                        /// </summary>
+                                                                        private const int MaxRetryCount = 3;
+
+                                                                        /// <summary>
+                                                                        /// Authentication token
+                                                                        /// </summary>
+                                                                        private readonly string _authToken;
+
+                                                                        /// <summary>
+                                                                        /// HTTP client instance
+                                                                        /// </summary>
+                                                                        private HttpClient _httpClient;
+
+                                                                        #endregion // Fields
+
+                                                                        #region Constructor
+
+                                                                        /// <summary>
+                                                                        /// Constructor
+                                                                        /// </summary>
+                                                                        /// <param name="authToken">Authentication token</param>
+                                                                        public ServiceConnector(string authToken)
+                                                                        {
+                                                                            _authToken = authToken;
+                                                                        }
+
+                                                                        /// <summary>
+                                                                        /// Constructor
+                                                                        /// </summary>
+                                                                        /// <param name="httpClient">HTTP client</param>
+                                                                        /// <param name="authToken">Authentication token</param>
+                                                                        public ServiceConnector(HttpClient httpClient, string authToken)
+                                                                        {
+                                                                            _authToken = authToken;
+                                                                            _httpClient = httpClient;
+                                                                        }
+
+                                                                        #endregion // Constructor
+
+                                                                        #region Properties
+
+                                                                        /// <summary>
+                                                                        /// Gets the HTTP client
+                                                                        /// </summary>
+                                                                        public HttpClient Client => _httpClient;
+
+                                                                        #endregion // Properties
+
+                                                                        #region IDisposable
+
+                                                                        /// <inheritdoc/>
+                                                                        public void Dispose()
+                                                                        {
+                                                                            _httpClient?.Dispose();
+                                                                        }
+
+                                                                        #endregion // IDisposable
+                                                                    }
+                                                                    """;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -221,157 +380,8 @@ public class BlankLineRegionTests : FormatterTestsBase
     public void BlankLinesAroundRegionsWithFieldsAndConstructorsAreCorrect()
     {
         // Arrange
-        const string input = """
-                             using System;
-                             using System.Net.Http;
-
-                             namespace N;
-
-                             /// <summary>
-                             /// Connector for accessing a remote API
-                             /// </summary>
-                             public sealed class ServiceConnector : IDisposable
-                             {
-                                 #region Fields
-
-                                 /// <summary>
-                                 /// Maximum retry count
-                                 /// </summary>
-                                 private const int MaxRetryCount = 3;
-
-                                 /// <summary>
-                                 /// Authentication token
-                                 /// </summary>
-                                 private readonly string _authToken;
-
-                                 /// <summary>
-                                 /// HTTP client instance
-                                 /// </summary>
-                                 private HttpClient _httpClient;
-
-                                 #endregion // Fields
-
-                                 #region Constructor
-
-                                 /// <summary>
-                                 /// Constructor
-                                 /// </summary>
-                                 /// <param name="authToken">Authentication token</param>
-                                 public ServiceConnector(string authToken)
-                                 {
-                                     _authToken = authToken;
-                                 }
-
-                                 /// <summary>
-                                 /// Constructor
-                                 /// </summary>
-                                 /// <param name="httpClient">HTTP client</param>
-                                 /// <param name="authToken">Authentication token</param>
-                                 public ServiceConnector(HttpClient httpClient, string authToken)
-                                 {
-                                     _authToken = authToken;
-                                     _httpClient = httpClient;
-                                 }
-                                 #endregion // Constructor
-
-                                 #region Properties
-
-                                 /// <summary>
-                                 /// Gets the HTTP client
-                                 /// </summary>
-                                 public HttpClient Client => _httpClient;
-
-                                 #endregion // Properties
-
-                                 #region IDisposable
-
-                                 /// <inheritdoc/>
-                                 public void Dispose()
-                                 {
-                                     _httpClient?.Dispose();
-                                 }
-
-                                 #endregion // IDisposable
-                             }
-                             """;
-
-        const string expected = """
-                                using System;
-                                using System.Net.Http;
-
-                                namespace N;
-
-                                /// <summary>
-                                /// Connector for accessing a remote API
-                                /// </summary>
-                                public sealed class ServiceConnector : IDisposable
-                                {
-                                    #region Fields
-
-                                    /// <summary>
-                                    /// Maximum retry count
-                                    /// </summary>
-                                    private const int MaxRetryCount = 3;
-
-                                    /// <summary>
-                                    /// Authentication token
-                                    /// </summary>
-                                    private readonly string _authToken;
-
-                                    /// <summary>
-                                    /// HTTP client instance
-                                    /// </summary>
-                                    private HttpClient _httpClient;
-
-                                    #endregion // Fields
-
-                                    #region Constructor
-
-                                    /// <summary>
-                                    /// Constructor
-                                    /// </summary>
-                                    /// <param name="authToken">Authentication token</param>
-                                    public ServiceConnector(string authToken)
-                                    {
-                                        _authToken = authToken;
-                                    }
-
-                                    /// <summary>
-                                    /// Constructor
-                                    /// </summary>
-                                    /// <param name="httpClient">HTTP client</param>
-                                    /// <param name="authToken">Authentication token</param>
-                                    public ServiceConnector(HttpClient httpClient, string authToken)
-                                    {
-                                        _authToken = authToken;
-                                        _httpClient = httpClient;
-                                    }
-
-                                    #endregion // Constructor
-
-                                    #region Properties
-
-                                    /// <summary>
-                                    /// Gets the HTTP client
-                                    /// </summary>
-                                    public HttpClient Client => _httpClient;
-
-                                    #endregion // Properties
-
-                                    #region IDisposable
-
-                                    /// <inheritdoc/>
-                                    public void Dispose()
-                                    {
-                                        _httpClient?.Dispose();
-                                    }
-
-                                    #endregion // IDisposable
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(RegionsWithFieldsAndConstructorsInput, RegionsWithFieldsAndConstructorsExpected);
     }
 
     /// <summary>

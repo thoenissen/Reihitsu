@@ -10,6 +10,140 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 [TestClass]
 public class ObjectInitializerAlignmentTests : FormatterTestsBase
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of <see cref="SwitchExpressionObjectInitializerMisalignedGetsFormatted"/>
+    /// </summary>
+    private const string SwitchExpressionObjectInitializerMisalignedInput = """
+                                                                            internal enum DispatchCode
+                                                                            {
+                                                                                EmberHall,
+                                                                                TideGallery
+                                                                            }
+
+                                                                            internal enum DispatchGroup
+                                                                            {
+                                                                                Raid,
+                                                                                Practice
+                                                                            }
+
+                                                                            internal enum DispatchZone
+                                                                            {
+                                                                                EastDeck,
+                                                                                WestDeck
+                                                                            }
+
+                                                                            internal enum DispatchTarget
+                                                                            {
+                                                                                IronKeeper,
+                                                                                CrystalWatcher,
+                                                                                Unknown
+                                                                            }
+
+                                                                            internal sealed class DispatchDescriptor
+                                                                            {
+                                                                                public DispatchGroup Group { get; set; }
+                                                                                public DispatchZone Zone { get; set; }
+                                                                                public DispatchTarget Target { get; set; }
+                                                                            }
+
+                                                                            internal static class DispatchMapper
+                                                                            {
+                                                                                public static DispatchDescriptor Map(long dispatchCode)
+                                                                                {
+                                                                                    return ((DispatchCode)dispatchCode) switch
+                                                                                           {
+                                                                                               DispatchCode.EmberHall => new DispatchDescriptor
+                                                                                                                            {
+                                                                                                                     Group = DispatchGroup.Raid,
+                                                                                                                               Zone = DispatchZone.EastDeck,
+                                                                                                                            Target = DispatchTarget.IronKeeper,
+                                                                                                                            },
+                                                                                               DispatchCode.TideGallery => new DispatchDescriptor
+                                                                                                                           {
+                                                                                                                   Group = DispatchGroup.Practice,
+                                                                                                                            Zone = DispatchZone.WestDeck,
+                                                                                                                                 Target = DispatchTarget.CrystalWatcher,
+                                                                                                                           },
+                                                                                               _ => new DispatchDescriptor
+                                                                                                             {
+                                                                                                                   Group = DispatchGroup.Practice,
+                                                                                                                   Zone = DispatchZone.WestDeck,
+                                                                                                                        Target = DispatchTarget.Unknown,
+                                                                                                             },
+                                                                                           };
+                                                                                }
+                                                                            }
+                                                                            """;
+
+    /// <summary>
+    /// Expected output of <see cref="SwitchExpressionObjectInitializerMisalignedGetsFormatted"/>
+    /// </summary>
+    private const string SwitchExpressionObjectInitializerMisalignedExpected = """
+                                                                               internal enum DispatchCode
+                                                                               {
+                                                                                   EmberHall,
+                                                                                   TideGallery
+                                                                               }
+
+                                                                               internal enum DispatchGroup
+                                                                               {
+                                                                                   Raid,
+                                                                                   Practice
+                                                                               }
+
+                                                                               internal enum DispatchZone
+                                                                               {
+                                                                                   EastDeck,
+                                                                                   WestDeck
+                                                                               }
+
+                                                                               internal enum DispatchTarget
+                                                                               {
+                                                                                   IronKeeper,
+                                                                                   CrystalWatcher,
+                                                                                   Unknown
+                                                                               }
+
+                                                                               internal sealed class DispatchDescriptor
+                                                                               {
+                                                                                   public DispatchGroup Group { get; set; }
+                                                                                   public DispatchZone Zone { get; set; }
+                                                                                   public DispatchTarget Target { get; set; }
+                                                                               }
+
+                                                                               internal static class DispatchMapper
+                                                                               {
+                                                                                   public static DispatchDescriptor Map(long dispatchCode)
+                                                                                   {
+                                                                                       return ((DispatchCode)dispatchCode) switch
+                                                                                              {
+                                                                                                  DispatchCode.EmberHall => new DispatchDescriptor
+                                                                                                                            {
+                                                                                                                                Group = DispatchGroup.Raid,
+                                                                                                                                Zone = DispatchZone.EastDeck,
+                                                                                                                                Target = DispatchTarget.IronKeeper,
+                                                                                                                            },
+                                                                                                  DispatchCode.TideGallery => new DispatchDescriptor
+                                                                                                                              {
+                                                                                                                                  Group = DispatchGroup.Practice,
+                                                                                                                                  Zone = DispatchZone.WestDeck,
+                                                                                                                                  Target = DispatchTarget.CrystalWatcher,
+                                                                                                                              },
+                                                                                                  _ => new DispatchDescriptor
+                                                                                                       {
+                                                                                                           Group = DispatchGroup.Practice,
+                                                                                                           Zone = DispatchZone.WestDeck,
+                                                                                                           Target = DispatchTarget.Unknown,
+                                                                                                       },
+                                                                                              };
+                                                                                   }
+                                                                               }
+                                                                               """;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -351,132 +485,8 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     public void SwitchExpressionObjectInitializerMisalignedGetsFormatted()
     {
         // Arrange
-        const string input = """
-                             internal enum DispatchCode
-                             {
-                                 EmberHall,
-                                 TideGallery
-                             }
-
-                             internal enum DispatchGroup
-                             {
-                                 Raid,
-                                 Practice
-                             }
-
-                             internal enum DispatchZone
-                             {
-                                 EastDeck,
-                                 WestDeck
-                             }
-
-                             internal enum DispatchTarget
-                             {
-                                 IronKeeper,
-                                 CrystalWatcher,
-                                 Unknown
-                             }
-
-                             internal sealed class DispatchDescriptor
-                             {
-                                 public DispatchGroup Group { get; set; }
-                                 public DispatchZone Zone { get; set; }
-                                 public DispatchTarget Target { get; set; }
-                             }
-
-                             internal static class DispatchMapper
-                             {
-                                 public static DispatchDescriptor Map(long dispatchCode)
-                                 {
-                                     return ((DispatchCode)dispatchCode) switch
-                                            {
-                                                DispatchCode.EmberHall => new DispatchDescriptor
-                                                                             {
-                                                                      Group = DispatchGroup.Raid,
-                                                                                Zone = DispatchZone.EastDeck,
-                                                                             Target = DispatchTarget.IronKeeper,
-                                                                             },
-                                                DispatchCode.TideGallery => new DispatchDescriptor
-                                                                            {
-                                                                    Group = DispatchGroup.Practice,
-                                                                             Zone = DispatchZone.WestDeck,
-                                                                                  Target = DispatchTarget.CrystalWatcher,
-                                                                            },
-                                                _ => new DispatchDescriptor
-                                                              {
-                                                                    Group = DispatchGroup.Practice,
-                                                                    Zone = DispatchZone.WestDeck,
-                                                                         Target = DispatchTarget.Unknown,
-                                                              },
-                                            };
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                internal enum DispatchCode
-                                {
-                                    EmberHall,
-                                    TideGallery
-                                }
-
-                                internal enum DispatchGroup
-                                {
-                                    Raid,
-                                    Practice
-                                }
-
-                                internal enum DispatchZone
-                                {
-                                    EastDeck,
-                                    WestDeck
-                                }
-
-                                internal enum DispatchTarget
-                                {
-                                    IronKeeper,
-                                    CrystalWatcher,
-                                    Unknown
-                                }
-
-                                internal sealed class DispatchDescriptor
-                                {
-                                    public DispatchGroup Group { get; set; }
-                                    public DispatchZone Zone { get; set; }
-                                    public DispatchTarget Target { get; set; }
-                                }
-
-                                internal static class DispatchMapper
-                                {
-                                    public static DispatchDescriptor Map(long dispatchCode)
-                                    {
-                                        return ((DispatchCode)dispatchCode) switch
-                                               {
-                                                   DispatchCode.EmberHall => new DispatchDescriptor
-                                                                             {
-                                                                                 Group = DispatchGroup.Raid,
-                                                                                 Zone = DispatchZone.EastDeck,
-                                                                                 Target = DispatchTarget.IronKeeper,
-                                                                             },
-                                                   DispatchCode.TideGallery => new DispatchDescriptor
-                                                                               {
-                                                                                   Group = DispatchGroup.Practice,
-                                                                                   Zone = DispatchZone.WestDeck,
-                                                                                   Target = DispatchTarget.CrystalWatcher,
-                                                                               },
-                                                   _ => new DispatchDescriptor
-                                                        {
-                                                            Group = DispatchGroup.Practice,
-                                                            Zone = DispatchZone.WestDeck,
-                                                            Target = DispatchTarget.Unknown,
-                                                        },
-                                               };
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(SwitchExpressionObjectInitializerMisalignedInput, SwitchExpressionObjectInitializerMisalignedExpected);
     }
 
     /// <summary>

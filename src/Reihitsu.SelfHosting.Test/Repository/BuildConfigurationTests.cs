@@ -96,10 +96,12 @@ public sealed class BuildConfigurationTests
     }
 
     /// <summary>
-    /// Verifies that the repository's build passes its root configuration to the analyzers of every project
+    /// Verifies that the repository's build does not pass its root configuration to the analyzers it loads from
+    /// <c>binaries/</c>: their configuration check predates the <c>design</c> section and would report the file, so
+    /// only the self-hosting scan, which runs the analyzers built from source, reads it
     /// </summary>
     [TestMethod]
-    public void RepositoryBuildPassesRootConfigurationToTheAnalyzers()
+    public void RepositoryBuildDoesNotPassRootConfigurationToTheBinaryAnalyzers()
     {
         // Arrange
         var repositoryRoot = RepositoryRoot.Find();
@@ -107,11 +109,11 @@ public sealed class BuildConfigurationTests
         // Act
         var configurationItems = LoadRootBuildFiles(repositoryRoot).SelectMany(buildFile => buildFile.Document.Descendants(buildFile.Document.Root.Name.Namespace + "AdditionalFiles"))
                                                                    .Select(item => item.Attribute("Include")?.Value ?? string.Empty)
-                                                                   .Where(include => include.Replace('\\', '/').EndsWith("/" + ConfigurationFileName, StringComparison.OrdinalIgnoreCase))
+                                                                   .Where(include => include.EndsWith(ConfigurationFileName, StringComparison.OrdinalIgnoreCase))
                                                                    .ToList();
 
         // Assert
-        Assert.HasCount(1, configurationItems, "The root build files must add the root reihitsu.json as one AdditionalFiles item.");
+        Assert.IsEmpty(configurationItems, "The root build files must not add the root reihitsu.json as an AdditionalFiles item while binaries/ predate its design section.");
     }
 
     /// <summary>
