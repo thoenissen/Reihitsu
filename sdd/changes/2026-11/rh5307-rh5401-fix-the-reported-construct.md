@@ -10,7 +10,7 @@
 
 **RH5307.** The code fix joins the argument list the diagnostic is located on, whatever the receiver of the element access is and whatever contains it (RH5307-004). Until now the requirement covered only an element access outside every other bracketed argument list and with a receiver that does not start with an element access, and the fix did not read the reported list at all: it took the first bracketed argument list around the diagnostic's first token — the receiver's first token — or, when there was none, the argument list of the innermost element access around that token, and judged and joined that list instead. The class this concerns is every reported element access whose receiver's first token lies inside another bracketed argument list (of an element access, an element binding, or an implicit element access) or inside another element access or element binding than the reported one. For its members the fix was either withheld, because the list it found was not an indexer list or could not be joined, or offered as an action that changed nothing, because the list it found was already on one line; where the receiver's own list was wrapped and reported too, both fixes joined the receiver's list and the reported one was never joined. The members whose receiver's first token lies in no such list or access — an access that is the argument of an invocation, an element of a collection expression, or has a parenthesized or member-binding receiver — were fixed and stay fixed. RH5307-001 now states that the argument list of a null-conditional element access (`c?[…]`) is not reported, which is the analyzer's behavior today, and the rule page says so.
 
-**RH5401.** The code fix is offered for a property with attribute lists as well (RH5401-003). Until now the fix was withheld for every such property whose formatted attribute lists take lines of their own, because it required the whole formatted declaration, attribute lines included, to be one line. The fix now judges only the property's own code, from its first token behind its attribute lists through its `;` (RH5401-004); the attribute lists are laid out with the property as the formatter places them (FMT-BREAK-027) and split into one list per attribute (FMT-STRUCT-028). Where formatting would insert a blank line behind an attribute list, in front of a comment, collapse several into one, or drop one written inside an attribute list it splits, the fix is still withheld (RH5401-004), so it never changes a blank line among or behind the attribute lists.
+**RH5401.** The code fix is offered for a property with attribute lists as well (RH5401-003). Until now the fix was withheld for every such property whose formatted attribute lists take lines of their own, because it required the whole formatted declaration, attribute lines included, to be one line. The fix now judges only the property's own code, from its first token behind its attribute lists through its `;` (RH5401-004); the attribute lists are laid out with the property as the formatter places them (FMT-BREAK-027) and split into one list per attribute (FMT-STRUCT-028). Where formatting would insert a blank line behind an attribute list, in front of a comment, or collapse several into one, the fix is still withheld, and it is withheld for every property one of whose attribute lists holds a blank line or a comment between its brackets (RH5401-004), so it never changes a blank line among or behind the attribute lists. That second refusal also withholds the fix for an attribute list that keeps the property's line because it holds a comment, `[Obsolete /* c */] int U⏎    => 1;`, which was fixed before.
 
 ## Why
 
@@ -227,20 +227,18 @@ class C
     int E
         => 1;
 
-    [Obsolete("a",
-
-              false)]
-    int Q
+    [Obsolete] // note
+    int J
         => 1;
 }
 ```
 
 ```csharp
-// before: RH5401 reports A, B, L, E, and Q; no fix is offered
+// before: RH5401 reports A, B, L, E, and J; no fix is offered
 ```
 
 ```csharp
-// after: RH5401 reports A, B, L, E, and Q; the fix gives
+// after: RH5401 reports A, B, L, E, and J; the fix gives
 using System;
 
 class C
@@ -261,14 +259,12 @@ class C
     // note
     int E => 1;
 
-    [Obsolete("a",
-
-              false)]
-    int Q => 1;
+    [Obsolete] // note
+    int J => 1;
 }
 ```
 
-**RH5401 · formatting would insert or remove a blank line among or behind the attribute lists — unchanged**
+**RH5401 · formatting would insert or remove a blank line behind the attribute lists, or an attribute list holds a blank line or a comment between its brackets — unchanged**
 
 ```csharp
 // input
@@ -293,16 +289,55 @@ class C
      CLSCompliant(false)]
     int N
         => 1;
+
+    [Obsolete("a",
+
+              false)]
+    int Q
+        => 1;
+
+    [Obsolete("a",
+              // why
+              false)]
+    int T
+        => 1;
 }
 ```
 
 ```csharp
-// before and after: RH5401 reports D, H, and N; no fix is offered
+// before and after: RH5401 reports D, H, N, Q, and T; no fix is offered
 ```
 
-Formatting the document would insert a blank line in front of the comment of `D`, collapse the two blank lines of `H` into one, and drop the blank line of `N` when it splits the attribute list into `[Obsolete]⏎[CLSCompliant(false)]`. The same holds for a blank line in front of the comma, behind the `[`, or inside the arguments of an attribute of a list the formatter splits. The same holds for a comment between two attribute lists and for several blank lines without a comment or between two attribute lists.
+Formatting the document would insert a blank line in front of the comment of `D` and collapse the two blank lines of `H` into one. The same holds for a comment between two attribute lists and for several blank lines without a comment or between two attribute lists. `N`, `Q`, and `T` hold a blank line or a comment between the brackets of an attribute list, whether or not the formatter splits it and whether or not it would keep that blank line; the same holds for every other blank line or comment there, such as `[Obsolete("a" /* c */)]` on a line of its own.
 
-A property with attribute lists whose expression the formatter keeps wrapped (`[Obsolete]⏎int E =>⏎    1⏎    + 2;`) is still reported without a fix. A property whose attribute list keeps the property's line because it holds a comment between its brackets (`[Obsolete /* c */] int E⏎    => 1;`) was fixed before and is fixed the same way after: `[Obsolete /* c */] int E => 1;`.
+A property with attribute lists whose expression the formatter keeps wrapped (`[Obsolete]⏎int E =>⏎    1⏎    + 2;`) is still reported without a fix.
+
+**RH5401 · an attribute list on the property's line that holds a comment between its brackets**
+
+```csharp
+// input
+using System;
+
+class C
+{
+    [Obsolete /* c */] int U
+        => 1;
+}
+```
+
+```csharp
+// before: RH5401 reports U; the fix gives
+using System;
+
+class C
+{
+    [Obsolete /* c */] int U => 1;
+}
+```
+
+```csharp
+// after: RH5401 reports U; no fix is offered
+```
 
 **RH5401 · rule page**
 
@@ -324,7 +359,7 @@ The issue names two instances (`x[m[1,⏎2]]`, `j[0 /* c */][1,⏎2]`). The caus
 
 ### The RH5401 fix judges the property's own lines
 
-The maintainer decided on thoenissen/Reihitsu#1219 Q1 (2026-10-20), under the same rule: attribute lines do not keep the fix from being offered. The attribute lists are part of the reported declaration (RH5401-002), so the fix lays them out as the formatter does: a list with several attributes becomes one list per attribute (FMT-STRUCT-028), and one that shares the property's line moves onto a line of its own (FMT-BREAK-027), unless FMT-BREAK-027 leaves its placement unspecified, as for a list with a comment between its brackets. A comment between the attribute lists and the property's own code is not part of that code.
+The maintainer decided on thoenissen/Reihitsu#1219 Q1 (2026-10-20), under the same rule: attribute lines do not keep the fix from being offered. The attribute lists are part of the reported declaration (RH5401-002), so the fix lays them out as the formatter does: a list with several attributes becomes one list per attribute (FMT-STRUCT-028), and one that shares the property's line moves onto a line of its own (FMT-BREAK-027). A list with a blank line or a comment between its brackets keeps the fix from being offered (RH5401-004). A comment between the attribute lists and the property's own code is not part of that code.
 
 ### The RH5401 fix is offered for an attribute list on the property's line
 
@@ -332,7 +367,7 @@ The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (questio
 
 ### The RH5401 fix is withheld where formatting would change a blank line behind an attribute list
 
-The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (question 6, answer B), after the implementer showed that keeping the blank lines as written in the fix's output takes about 200 lines that rewrite the formatter's blank-line layout after the fact: the fix is withheld when formatting would insert or remove a blank line behind an attribute list, which the fix decides by comparing the blank-line count of each such gap as written and as formatted (RH5401-004). The rule — the fix does not change those blank lines — also covers a blank line written inside an attribute list that the formatter splits into one list per attribute (FMT-STRUCT-028), which it drops and which lies in no gap behind a list as written; the fix compares, in addition, the blank lines from the first attribute list's `[` through the property's first own token in all, and is withheld there too (`[Obsolete,⏎⏎ CLSCompliant(false)]⏎int N⏎    => 1;`). `[Obsolete]⏎// note⏎int E⏎    => 1;` and `[Obsolete]⏎⏎⏎// note⏎int E⏎    => 1;` keep the diagnostic without a fix; `[Obsolete]⏎⏎// note⏎int E⏎    => 1;` gets `[Obsolete]⏎⏎// note⏎int E => 1;`, and `[Obsolete] int E⏎    => 1;` still gets `[Obsolete]⏎int E => 1;`. The fix's output therefore never changes a blank line among or behind the attribute lists, and RH5401-003 needs no exception from the formatter's layout. This supersedes the offered fix of the answers to questions 3 and 5 below; their rule — the fix does not touch those blank lines — stands.
+The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (question 6, answer B), after the implementer showed that keeping the blank lines as written in the fix's output takes about 200 lines that rewrite the formatter's blank-line layout after the fact: the fix is withheld when formatting would insert or remove a blank line behind an attribute list, which the fix decides by comparing the blank-line count of each such gap as written and as formatted (RH5401-004). The rule — the fix does not change those blank lines — also covers the blank lines inside an attribute list, which lie in no gap behind a list as written. There the fix compares no count: the formatter drops a blank line inside a list it splits (FMT-STRUCT-028) and inserts one in front of a comment on its own line inside another list's arguments (FMT-BLANK-011), and the two leave every count unchanged. The fix is withheld instead for every property one of whose attribute lists holds a blank line or a comment between its brackets (`[Obsolete,⏎⏎ CLSCompliant(false)]⏎int N⏎    => 1;`, `[Obsolete /* c */] int U⏎    => 1;`): a rare class, refused by its cause under `AGENTS.md`, *Code-fix coverage*. This refusal was decided in the run, after the repair audit, and is not one of the maintainer's answers. `[Obsolete]⏎// note⏎int E⏎    => 1;` and `[Obsolete]⏎⏎⏎// note⏎int E⏎    => 1;` keep the diagnostic without a fix; `[Obsolete]⏎⏎// note⏎int E⏎    => 1;` gets `[Obsolete]⏎⏎// note⏎int E => 1;`, and `[Obsolete] int E⏎    => 1;` still gets `[Obsolete]⏎int E => 1;`. The fix's output therefore never changes a blank line among or behind the attribute lists, and RH5401-003 needs no exception from the formatter's layout. This supersedes the offered fix of the answers to questions 3 and 5 below; their rule — the fix does not touch those blank lines — stands.
 
 ### The RH5401 fix inserts no blank line inside the property
 
@@ -357,4 +392,6 @@ The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (questio
 - **Let the RH5401 fix insert the formatter's blank line in front of a comment behind an attribute list** — rejected by the maintainer: blank lines are not part of what the fix is for.
 - **Let the RH5401 fix collapse several blank lines behind an attribute list into one, as the formatter does** — rejected by the maintainer: the fix does not touch those blank lines.
 - **Offer the RH5401 fix where formatting would change a blank line behind an attribute list, and write the blank lines as written back into the formatted property** — rejected by the maintainer (question 6): it takes about 200 lines in the fix that restate the formatter's blank-line rule for the same gaps; withholding the fix is a cheap comparison of blank-line counts.
+- **Compare the blank lines over the whole attribute region, besides the gap behind each list** — rejected: a blank line the formatter drops inside one attribute list and one it inserts in front of a comment inside another leave both counts unchanged, so the fix would move a blank line the author wrote (`[Obsolete,⏎⏎ CLSCompliant(false)]⏎[DefaultValue(typeof(int),⏎ // why⏎ "1")]`); refusing every list with a blank line or a comment between its brackets is a cheaper and complete check.
+- **Withhold the RH5401 fix only for a comment on a line of its own between the brackets, keeping `[Obsolete /* c */] int U⏎    => 1;` fixed as before** — rejected: the formatter's placement of a list with a comment between its brackets is unspecified (FMT-BREAK-027), the list already violates RH5515, and the narrower check keeps a special case for a rare class.
 - **Let the formatter keep the blank lines inside a node-level target as written, on a request from the fix** — rejected: it adds a formatter surface and a formatter requirement for one rule's corner case (`AGENTS.md`, *Special cases do not grow the source*).
