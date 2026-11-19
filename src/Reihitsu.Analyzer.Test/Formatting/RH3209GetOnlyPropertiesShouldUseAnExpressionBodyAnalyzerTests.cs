@@ -2148,6 +2148,140 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     }
 
     /// <summary>
+    /// Verifying that the fix is withheld when a delimited documentation comment behind the closing brace of the accessor list
+    /// separates the member from a member behind it on the same line, in every documentation mode, under LF and CRLF
+    /// </summary>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(DocumentationMode.Parse, "\n")]
+    [DataRow(DocumentationMode.Parse, "\r\n")]
+    [DataRow(DocumentationMode.Diagnose, "\n")]
+    [DataRow(DocumentationMode.Diagnose, "\r\n")]
+    [DataRow(DocumentationMode.None, "\n")]
+    [DataRow(DocumentationMode.None, "\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task DocumentationCommentBetweenTheMemberAndAMemberBehindItOnTheSameLineWithholdsFix(DocumentationMode documentationMode, string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A {|RH3209:{ get => 1; }|} /** c */ public int B => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine), documentationMode);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited documentation comment separates the member from a member in front
+    /// of it on the same line, in every documentation mode, under LF and CRLF
+    /// </summary>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(DocumentationMode.Parse, "\n")]
+    [DataRow(DocumentationMode.Parse, "\r\n")]
+    [DataRow(DocumentationMode.Diagnose, "\n")]
+    [DataRow(DocumentationMode.Diagnose, "\r\n")]
+    [DataRow(DocumentationMode.None, "\n")]
+    [DataRow(DocumentationMode.None, "\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task DocumentationCommentBetweenTheMemberAndAMemberInFrontOfItOnTheSameLineWithholdsFix(DocumentationMode documentationMode, string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int D => 3; /** c */ public int E {|RH3209:{ get => 4; }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine), documentationMode);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited comment whose line break lies inside the comment separates the
+    /// member from a member behind it, which therefore shares the line the comment ends on, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task MultiLineCommentBetweenTheMemberAndAMemberBehindItWithholdsFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A {|RH3209:{ get => 1; }|} /* a
+                                         b */ public int B => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited comment whose line break lies inside the comment separates the
+    /// member from a member in front of it, which therefore shares the line the comment starts on, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task MultiLineCommentBetweenTheMemberAndAMemberInFrontOfItWithholdsFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int D => 3; /* a
+                                         b */ public int E {|RH3209:{ get => 4; }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a delimited comment with a line break inside it, behind the converted member whose sibling stands on
+    /// the next line, does not withhold the fix, and the comment follows the new semicolon, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-005")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task MultiLineCommentBehindTheMemberWithTheSiblingOnTheNextLineKeepsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A {|RH3209:{ get => 1; }|} /* a
+                                         b */
+                                  public int B => 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A => 1; /* a
+                                              b */
+                                       public int B => 2;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
     /// Verifying that fixing two reported members that share one line, one at a time and with Fix All, gives each of them a
     /// line of its own, under LF and CRLF
     /// </summary>

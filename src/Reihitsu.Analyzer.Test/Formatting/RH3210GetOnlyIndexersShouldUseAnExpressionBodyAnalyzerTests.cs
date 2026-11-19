@@ -740,6 +740,106 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifying that the fix is withheld when a delimited documentation comment behind the closing brace of the accessor list
+    /// separates the indexer from a member behind it on the same line, in every documentation mode, under LF and CRLF
+    /// </summary>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(DocumentationMode.Parse, "\n")]
+    [DataRow(DocumentationMode.Parse, "\r\n")]
+    [DataRow(DocumentationMode.Diagnose, "\n")]
+    [DataRow(DocumentationMode.Diagnose, "\r\n")]
+    [DataRow(DocumentationMode.None, "\n")]
+    [DataRow(DocumentationMode.None, "\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task DocumentationCommentBetweenTheIndexerAndAMemberBehindItOnTheSameLineWithholdsFix(DocumentationMode documentationMode, string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int i] {|RH3210:{ get => i; }|} /** c */ public int B => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine), documentationMode);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited documentation comment separates the indexer from a member in front
+    /// of it on the same line, in every documentation mode, under LF and CRLF
+    /// </summary>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow(DocumentationMode.Parse, "\n")]
+    [DataRow(DocumentationMode.Parse, "\r\n")]
+    [DataRow(DocumentationMode.Diagnose, "\n")]
+    [DataRow(DocumentationMode.Diagnose, "\r\n")]
+    [DataRow(DocumentationMode.None, "\n")]
+    [DataRow(DocumentationMode.None, "\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task DocumentationCommentBetweenTheIndexerAndAMemberInFrontOfItOnTheSameLineWithholdsFix(DocumentationMode documentationMode, string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int D => 3; /** c */ public int this[int i] {|RH3210:{ get => i; }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine), documentationMode);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited comment whose line break lies inside the comment separates the
+    /// indexer from a member behind it, which therefore shares the line the comment ends on, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task MultiLineCommentBetweenTheIndexerAndAMemberBehindItWithholdsFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int i] {|RH3210:{ get => i; }|} /* a
+                                         b */ public int B => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited comment whose line break lies inside the comment separates the
+    /// indexer from a member in front of it, which therefore shares the line the comment starts on, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task MultiLineCommentBetweenTheIndexerAndAMemberInFrontOfItWithholdsFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int D => 3; /* a
+                                         b */ public int this[int i] {|RH3210:{ get => i; }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifying that the converted indexer starts on the line after a member in front of it on the same line, under LF and
     /// CRLF
     /// </summary>
