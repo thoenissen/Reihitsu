@@ -17,8 +17,8 @@ namespace Reihitsu.SelfHosting.Test.Analyzers;
 
 /// <summary>
 /// Verifies that the self-hosting scan judges the repository's code by the line-count rules RH2008 and RH2111 as the
-/// repository's build does: each test project as test code, every other project as production code, with the limits of
-/// the repository's root <c>reihitsu.json</c>
+/// repository's build does for the properties: each test project as test code, every other project as production code, with the limits of
+/// the repository's root <c>reihitsu.json</c>, which the scan passes
 /// </summary>
 [TestClass]
 public sealed class LineCountSelfHostingTests

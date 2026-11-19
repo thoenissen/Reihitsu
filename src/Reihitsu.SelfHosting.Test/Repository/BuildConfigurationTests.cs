@@ -13,7 +13,8 @@ namespace Reihitsu.SelfHosting.Test.Repository;
 
 /// <summary>
 /// Verifies how the repository's own build configures the Reihitsu analyzers it runs on its code: the limits of its
-/// root <c>reihitsu.json</c>, which it passes to every project, and the MSBuild properties that tell the analyzers a
+/// root <c>reihitsu.json</c>, which the self-hosting scan passes to every project and the build does not pass until
+/// <c>binaries/</c> is rebuilt, and the MSBuild properties that tell the analyzers a
 /// test project from a production project, as the package's build files tell them to every other project
 /// </summary>
 [TestClass]

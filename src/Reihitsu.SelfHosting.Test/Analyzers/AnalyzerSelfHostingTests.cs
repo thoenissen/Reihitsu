@@ -11,7 +11,7 @@ namespace Reihitsu.SelfHosting.Test.Analyzers;
 /// Self-hosting scan that runs every Reihitsu analyzer over the solution's own source code, one test row per analyzer.
 /// The scan is a regression safety net: a violation in the repository's own source signals an unintended change in
 /// analyzer behavior, or code that does not follow the repository's own rules. Each project is analyzed with the
-/// analyzer options the repository's build gives it
+/// analyzer options the scan gives it: the properties the repository's build gives it and the root <c>reihitsu.json</c>
 /// </summary>
 [TestClass]
 public sealed class AnalyzerSelfHostingTests

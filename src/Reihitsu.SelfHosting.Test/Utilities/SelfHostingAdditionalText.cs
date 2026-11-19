@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.SelfHosting.Test.Utilities;
 
 /// <summary>
-/// A file of the repository that the build passes to the analyzers as an <c>AdditionalFiles</c> item
+/// A file of the repository that the scan passes to the analyzers as an <c>AdditionalFiles</c> item
 /// </summary>
 internal sealed class SelfHostingAdditionalText : AdditionalText
 {

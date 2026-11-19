@@ -23,7 +23,8 @@ internal sealed class SelfHostingSolution
     #region Constants
 
     /// <summary>
-    /// File name of the repository's root configuration file, which the build passes to the analyzers of every project
+    /// File name of the repository's root configuration file, which the scan passes to the analyzers of every project; the build does not pass it until
+    /// <c>binaries/</c> is rebuilt
     /// </summary>
     private const string ConfigurationFileName = "reihitsu.json";
 
@@ -38,7 +39,7 @@ internal sealed class SelfHostingSolution
     private static readonly Lazy<SelfHostingSolution> _instance = new(Create, LazyThreadSafetyMode.ExecutionAndPublication);
 
     /// <summary>
-    /// The analyzer options the build gives each project, by assembly name
+    /// The analyzer options the scan gives each project, by assembly name
     /// </summary>
     private readonly ImmutableDictionary<string, AnalyzerOptions> _analyzerOptions;
 
@@ -83,9 +84,10 @@ internal sealed class SelfHostingSolution
     #region Methods
 
     /// <summary>
-    /// Gets the analyzer options the repository's build gives a scanned project: <c>build_property.IsTestProject</c> and
+    /// Gets the analyzer options the scan gives a scanned project: <c>build_property.IsTestProject</c> and
     /// <c>build_property.IsTestingPlatformApplication</c>, which the package's build file makes visible to the analyzers,
-    /// and the repository's root <c>reihitsu.json</c> as additional file
+    /// which the build gives it too, and the repository's root <c>reihitsu.json</c> as additional file, which the build does not
+    /// pass
     /// </summary>
     /// <param name="assemblyName">Assembly name of a scanned project</param>
     /// <returns>The analyzer options of the project</returns>
@@ -127,7 +129,7 @@ internal sealed class SelfHostingSolution
     }
 
     /// <summary>
-    /// Creates the analyzer options the repository's build gives a project. MSBuild writes an empty value for a visible
+    /// Creates the analyzer options the scan gives a project: the properties the build gives it and the root configuration file. MSBuild writes an empty value for a visible
     /// property the project does not set; no project of the repository sets <c>IsTestingPlatformApplication</c>
     /// </summary>
     /// <param name="project">Project metadata</param>
