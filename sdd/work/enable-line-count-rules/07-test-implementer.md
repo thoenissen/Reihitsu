@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: <see the commit that adds this file>
+Commit: 61883ae1
 Verdict: #1865: tests written (decisions 12, 13, 14, 19 done); #1866: no work in this stage
 
 The prompt carried no intended fix, suspected cause, or hoped-for verdict. Worklist: decisions 12, 13, 14, 18, 19 of `00-lead.md`.
