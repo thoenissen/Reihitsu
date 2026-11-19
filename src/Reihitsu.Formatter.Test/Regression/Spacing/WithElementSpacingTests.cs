@@ -15,7 +15,7 @@ public class WithElementSpacingTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the example of FMT-SPACE-028: the whitespace between <c>with</c> and <c>(</c> is removed in front of an argument
-    /// list with spaces inside, a named argument, and an empty argument list, and behind a comment in the gap
+    /// list with spaces inside, a named argument, and an empty argument list
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-028")]
@@ -32,7 +32,6 @@ public class WithElementSpacingTests : FormatterTestsBase
                                      HashSet<string> a = [with ( StringComparer.Ordinal ) , "x"];
                                      List<string> b = [with  (capacity: values.Length), .. values];
                                      List<string> c = [with ()];
-                                     List<string> d = [with /* size */ (4)];
                                  }
                              }
                              """;
@@ -47,7 +46,6 @@ public class WithElementSpacingTests : FormatterTestsBase
                                         HashSet<string> a = [with(StringComparer.Ordinal), "x"];
                                         List<string> b = [with(capacity: values.Length), .. values];
                                         List<string> c = [with()];
-                                        List<string> d = [with /* size */(4)];
                                     }
                                 }
                                 """;
@@ -127,11 +125,13 @@ public class WithElementSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment in the gap stays where it is and the space behind it is removed
+    /// Verifies the requirement's statement that the gap never holds a comment: an input with a comment between <c>with</c> and its
+    /// argument list is refused as unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-028")]
-    public void CommentInTheGapStaysAndTheSpaceBehindItIsRemoved()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentInTheGapIsUnsupported()
     {
         const string input = """
                              class C
@@ -142,17 +142,8 @@ public class WithElementSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        System.Collections.Generic.List<string> d = [with /* size */(4)];
-                                    }
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "/* size */");
     }
 
     /// <summary>

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Rewriter;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Utilities;
 
@@ -21,7 +22,8 @@ internal sealed class CleanupPhase : IFormattingPhase
     #region Methods
 
     /// <summary>
-    /// Executes the cleanup phase on the given syntax tree
+    /// Executes the cleanup phase on the given syntax tree. Every token is cleaned in one walk of the tree
+    /// (<see cref="TokenRewriter"/>), so the cost grows with the number of tokens
     /// </summary>
     /// <param name="root">The root syntax node to clean up</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -30,25 +32,24 @@ internal sealed class CleanupPhase : IFormattingPhase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => CleanToken(original, rewritten, cancellationToken));
+        return TokenRewriter.RewriteTokens(root, token => CleanToken(token, cancellationToken));
     }
 
     /// <summary>
     /// Cleans a single token by processing its leading and trailing trivia
     /// </summary>
-    /// <param name="original">The original token from the syntax tree</param>
-    /// <param name="rewritten">The rewritten token to clean</param>
+    /// <param name="token">The token of the input tree, whose neighbours decide how the end of the text is cleaned</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The cleaned token</returns>
-    private static SyntaxToken CleanToken(SyntaxToken original, SyntaxToken rewritten, CancellationToken cancellationToken)
+    private static SyntaxToken CleanToken(SyntaxToken token, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var leading = CleanLeadingTrivia(rewritten.LeadingTrivia, original);
-        var trailing = CleanTrailingTrivia(rewritten.TrailingTrivia, original);
+        var leading = CleanLeadingTrivia(token.LeadingTrivia, token);
+        var trailing = CleanTrailingTrivia(token.TrailingTrivia, token);
 
-        return rewritten.WithLeadingTrivia(leading)
-                        .WithTrailingTrivia(trailing);
+        return token.WithLeadingTrivia(leading)
+                    .WithTrailingTrivia(trailing);
     }
 
     /// <summary>

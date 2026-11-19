@@ -13,9 +13,10 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// <summary>
 /// Aligns the continuation lines of member-access chains, based on the shared <see cref="FluentChain"/> model. Every
 /// link operator that starts a line (<c>.</c>, <c>?.</c>, <c>!.</c> or <c>!?.</c>) is aligned to the chain's anchor;
-/// the rest of an operator that blocking trivia keeps on the next line goes under the operator's first token; an
-/// attached part that blocking trivia keeps on its own line goes to the anchor, or to the root when it precedes the
-/// first link. Only the outermost node of a chain is aligned. The chain rule decides which node that is, and for a node
+/// the rest of an operator that blocking trivia keeps on the next line goes under the operator's first token. An
+/// attached part never starts a line: the line-break phase joins every gap in front of and inside one (FMT-BREAK-039,
+/// FMT-BREAK-040), and an input that holds a comment, a directive, or disabled text there is refused (FMT-UNSUP-014).
+/// Only the outermost node of a chain is aligned. The chain rule decides which node that is, and for a node
 /// whose decision reads above a node-level formatting root it takes the root's
 /// <see cref="FormattingContext.RootChainBoundary"/>, as the line-break phase does
 /// </summary>
@@ -115,10 +116,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Aligns every token after the first one in a token run (the rest of an operator, or the rest of an attached part)
-    /// under the run's first token when blocking trivia keeps it on its own line
+    /// Aligns every token after the first one in a link operator under the operator's first token when blocking trivia
+    /// keeps it on its own line
     /// </summary>
-    /// <param name="tokens">The token run in source order</param>
+    /// <param name="tokens">The operator's tokens in source order</param>
     /// <param name="model">The layout model</param>
     private static void AlignRestOfRun(IReadOnlyList<SyntaxToken> tokens, LayoutModel model)
     {
@@ -140,42 +141,20 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     {
         var chain = FluentChain.Create(node, false, context.RootChainBoundary);
 
-        if (chain == null)
+        if (chain == null
+            || chain.Links.Count == 0)
         {
             return;
         }
 
         var rootColumn = LayoutComputer.GetAdjustedColumn(node.GetFirstToken(), model);
-
-        if (chain.Links.Count == 0)
-        {
-            foreach (var attachedPart in chain.AttachedParts)
-            {
-                AlignRestOfRun(attachedPart.Tokens, model);
-            }
-
-            return;
-        }
-
         var anchorColumn = GetAnchorColumn(chain, model, rootColumn);
-        var firstOperatorStart = chain.FirstLink.OperatorToken.SpanStart;
 
         foreach (var link in chain.Links)
         {
             LayoutComputer.SetIfFirstOnLine(link.OperatorToken, anchorColumn, "MethodChain", model);
 
             AlignRestOfRun(link.OperatorTokens, model);
-        }
-
-        foreach (var attachedPart in chain.AttachedParts)
-        {
-            var column = attachedPart.FirstToken.SpanStart < firstOperatorStart
-                             ? rootColumn
-                             : anchorColumn;
-
-            LayoutComputer.SetIfFirstOnLine(attachedPart.FirstToken, column, "MethodChainAttachedPart", model);
-
-            AlignRestOfRun(attachedPart.Tokens, model);
         }
     }
 

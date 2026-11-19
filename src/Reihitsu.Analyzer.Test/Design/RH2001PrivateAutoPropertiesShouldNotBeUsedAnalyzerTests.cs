@@ -6831,6 +6831,76 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                      Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comment in front of an argument list of the initializer's value withholds the fix,
+    /// because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnArgumentListOfTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = Offset /* three */ (3);
+
+                                    private static int Offset(int value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the change example: a line comment that keeps the argument list of the initializer's value on the line below
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForALineCommentInFrontOfAnArgumentListOfTheInitializerValue()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = Offset // three
+                                                                                   (3);
+
+                                    private static int Offset(int value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of an element access, in front of a null-forgiving operator, or between the <c>?</c> and the
+    /// <c>[</c> of a conditional element access in the initializer's value withholds the fix
+    /// </summary>
+    /// <param name="value">The initializer's value</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("Values /* c */ [0]", DisplayName = "In front of an element access")]
+    [DataRow("(Text /* c */ !).Length", DisplayName = "In front of a null-forgiving operator")]
+    [DataRow("Values? /* c */ [0] ?? 0", DisplayName = "Between the question mark and the bracket")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnAttachedPartOfTheInitializerValue(string value)
+    {
+        var testData = $"#nullable enable\n\nclass C\n{{\n    private int {{|RH2001:Value|}} {{ get; set; }} = {value};\n\n    private static int[] Values = [];\n\n    private static string? Text = \"\";\n}}";
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region Methods
