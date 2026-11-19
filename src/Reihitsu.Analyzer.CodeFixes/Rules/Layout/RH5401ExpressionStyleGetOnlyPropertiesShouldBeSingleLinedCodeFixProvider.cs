@@ -40,14 +40,14 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     }
 
     /// <summary>
-    /// Determines whether an attribute list holds, between its brackets, a blank line or a comment that starts its own line
-    /// (RH5401-004). Between its brackets means the gaps between two tokens of the list, from its <c>[</c> through its
-    /// <c>]</c>; the trivia in front of the <c>[</c> and behind the <c>]</c> is outside. A comment with code in front of it
-    /// on its line, a directive, and disabled text do not count
+    /// Determines whether an attribute list holds, between its brackets, a blank line, a directive of any kind, disabled
+    /// text, or a comment that starts its own line (RH5401-004). Between its brackets means the gaps between two tokens of
+    /// the list, from its <c>[</c> through its <c>]</c>; the trivia in front of the <c>[</c> and behind the <c>]</c> is
+    /// outside. A comment with code in front of it on its line does not count
     /// </summary>
     /// <param name="attributeList">Attribute list as written</param>
-    /// <returns><see langword="true"/> when the list holds such a blank line or comment; otherwise, <see langword="false"/></returns>
-    private static bool HoldsBlankLineOrOwnLineCommentBetweenBrackets(AttributeListSyntax attributeList)
+    /// <returns><see langword="true"/> when the list holds such a blank line, directive, disabled text, or comment; otherwise, <see langword="false"/></returns>
+    private static bool HoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets(AttributeListSyntax attributeList)
     {
         for (var token = attributeList.OpenBracketToken; token != attributeList.CloseBracketToken; token = token.GetNextToken())
         {
@@ -58,12 +58,15 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
                 return true;
             }
 
-            // A comment that starts its own line always lies in the leading trivia of the token behind it, because a
-            // token's trailing trivia ends with the first line break behind it
+            // A directive, disabled text, and a comment that starts its own line always lie in the leading trivia of the
+            // token behind them, because a token's trailing trivia ends with the first line break behind it
             for (var triviaIndex = 0; triviaIndex < nextToken.LeadingTrivia.Count; triviaIndex++)
             {
-                if (SyntaxTriviaUtilities.IsCommentTrivia(nextToken.LeadingTrivia[triviaIndex])
-                    && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(nextToken, triviaIndex))
+                var trivia = nextToken.LeadingTrivia[triviaIndex];
+
+                if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)
+                    || (SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                        && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(nextToken, triviaIndex)))
                 {
                     return true;
                 }
@@ -186,13 +189,13 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            // Only offer the action when no attribute list holds a blank line or an own-line comment between its brackets,
-            // where the formatter may drop or insert a blank line, and when formatting puts the property's own code on one
-            // line and keeps the blank lines behind its attribute lists; otherwise the fix would leave the diagnostic
-            // unresolved or change blank lines it does not own
+            // Only offer the action when no attribute list holds a blank line, a directive, disabled text, or an own-line
+            // comment between its brackets, and when formatting puts the property's own code on one line and keeps the
+            // blank lines behind its attribute lists; otherwise the fix would leave the diagnostic unresolved or change
+            // blank lines it does not own
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
                 && ReihitsuFormatter.FindUnsupportedSyntax(propertyDeclaration) == null
-                && propertyDeclaration.AttributeLists.Any(HoldsBlankLineOrOwnLineCommentBetweenBrackets) == false
+                && propertyDeclaration.AttributeLists.Any(HoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets) == false
                 && FormatsOnOneLineKeepingBlankLines(propertyDeclaration, context.CancellationToken))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5401Title,
