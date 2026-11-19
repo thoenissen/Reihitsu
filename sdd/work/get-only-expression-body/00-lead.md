@@ -77,5 +77,6 @@ Batch 1 (before test implementer):
 - Spec checker 20 consistent. Auditor 21 (5819614): findings 4 (high, repeats class) and 5 (medium) -> decision 18 (architecture finding, refuse by cause; no repair round used).
 - Spec author 22 (4040015), test implementer 23 (48f23ae; 24 expected failures) done.
 - Implementer 24 (7350c45): green.
-- Next: cleaner 25, then spec checker 26 + auditor 27 (delta), validator 28. (old:) implementer 24, cleaner, spec checker, auditor (delta), validator. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
+- Cleaner 25 clean, spec checker 26 consistent, auditor 27 (562dfe3) PASS. Audited SHA: 65ac481.
+- Next: validator 28 + issue manager 29 in parallel; then note, delete sdd/work, trigger, PR. (old:) implementer 24, cleaner, spec checker, auditor (delta), validator. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
