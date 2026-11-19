@@ -6,16 +6,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Analyzer.Rules.Clarity;
-
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
 /// Guards of <see cref="RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer"/> that keep parentheses whose removal
 /// would make the parser read a type: a cast, or a type argument list that detaches from its name or joins across
 /// arguments; and the scanner that reads whether a token sequence has the shape of a type
 /// </summary>
-internal static class UnnecessaryParenthesesTypeArgumentListUtilities
+internal static class RH3002TypeArgumentListUtilities
 {
     #region Methods
 

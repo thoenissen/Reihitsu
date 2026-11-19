@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Clarity;
@@ -164,7 +163,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             if (node is not ParenthesizedExpressionSyntax outermostExpression
                 || outermostExpression.Parent is ParenthesizedExpressionSyntax
                 || IsFollowedByCastOperand(outermostExpression) == false
-                || UnnecessaryParenthesesTypeArgumentListUtilities.IsTypeShaped(outermostExpression.Expression) == false)
+                || RH3002TypeArgumentListUtilities.IsTypeShaped(outermostExpression.Expression) == false)
             {
                 continue;
             }
@@ -290,8 +289,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
             return false;
         }
 
-        var kindAt = UnnecessaryParenthesesTypeArgumentListUtilities.CreateKindReader(GetTokensWithoutParentheses(parenthesizedExpression.Expression, decisions).Concat(GetFollowingTokens(parenthesizedExpression.CloseParenToken, lastToken)));
-        var index = UnnecessaryParenthesesTypeArgumentListUtilities.ScanName(kindAt, 0);
+        var kindAt = RH3002TypeArgumentListUtilities.CreateKindReader(GetTokensWithoutParentheses(parenthesizedExpression.Expression, decisions).Concat(GetFollowingTokens(parenthesizedExpression.CloseParenToken, lastToken)));
+        var index = RH3002TypeArgumentListUtilities.ScanName(kindAt, 0);
 
         if (index < 0)
         {
@@ -538,8 +537,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
         if (WouldLeaveCast(parenthesizedExpression)
             || WouldStartDeclaration(parenthesizedExpression, decisions)
             || WouldStartMemberInitializer(parenthesizedExpression, decisions)
-            || UnnecessaryParenthesesTypeArgumentListUtilities.WouldDetachTypeArgumentList(parenthesizedExpression, decisions)
-            || UnnecessaryParenthesesTypeArgumentListUtilities.WouldJoinTypeArgumentListAcrossArguments(parenthesizedExpression))
+            || RH3002TypeArgumentListUtilities.WouldDetachTypeArgumentList(parenthesizedExpression, decisions)
+            || RH3002TypeArgumentListUtilities.WouldJoinTypeArgumentListAcrossArguments(parenthesizedExpression))
         {
             return false;
         }
