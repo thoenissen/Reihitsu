@@ -27,7 +27,7 @@ None yet.
 
 ## Audited SHA
 
-—
+909b83b (audit 1, 07-auditor, verdict: findings; head 1fd503e differs only in 00-lead.md)
 
 ## Open worklist / next step
 
@@ -36,4 +36,6 @@ None yet.
 - Done: implementer (03, tests pass, 936efd0).
 - Done: spec author (04, 5239d8e; intros clarified, Code owners lines unchanged), cleaner (05, clean).
 - Done: spec checker (06, consistent, 909b83b). Build green on 909b83b; main at 31d2931 (no merge needed).
-- Next: auditor on 909b83b; then validator, issue manager (1 follow-up), note, publish.
+- Done: auditor (07, findings, 12d012c).
+- Waiting: output question 1 to the maintainer (auditor finding 1: RH5604 on lone CR / U+0085 / U+2028 / U+2029 terminators; characterization tests pin it).
+- Worklist after the answer (repair round 1): finding 1 per answer (A: spec author extends RH5604-001/005 to every terminator, tags tests; B: follow-up + test handling); finding 2 (text only): spec author drops implementation sentences from the intros of line-endings.md and RH5604.md, keeps the behavioral sentence; then spec checker, auditor on the repair, validator.
