@@ -31,5 +31,5 @@ Batch 1 (before test implementer), answered "as recommended":
 ## State
 
 - Last step: spec author (2523a56), skeptic (ad95a49, proceed). Lane check confirmed.
-- Implementer 10b11d5; cleaner e093235; spec checker ab73ac6 (consistent); auditor dd0ea66 PASS. Audited SHA: ab73ac60d309dd4b796a4becce56a72a298e1437 (main 725ea15). Next: validator, issue manager (RH5201), note, publish.
+- Auditor PASS at ab73ac6; validator PASS (5b1f34c); follow-up #1900 (RH5201). Next: note, delete sdd/work, trigger, PR.
 - Was: output-question batch 1 (title/message RH5112, RH5048; RH5112 fix title; rule-page body text; RH5048 "Why" wording) — waiting for maintainer. Then route answers to spec author, then test implementer.
