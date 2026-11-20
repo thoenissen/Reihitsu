@@ -111,6 +111,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     public async Task VerifyLoneCarriageReturnInsideXmlDocumentationIsNormalizedToLf()
     {
         const string testData = "{|#0:/// <summary>\r|}"
@@ -511,6 +513,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// <param name="endOfLine">The predominant line ending of the file</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     [DataRow("\r", "\n")]
     [DataRow("\r", "\r\n")]
     [DataRow("\u0085", "\n")]
@@ -547,6 +551,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// <param name="endOfLine">The predominant line ending of the file</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     [DataRow("\r", "\n")]
     [DataRow("\r", "\r\n")]
     [DataRow("\u2028", "\n")]
@@ -581,6 +587,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// <param name="endOfLine">The predominant line ending of the file</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     [DataRow("\r", "\n")]
     [DataRow("\r", "\r\n")]
     [DataRow("\u2028", "\n")]
