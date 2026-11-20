@@ -36,4 +36,6 @@
 - Test implementer done (04-test-implementer.md, 4575497/6d0634b): 47 analyzer tests + 5 formatter tests; provider must support Fix All. Spec example RH5419-001 `int this[uint a, uint b] => a;` does not compile (CS0266) -> spec author fixes (`=> 1;`), in parallel with implementer.
 - Spec example fixed (06-spec-author.md, 7ee7c97). Implementer done (05-implementer.md, b3265ac): tests pass; new shared helper AttributeListCodeFixUtilities (moved from RH5401).
 - Cleaner clean (07-cleaner.md, 0579d84).
-- Next: spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
+- Spec checker (08-spec-checker.md, 3fca7b3): findings — (1) Release.ruleset lacks RH5419 entry -> implementer repair (09-implementer.md); (2) change-doc item 5 awaits batch-2 answer.
+- Batch 2 output question posted (block comment in one-line parameter list). WAITING.
+- Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
