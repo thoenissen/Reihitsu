@@ -31,6 +31,8 @@ _None yet._
 | 3 | Skeptic | Roslyn parser/lexer overflows (16000-deep generics, nested interpolated strings) before Reihitsu code runs | Dropped, not a follow-up | Rare input class that no cheap guard in Reihitsu code reaches; handling it needs CLI-level machinery (`AGENTS.md`, *Special cases do not grow the source*) | Nothing changes | — |
 | 4 | Skeptic | Performance of `GetTokenBehindIfStatement` on 6400-branch `else if` ladders and of deeply nested interpolated strings | Dropped, not a follow-up | Only serves a rare input class (thousands of nested levels) | Nothing changes | — |
 | 5 | Skeptic | Issue goals: affected surface and fixed depths | Adjusted: CLI error handling needs no change; the fix lies in the formatter's own recursion; tests do not treat 6400/16000 as fixed thresholds | `agent-filed` goals are proposals; the skeptic showed the CLI's catch already meets CLI-016 for catchable exceptions | Visible output is option A, as decided | — |
+| 6 | Test implementer | CLI end-to-end tests run the CLI out of process (`dotnet Reihitsu.Cli.dll`) instead of calling `Program.Main` | Accepted | A stack overflow cannot be caught; an in-process red test would kill the whole test host | Test structure only | 78fc63a |
+| 7 | Test implementer | Deep tests accept either outcome (file reported as failed, or formatted) | Accepted | Decision 5: depths are not fixed thresholds; CLI-016 decides the failing case, CLI-013/014/017 the success case | Both outcomes are already decided by unchanged requirements | 78fc63a |
 
 ## Follow-up candidates
 
@@ -40,4 +42,5 @@ _None yet._
 
 - Done: claim (0bd9f1b), draft PR #1893, `scripts/prepare.sh`.
 - Done: skeptic (01-skeptic.md, verdict proceed, no output questions; handover commit 4c6ad52).
-- Next: test implementer (reproduction).
+- Done: test implementer (02-test-implementer.md, reproduced, 10 red / 4 green, commit 78fc63a).
+- Next: implementer.
