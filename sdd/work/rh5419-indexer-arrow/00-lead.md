@@ -43,4 +43,5 @@
 - Spec checker (08-spec-checker.md, 3fca7b3): findings — (1) Release.ruleset lacks RH5419 entry -> implementer repair (09-implementer.md); (2) change-doc item 5 awaits batch-2 answer.
 - Ruleset repaired (09-implementer.md, 90e48de). Repair round 1 of 3 (spec checker findings).
 - Batch 2 output question posted (block comment in one-line parameter list). Answered 1A.
+- Spec checker re-run consistent (10-spec-checker.md, 55e4af0). Build green. Auditor spawned on head 55e4af0, main 31d2931 (11-auditor.md).
 - Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
