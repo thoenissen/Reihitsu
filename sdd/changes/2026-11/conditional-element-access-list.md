@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-014 (changed: names the bracketed argument list of a conditional element access's element binding among the lists it joins, and divides the gaps with FMT-BREAK-040), RH5307-001 (changed: the list of a conditional element access is reported; the exclusion and its example are removed), RH5307-003 (changed: where the diagnostic of that list is), RH5307-004 (changed: the fix joins that list; its explanation of the `c?[0][…]` example no longer relies on the exclusion) |
+| Affected requirements | FMT-BREAK-014 (changed: names the bracketed argument list of a conditional element access's element binding among the lists it joins, and divides the gaps with FMT-BREAK-040), RH5307-001 (changed: the list of a conditional element access is reported; the exclusion and its example are removed), RH5307-003 (changed: where the diagnostic of that list is), RH5307-004 (changed: the fix joins that list; its explanation of the `c?[0][…]` example no longer relies on the exclusion), FMT-PIPE-024 (clarified: the element-access-arguments fact refers to FMT-BREAK-014 for which lists hold an index instead of naming two of them, so the fact also holds for the list of an element binding; no behavior change of its own) |
 | Depends on | [An element access or a null-forgiving operator written below its element joins the element's line](attached-part-below-element.md) |
 
 ## What
