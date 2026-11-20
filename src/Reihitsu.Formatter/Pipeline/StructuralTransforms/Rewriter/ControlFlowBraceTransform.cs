@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Runtime.CompilerServices;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -127,12 +129,16 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// Gets the token that follows an <c>if</c> statement once the transform has braced the bodies around it, read from the
     /// original tree. An <c>else if</c> stays unbraced, so what follows it is what follows the <c>if</c> statement it
     /// belongs to; an <c>if</c> that is the body of another <c>if</c> or <c>else</c> is followed by that body's inserted
-    /// closing brace when the body gets braces
+    /// closing brace when the body gets braces. The method recurses once per <c>else if</c>, so it checks the execution
+    /// stack on every level: a ladder too long for the stack throws a catchable <see cref="InsufficientExecutionStackException"/>
+    /// instead of terminating the process
     /// </summary>
     /// <param name="ifStatement">The <c>if</c> statement of the original tree</param>
     /// <returns>The token that follows the statement, or <see langword="default"/> when an inserted closing brace follows it</returns>
     private static SyntaxToken GetTokenBehindIfStatement(IfStatementSyntax ifStatement)
     {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
+
         return ifStatement.Parent switch
                {
                    ElseClauseSyntax { Parent: IfStatementSyntax outerIfStatement } => GetTokenBehindIfStatement(outerIfStatement),
