@@ -31,5 +31,5 @@ Batch 1 (before test implementer), answered "as recommended":
 ## State
 
 - Last step: spec author (2523a56), skeptic (ad95a49, proceed). Lane check confirmed.
-- Batch 1 answered; spec author f4a0114; test implementer 9115ddd (5 failing tests). Next: implementer.
+- Batch 1 answered; spec author f4a0114; tests 9115ddd; implementer 10b11d5 (all green). Next: cleaner, spec checker, auditor, validator.
 - Was: output-question batch 1 (title/message RH5112, RH5048; RH5112 fix title; rule-page body text; RH5048 "Why" wording) — waiting for maintainer. Then route answers to spec author, then test implementer.
