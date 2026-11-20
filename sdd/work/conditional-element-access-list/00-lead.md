@@ -28,11 +28,13 @@
 | 7 | Implementer | `VerifyFixAndIndexAccessFixConvergeInEitherOrder` expects RH5115 on `[`; RH5115 reports on `?` (existing, untouched behavior) | Test is wrong; marker moves to the `?` | Unchanged RH5115 behavior on `main` decides it | RH5115 output unchanged by the run | — |
 | 8 | Implementer | New public `SyntaxNodeUtilities.IsIndexArgumentList` has no direct Core test | Test implementer adds a small Core.Test test (four parent kinds incl. fixed buffer = false) | Core tests cover the shared utility assembly directly | Internal | — |
 | 9 | Repair 1 | Cleaner after the spec-author repair | Skipped: the repair changed one sentence of the change doc, no code or test | Nothing to format or build | Text only | b24dd885 |
+| 10 | Auditor | Finding #1 + architecture finding: FMT-PIPE-024 restates which lists hold an index and is stale | Text repair by spec author: FMT-PIPE-024 row and line ~1445 refer to FMT-BREAK-014; change doc lists FMT-PIPE-024 (clarified); prove with verify-text-only; spec checker confirms (normative wording). No second audit if the proof passes | One statement of the rule (same fix resolves the architecture finding) | Code and tests already match; spec text only | — |
+| 11 | Auditor | Hint: `IsElementAccessArgumentList` / `RootConstruct.ElementAccessArguments` names narrower than meaning | Not changed in this run, not a follow-up | Renaming is a compiled change after the audit for no behavior gain; summaries already updated | Internal names | — |
 | 4 | Skeptic | #1877's P11 "RH5307 stays silent" rationale is stale | Drop it; PR states the difference | Superseded by #1878 | Rationale only | — |
 
 ## Follow-up candidates
 
-(none yet)
+- Spec wording drift (auditor 11, hints): `sdd/specs/formatter/indentation.md:544` says "element-access arguments" while the code aligns every bracketed list (pre-existing); SHARED-DIAG-010's "and its fix is withheld (SHARED-FIX-010)" reads broader than SHARED-FIX-010 (fix still offered with a comment in front of `[`, as for `d /* c */ [1,⏎2]` on main).
 
 ## State
 
@@ -47,4 +49,6 @@
 - Spec checker 08 (d7f0d6e2): one finding (change doc line ~142 still calls the location question open) → repair round 1, owner spec author.
 - Spec author 09 (b24dd885): finding repaired.
 - Spec checker 10 (c8ab4a15): consistent. main 725ea151, branch up to date; build.sh green.
-- Now: auditor (11) on main SHA 725ea151; then validator.
+- main moved to 423c1a44 (ruleset only), merged; build green.
+- Auditor 11 (a18edee7): pass, text cleanup; **audited SHA 82d818ae6ce4bd7ab01f45ea09e307ae2973363b**.
+- Now: spec author (12) text repair (decision 10); verify-text-only vs 82d818ae; spec checker (13); then validator, issue manager, publish.
