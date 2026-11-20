@@ -122,7 +122,7 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedCodeFixProvi
     /// line, and it neither inserts nor removes a blank line in the gap behind each attribute list as written. A comment, a
     /// directive, or disabled text in front of the <c>[</c> that keeps a line break, such as a line comment behind
     /// <c>this</c>, therefore withholds the fix; the leading trivia of that first token and the attribute lists are not
-    /// measured
+    /// measured (<see cref="AttributeListCodeFixUtilities.StandsOnOneLineKeepingBlankLines"/>)
     /// </summary>
     /// <param name="root">Syntax root of the document that contains the indexer</param>
     /// <param name="indexerDeclaration">Indexer declaration</param>
@@ -139,22 +139,10 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedCodeFixProvi
             return false;
         }
 
-        var firstToken = formatted.AttributeLists.Count > 0
-                             ? formatted.AttributeLists.Last().GetLastToken().GetNextToken()
-                             : formatted.GetFirstToken();
-        var text = formatted.ToFullString();
-        var start = firstToken.SpanStart - formatted.FullSpan.Start;
-        var end = formatted.SemicolonToken.Span.End - formatted.FullSpan.Start;
-
         // A literal that spans lines inside the parameter list, an expression the formatter keeps on several lines, or a
         // comment, a directive, or disabled text in front of the [ that keeps a line break leaves the indexer on several
         // lines, so the fix cannot put it on one line and is not offered
-        if (text.IndexOf('\n', start, end - start) >= 0)
-        {
-            return false;
-        }
-
-        return AttributeListCodeFixUtilities.KeepsBlankLinesBehindAttributeLists(indexerDeclaration, formatted);
+        return AttributeListCodeFixUtilities.StandsOnOneLineKeepingBlankLines(indexerDeclaration, formatted);
     }
 
     #endregion // Methods

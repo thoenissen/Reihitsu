@@ -10,8 +10,8 @@ namespace Reihitsu.Analyzer.CodeFixes.Core;
 /// <summary>
 /// Shared guards of the code fixes that put an expression-bodied member on one line and let the formatter lay out its
 /// attribute lists: the fix of a property (RH5401-004) and the fix of an indexer (RH5419-004). Both withhold the fix where
-/// an attribute list holds something between its brackets that the layout would move, and where formatting would change the
-/// blank lines behind an attribute list
+/// an attribute list holds something between its brackets that the layout would move, where formatting leaves the member's
+/// own code on several lines, and where formatting would change the blank lines behind an attribute list
 /// </summary>
 internal static class AttributeListCodeFixUtilities
 {
@@ -28,6 +28,36 @@ internal static class AttributeListCodeFixUtilities
     public static bool AnyHoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets(MemberDeclarationSyntax member)
     {
         return member.AttributeLists.Any(HoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets);
+    }
+
+    /// <summary>
+    /// Determines whether the formatted member completes a fix that puts the member on one line (RH5401-003, RH5401-004,
+    /// RH5419-003, RH5419-004): the member's own code — from its first token behind its attribute lists through its last
+    /// token, without the trivia in front of that first token or behind the last one — stands on one line, and the gap
+    /// behind each attribute list as written keeps its blank lines (<see cref="KeepsBlankLinesBehindAttributeLists"/>). The
+    /// attribute lists, and a comment between them and that first token, are not measured
+    /// </summary>
+    /// <param name="member">Member as written</param>
+    /// <param name="formatted">Member as formatted</param>
+    /// <returns><see langword="true"/> when the member's own code stands on one line and the blank lines behind its attribute lists are kept; otherwise, <see langword="false"/></returns>
+    public static bool StandsOnOneLineKeepingBlankLines(MemberDeclarationSyntax member, MemberDeclarationSyntax formatted)
+    {
+        var firstToken = formatted.AttributeLists.Count > 0
+                             ? formatted.AttributeLists.Last().GetLastToken().GetNextToken()
+                             : formatted.GetFirstToken();
+        var text = formatted.ToFullString();
+        var start = firstToken.SpanStart - formatted.FullSpan.Start;
+        var end = formatted.Span.End - formatted.FullSpan.Start;
+
+        // A shape the formatter keeps on several lines, such as a multi-line collection or switch expression, a literal that
+        // spans lines, or a comment, a directive, or disabled text that keeps a line break, leaves the member on several
+        // lines, so the fix cannot put it on one line
+        if (text.IndexOf('\n', start, end - start) >= 0)
+        {
+            return false;
+        }
+
+        return KeepsBlankLinesBehindAttributeLists(member, formatted);
     }
 
     /// <summary>

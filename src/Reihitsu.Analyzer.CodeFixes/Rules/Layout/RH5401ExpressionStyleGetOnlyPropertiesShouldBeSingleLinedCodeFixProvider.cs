@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,31 +42,16 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     /// property's own code on one line — from its first token behind its attribute lists through its <c>;</c>, without the
     /// trivia in front of that token or behind the <c>;</c>; the attribute lists, and a comment between them and that first
     /// token, do not count — and it neither inserts nor removes a blank line in the gap behind each attribute list as written
+    /// (<see cref="AttributeListCodeFixUtilities.StandsOnOneLineKeepingBlankLines"/>). For shapes the formatter keeps
+    /// multi-lined, such as multi-line collection or switch expressions, single-lining is impossible
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when formatting puts the property's own code on one line and keeps the blank lines behind its attribute lists; otherwise, <see langword="false"/></returns>
     private static bool FormatsOnOneLineKeepingBlankLines(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
-        if (ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken).Output is not PropertyDeclarationSyntax formatted)
-        {
-            return false;
-        }
-
-        var firstToken = formatted.AttributeLists.Count > 0
-                             ? formatted.AttributeLists.Last().GetLastToken().GetNextToken()
-                             : formatted.GetFirstToken();
-        var text = formatted.ToFullString();
-        var ownCode = text.Substring(firstToken.SpanStart - formatted.FullSpan.Start, formatted.Span.End - firstToken.SpanStart);
-
-        // For shapes the formatter keeps multi-lined (for example multi-line collection or switch expressions) the
-        // result still spans several lines, so single-lining is impossible and the action must not be offered
-        if (ownCode.IndexOf('\n') >= 0)
-        {
-            return false;
-        }
-
-        return AttributeListCodeFixUtilities.KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted);
+        return ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken).Output is PropertyDeclarationSyntax formatted
+               && AttributeListCodeFixUtilities.StandsOnOneLineKeepingBlankLines(propertyDeclaration, formatted);
     }
 
     #endregion // Methods
