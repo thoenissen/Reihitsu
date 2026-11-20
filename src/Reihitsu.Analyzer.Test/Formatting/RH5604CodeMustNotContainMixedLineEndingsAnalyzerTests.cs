@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,6 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -21,6 +23,15 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFixTestsBase<RH5604CodeMustNotContainMixedLineEndingsAnalyzer, RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Placeholder for the one line break of a fixture that a test replaces with a foreign terminator
+    /// </summary>
+    private const string ForeignTerminatorPlaceholder = "¶";
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -100,6 +111,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
     public async Task VerifyLoneCarriageReturnInsideXmlDocumentationIsNormalizedToLf()
     {
         const string testData = "{|#0:/// <summary>\r|}"
@@ -489,6 +502,186 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
 
             Assert.AreEqual(fixedData, changedText, $"Applying the fix to the diagnostic at {span} must convert every differing line ending of the file.");
         }
+    }
+
+    /// <summary>
+    /// Verifies that the code fix rewrites a lone carriage return, a next line (U+0085), a line separator (U+2028), or a
+    /// paragraph separator (U+2029) between two tokens to the predominant line ending of an LF or a CRLF file, so the token
+    /// behind it starts a line of its own
+    /// </summary>
+    /// <param name="terminator">The foreign terminator between the two tokens</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r", "\n")]
+    [DataRow("\r", "\r\n")]
+    [DataRow("\u0085", "\n")]
+    [DataRow("\u0085", "\r\n")]
+    [DataRow("\u2028", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    [DataRow("\u2029", "\n")]
+    [DataRow("\u2029", "\r\n")]
+    public async Task VerifyForeignTerminatorBetweenTokensIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "{|#0:    internal int X;¶|}"
+                                + "    internal int Y;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    internal int X;\n"
+                                 + "    internal int Y;\n"
+                                 + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(ConvertEndOfLine(testData, endOfLine).Replace(ForeignTerminatorPlaceholder, terminator),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix rewrites a lone carriage return or a line separator (U+2028) that ends a directive to the
+    /// predominant line ending of an LF or a CRLF file
+    /// </summary>
+    /// <param name="terminator">The foreign terminator at the end of the directive</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r", "\n")]
+    [DataRow("\r", "\r\n")]
+    [DataRow("\u2028", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignTerminatorAtTheEndOfADirectiveIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "{|#0:#pragma warning disable CS0168¶|}"
+                                + "    internal int X;\n"
+                                + "#pragma warning restore CS0168\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "#pragma warning disable CS0168\n"
+                                 + "    internal int X;\n"
+                                 + "#pragma warning restore CS0168\n"
+                                 + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(ConvertEndOfLine(testData, endOfLine).Replace(ForeignTerminatorPlaceholder, terminator),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix rewrites a lone carriage return or a line separator (U+2028) inside a documentation comment
+    /// to the predominant line ending of an LF or a CRLF file
+    /// </summary>
+    /// <param name="terminator">The foreign terminator inside the documentation comment</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r", "\n")]
+    [DataRow("\r", "\r\n")]
+    [DataRow("\u2028", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignTerminatorInsideADocumentationCommentIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "{|#0:    /// <summary>¶|}"
+                                + "    /// Gets the value.\n"
+                                + "    /// </summary>\n"
+                                + "    internal int X;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    /// <summary>\n"
+                                 + "    /// Gets the value.\n"
+                                 + "    /// </summary>\n"
+                                 + "    internal int X;\n"
+                                 + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(ConvertEndOfLine(testData, endOfLine).Replace(ForeignTerminatorPlaceholder, terminator),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix rewrites every differing line ending of a file that holds a shape the formatter refuses as
+    /// unsupported — a comment between a variable declaration's own tokens — and keeps the comment, because the fix does not
+    /// format the file
+    /// </summary>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixConvertsTheLineEndingsOfAFileTheFormatterRefusesAsUnsupported(string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "{|#0:    internal int /* a */ X;¶|}"
+                                + "    internal int Y;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    internal int /* a */ X;\n"
+                                 + "    internal int Y;\n"
+                                 + "}";
+
+        var otherLineEnding = endOfLine == "\n"
+                                  ? "\r\n"
+                                  : "\n";
+        var expectedText = ConvertEndOfLine(fixedData, endOfLine);
+
+        var expectedRoot = await CSharpSyntaxTree.ParseText(expectedText, cancellationToken: CancellationToken.None).GetRootAsync(CancellationToken.None);
+
+        Assert.IsNotNull(ReihitsuFormatter.FindUnsupportedSyntax(expectedRoot), "The fixture must hold a shape the formatter refuses as unsupported.");
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(ConvertEndOfLine(testData, endOfLine).Replace(ForeignTerminatorPlaceholder, otherLineEnding),
+                     expectedText,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix rewrites every differing line ending of a file that holds a syntax error, which the
+    /// formatter returns unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-005")]
+    public async Task VerifyCodeFixConvertsTheLineEndingsOfAFileWithASyntaxError()
+    {
+        const string testData = "internal class TestClass\r\n"
+                                + "{\r\n"
+                                + "{|#0:    internal int X{|CS1002:|}\n|}"
+                                + "    internal int Y;\r\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\r\n"
+                                 + "{\r\n"
+                                 + "    internal int X{|CS1002:|}\r\n"
+                                 + "    internal int Y;\r\n"
+                                 + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(testData,
+                     fixedData,
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
