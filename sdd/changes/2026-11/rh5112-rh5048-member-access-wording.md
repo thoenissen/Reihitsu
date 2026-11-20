@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — wording only: the titles of the specs `analyzer/RH5112.md` and `analyzer/RH5048.md`, and the non-goal pointers to RH5048 in `analyzer/RH5038.md` and `shared/comment-placement.md`; no requirement changes |
 
@@ -74,11 +74,21 @@ var city = order.Customer
 
 - RH5112, *Why is this a problem?* — before: "Breaking before the first fluent call makes the expression harder to scan … Keeping the first call on the original line makes the expression easier to follow while still allowing longer call sequences to wrap clearly." After: "Breaking before the first member access makes the expression harder to scan … Keeping the first member access on the original line makes the expression easier to follow while still allowing longer chains to wrap clearly."
 - RH5112, *How to fix it* — before: "Leave later calls on separate lines when the expression still needs to wrap." After: "Leave later member accesses on separate lines when the expression still needs to wrap."
-- RH5048, *Why is this a problem?* — before: "The first call of a chain belongs on the line of the expression it is called on. A comment in front of it keeps the call apart from its receiver." After: "The first member access of a chain belongs on the line of the expression it accesses. A comment in front of it keeps the member access apart from its receiver."
+- RH5048, *Why is this a problem?* — before: "The first call of a chain belongs on the line of the expression it is called on. A comment in front of it keeps the call apart from its receiver." After: "The first member access of a chain belongs on the line its receiver ends on. A comment in front of it keeps the member access apart from its receiver."
 
 The RH5112 page's description paragraph about property reads in front of the first call (`settings.Items.Where(...)`) means a call there and stays.
 
 ## Decisions
+
+### Maintainer answers
+
+The maintainer answered the output questions asked from the visible output changes above:
+
+1. RH5112 title and message (change 1): "Wrapped chains should keep the first member access on the original line." with its trailing period. The rule page heading and the package README row carry the same title (change 4).
+2. RH5048 title and message (change 2): "Comments must not be placed before the first member access of a wrapped chain" with no trailing period. The rule page heading and the package README row carry the same title (change 4).
+3. RH5112 code-fix title (change 3): "Keep first wrapped member access on original line".
+4. RH5112 rule page body (change 5): "call" is replaced by "member access" and "chains" as listed.
+5. RH5048 rule page "Why" (change 5): "The first member access of a chain belongs on the line its receiver ends on. A comment in front of it keeps the member access apart from its receiver." This matches the RH5112 description. The first draft's "on the line of the expression it accesses" was not taken, because a member access accesses a member of its receiver, not the expression.
 
 ### Punctuation stays as it is
 
