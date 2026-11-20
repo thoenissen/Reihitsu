@@ -36,5 +36,7 @@ Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
 - Implementer done (05-implementer.md, 004d8f4).
 - Cleaner done (06-cleaner.md, 90831d1): four repository chains rewritten so the shipped analyzer binaries under binaries/ (old anchor) and the new anchor agree; Release build clean.
 - Spec checker: consistent (07-spec-checker.md). main not ahead (9a89c85), build green.
-- Next: auditor at base 9a89c85.
+- Audit 1 (08-auditor.md, audited head ab9690a, base 9a89c85): findings #1 medium (tests cannot tell last link from second link; same requirement), #2 low (change doc visible change 7 wording; PR-introduced).
+- Repair round 1: #1 → test implementer (09-test-implementer.md), #2 → spec author (10-spec-author.md); then cleaner, spec checker, auditor (repair only), validator.
+- PR review note to add: until `binaries/` is rebuilt, a repository chain with two or more links in front of a wrap cannot satisfy both the build's old-anchor RH5201 and the new formatter.
 - Next (was: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
