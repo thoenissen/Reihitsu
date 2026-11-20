@@ -411,6 +411,9 @@
   <data name="RH5418Title" xml:space="preserve">
     <value>Convert to semicolon declaration</value>
   </data>
+  <data name="RH5419Title" xml:space="preserve">
+    <value>Collapse indexer to single line</value>
+  </data>
   <data name="RH3204Title" xml:space="preserve">
     <value>Remove interpolation marker</value>
   </data>

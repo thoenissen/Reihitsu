@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -37,91 +36,6 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     private static Task<Document> ApplyCodeFixAsync(Document document, PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
         return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, propertyDeclaration, cancellationToken);
-    }
-
-    /// <summary>
-    /// Determines whether an attribute list holds, between its brackets, a blank line, a directive of any kind, disabled
-    /// text, or a comment that starts its own line (RH5401-004). Between its brackets means the gaps between two tokens of
-    /// the list, from its <c>[</c> through its <c>]</c>; the trivia in front of the <c>[</c> and behind the <c>]</c> is
-    /// outside. A comment with code in front of it on its line does not count
-    /// </summary>
-    /// <param name="attributeList">Attribute list as written</param>
-    /// <returns><see langword="true"/> when the list holds such a blank line, directive, disabled text, or comment; otherwise, <see langword="false"/></returns>
-    private static bool HoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets(AttributeListSyntax attributeList)
-    {
-        for (var token = attributeList.OpenBracketToken; token != attributeList.CloseBracketToken; token = token.GetNextToken())
-        {
-            var nextToken = token.GetNextToken();
-
-            if (TokenGapAnalysis.Between(token, nextToken).BlankLineCount > 0)
-            {
-                return true;
-            }
-
-            // A directive, disabled text, and a comment that starts its own line always lie in the leading trivia of the
-            // token behind them, because a token's trailing trivia ends with the first line break behind it
-            for (var triviaIndex = 0; triviaIndex < nextToken.LeadingTrivia.Count; triviaIndex++)
-            {
-                var trivia = nextToken.LeadingTrivia[triviaIndex];
-
-                if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)
-                    || (SyntaxTriviaUtilities.IsCommentTrivia(trivia)
-                        && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(nextToken, triviaIndex)))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the formatted property holds, in the gap behind each of its attribute lists as written, as many
-    /// blank lines as that gap as written (RH5401-004). The gap runs from the <c>]</c> closing the list to the next token,
-    /// with every comment, directive, and disabled text in between. The formatter may split a list into one list per
-    /// attribute (FMT-STRUCT-028); the gap behind a list as written is then the gap behind the formatted list that holds its
-    /// last attribute, and the gaps between the split lists have no counterpart as written
-    /// </summary>
-    /// <param name="propertyDeclaration">Property declaration as written</param>
-    /// <param name="formatted">Property declaration as formatted</param>
-    /// <returns><see langword="true"/> when every gap keeps its blank lines; otherwise, <see langword="false"/></returns>
-    private static bool KeepsBlankLinesBehindAttributeLists(PropertyDeclarationSyntax propertyDeclaration, PropertyDeclarationSyntax formatted)
-    {
-        var formattedAttributes = formatted.AttributeLists.SelectMany(obj => obj.Attributes).ToList();
-
-        if (formattedAttributes.Count != propertyDeclaration.AttributeLists.Sum(obj => obj.Attributes.Count))
-        {
-            return false;
-        }
-
-        var attributeIndex = -1;
-
-        foreach (var attributeList in propertyDeclaration.AttributeLists)
-        {
-            if (attributeList.Attributes.Count == 0)
-            {
-                return false;
-            }
-
-            attributeIndex += attributeList.Attributes.Count;
-
-            if (formattedAttributes[attributeIndex].Parent is not AttributeListSyntax formattedList)
-            {
-                return false;
-            }
-
-            var originalCloseBracket = attributeList.CloseBracketToken;
-            var formattedCloseBracket = formattedList.CloseBracketToken;
-
-            if (TokenGapAnalysis.Between(originalCloseBracket, originalCloseBracket.GetNextToken()).BlankLineCount
-                != TokenGapAnalysis.Between(formattedCloseBracket, formattedCloseBracket.GetNextToken()).BlankLineCount)
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /// <summary>
@@ -153,8 +67,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
             return false;
         }
 
-        return propertyDeclaration.AttributeLists.Count == 0
-               || KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted);
+        return AttributeListCodeFixUtilities.KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted);
     }
 
     #endregion // Methods
@@ -195,7 +108,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
             // blank lines it does not own
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
                 && ReihitsuFormatter.FindUnsupportedSyntax(propertyDeclaration) == null
-                && propertyDeclaration.AttributeLists.Any(HoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets) == false
+                && AttributeListCodeFixUtilities.AnyHoldsBlankLineDirectiveDisabledTextOrOwnLineCommentBetweenBrackets(propertyDeclaration) == false
                 && FormatsOnOneLineKeepingBlankLines(propertyDeclaration, context.CancellationToken))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5401Title,
