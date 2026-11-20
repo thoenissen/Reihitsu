@@ -41,4 +41,5 @@
 - Spec author 03 (96c005be): answers recorded, change doc Accepted, decision 2 done.
 - Test implementer 04 (44d72441): 18 formatter + 34 analyzer rows fail as expected.
 - Implementer 05 (938ad38c code, 6f877378 handover): formatter green; 6 analyzer rows disputed (decisions 6, 7); decision 1 done.
-- Now: fresh test implementer (06) for decisions 6, 7, 8. Then cleaner.
+- Test implementer 06 (10dce053): decisions 6, 7, 8 done; RH5307 84 passed, Core 5 passed.
+- Now: cleaner (07). Then spec checker (08), auditor (09), validator.
