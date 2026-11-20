@@ -35,5 +35,6 @@ Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
 - Test implementer done (04-test-implementer.md, ce21c7d).
 - Implementer done (05-implementer.md, 004d8f4).
 - Cleaner done (06-cleaner.md, 90831d1): four repository chains rewritten so the shipped analyzer binaries under binaries/ (old anchor) and the new anchor agree; Release build clean.
-- Next: spec checker.
+- Spec checker: consistent (07-spec-checker.md). main not ahead (9a89c85), build green.
+- Next: auditor at base 9a89c85.
 - Next (was: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
