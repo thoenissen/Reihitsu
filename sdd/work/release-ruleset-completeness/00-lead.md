@@ -21,6 +21,8 @@
 |---|---|---|---|---|---|---|
 | 1 | Test implementer | Is RH7305A exempt from the completeness test, or listed in `Release.ruleset` as `None`? | Keep it on the commented exemption list | RH7305A is the alternative to RH7305, which Release enables; the exemption list is what the issue asked for, and the exemption test keeps it from going stale | Repository build configuration and tests only; no shipped surface changes | 403719dd |
 | 2 | Test implementer | Merge the 14 new error checks into the existing per-rule error test (renamed `ReleaseRulesetReportsRuleAsError`) | Accept | S4144 forbids two identical methods; nothing else uses the old name | Test structure only | 403719dd |
+| 3 | Auditor | Premise overstated: without an entry the 14 rules were already errors in Release via `TreatWarningsAsErrors`; Closes or Refs? | `Closes #1890`; the PR's Review notes state that the change makes each rule's Release action explicit rather than turning the rules on | The issue's goals (every shipped rule listed, a test for the missing direction) are met | Build configuration; the 14 rules already fail the Release build on main, so nothing a user sees changes | — |
+| 4 | Auditor | Finding #1, test doc-comment text repeats the wrong premise | Route to the cleaner as comment-only; prove with verify-text-only against b7c14cbb | Comment-only finding after a passing audit (lead.md section 7) | Comment in a test | — |
 
 ## Follow-up candidates
 
@@ -28,6 +30,6 @@
 
 ## State
 
-- Audited SHA: 0374545c (auditor running; origin/main 725ea151)
+- Audited SHA: 0374545c (audit pass, text cleanup; handover b7c14cbb; origin/main 725ea151)
 - Last step finished: cleaner clean (03), spec checker consistent (04), Release build green.
-- Next step: auditor verdict, then validator.
+- Next step: cleaner fixes test comments (finding #1), verify-text-only vs b7c14cbb, then validator.
