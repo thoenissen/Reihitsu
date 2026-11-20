@@ -34,4 +34,5 @@
 - Last step: spec author 01 (commit 196829de, change doc Draft; both premises reproduce; output questions 1 and 2 drafted, spec written on 1A/2A). Lane check confirmed.
 - Skeptic 02 (7f8e64fa): both premises real, agrees with 1A/2A, no new output questions, no follow-ups.
 - Output questions answered 1A, 2A (spec already written on 1A/2A).
-- Now: spec author follow-up (record answers in change doc Decisions, Status Accepted, decision 2). Then test implementer.
+- Spec author 03 (96c005be): answers recorded, change doc Accepted, decision 2 done.
+- Now: test implementer (04). Then implementer (decision 1: shared predicate in Core).
