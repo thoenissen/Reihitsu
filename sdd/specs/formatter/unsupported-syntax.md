@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -1042,6 +1042,108 @@ class C
     int Foo /* c10 */ (int x)
     {
         return x;
+    }
+}
+```
+
+### FMT-UNSUP-015 — Comments and directives inside a link operator are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between two tokens of a link operator `?.`, `!.`, or `!?.` (SHARED-CHAIN-001): in the trailing trivia of one of the operator's tokens other than its `.`, or in the leading trivia of one of its tokens other than its first.
+
+The operator's tokens are decided by the syntax tree alone:
+
+- `?.` — the `?` of a `ConditionalAccessExpressionSyntax` whose next token is a `.`, and that `.`, which is the operator token of the `MemberBindingExpressionSyntax` its branch starts with: `s? /* c */ .Length`, `a? // c⏎.B()`;
+- `!.` — the `!` of a null-forgiving operator (`SuppressNullableWarningExpression`) that is the expression of a simple member access, and that member access's `.`: `t! /* c */ .Length`, `Get()!⏎#if DEBUG⏎.Trim()`;
+- `!?.` — the `!` of a null-forgiving operator that is the expression of a `ConditionalAccessExpressionSyntax` whose `?` is followed by a `.`, that `?`, and that `.`: `u! /* c */ ?.Length`, `u!? /* c */ .Length`.
+
+The conditions, each with both sides:
+
+- **Between the operator's own tokens.** Only the gaps between the tokens of one operator count. A comment, a directive, or disabled text in front of the operator's first token — the gap in front of a link, which SHARED-CHAIN-004 decides for the first link and the chain layout for every other (`s /* c */ ?.Length`, `items // c⏎.Where(…)`, `s // c⏎!.Length`) — does not refuse the input, and neither does one between the operator's `.` and the member name (`s?. /* c */ Length`), one inside the link's argument list (`a?.B(/* c */ 1)`), or one behind the link (`a?.B() // c`).
+- **Link operators only.** A token pair that is not two tokens of a link operator is not this shape: a plain `.` is one token and has no gap of its own; the `?` and the `[` of a conditional element access, and the `!` and the `?` of `!?[`, are the tokens a part starts with, which FMT-UNSUP-014 decides (`n? /* c */ [0]`, `x! /* c */ ?[0]`); a conditional expression's `?` is no operator of a link (`c ? /* c */ .5 : 1`, FMT-UNSUP-008); and neither are the `!` of a logical negation, the `..` of a range, the `->` of a pointer member access, or the `::` of an alias-qualified name.
+- **On any line.** Whether the gap holds a line break does not matter: `s? /* c */ .Length` on one line is refused like `s? // c⏎.Length` and like a comment on a line of its own between `?` and `.`.
+- **Every link.** Each link operator is checked with its own tokens, whatever stands around it — the only link of an expression or one link of a wrapped chain, an invoked link or a member read, inside a list element, an interpolation hole, a lambda, or any other construct. A token in disabled text is no token of the input: a link operator inside disabled text is not checked.
+
+The tokens of one link operator all belong to one node — the conditional access of `?.` and `!?.`, the member access of `!.` — so a node-level input holds the shape only when it holds that node: an input that holds the `.` but not the `?` or the `!` in front of it, such as the branch of a conditional access, does not hold the shape, and neither does one that holds the `!` but not the `.` behind it, such as the null-forgiving operator alone (FMT-UNSUP-003).
+
+Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or disabled text, both shapes start at it, and FMT-UNSUP-001's first shape in the text does not decide; the reason and the location are then FMT-UNSUP-004's or FMT-UNSUP-010's. FMT-UNSUP-004 excepts the inside of an initializer value, and a link operator of a value is always inside it, so the two meet only outside a value. FMT-UNSUP-010 excepts no initializer value: a directive or disabled text inside a link operator anywhere in a field declaration with several declarators, also inside a value, gives FMT-UNSUP-010's reason. In a field with one declarator, the same directive gives this requirement's.
+
+The reason the formatter gives for this shape is `a comment or directive inside a ?. or !. operator`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: A link operator reads as one operator, and the line-break phase moves a line break inside it in front of its first token (SHARED-CHAIN-006, FMT-BREAK-019). A comment, a directive, or disabled text between its tokens kept them apart, so the phase refused the join (FMT-BREAK-001), and the indentation phase put the rest of the operator under its first token, a column no requirement states; the operator stayed split for good, the `?` or `!` at the end of a line read as a conditional or a negation, the branches of a conditional group between the tokens got different columns, and an own-line comment between them got a blank line inserted in front of it inside the statement. A comment between `?` and `.` is rare, and a comment that explains a link belongs behind the line or above the statement, where the phases carry it as they do for every statement; a conditional group that chooses between two links is rare as well, and the same choice written around the whole statement is formatted. Directives and disabled text are part of the shape because the join refusal and the column of the operator's rest test them alike: with comments alone, both would have to stay. The shape is the same on one line, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: the boundary is a place in the syntax tree, not a question of line breaks. With the shape refused, no gap inside a link operator ever keeps a line break, so neither the join nor the indentation phase has to handle one. The gap in front of a link stays supported: SHARED-CHAIN-004 and the chain layout decide it, and RH5048 reports a comment in front of the first link. No phase writes a comment, a directive, or disabled text into a link operator (FMT-UNSUP-005): the join carries only whitespace into it, and no transform creates a link operator or moves trivia into one. The `?[` of a conditional element access is no link operator (SHARED-CHAIN-001); FMT-UNSUP-014 already refuses a comment, a directive, or disabled text between its `?` and `[`, and between a `!` and the `?` of `!?[`.
+
+Example — each link operator is refused, and the input that holds it is returned unchanged:
+
+```csharp
+#nullable enable
+
+class C
+{
+    int? M(string? s, string? t, string? u, string? w)
+    {
+        var p = s? // c1
+            .Length;
+        var q = t! /* c2 */ .Length;
+        var r = u!
+            // c3
+            ?.Length;
+        var v = w!? /* c4 */ .Length;
+
+        return p + q + r + v;
+    }
+}
+```
+
+The location is the span of `// c1`, which starts in line 7, column 20.
+
+Example — a directive and disabled text inside a `!.` refuse the input in every build: where `DEBUG` is defined, `#if DEBUG` stands between `!` and the `.` of `.Trim()`; where it is not, `#if DEBUG`, the disabled text, and `#else` stand between `!` and the `.` of `.ToUpper()`:
+
+```csharp
+#nullable enable
+
+class C
+{
+    string M()
+    {
+        return Get()!
+#if DEBUG
+            .Trim();
+#else
+            .ToUpper();
+#endif
+    }
+
+    string? Get()
+    {
+        return null;
+    }
+}
+```
+
+The location is the span of `#if DEBUG`, which starts in line 8, column 1.
+
+Example — the other side: none of these comments refuses the input under this requirement, and the input is formatted:
+
+```csharp
+#nullable enable
+
+class C
+{
+    int? M(string? s, string? t, C? c, int[]? n)
+    {
+        // c1
+        var p = s // c2
+                ?.Length;
+        var q = t /* c3 */ !.Length;
+        var r = c?.N(/* c4 */ 1) // c5
+                 ?.N(2);
+        var x = n?[/* c6 */ 0];
+
+        return p + q + (r == null ? 0 : 1) + x; // c7
+    }
+
+    C? N(int value)
+    {
+        return value > 0 ? this : null;
     }
 }
 ```
