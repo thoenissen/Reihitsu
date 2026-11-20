@@ -35,6 +35,8 @@ _None yet._
 | 7 | Test implementer | Deep tests accept either outcome (file reported as failed, or formatted) | Accepted | Decision 5: depths are not fixed thresholds; CLI-016 decides the failing case, CLI-013/014/017 the success case | Both outcomes are already decided by unchanged requirements | 78fc63a |
 | 8 | Implementer | Other recursive methods the skeptic listed that no test or generated input overflows (`RawStringLineShifts.GetDistance`, `DocCommentElementNormalizer...`, etc.) | Dropped, not a follow-up | No overflow reproduced; rare input class | Nothing changes | — |
 | 9 | Implementer | Analyzer path through `FluentChain.Create` (follow-up candidate from the skeptic) | Removed from candidates | Covered by the guard in `FluentChain.Collect` (an extreme chain now yields a catchable exception) | Nothing beyond CLI-016 | 2f9aa25 |
+| 10 | Auditor | Amend the `AGENTS.md` CLI end-to-end convention (`Program.Main()` directly) with an exception for out-of-process tests | Not taken in; the PR's Review notes explain the out-of-process test | Keeps the run in the bug-fix lane; one test class with a stated reason does not need a repository-wide rule change | Test structure only | — |
+| 11 | Auditor | Inputs in the last 128 KB of stack may now fail instead of finishing | Accepted (decisions 5, 7); the PR does not claim no formatting input can start failing | Run-to-run noise on `main` is of the same size; the outcome is CLI-016's | Covered by CLI-016 and the triage answer | — |
 
 ## Follow-up candidates
 
@@ -48,4 +50,5 @@ _None_ (the analyzer-path candidate was covered by the fix, decision 9).
 - Done: implementer (03-implementer.md, tests pass, commit 2f9aa25). Lane check: confirmed bug-fix.
 - Done: cleaner (04-cleaner.md, clean, a788291).
 - Done: spec checker (05-spec-checker.md, consistent, a65032b).
-- Next: auditor.
+- Done: auditor (06-auditor.md, pass, no findings). Audited SHA: 9f601a84da993b714a08f8865e3c12282071a36a.
+- Next: validator, then publish.
