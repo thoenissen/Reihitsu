@@ -24,11 +24,15 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | New requirement or widen FMT-UNSUP-014? | New FMT-UNSUP-015 | Separate shape (link operator vs. attached part); keeps each requirement one check | Spec structure only | 568f167 |
+| 2 | Spec author | Does FMT-UNSUP-015 cover `?[`? | No, FMT-UNSUP-014 already covers it | `?[` is an attached part, not a link (SHARED-CHAIN-001) | Output already refused by FMT-UNSUP-014 | 568f167 |
+| 3 | Spec author | Change SHARED-CHAIN-006 / RH5201-003? | Leave unchanged | Not contradicted by the new shape | No output change | 568f167 |
 
 ## Follow-up candidates
 
-(none yet)
+- Escalation 10 candidate (01-spec-author.md): comment between a link's `.` and its member name (`a.B(). // c` ⏎ `C();`) — declare unsupported in a change of its own? Ask with the next batch.
 
 ## Open worklist / next step
 
-- Next: spawn spec author (01).
+- Done: spec author (01, commit 568f167). Running: skeptic (02).
+- Batch 1 output questions (before test implementer): (1) one-line block comment inside the operator is part of the shape; (2) CLI reason text; (3) escalation 10 on `.`-to-name gap; plus whatever the skeptic raises. Visible output changes of the change doc are covered by the triage answer but shown for confirmation.
