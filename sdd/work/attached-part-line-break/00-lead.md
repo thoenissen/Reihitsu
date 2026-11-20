@@ -21,9 +21,9 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 
 ## Follow-up candidates
 
-(none yet)
+- Comment on thoenissen/Reihitsu#1827 that this run leaves every argument list's `(` to it, if output question 1A stands (01-spec-author.md).
 
 ## State
 
-- Last step finished: claim, lane, 00-lead.md.
-- Next: spawn spec author.
+- Last step finished: spec author (01, commits cd904e8, 6e77337; change doc Draft, rule RH5115; 4 output questions open).
+- Next: skeptic (02), then batch output questions before the test implementer.
