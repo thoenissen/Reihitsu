@@ -33,14 +33,17 @@ _None yet._
 | 5 | Skeptic | Issue goals: affected surface and fixed depths | Adjusted: CLI error handling needs no change; the fix lies in the formatter's own recursion; tests do not treat 6400/16000 as fixed thresholds | `agent-filed` goals are proposals; the skeptic showed the CLI's catch already meets CLI-016 for catchable exceptions | Visible output is option A, as decided | — |
 | 6 | Test implementer | CLI end-to-end tests run the CLI out of process (`dotnet Reihitsu.Cli.dll`) instead of calling `Program.Main` | Accepted | A stack overflow cannot be caught; an in-process red test would kill the whole test host | Test structure only | 78fc63a |
 | 7 | Test implementer | Deep tests accept either outcome (file reported as failed, or formatted) | Accepted | Decision 5: depths are not fixed thresholds; CLI-016 decides the failing case, CLI-013/014/017 the success case | Both outcomes are already decided by unchanged requirements | 78fc63a |
+| 8 | Implementer | Other recursive methods the skeptic listed that no test or generated input overflows (`RawStringLineShifts.GetDistance`, `DocCommentElementNormalizer...`, etc.) | Dropped, not a follow-up | No overflow reproduced; rare input class | Nothing changes | — |
+| 9 | Implementer | Analyzer path through `FluentChain.Create` (follow-up candidate from the skeptic) | Removed from candidates | Covered by the guard in `FluentChain.Collect` (an extreme chain now yields a catchable exception) | Nothing beyond CLI-016 | 2f9aa25 |
 
 ## Follow-up candidates
 
-- Analyzer path `FluentChainAnalyzerBase` → `FluentChain.Create` could overflow in the compiler/IDE host on extreme chains (01-skeptic.md). Covered by the run if `FluentChain` itself is fixed; otherwise reconsider (likely drop as rare input class).
+_None_ (the analyzer-path candidate was covered by the fix, decision 9).
 
 ## Worklist / next step
 
 - Done: claim (0bd9f1b), draft PR #1893, `scripts/prepare.sh`.
 - Done: skeptic (01-skeptic.md, verdict proceed, no output questions; handover commit 4c6ad52).
 - Done: test implementer (02-test-implementer.md, reproduced, 10 red / 4 green, commit 78fc63a).
-- Next: implementer.
+- Done: implementer (03-implementer.md, tests pass, commit 2f9aa25). Lane check: confirmed bug-fix.
+- Next: cleaner.
