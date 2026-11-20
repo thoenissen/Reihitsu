@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Runtime.CompilerServices;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -80,7 +82,9 @@ internal static class LayoutComputer
 
     /// <summary>
     /// Pass 1: Walks the syntax tree top-down and sets block indentation
-    /// for all first-on-line tokens based on nesting depth
+    /// for all first-on-line tokens based on nesting depth. The walk recurses once per nesting level, so it checks the
+    /// execution stack on every level: a tree nested too deeply for the stack throws a catchable
+    /// <see cref="InsufficientExecutionStackException"/> instead of terminating the process
     /// </summary>
     /// <param name="node">The current syntax node</param>
     /// <param name="indentLevel">The current block indentation level</param>
@@ -94,6 +98,7 @@ internal static class LayoutComputer
     internal static void ComputeBlockIndentation(SyntaxNode node, int indentLevel, LayoutModel model, int baseColumn, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        RuntimeHelpers.EnsureSufficientExecutionStack();
 
         foreach (var child in node.ChildNodesAndTokens())
         {
