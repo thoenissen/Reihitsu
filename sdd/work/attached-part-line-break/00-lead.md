@@ -21,6 +21,7 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 |---|---|---|---|---|---|---|
 | 1 | Skeptic (02) | Architecture finding FC-015: the analyzer needs the attached-part gap predicate, which lives only in the formatter's internal `AttachedPartGapUtilities` | Move the predicate (its `[`/`?[`/`!` part at least) into `Reihitsu.Core` in this run; formatter precheck, line-break phase and RH5115 analyzer all use the one copy. No private copy in the analyzer | A private copy would be a second statement of the rule (the narrow fix adds a copy); the move is ~117 lines, no new logic, within the analyzer and its formatter counterpart, below the escalation-9 bound | Pure move; formatter output unchanged, guarded by existing formatter tests | — |
 | 2 | Skeptic (02) | Issue goal "use `FluentChain.AttachedParts`" and the stale formatter-owner reference | Replace with the moved predicate; the fix decides chain layout vs. plain join by `FluentChain.Create(...).Links.Count > 0` | `FluentChain` folds the `!` of `x!?[0]` differently from the join | Internal | — |
+| 3 | Spec author (03) | Keep the RH5116 page sentence that a `!` directly in front of `.` or `?.` is not reported? | Keep | It states the rule's scope, as RH5105's page states what is outside its rule; it is not a list of corner cases or withheld fixes | Scope decided by answers 1A/4A; the sentence describes it | d24a646 |
 
 ## Follow-up candidates
 
@@ -31,5 +32,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 ## State
 
 - Last step finished: skeptic (02, f987f50): proceed; Q5 added; architecture finding decided (#1).
-- Now: all batch-1 answers in. Spawning a fresh spec author (03) to apply them.
+- Spec author 03 done (d24a646): two rules RH5115/RH5116 specified, change doc Accepted; lane check confirmed behavior-change.
+- Next: test implementer (04).
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
