@@ -24,6 +24,9 @@
 | 2 | Skeptic | RH5307-001 restates FMT-BREAK-014's list of parent kinds | Have RH5307-001 refer to FMT-BREAK-014 instead (spec author, with the Accepted status follow-up) | One statement of the rule | Spec wording only | — |
 | 3 | Skeptic | Characterization test for fixed-size buffer `fixed int b[⏎3];` | Test implementer adds it | Pins the excluded fourth parent | Characterizes `main` output, unchanged | — |
 | 5 | Test implementer | `FormatNode` on a bracketed list inside a tree misplaces the column even for `d[...]` | Dropped, not a follow-up | No caller formats such a list through `FormatNode` (RH5307 fix uses `FormatNodeInDocumentAsync`) — AGENTS.md *Supported inputs* | No caller reaches it | — |
+| 6 | Implementer | Two RH5307 tests use `VerifyCodeFixWithEndOfLine` whose single-application assertion contradicts RH5307-004/SHARED-FIX-006 on multi-diagnostic sources | Test is wrong; test implementer switches them to the multi-diagnostic verify form, final text unchanged | Unchanged requirements decide it | Expected fixed text unchanged | — |
+| 7 | Implementer | `VerifyFixAndIndexAccessFixConvergeInEitherOrder` expects RH5115 on `[`; RH5115 reports on `?` (existing, untouched behavior) | Test is wrong; marker moves to the `?` | Unchanged RH5115 behavior on `main` decides it | RH5115 output unchanged by the run | — |
+| 8 | Implementer | New public `SyntaxNodeUtilities.IsIndexArgumentList` has no direct Core test | Test implementer adds a small Core.Test test (four parent kinds incl. fixed buffer = false) | Core tests cover the shared utility assembly directly | Internal | — |
 | 4 | Skeptic | #1877's P11 "RH5307 stays silent" rationale is stale | Drop it; PR states the difference | Superseded by #1878 | Rationale only | — |
 
 ## Follow-up candidates
@@ -37,4 +40,5 @@
 - Output questions answered 1A, 2A (spec already written on 1A/2A).
 - Spec author 03 (96c005be): answers recorded, change doc Accepted, decision 2 done.
 - Test implementer 04 (44d72441): 18 formatter + 34 analyzer rows fail as expected.
-- Now: implementer (05), decision 1 (shared predicate in Core). Then cleaner.
+- Implementer 05 (938ad38c code, 6f877378 handover): formatter green; 6 analyzer rows disputed (decisions 6, 7); decision 1 done.
+- Now: fresh test implementer (06) for decisions 6, 7, 8. Then cleaner.
