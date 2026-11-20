@@ -16,7 +16,7 @@
 
 ## Cost
 
-One output-question batch (before the test implementer), no other stops. One repair round: the first audit found a missing test for the FMT-UNSUP-004/FMT-UNSUP-015 overlap (the test implementer had wrongly concluded no input exists, because `nameof(s?.Length)` in an attribute is only a semantic error) and a comment wording point. The spec author ran twice (second: status-only acceptance); the implementer was continued once for an adjacent fix. The expensive spawns were the test implementer (205-case matrix), the first audit, and the spec author.
+One output-question batch (before the test implementer), no other stops. One repair round: the first audit found a missing test for the FMT-UNSUP-004/FMT-UNSUP-015 overlap (the test implementer had wrongly concluded no input exists, because `nameof(s?.Length)` in an attribute is only a semantic error) and a comment wording point. The spec author ran twice (second: status-only acceptance); the implementer was continued once for an adjacent fix. After publishing, CI failed in the self-hosting test: RH2008 (enabled on main shortly before the run) reported the precheck's `FindUnsupportedSyntax` at 66 lines. A CI repair (round 2: implementer, cleaner, auditor, validator) extracted the declaration candidates into a helper; a container restart in the middle cost one implementer re-run. The expensive spawns were the test implementer (205-case matrix), the first audit, and the spec author.
 
 ## Usage
 
@@ -52,5 +52,7 @@ Session `a363fcb8-a042-5cef-b077-a327933b6b8c`. Responses counted once per messa
 Ten. Worth a look: decision 8 (a new public helper `FluentChain.GetLinkOperatorTokens` in Core as the one definition of link-operator tokens) and decision 10 (adjacent fix: `AttachedPartGapUtilities.StartsLinkOperator` now reads that helper instead of its own copy).
 
 ## Suggestions
+
+- The default test set does not run the self-hosting analyzers, so a rule newly enabled on main (here RH2008) surfaced only in CI after publishing. The validator could run the self-hosting `AnalyzerReportsNoViolationsOnOwnSourceCode` test on the changed files before publishing.
 
 - The skeptic flagged the FMT-UNSUP-004 overlap sentence as possibly vacuous and the test implementer accepted that without a probe; the spec checker then found the attribute-argument input. When a spec sentence's reachability is doubted, the test implementer should construct the input from the span definition (attributes are inside a field's declaration span) before declaring it unreachable.
