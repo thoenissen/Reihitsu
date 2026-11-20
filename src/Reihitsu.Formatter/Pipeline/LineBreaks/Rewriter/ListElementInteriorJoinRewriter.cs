@@ -93,7 +93,7 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        previousToken = token.GetPreviousToken();
+        previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         if (previousToken.IsKind(SyntaxKind.None)
             || previousToken.Span.IsEmpty

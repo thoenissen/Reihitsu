@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -90,7 +91,7 @@ internal sealed class MemberLineStartRewriter : CSharpSyntaxRewriter
             }
 
             var currentToken = members[memberIndex].GetFirstToken();
-            var previousToken = currentToken.GetPreviousToken();
+            var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(currentToken);
 
             if (previousToken.IsKind(SyntaxKind.None)
                 || TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken))

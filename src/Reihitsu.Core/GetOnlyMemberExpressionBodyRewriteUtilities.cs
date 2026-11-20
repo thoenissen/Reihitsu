@@ -91,7 +91,7 @@ public static class GetOnlyMemberExpressionBodyRewriteUtilities
         var arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList()),
                                                                         bodyExpression);
         var semicolonToken = SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia);
-        var signatureEnd = accessorList.OpenBraceToken.GetPreviousToken();
+        var signatureEnd = SyntaxTokenNavigationUtilities.GetPreviousToken(accessorList.OpenBraceToken);
         var memberWithoutGap = member.ReplaceToken(signatureEnd, signatureEnd.WithTrailingTrivia(SyntaxFactory.TriviaList()));
 
         convertedMember = memberWithoutGap switch
@@ -294,7 +294,7 @@ public static class GetOnlyMemberExpressionBodyRewriteUtilities
     /// </remarks>
     private static bool HasLayoutOnlySeams(AccessorListSyntax accessorList, AccessorDeclarationSyntax getter)
     {
-        return IsLayoutOnly(accessorList.OpenBraceToken.GetPreviousToken().TrailingTrivia)
+        return IsLayoutOnly(SyntaxTokenNavigationUtilities.GetPreviousToken(accessorList.OpenBraceToken).TrailingTrivia)
                && IsLayoutOnly(accessorList.OpenBraceToken.LeadingTrivia)
                && IsLayoutOnly(accessorList.OpenBraceToken.TrailingTrivia)
                && IsLayoutOnly(getter.Keyword.LeadingTrivia)

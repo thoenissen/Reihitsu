@@ -150,7 +150,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
             return token;
         }
 
-        var previousTokenFacts = PrecedingTokenFacts.From(token.GetPreviousToken());
+        var previousTokenFacts = PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(token));
         var firstLineHasContent = previousTokenFacts.Exists
                                   && TokenGapAnalysis.OfTriviaRange(previousTokenFacts.TrailingTrivia,
                                                                     0,

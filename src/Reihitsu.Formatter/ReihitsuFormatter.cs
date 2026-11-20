@@ -694,9 +694,9 @@ public static class ReihitsuFormatter
         // Whether another member shares the target's first or last line is a question only where nothing in the gap starts a
         // line in the document; where something does, the gap's trivia stays as it stands (FMT-PIPE-010, FMT-PIPE-018)
         var mayShareLineWithPrecedingMember = targetIndex > 0
-                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(SyntaxTokenNavigationUtilities.GetPreviousToken(originalFirstToken), originalFirstToken) == false;
         var mayShareLineWithFollowingMember = targetIndex < members.Count - 1
-                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, originalLastToken.GetNextToken()) == false;
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, SyntaxTokenNavigationUtilities.GetNextToken(originalLastToken)) == false;
 
         // A first field that keeps the target's line keeps its first token's document column, and the indentation phase lays
         // out its other lines from that column (FMT-PIPE-017). A first field that starts the next line, behind another member,
@@ -749,7 +749,7 @@ public static class ReihitsuFormatter
         }
 
         var sharesLineWithFollowingMember = mayShareLineWithFollowingMember
-                                            && TargetWriteBackUtilities.StartsLineInLayout(formattedFields[formattedFields.Count - 1].GetLastToken().GetNextToken());
+                                            && TargetWriteBackUtilities.StartsLineInLayout(SyntaxTokenNavigationUtilities.GetNextToken(formattedFields[formattedFields.Count - 1].GetLastToken()));
 
         var updatedMembers = TargetWriteBackUtilities.ReplaceTargetBySplitFields(members,
                                                                                  targetIndex,

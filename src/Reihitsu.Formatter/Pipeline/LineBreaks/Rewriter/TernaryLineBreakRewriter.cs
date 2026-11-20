@@ -61,18 +61,28 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes ternary operator placement. A conditional is broken across lines when it already
-    /// spans multiple lines or contains a nested conditional, so that the outer and every nested
-    /// conditional are formatted consistently regardless of how the input was wrapped
+    /// Determines whether a branch of the conditional is directly a nested conditional
+    /// </summary>
+    /// <param name="node">The conditional expression node</param>
+    /// <returns><see langword="true"/> if the true or the false branch is a conditional expression; otherwise, <see langword="false"/></returns>
+    private static bool HasNestedConditional(ConditionalExpressionSyntax node)
+    {
+        return node.WhenTrue is ConditionalExpressionSyntax
+               || node.WhenFalse is ConditionalExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Normalizes ternary operator placement. A conditional is broken across lines when it contains a nested conditional
+    /// or already spans multiple lines, so that the outer and every nested conditional are formatted consistently
+    /// regardless of how the input was wrapped. The nested check comes first: it is constant work, while the line check
+    /// measures the rewritten node's text, which would cost every level of a deep chain the size of the chain below it
     /// </summary>
     /// <param name="node">The conditional expression node</param>
     /// <returns>The conditional expression with ternary operators on new lines</returns>
     private ConditionalExpressionSyntax NormalizeTernaryOperatorPosition(ConditionalExpressionSyntax node)
     {
-        var hasNestedConditional = node.WhenTrue is ConditionalExpressionSyntax
-                                   || node.WhenFalse is ConditionalExpressionSyntax;
-
-        if (LineBreakDetection.IsMultiLine(node) == false && hasNestedConditional == false)
+        if (HasNestedConditional(node) == false
+            && LineBreakDetection.IsMultiLine(node) == false)
         {
             return node;
         }
@@ -81,8 +91,11 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Places each <c>?</c> and <c>:</c> token of the conditional onto its own line and recurses into
-    /// nested conditionals so they are broken even when the input kept them on a single line
+    /// Places each <c>?</c> and <c>:</c> token of the conditional onto its own line and breaks a nested conditional in a
+    /// branch even when the input kept it on a single line. The rewriter visits conditionals bottom-up, so a nested
+    /// conditional that holds a nested conditional of its own has already been broken by its own visit; only a nested
+    /// conditional without one still needs breaking here. Descending no further keeps the work per conditional constant,
+    /// so a deep chain costs time in proportion to its depth
     /// </summary>
     /// <param name="node">The conditional expression node</param>
     /// <returns>The conditional expression with every operator on its own line</returns>
@@ -91,12 +104,14 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
         node = NormalizeQuestionTokenPosition(node);
         node = NormalizeColonTokenPosition(node);
 
-        if (node.WhenTrue is ConditionalExpressionSyntax nestedTrue)
+        if (node.WhenTrue is ConditionalExpressionSyntax nestedTrue
+            && HasNestedConditional(nestedTrue) == false)
         {
             node = node.WithWhenTrue(BreakOperatorsOntoOwnLines(nestedTrue));
         }
 
-        if (node.WhenFalse is ConditionalExpressionSyntax nestedFalse)
+        if (node.WhenFalse is ConditionalExpressionSyntax nestedFalse
+            && HasNestedConditional(nestedFalse) == false)
         {
             node = node.WithWhenFalse(BreakOperatorsOntoOwnLines(nestedFalse));
         }

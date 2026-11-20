@@ -135,7 +135,7 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
                     continue;
                 }
 
-                var previousToken = token.GetPreviousToken();
+                var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
                 if (IsInsideTypeArgumentList(constraint, previousToken, token) == false)
                 {

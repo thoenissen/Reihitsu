@@ -104,7 +104,7 @@ internal static class LineBreakTriviaUtilities
             // Tokens without text, such as omitted type arguments, carry no trivia, so the gap in front of the token
             // reaches back to the token with text in front of them: its trailing trivia and the token's leading trivia
             // hold the line breaks to join, wherever they stand
-            previousToken = token.GetPreviousToken();
+            previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
             if (previousToken.IsKind(SyntaxKind.None)
                 || TokenContainmentUtilities.ContainsToken(node, previousToken) == false
@@ -174,7 +174,7 @@ internal static class LineBreakTriviaUtilities
             var separator = elements.GetSeparator(separatorIndex);
             var nextToken = separatorIndex + 1 < elements.Count
                                 ? elements[separatorIndex + 1].GetFirstToken()
-                                : separator.GetNextToken();
+                                : SyntaxTokenNavigationUtilities.GetNextToken(separator);
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, separator) == false)
             {
@@ -291,7 +291,7 @@ internal static class LineBreakTriviaUtilities
     /// <returns><see langword="true"/> if a line break separates the token from the token in front of it; otherwise, <see langword="false"/></returns>
     public static bool HasLeadingEndOfLine(SyntaxToken token)
     {
-        if (token.GetPreviousToken().IsKind(SyntaxKind.None))
+        if (SyntaxTokenNavigationUtilities.GetPreviousToken(token).IsKind(SyntaxKind.None))
         {
             return token.Span.IsEmpty == false
                    && token.LeadingTrivia.Any(static trivia => SyntaxTriviaUtilities.EndsLine(trivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia));

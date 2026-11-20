@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 
 /// <summary>
@@ -38,7 +40,7 @@ internal sealed class AccessorListSpacingRule : ISpacingRule
         return accessor is { Parent: AccessorListSyntax accessorList }
                && right == accessor.GetFirstToken()
                && accessorList.Accessors.IndexOf(accessor) > 0
-               && left == right.GetPreviousToken();
+               && left == SyntaxTokenNavigationUtilities.GetPreviousToken(right);
     }
 
     #endregion // Methods

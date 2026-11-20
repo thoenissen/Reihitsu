@@ -345,7 +345,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
     private static SyntaxTrivia? FindTriviaInFrontOfExpressionBodyArrow(SyntaxNode node, ArrowExpressionClauseSyntax arrowExpressionClause)
     {
         var arrowToken = arrowExpressionClause.ArrowToken;
-        var previousToken = arrowToken.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(arrowToken);
 
         if (previousToken == default
             || node.Span.Contains(previousToken.Span) == false)
@@ -376,7 +376,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
                 continue;
             }
 
-            var previousToken = token.GetPreviousToken();
+            var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
             if (previousToken == default
                 || node.Span.Contains(previousToken.Span) == false)

@@ -121,7 +121,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         if (previousToken == default
             || previousToken.IsKind(SyntaxKind.None)

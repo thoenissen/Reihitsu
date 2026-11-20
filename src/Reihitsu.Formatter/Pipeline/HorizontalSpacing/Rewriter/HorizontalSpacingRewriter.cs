@@ -65,7 +65,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         if (previousToken.RawKind == 0
             || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token))
@@ -119,7 +119,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
         // The gap behind the token is decided from the token as it stands in the tree: a rewritten token is detached, so
         // it has no parent and no next token for the rules to inspect
         var originalToken = token;
-        var nextToken = originalToken.GetNextToken();
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(originalToken);
 
         token = NormalizeGapBehindLeadingComment(token);
 

@@ -234,7 +234,7 @@ public static class AttributeTargetUtilities
         var groupIndices = group.Select(list => IndexOf(lists, list)).ToArray();
         var annotation = new SyntaxAnnotation();
         var tokenAfterGroupAnnotation = new SyntaxAnnotation();
-        var tokenAfterGroup = group[group.Count - 1].CloseBracketToken.GetNextToken();
+        var tokenAfterGroup = SyntaxTokenNavigationUtilities.GetNextToken(group[group.Count - 1].CloseBracketToken);
         var writtenLineBreak = separators == AttributeListMergeSeparators.None
                                && group[0].OpenBracketToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false
                                    ? FindLineBreak(owner, group[0].OpenBracketToken, tokenAfterGroup)
@@ -274,7 +274,7 @@ public static class AttributeTargetUtilities
                                                                                      || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
                                 .ToArray();
         var unseparatedTokens = spacesBehindList
-                                    ? joinedTokens.Select(token => token.GetPreviousToken())
+                                    ? joinedTokens.Select(SyntaxTokenNavigationUtilities.GetPreviousToken)
                                                   .Where(token => token.TrailingTrivia.Count == 0)
                                                   .ToArray()
                                     : [];
@@ -310,7 +310,7 @@ public static class AttributeTargetUtilities
     /// <returns><see langword="true"/> when token was resolved</returns>
     public static bool TryGetTokenAfterAttributeList(AttributeListSyntax attributeList, out SyntaxToken token)
     {
-        token = attributeList.CloseBracketToken.GetNextToken(includeZeroWidth: false);
+        token = SyntaxTokenNavigationUtilities.GetNextToken(attributeList.CloseBracketToken);
 
         return token.IsKind(SyntaxKind.None) == false;
     }
@@ -377,7 +377,7 @@ public static class AttributeTargetUtilities
                                       .Select(list => list.OpenBracketToken)
                                       .ToArray();
 
-        return group.Select(list => list.CloseBracketToken.GetNextToken())
+        return group.Select(list => SyntaxTokenNavigationUtilities.GetNextToken(list.CloseBracketToken))
                     .Where(token => memberOpenBrackets.Contains(token) == false)
                     .ToArray();
     }
@@ -389,7 +389,7 @@ public static class AttributeTargetUtilities
     /// <returns><see langword="true"/> when the token starts a line</returns>
     private static bool StartsLine(SyntaxToken token)
     {
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         return previousToken.IsKind(SyntaxKind.None)
                || previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));

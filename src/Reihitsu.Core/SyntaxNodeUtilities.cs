@@ -178,7 +178,7 @@ public static class SyntaxNodeUtilities
         // following token. Both must still refuse it: the fold rewrites the trivia around the group and would
         // move the directive off its own line, which does not compile (CS1040/CS1027)
         return nodes[0].GetLeadingTrivia().Any(static trivia => trivia.IsDirective)
-               || lastNode.GetLastToken().GetNextToken().LeadingTrivia.Any(static trivia => trivia.IsDirective);
+               || SyntaxTokenNavigationUtilities.GetNextToken(lastNode.GetLastToken()).LeadingTrivia.Any(static trivia => trivia.IsDirective);
     }
 
     /// <summary>
@@ -229,7 +229,7 @@ public static class SyntaxNodeUtilities
         var attributeLists = basePropertyDeclaration.AttributeLists;
         var startToken = attributeLists.Count == 0
                              ? basePropertyDeclaration.GetFirstToken()
-                             : attributeLists[attributeLists.Count - 1].GetLastToken().GetNextToken();
+                             : SyntaxTokenNavigationUtilities.GetNextToken(attributeLists[attributeLists.Count - 1].GetLastToken());
 
         if (startToken.IsKind(SyntaxKind.None))
         {
