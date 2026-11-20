@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -41,7 +40,10 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree for mixed line endings
+    /// Analyzes the syntax tree for mixed line endings: the line breaks the tree carries
+    /// (<see cref="LineEndingUtilities.GetLineBreakTrivia"/>, <see cref="LineEndingUtilities.GetLineBreakTokens"/>) are mixed
+    /// when they have more than one distinct text, and then every line break that differs from the predominant line ending
+    /// (<see cref="LineEndingUtilities.DetectEndOfLine"/>) is reported on its line
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
@@ -52,7 +54,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
         var documentationEndOfLineTokens = new List<SyntaxToken>();
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+        foreach (var trivia in LineEndingUtilities.GetLineBreakTrivia(root))
         {
             var lineEnding = trivia.ToString();
 
@@ -62,7 +64,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
                                      : 1;
         }
 
-        foreach (var token in root.DescendantTokens(descendIntoTrivia: true).Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)))
+        foreach (var token in LineEndingUtilities.GetLineBreakTokens(root))
         {
             documentationEndOfLineTokens.Add(token);
             counts[token.Text] = counts.TryGetValue(token.Text, out var count)
