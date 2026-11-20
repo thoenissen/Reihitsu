@@ -43,4 +43,5 @@
 - Worklist after the answer (repair round 1): finding 1 per answer A: spec author states RH5604 for every line-break character, then test implementer tags the characterization tests with the requirement(s) [spec author done: 08, f88e1b9; test implementer done: 09, eeacf15 (4 tests tagged); next: cleaner, spec checker, auditor (repair only), validator]; finding 2 (text only): spec author drops implementation sentences from the intros of line-endings.md and RH5604.md, keeps the behavioral sentence; then spec checker, auditor on the repair, validator.
 
 - Repair round 1 complete (1 of 3). Audit 2 passed at 05fc8bb.
-- Next: validator on the final tree and issue manager (1 follow-up) in parallel; then note, publish.
+- Issue manager done: #1886 (14, 72ba7f8); full-repo duplicate search by lead: none open.
+- Next: validator result; then note, publish.
