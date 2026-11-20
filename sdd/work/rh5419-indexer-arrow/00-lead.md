@@ -18,6 +18,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 3 | Spec author follow-up | Change the formatter in this run? | No; the fix joins the parameter list itself, formatter join stays a follow-up | Maintainer allowed a formatter change only if the fix needs it; it does not (formatter keeps a one-line list, FMT-BREAK-012) | Maintainer answer covers it | 65f3e42 |
 | 2 | Skeptic | Skeptic's two follow-up candidates (`this`/`[` split; comment/#if in indexer parameter list) | Dropped | Rare input classes; the first is decided unreported by RH5108's non-goal | Not filed; formatter output unchanged | — |
 | 1 | Intake | Rule ID | RH5419 instead of the issue's RH5418 | RH5418 is taken on `main`; the issue says "next free RH54## ID" | The issue's intent ("next free ID") decides it | — |
 
@@ -29,4 +30,6 @@
 
 - Spec author done (01-spec-author.md, commit 7f9df95): change doc written; open output question Q1 (wrapped parameter list: fix offered vs withheld). Lane check confirmed behavior-change.
 - Skeptic done (02-skeptic.md, 3ddc02a): proceed. FC-015 risk for auditor: RH5401 attribute-list guard must not be privately copied into RH5419 provider. Follow-up candidates recommended for dropping (rare / decided by RH5108 non-goal).
-- Output-question batch 1 posted to maintainer (Q1 rule as specified incl. title; Q2 wrapped parameter list A/B). Answers received; next: fresh spec author amends change doc/spec/rule page per answers and sets Status: Accepted; then lane check, then test implementer. Next: route answers to spec author (status Accepted), then test implementer.
+- Output-question batch 1 posted to maintainer (Q1 rule as specified incl. title; Q2 wrapped parameter list A/B). Spec author follow-up done (03-spec-author.md, 65f3e42): change doc Accepted; SHARED-DIAG-010 gains RH5419 exception. Lane check confirmed.
+- Open output question for batch 2 (before auditor): block comment inside a single-line parameter list (`int this[short a /* c */]\n    => a;`) — A fix offered (`int this[short a /* c */] => a;`), B withheld. Spec written on A. Source: 03-spec-author.md.
+- Next: test implementer (04-test-implementer.md). Next: route answers to spec author (status Accepted), then test implementer.
