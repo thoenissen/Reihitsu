@@ -415,8 +415,9 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// Finds the first comment, directive, or disabled text between two tokens of the link operator of a member access or a
     /// member binding (FMT-UNSUP-015): in the trailing trivia of an operator token other than its <c>.</c>, or in the leading
     /// trivia of an operator token other than its first. The chain model's <see cref="FluentChain.GetLinkOperatorTokens"/>
-    /// states which tokens form the operator, so the precheck refuses exactly the gaps the line-break phase joins inside a
-    /// link operator. A plain <c>.</c> is one token and has no such gap. The operator's first token lies in front of the
+    /// is the one definition of which tokens form the operator, so every gap the line-break phase can join inside a link
+    /// operator is refused; the precheck looks at every member access and member binding of its input, which is more than
+    /// the links of the chains the phase normalizes. A plain <c>.</c> is one token and has no such gap. The operator's first token lies in front of the
     /// node of a member binding, so an operator whose first token lies outside the input is not looked at (FMT-UNSUP-003)
     /// </summary>
     /// <param name="node">The node the precheck decides on</param>
