@@ -139,9 +139,8 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedCodeFixProvi
             return false;
         }
 
-        // A literal that spans lines inside the parameter list, an expression the formatter keeps on several lines, or a
-        // comment, a directive, or disabled text in front of the [ that keeps a line break leaves the indexer on several
-        // lines, so the fix cannot put it on one line and is not offered
+        // When the formatted indexer does not stand on one line, the fix cannot join it and is not offered; the checked
+        // text is the one the summary above describes
         return AttributeListCodeFixUtilities.StandsOnOneLineKeepingBlankLines(indexerDeclaration, formatted);
     }
 
