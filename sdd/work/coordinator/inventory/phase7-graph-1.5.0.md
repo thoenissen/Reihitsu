@@ -1,5 +1,69 @@
 # Phase 7 · 1.5.0 run graph (milestone 7)
 
+## Update 2026-11-20
+
+Base: `claude/sdd-coordinator` 46530e72 (contains `origin/main` 31d2931a). No open pull requests. Open issues of milestone 7: #352 #851 #892 #893 #894 #896 #897 #1803. Premises re-checked by reading code on this base (no SDK, nothing run).
+
+### Merged since 2026-11-18
+
+| PR | Issues | Facts that matter for the rest |
+|---|---|---|
+| #1868 | #849 #850 (RH3209, RH3210) | Expression-body *use* rules only; no layout rule for indexers, so **#851 is not covered** (RH5401 still registers `PropertyDeclaration` only; `PropertyLayoutLineBreakRewriter.VisitIndexerDeclaration` collapses indexer arrows, nothing reports it) |
+| #1869 | #1277 | RH5307/RH5401 fixes format the reported construct; RH5307-001 and the rule page state the `?[` exclusion (now #1878) |
+| #1870 | #895 | `AttachedPartLineStartRewriter` + `AttachedPartGapUtilities` (FMT-BREAK-040, everywhere); **FMT-UNSUP-014** refuses comments/directives in front of an argument list, element access, `!`, and **between `?` and `[`** — so #894's `?[` case is already declared; #894 keeps `?.`, `!.`, `!?.` |
+| #1871 | #1861 | — (remaining "positional" wording: #1873) |
+| #1872 | #1862 | `TokenRewriter` one-walk in indentation/cleanup/tab phases. Left: `LineEndingNormalizationPhase` (rare, RH5604; #1874), `LayoutComputer.Compute` still ~3×/doubling (→ #1803) |
+| #1879 | #1865 #1866 | New defaults (RH2008 tests 120, RH2111 1500/3000); root `reihitsu.json` (`design.maximumTypeLines` 500); per-rule `AnalyzerResources` properties removed (titles derived from the ID; `AnalyzerResources.cs` is 18 lines, registry is now the `.resx`); **the self-hosting scan runs every shipped analyzer over the repository with the root `reihitsu.json` and has no exclusion list** — every new rule must report nothing on this repository |
+
+### Triage of the issues without milestone (proposal)
+
+| # | Group | Premise (by reading) | Reachability | Proposed | Reason | Lane / files (1.5.0 only) |
+|---|---|---|---|---|---|---|
+| #1873 `FormatNodeInDocumentWithContextAsync` summary says "positional" | Maintenance | Holds: `ReihitsuFormatter.cs:257` | none needed (comment, text-only) | **1.5.0** | Remainder of the 1.5.0 run #1871; one line, triggers nothing | docs · `src/Reihitsu.Formatter/ReihitsuFormatter.cs` |
+| #1874 RH5604 fix copies the line-ending phase | Maintenance | Holds: `RH5604…CodeFixProvider.cs:41-66` ≈ `LineEndingNormalizationPhase.cs:25-45` | RH5604 fix; every whole-document format | **1.5.0** | Small follow-up of #1872; one owner fits in the existing `ReihitsuFormatterHelpers` (internal, already used by the fix for `DetectEndOfLine`), so no new type or public member, no further follow-up | bug fix · `RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider.cs`, `Pipeline/LineEndings/LineEndingNormalizationPhase.cs`, `Utilities/ReihitsuFormatterHelpers.cs`, `Formatter.Test/Unit/ReihitsuFormatterHelpersTests.cs`; RH5604 tests unchanged. Must not touch `ReihitsuFormatter.cs` (#1873) |
+| #1875 postfix `++`/`--` below operand | Extension, OQ | Plausible (issue says observed): `AttachedPartGapUtilities` covers `(`, `[`, `?[`, `!` only; FMT-BREAK-015 defers postfix wraps to 016–020, none states `++` | CLI/whole document | 1.7.0 | Sibling of FMT-BREAK-040, not a gap of it; T11 unowned-joins OQ batch (#1648 #1863 …) | — |
+| #1876 `new⏎[]`, `new int⏎[3]`, `stackalloc⏎[]` | Extension, OQ | Plausible (observed): FMT-BREAK-040 names these brackets as not attached parts; RH6022 interplay unchecked (may add a follow-up) | CLI/whole document | 1.7.0 | Same batch as #1875 | — |
+| #1877 `c?[1,⏎2]` list not joined | Extension, OQ | Holds by reading (unconfirmed by run): `LineBreakListRewriter.IsElementAccessArgumentList` (:68) accepts `ElementAccessExpression`/`ImplicitElementAccess` only, not `ElementBindingExpression` | CLI/whole document; and the RH5307 fix of #1878 (it delegates to `FormatNodeInDocumentAsync` on the list) | **1.5.0, one run with #1878** | Maintainer's direction on the 1.5.0 run #1869 ("`?` and `!` must not differ"); small; #1878's fix cannot work without it | behavior change · see #1878 |
+| #1878 RH5307 reports/fixes `c?[1,⏎2]` | Extension | Holds: `RH5307…Analyzer.cs:49` requires `ElementAccessExpression`/`ImplicitElementAccess` | RH5307 analyzer + fix | **1.5.0** (`/squad #1877 #1878`) | as #1877; logical dependency on #1877 (fix output), so one run | behavior change · `LineBreakListRewriter.cs` (+ the `RootConstruct` fact if the root case needs it), `line-breaks.md` (FMT-BREAK-014), formatter regression test, `RH5307…Analyzer.cs`, `RH5307…CodeFixProvider.cs` (`TryGetFormatTarget`), `sdd/specs/analyzer/RH5307.md`, `documentation/rules/RH5307.md`, `RH5307…AnalyzerTests.cs`, change doc |
+| #1880 pass root `reihitsu.json` to the build | Maintenance | Holds: blocked until `binaries/` hold an RH0001 that knows `design` | repository build | 1.6.0 | Only `/bump-version 1.5.0` refreshes `binaries/`, and the bump changes nothing else and is tagged at once; so the first point it can run is right after the 1.5.0 tag | — |
+
+Duplicates: none (searched all 223 open issues). Related: #1877 ↔ #1878 (one run); #1875 #1876 ↔ #1863 #1648 (1.7.0 joins batch); #1874 ↔ #1803 (no shared site).
+
+### Re-verified runs
+
+- **#851** — ready, not covered by #1868. New `RH5419` (RH5418 = empty unions). Files: `Rules/Layout/RH5419…Analyzer.cs` + `CodeFixes/Rules/Layout/RH5419…CodeFixProvider.cs`, `sdd/specs/analyzer/RH5419.md`, `documentation/rules/RH5419.md`, new analyzer test class, registry (`AnalyzerResources.resx`, `CodeFixResources.resx`/`.cs`, `Release.ruleset`, `sdd/specs/README.md`, package `README.MD`); RH5401 analyzer/fix only if a shared base is extracted. Self-hosting must stay clean (repository indexers).
+- **#894** — ready (#895 merged). Narrowed by FMT-UNSUP-014: `?[` is already refused; the new FMT-UNSUP covers `?.`, `!.`, `!?.`. Deletes `ChainLineBreakRewriter.CloseInnerGaps`/`CloseGap` guard use for operator tokens (:206, :273) and `MethodChainAlignmentContributor.AlignRestOfRun` (:124, :157). Files: `Precheck/PrecheckPhase.cs`, `unsupported-syntax.md`, `Formatter.Test/Helpers/FormatterTestsBase.cs`, new `Unit/Precheck/` class, `ChainLineBreakRewriter.cs`, `MethodChainAlignmentContributor.cs`, `line-breaks.md`, `indentation.md`, `CliHiddenCodeEndToEndTests.cs`, `AGENTS.md` (`PrecheckPhase` row), change doc; RH5201/RH5112 test expectations if any pinned the kept gap. Not the spec index.
+- **#1803** — super-linear cost remains (not re-run here; from #1872's PR and #1803's 2026-11-18 comment): `LayoutComputer.Compute` 3.1–3.7×/doubling; blank-line, line-break, horizontal-spacing phases 3.1–4×; per-token `GetPreviousToken()` ~4×. Named sites: `Indentation/Utilities/LayoutComputer.cs:504`, `Indentation/Contributors/CommentIndentationContributor.cs:71`, `HorizontalSpacing/Rewriter/HorizontalSpacingRewriter.cs:68,122`, `LineBreaks/Rewriter/LineBreakListRewriter.cs:526`; 27 pipeline files call `GetPreviousToken()`. The chain/`?:`/concatenation rows are still unprofiled. Start now with a fence: it must not edit #894's files (`ChainLineBreakRewriter.cs`, `MethodChainAlignmentContributor.cs`, `PrecheckPhase.cs`) nor `Core/FluentChain.cs` (#896), `LineEndingNormalizationPhase.cs` (#1874), `ReihitsuFormatter.cs` (#1873), `AGENTS.md`; if the trace attributes cost there, it states the remainder and a follow-up takes it after #894/#896.
+- **#352 and #1879** — affected: (1) its limit becomes a key of the `design` section (`Data/ConfigurationCategoryDesign.cs`, `ConfigurationManager`/RH0001 known keys), as RH2008/RH2111; (2) resource text in `.resx` only; (3) the self-hosting scan judges it over the whole repository with the root `reihitsu.json`, so the run needs a default (and maybe a repository value in `reihitsu.json`) that the code passes, or refactors — refactors touch formatter/analyzer sources across every other run, so #352 runs last and alone; (4) #1880 does not block it (the build does not read `reihitsu.json` until then).
+- **#892** — scope now: FMT-BREAK-039/040 join attached parts everywhere, so P11 allows a rule over the whole construct; re-derive in the run. **#896**, **#893** (case 1 only; case 2 moot by #894), **#897** — unchanged.
+
+### Start now (pairwise no shared file, no dependency)
+
+`/squad #851` · `/squad #894` · `/squad #1803` (fenced as above) · after the maintainer confirms the triage: `/squad #1873` · `/squad #1874`
+
+Pairwise: registry files only in #851; `AGENTS.md`, precheck and chain files only in #894; #1803 fenced off both and off #1873/#1874; #1873 `ReihitsuFormatter.cs` only; #1874 line-ending phase, helper, RH5604 fix only. Only `requirement-ids.txt` may be shared.
+
+### After X merges, start Y (replaces the 2026-11-18 table)
+
+| When merged | Start | Reason |
+|---|---|---|
+| #894 | `/squad #896` | `MethodChainAlignmentContributor.cs`, `indentation.md`, `ChainLinkLayoutTests.cs` |
+| #851 | `/squad #892` | registry files (#895's scope question is settled by FMT-BREAK-040) |
+| #1803 + #894 (+ triage confirmed) | `/squad #1877 #1878` | `LineBreakListRewriter.cs` (#1803 suspect), `line-breaks.md` (#894) |
+| #892 + #896 + #894 | `/squad #893` (case 1 only) | `FluentChain`, RH5201 files and anchor |
+| #892 | `/squad #897` | registry (`AnalyzerResources.resx`, `CodeFixResources.resx`) |
+| #897 (and every other run merged) | `/squad #352` | registry chain end; `ConfigurationCategoryDesign.cs`; self-hosting may force refactors anywhere |
+| #894 + #896, if #1803 left chain sites | follow-up of #1803 | `ChainLineBreakRewriter.cs`, `MethodChainAlignmentContributor.cs`, `FluentChain.cs` |
+| 1.5.0 tag (`/bump-version 1.5.0`) | `/squad #1880` (1.6.0) | needs the rebuilt `binaries/` |
+
+Registry chain: #851 → #892 → #897 → #352. Critical paths: #894 → #896 → #893; #1803 → #1877 #1878.
+
+### Needs the maintainer
+
+1. Confirm the triage: #1873, #1874, #1877, #1878 → 1.5.0 (#1877 #1878 one run); #1875, #1876 → 1.7.0 (joins OQ batch); #1880 → 1.6.0.
+2. #1877's output question (in the issue; recommended A, `c?[1,⏎2]` → `c?[1, 2]`) is asked in its run; the direction already given on #1869 points to A.
+3. Nothing to close.
+
 ## Update 2026-11-18
 
 Base: `claude/sdd-coordinator` a17ce501 (contains `origin/main` e91afdf7). No open pull requests. Open issues of milestone 7: #352 #849 #850 #851 #892 #893 #894 #895 #896 #897 #1277 #1539 #1803 #1865. Premises re-checked by reading code on this base (no SDK, nothing run).
