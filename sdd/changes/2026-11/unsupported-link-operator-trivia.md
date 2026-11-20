@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP-015 (new), FMT-BREAK-019 (changed: the join inside a link operator never meets the shape), RH2001-007 (changed: a comment between the tokens of a link operator in the initializer's value withholds the fix), RH7101-007 (changed: names FMT-UNSUP-015 among the shapes that withhold the fix) |
 | Depends on | [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md), [An element access or a null-forgiving operator written below its element joins the element's line](attached-part-below-element.md) |
@@ -357,6 +357,12 @@ The issue lists `?[` among the link operators. In the chain model a conditional 
 ### The reason names the operators
 
 The reason `a comment or directive inside a ?. or !. operator` names the two operators users write; `!?.` combines both. It follows the form of the other reasons, which name the place of the comment.
+
+The maintainer chose this reason text over the alternatives offered (batch 1, answer 1A).
+
+### The gap between a link's `.` and its member name is declared in a change of its own (maintainer, batch 1, answer 2A)
+
+A comment, a directive, or disabled text between a link's `.` and its member name (`a.B(). // c` ⏎ `C();`) is not part of FMT-UNSUP-015. The maintainer decided to declare that shape unsupported too, but in a change of its own, carried by a follow-up issue; this change neither refuses it nor deletes the special cases that serve it.
 
 ## Alternatives considered
 
