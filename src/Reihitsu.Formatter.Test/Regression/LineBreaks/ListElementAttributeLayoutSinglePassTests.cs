@@ -411,10 +411,12 @@ public class ListElementAttributeLayoutSinglePassTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a conditional element access is not collapsed even when the indexer list nested in it is rewritten in the same pass
+    /// Verifies that the list of a conditional element access is joined in the same pass as the indexer list nested in it, whose
+    /// join leaves no argument of the outer list spanning several lines
     /// </summary>
     [TestMethod]
-    public void ConditionalElementAccessKeepsWrappedArgumentsWhenNestedIndexerCollapses()
+    [Requirement("FMT-BREAK-014")]
+    public void ConditionalElementAccessJoinsWrappedArgumentsWhenNestedIndexerCollapses()
     {
         // Arrange
         const string input = """
@@ -433,8 +435,7 @@ public class ListElementAttributeLayoutSinglePassTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var v = a?[b[1, 2],
-                                                   3];
+                                        var v = a?[b[1, 2], 3];
                                     }
                                 }
                                 """;

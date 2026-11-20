@@ -104,5 +104,64 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
         await VerifyFormatter(input);
     }
 
+    /// <summary>
+    /// Verifies that the formatter joins the wrapped list of a conditional element access that the analyzer reports, and that the
+    /// analyzer reports nothing on the result, under both line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    [Requirement("RH5307-001")]
+    public async Task VerifyFormatterFixesMultilineConditionalElementAccessArguments()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 private static int? Method(int[,] matrix)
+                                 {
+                                     return matrix?{|#0:[1,
+                                                    2]|};
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static int? Method(int[,] matrix)
+                                     {
+                                         return matrix?[1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter keeps the wrapped list of a conditional element access with a comment between its brackets,
+    /// which the analyzer does not report
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-001")]
+    [Requirement("RH5307-002")]
+    public async Task VerifyFormatterKeepsConditionalElementAccessArgumentsWithInteriorComment()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 private static int? Method(int[,] matrix)
+                                 {
+                                     return matrix?[1, // note
+                                                    2];
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }
