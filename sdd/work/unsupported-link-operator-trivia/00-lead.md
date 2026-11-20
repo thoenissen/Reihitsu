@@ -27,6 +27,9 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 | 1 | Spec author | New requirement or widen FMT-UNSUP-014? | New FMT-UNSUP-015 | Separate shape (link operator vs. attached part); keeps each requirement one check | Spec structure only | 568f167 |
 | 2 | Spec author | Does FMT-UNSUP-015 cover `?[`? | No, FMT-UNSUP-014 already covers it | `?[` is an attached part, not a link (SHARED-CHAIN-001) | Output already refused by FMT-UNSUP-014 | 568f167 |
 | 3 | Spec author | Change SHARED-CHAIN-006 / RH5201-003? | Leave unchanged | Not contradicted by the new shape | No output change | 568f167 |
+| 4 | Skeptic | Is a one-line block comment inside the operator (`s? /* c */ .Length`) part of the shape? | Yes — not asked | Maintainer's triage wording "between the tokens" has no line-break condition; matches FMT-UNSUP-008/011/014 | Covered by the maintainer's answer | 568f167 |
+| 5 | Skeptic | One definition of the link-operator tokens shared by precheck and chain model (A) or separate definition pinned by a full matrix test (B)? | A where it stays a cheap check; otherwise B with the full operator × trivia-side matrix test | Removing the in-phase guard makes comment safety rest on the precheck matching `FluentChainLink.OperatorTokens` (FC-004) | Internal structure | — |
+| 6 | Lead | Accept the change doc? | Accepted after the batch-1 answers; spec author sets `Status: Accepted` in its next follow-up | Skeptic found no premise defect | — | — |
 
 ## Follow-up candidates
 
@@ -34,5 +37,8 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 
 ## Open worklist / next step
 
-- Done: spec author (01, commit 568f167). Running: skeptic (02).
-- Batch 1 output questions (before test implementer): (1) one-line block comment inside the operator is part of the shape; (2) CLI reason text; (3) escalation 10 on `.`-to-name gap; plus whatever the skeptic raises. Visible output changes of the change doc are covered by the triage answer but shown for confirmation.
+- Done: spec author (01, 568f167), skeptic (02, 49f7b66; verdict proceed, premise and reachability confirmed, `?[` already covered by FMT-UNSUP-014).
+- PR review note candidate: the visible cost is a comment justifying a `!` behind it in a wrapped chain (`x! // why` ⏎ `.Y()`); a comment in front of the `!` stays supported.
+- Spec-checker wording point: FMT-UNSUP-015's "meets FMT-UNSUP-004 only outside a value" may be vacuous (02-skeptic.md).
+- WAITING on batch 1 (asked in chat): (1) CLI reason text for FMT-UNSUP-015; (2) escalation 10 on the `.`-to-member-name gap.
+- Next after answers: spec author follow-up (Status Accepted, reason text per answer) → test implementer (03).
