@@ -26,6 +26,7 @@
 ## Follow-up candidates
 
 - Formatter: join a wrapped parameter list of an expression-bodied indexer onto one line, so a `reihitsu-format` run clears RH5419's parameter-list report — unless this run changes the formatter because the fix needs it (maintainer answer, Q2 follow-up). Source: maintainer answer.
+- Release.ruleset lacks RH5417; add an architecture test that every shipped rule is listed in Release.ruleset. Source: 09-implementer.md.
 
 ## Worklist / next step
 
@@ -37,5 +38,6 @@
 - Spec example fixed (06-spec-author.md, 7ee7c97). Implementer done (05-implementer.md, b3265ac): tests pass; new shared helper AttributeListCodeFixUtilities (moved from RH5401).
 - Cleaner clean (07-cleaner.md, 0579d84).
 - Spec checker (08-spec-checker.md, 3fca7b3): findings — (1) Release.ruleset lacks RH5419 entry -> implementer repair (09-implementer.md); (2) change-doc item 5 awaits batch-2 answer.
+- Ruleset repaired (09-implementer.md, 90e48de). Repair round 1 of 3 (spec checker findings).
 - Batch 2 output question posted (block comment in one-line parameter list). WAITING.
 - Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
