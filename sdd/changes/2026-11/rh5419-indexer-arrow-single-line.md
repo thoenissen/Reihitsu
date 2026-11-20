@@ -8,7 +8,7 @@
 
 ## What
 
-A new Layout rule, **RH5419 — Expression style get-only indexers should be single lined** (Layout, Warning, enabled, Fix All), reports an expression-bodied indexer whose parameter list spans several lines, or whose `=>` or the first token of whose expression is not on the line of the `]` that closes its parameter list (RH5419-001). The diagnostic covers the whole indexer declaration (RH5419-002). The code fix puts the parameter list on one line and then formats the indexer as the formatter does in place, which joins the arrow and the start of the expression onto the line of the `]` (RH5419-003). It is withheld where a comment, a directive, or disabled text stands inside a parameter list on several lines, where the indexer's code from its first token behind its attribute lists through its `;` stays on several lines — a literal or the expression that the formatter keeps wrapped, or a comment or a directive in front of the `[` that keeps a line break, such as a line comment behind `this` — where the formatter refuses the indexer for a comment, a directive, or disabled text around the `=>`, and in the attribute-list cases where RH5401's fix is withheld for a property (RH5419-004).
+A new Layout rule, **RH5419 — Expression style get-only indexers should be single lined** (Layout, Warning, enabled, Fix All), reports an expression-bodied indexer whose parameter list spans several lines, or whose `=>` or the first token of whose expression is not on the line of the `]` that closes its parameter list (RH5419-001). The diagnostic covers the whole indexer declaration (RH5419-002). The code fix puts the parameter list on one line and then formats the indexer as the formatter does in place, which joins the arrow and the start of the expression onto the line of the `]` (RH5419-003). It is withheld where a comment, a directive, or disabled text stands inside a parameter list on several lines, where the indexer's code from its first token behind its attribute lists through its `;` stays on several lines — a literal or the expression that the formatter keeps wrapped, a line break in front of `this` that the formatter keeps, such as one behind the type, or a comment or a directive in front of the `[` that keeps a line break, such as a line comment behind `this` — where the formatter refuses the indexer for a comment, a directive, or disabled text around the `=>`, and in the attribute-list cases where RH5401's fix is withheld for a property (RH5419-004).
 
 RH5401 stays properties-only. The formatter is unchanged: it already joins the arrow of an indexer (FMT-BREAK-026), and it keeps a parameter list on several lines (FMT-BREAK-012). RH5419 reports such a parameter list although the formatter keeps it, which SHARED-DIAG-010 records as an exception; a formatter that joins the parameter list of an expression-bodied indexer is a follow-up.
 
@@ -298,6 +298,24 @@ class C
     int this // note
         [sbyte a,
          sbyte b] => a;
+}
+```
+
+```csharp
+// after: RH5419 on the indexer, and no code fix is offered; the code stays as written
+```
+
+### A line break the formatter keeps in front of `this` withholds the fix
+
+The one-line check reads the formatted indexer, so it withholds the fix for whatever keeps a line break in it, not only for the comments and directives listed above. The formatter keeps a line break between a modifier, the type, an explicit interface name, and `this`; joining it would take a rewrite the formatter does not make, and such a declaration is rare, so the fix is withheld for it and the diagnostic stays (RH5419-004).
+
+```csharp
+// input
+class C
+{
+    int
+        this[decimal a,
+             decimal b] => 1;
 }
 ```
 
