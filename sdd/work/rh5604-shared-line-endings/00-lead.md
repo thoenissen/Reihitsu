@@ -29,7 +29,7 @@
 
 ## Audited SHA
 
-909b83b (audit 1, 07-auditor, verdict: findings; head 1fd503e differs only in 00-lead.md)
+05fc8bb (audit 2 of repair round 1, 12-auditor, pass). Earlier: 909b83b (audit 1, 07-auditor, verdict: findings; head 1fd503e differs only in 00-lead.md)
 
 ## Open worklist / next step
 
@@ -41,3 +41,6 @@
 - Done: auditor (07, findings, 12d012c).
 - Answered: output question 1 → A.
 - Worklist after the answer (repair round 1): finding 1 per answer A: spec author states RH5604 for every line-break character, then test implementer tags the characterization tests with the requirement(s) [spec author done: 08, f88e1b9; test implementer done: 09, eeacf15 (4 tests tagged); next: cleaner, spec checker, auditor (repair only), validator]; finding 2 (text only): spec author drops implementation sentences from the intros of line-endings.md and RH5604.md, keeps the behavioral sentence; then spec checker, auditor on the repair, validator.
+
+- Repair round 1 complete (1 of 3). Audit 2 passed at 05fc8bb.
+- Next: validator on the final tree and issue manager (1 follow-up) in parallel; then note, publish.
