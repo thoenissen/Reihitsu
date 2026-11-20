@@ -31,7 +31,7 @@ public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6019Title), nameof(AnalyzerResources.RH6019MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

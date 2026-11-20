@@ -58,7 +58,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 12, AnalyzerResources.RH5001MessageFormat));
+                              ExpectedDiagnostic(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 12, MessageFormat));
     }
 
     #endregion // Tests

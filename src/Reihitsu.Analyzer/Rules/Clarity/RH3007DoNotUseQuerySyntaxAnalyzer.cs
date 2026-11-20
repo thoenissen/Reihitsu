@@ -29,7 +29,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH3007DoNotUseQuerySyntaxAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3007Title), nameof(AnalyzerResources.RH3007MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

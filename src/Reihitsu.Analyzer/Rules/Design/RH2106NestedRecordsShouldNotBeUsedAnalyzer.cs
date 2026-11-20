@@ -30,7 +30,7 @@ public class RH2106NestedRecordsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2106NestedRecordsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2106Title), nameof(AnalyzerResources.RH2106MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

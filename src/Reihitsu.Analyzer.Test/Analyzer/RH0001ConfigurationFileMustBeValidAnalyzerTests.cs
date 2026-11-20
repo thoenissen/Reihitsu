@@ -980,7 +980,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     private static DiagnosticResult InvalidConfiguration(string configurationPath, string message, int line, int column)
     {
         return Diagnostic(RH0001ConfigurationFileMustBeValidAnalyzer.DiagnosticId).WithLocation(configurationPath, line, column)
-                                                                                  .WithMessage(string.Format(AnalyzerResources.RH0001MessageFormat, message));
+                                                                                  .WithMessage(string.Format(MessageFormat, message));
     }
 
     /// <summary>

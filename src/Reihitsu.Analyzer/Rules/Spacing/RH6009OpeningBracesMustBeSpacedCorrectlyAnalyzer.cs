@@ -29,7 +29,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6009Title), nameof(AnalyzerResources.RH6009MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

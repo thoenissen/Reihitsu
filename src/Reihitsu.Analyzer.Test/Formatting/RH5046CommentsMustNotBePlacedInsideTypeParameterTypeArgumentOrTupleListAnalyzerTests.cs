@@ -42,7 +42,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -238,8 +238,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -269,8 +269,8 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

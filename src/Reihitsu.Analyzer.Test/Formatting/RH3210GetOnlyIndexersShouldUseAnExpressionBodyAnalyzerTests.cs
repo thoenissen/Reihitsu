@@ -40,7 +40,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer.DiagnosticId, AnalyzerResources.RH3210MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -974,7 +974,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
 
         return new FixAllScenario(source,
                                   fixedSource,
-                                  Diagnostics(RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer.DiagnosticId, AnalyzerResources.RH3210MessageFormat, 3));
+                                  Diagnostics(RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // BatchCodeFixTestsBase

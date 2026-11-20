@@ -28,8 +28,6 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer : TargetA
     /// </summary>
     public RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5523Title),
-               nameof(AnalyzerResources.RH5523MessageFormat),
                AttributeTargets.Parameter,
                TargetAttributePlacementMode.SingleLine)
     {

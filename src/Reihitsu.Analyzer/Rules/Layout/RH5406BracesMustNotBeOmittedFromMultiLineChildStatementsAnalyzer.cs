@@ -30,7 +30,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : 
     /// Constructor
     /// </summary>
     public RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5406Title), nameof(AnalyzerResources.RH5406MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

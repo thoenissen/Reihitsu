@@ -97,7 +97,7 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
+                     Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -466,7 +466,7 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : B
         // Verifies that Fix All converges for both the newly covered closing-brace boundary and an ordinary region boundary
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat, 2),
+                                  Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

@@ -32,7 +32,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzer : CasingAnaly
     /// Constructor
     /// </summary>
     public RH4120RecordPrimaryConstructorParameterCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4120Title), nameof(AnalyzerResources.RH4120MessageFormat), SyntaxKind.Parameter, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.Parameter, CasingUtilities.IsPascalCase)
     {
     }
 

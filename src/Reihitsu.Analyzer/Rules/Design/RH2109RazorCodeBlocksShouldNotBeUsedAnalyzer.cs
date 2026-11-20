@@ -43,7 +43,7 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
     /// Constructor
     /// </summary>
     public RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2109Title), nameof(AnalyzerResources.RH2109MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

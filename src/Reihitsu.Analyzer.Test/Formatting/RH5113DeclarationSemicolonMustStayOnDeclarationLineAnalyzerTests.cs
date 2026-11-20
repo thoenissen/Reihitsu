@@ -47,7 +47,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -363,7 +363,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -455,7 +455,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -690,7 +690,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         // corrected independently
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat, 2));
+                                  Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

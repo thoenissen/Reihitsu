@@ -30,7 +30,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     /// Constructor
     /// </summary>
     public RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3204Title), nameof(AnalyzerResources.RH3204MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

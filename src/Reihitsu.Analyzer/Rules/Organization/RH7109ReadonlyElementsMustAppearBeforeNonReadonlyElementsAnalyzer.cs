@@ -33,7 +33,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
     /// Constructor
     /// </summary>
     public RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7109Title), nameof(AnalyzerResources.RH7109MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

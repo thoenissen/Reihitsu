@@ -30,7 +30,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzer
     /// Constructor
     /// </summary>
     public RH7107PropertyAccessorsMustFollowOrderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7107Title), nameof(AnalyzerResources.RH7107MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

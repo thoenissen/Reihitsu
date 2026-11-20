@@ -28,7 +28,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnal
     /// Constructor
     /// </summary>
     public RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2001Title), nameof(AnalyzerResources.RH2001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

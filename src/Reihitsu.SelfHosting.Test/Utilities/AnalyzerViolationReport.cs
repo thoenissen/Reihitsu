@@ -29,7 +29,7 @@ internal static class AnalyzerViolationReport
     #region Methods
 
     /// <summary>
-    /// Runs the analyzer over every compilation and collects its violations
+    /// Runs the analyzer over every compilation without analyzer options and collects its violations
     /// </summary>
     /// <param name="analyzer">The analyzer to run</param>
     /// <param name="compilations">The compilations to analyze</param>
@@ -41,6 +41,24 @@ internal static class AnalyzerViolationReport
                                                   string solutionRoot,
                                                   CancellationToken cancellationToken)
     {
+        return Collect(analyzer, compilations, _ => null, solutionRoot, cancellationToken);
+    }
+
+    /// <summary>
+    /// Runs the analyzer over every compilation, each with the analyzer options given for it, and collects its violations
+    /// </summary>
+    /// <param name="analyzer">The analyzer to run</param>
+    /// <param name="compilations">The compilations to analyze</param>
+    /// <param name="getOptions">Gives the analyzer options of a compilation, or <see langword="null"/> for none</param>
+    /// <param name="solutionRoot">Root that the reported file paths are made relative to</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>One line per violation, ordered by file and then by position, in the form <c>path:line [ID] (Analyzer) message</c></returns>
+    internal static IReadOnlyList<string> Collect(DiagnosticAnalyzer analyzer,
+                                                  IEnumerable<CSharpCompilation> compilations,
+                                                  Func<CSharpCompilation, AnalyzerOptions> getOptions,
+                                                  string solutionRoot,
+                                                  CancellationToken cancellationToken)
+    {
         var analyzerName = analyzer.GetType().Name;
         var diagnostics = new List<Diagnostic>();
 
@@ -48,7 +66,7 @@ internal static class AnalyzerViolationReport
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer), getOptions(compilation));
 
             diagnostics.AddRange(compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken)
                                                          .GetAwaiter()

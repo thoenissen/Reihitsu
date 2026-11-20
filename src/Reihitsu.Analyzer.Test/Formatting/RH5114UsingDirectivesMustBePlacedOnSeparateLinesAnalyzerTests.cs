@@ -67,7 +67,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -184,7 +184,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -251,7 +251,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -307,7 +307,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -335,7 +335,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -362,7 +362,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -389,7 +389,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -572,7 +572,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -640,7 +640,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                 }
                                 """;
 
-        await Verify(testData, testData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, testData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -705,7 +705,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -778,7 +778,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -836,7 +836,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzerTests : Bat
         // Verifies a chain in the compilation unit and a pair in a namespace are all split in one Fix All iteration
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat, 3),
+                                  Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat, 3),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

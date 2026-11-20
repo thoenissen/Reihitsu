@@ -30,7 +30,7 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : Mem
     /// Constructor
     /// </summary>
     public RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7401Title), nameof(AnalyzerResources.RH7401MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

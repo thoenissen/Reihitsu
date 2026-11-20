@@ -31,7 +31,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : D
     /// Constructor
     /// </summary>
     public RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6017Title), nameof(AnalyzerResources.RH6017MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

@@ -71,7 +71,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -243,7 +243,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -286,7 +286,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -351,7 +351,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -419,7 +419,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2));
+                     Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -477,7 +477,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -541,7 +541,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -604,7 +604,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -671,7 +671,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -748,7 +748,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -856,7 +856,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
                                                    RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId,
@@ -933,7 +933,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
                                                    RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId,
@@ -981,7 +981,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1040,7 +1040,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 6));
+        await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -1689,7 +1689,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         // Verifies a switch-section statement chain is rewritten with the section statement indentation
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 2),
+                                  Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

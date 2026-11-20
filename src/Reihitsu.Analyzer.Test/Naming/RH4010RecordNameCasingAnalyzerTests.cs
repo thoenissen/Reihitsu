@@ -37,7 +37,7 @@ public class RH4010RecordNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4010R
                                  public record Orderrecord(int Value);
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4010MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class RH4010RecordNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4010R
                                  public record class Customeraggregate(int Value);
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4010MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -194,7 +194,7 @@ public class RH4010RecordNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4010R
         // that reference as well as both declarations
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4010MessageFormat, 2));
+                                  Diagnostics(RH4010RecordNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -58,7 +58,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6023Title), nameof(AnalyzerResources.RH6023MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

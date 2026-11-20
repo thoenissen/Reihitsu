@@ -132,7 +132,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
+                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
+                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -222,7 +222,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
+                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
+                     Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -335,7 +335,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -488,7 +488,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
         // overlapping inner change while the outer rewrite already re-aligns the nested lambda's brace too
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat, 2));
+                                  Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

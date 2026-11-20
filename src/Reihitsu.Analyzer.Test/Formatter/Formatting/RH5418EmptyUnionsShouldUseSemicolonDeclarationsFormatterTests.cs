@@ -49,7 +49,7 @@ public class RH5418EmptyUnionsShouldUseSemicolonDeclarationsFormatterTests : For
         await VerifyFormatter(input,
                               fixedData,
                               test => test.TestState.AdditionalReferences.Add(unionSupport),
-                              Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5418MessageFormat, 2));
+                              Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Tests

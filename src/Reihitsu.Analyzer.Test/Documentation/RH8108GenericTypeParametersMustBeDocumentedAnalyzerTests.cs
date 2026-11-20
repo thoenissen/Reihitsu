@@ -38,7 +38,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -220,7 +220,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                               internal record struct P<{|#2:T|}>;
                               """;
 
-        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+        await Verify(source, Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -296,7 +296,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -354,7 +354,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

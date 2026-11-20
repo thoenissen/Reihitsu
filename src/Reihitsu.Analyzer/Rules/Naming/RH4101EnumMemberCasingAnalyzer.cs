@@ -32,7 +32,7 @@ public class RH4101EnumMemberCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4101EnumMemberCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4101Title), nameof(AnalyzerResources.RH4101MessageFormat), SyntaxKind.EnumMemberDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.EnumMemberDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

@@ -46,7 +46,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+                              Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

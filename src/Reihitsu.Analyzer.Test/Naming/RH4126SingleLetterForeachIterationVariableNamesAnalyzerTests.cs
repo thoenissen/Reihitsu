@@ -38,7 +38,7 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4126SingleLetterForeachIterationVariableNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4126MessageFormat));
+        await Verify(testCode, Diagnostics(RH4126SingleLetterForeachIterationVariableNamesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4126SingleLetterForeachIterationVariableNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4126MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4126SingleLetterForeachIterationVariableNamesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

@@ -71,7 +71,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -185,7 +185,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -254,7 +254,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat, 5));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -290,7 +290,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -371,7 +371,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -399,7 +399,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -426,7 +426,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -459,7 +459,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
 
         await Verify(definingPart,
                      test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)),
-                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -493,7 +493,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
 
         await Verify(definingPart,
                      test => test.TestState.Sources.Add(("/0/P.g.cs", implementingPart)),
-                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -526,7 +526,7 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
 
         await Verify(implementingPart,
                      test => test.TestState.Sources.Add(("/0/P.g.cs", definingPart)),
-                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+                     Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

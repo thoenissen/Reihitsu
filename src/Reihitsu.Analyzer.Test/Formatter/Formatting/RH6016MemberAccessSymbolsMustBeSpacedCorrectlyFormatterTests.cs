@@ -43,7 +43,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyFormatterTests : Form
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+                              Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyFormatterTests : Form
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+                              Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

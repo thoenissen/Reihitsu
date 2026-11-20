@@ -29,7 +29,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5019Title), nameof(AnalyzerResources.RH5019MessageFormat), SyntaxKind.YieldReturnStatement, SyntaxKind.YieldBreakStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.YieldReturnStatement, SyntaxKind.YieldBreakStatement)
     {
     }
 

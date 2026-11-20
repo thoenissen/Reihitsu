@@ -65,7 +65,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         const string testData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        var value = 0; /* note */{|#0:   |}\r\n    }\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        var value = 0; /* note */\r\n    }\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -197,7 +197,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         const string testData = "internal class TestClass\r\n{\r\n#pragma warning disable CS0168{|#0:   |}\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n#pragma warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         const string testData = "internal class TestClass\n{{|#0:   |}\n    int x;{|#1:\t|}\n    char c = 'a';{|#2:  |}\n}";
         const string fixedData = "internal class TestClass\n{\n    int x;\n    char c = 'a';\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         const string testData = "internal class TestClass\n{\n    int x;\n{|#0:        |}\n    int y;\n}";
         const string fixedData = "internal class TestClass\n{\n    int x;\n\n    int y;\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -362,7 +362,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -387,7 +387,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -412,7 +412,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -443,7 +443,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -473,7 +473,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -502,7 +502,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -531,7 +531,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -560,7 +560,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -593,7 +593,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -628,7 +628,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -711,7 +711,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -743,7 +743,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat, 4));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     #endregion // Tests
@@ -780,7 +780,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
         // removals
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat, 2));
+                                  Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

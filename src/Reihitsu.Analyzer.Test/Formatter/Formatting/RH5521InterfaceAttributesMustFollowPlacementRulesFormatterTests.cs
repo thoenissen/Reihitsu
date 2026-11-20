@@ -41,7 +41,7 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5521MessageFormat));
+                              Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

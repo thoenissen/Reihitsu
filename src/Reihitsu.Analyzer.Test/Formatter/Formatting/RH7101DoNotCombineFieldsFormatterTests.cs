@@ -38,7 +38,7 @@ public class RH7101DoNotCombineFieldsFormatterTests : FormatterTestsBase<RH7101D
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+                              Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class RH7101DoNotCombineFieldsFormatterTests : FormatterTestsBase<RH7101D
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 3));
+                              Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests

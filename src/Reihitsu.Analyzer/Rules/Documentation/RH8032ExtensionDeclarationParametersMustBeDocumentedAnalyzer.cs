@@ -32,7 +32,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer : Diag
     /// Constructor
     /// </summary>
     public RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8032Title), nameof(AnalyzerResources.RH8032MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

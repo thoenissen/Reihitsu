@@ -29,7 +29,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer : Diagnos
     /// Constructor
     /// </summary>
     public RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3006Title), nameof(AnalyzerResources.RH3006MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

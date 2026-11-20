@@ -68,7 +68,7 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6018MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -385,7 +385,7 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
         // sign; the fixes only remove their own run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6018MessageFormat, 2));
+                                  Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

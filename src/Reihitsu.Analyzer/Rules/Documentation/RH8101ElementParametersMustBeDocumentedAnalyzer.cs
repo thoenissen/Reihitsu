@@ -31,7 +31,7 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyze
     /// Constructor
     /// </summary>
     public RH8101ElementParametersMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8101Title), nameof(AnalyzerResources.RH8101MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

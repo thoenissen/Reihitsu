@@ -84,7 +84,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                  public struct TestStruct(int parameterName);
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat, 3));
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -210,7 +210,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -308,7 +308,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -366,7 +366,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1577,7 +1577,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1942,7 +1942,7 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         // parameter legitimately shadows the enclosing method parameter afterwards
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat, 2));
+                                  Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

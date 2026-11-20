@@ -36,7 +36,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4118MessageFormat));
+        await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4118MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

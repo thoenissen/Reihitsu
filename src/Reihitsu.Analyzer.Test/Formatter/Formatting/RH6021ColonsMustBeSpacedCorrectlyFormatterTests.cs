@@ -41,7 +41,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+                              Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

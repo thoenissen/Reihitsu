@@ -409,7 +409,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, AnalyzerResources.RH3201MessageFormat));
+        await Verify(testCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

@@ -28,8 +28,6 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer : Targe
     /// </summary>
     public RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5511Title),
-               nameof(AnalyzerResources.RH5511MessageFormat),
                AttributeTargets.Constructor,
                TargetAttributePlacementMode.SeparateLine)
     {

@@ -47,7 +47,7 @@ public class RH5405BracesMustNotBeOmittedFormatterTests : FormatterTestsBase<RH5
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
+                              Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

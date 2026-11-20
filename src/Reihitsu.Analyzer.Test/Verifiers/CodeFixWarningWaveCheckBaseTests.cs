@@ -91,7 +91,7 @@ public class CodeFixWarningWaveCheckBaseTests : BatchCodeFixTestsBase<Parenthesi
     {
         var source = ParenthesizedQueryInThrow.Replace("throw (from exception in _exception select exception)", "throw {|#0:(from exception in _exception select exception)|}");
 
-        await AssertFailsWithCS8848(() => Verify(source, UnparenthesizedQueryInThrow, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, AnalyzerResources.RH3002MessageFormat)));
+        await AssertFailsWithCS8848(() => Verify(source, UnparenthesizedQueryInThrow, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat)));
     }
 
     /// <summary>
@@ -194,7 +194,7 @@ public class CodeFixWarningWaveCheckBaseTests : BatchCodeFixTestsBase<Parenthesi
 
         return new FixAllScenario(source,
                                   fixedSource,
-                                  Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, AnalyzerResources.RH3002MessageFormat, 2));
+                                  Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

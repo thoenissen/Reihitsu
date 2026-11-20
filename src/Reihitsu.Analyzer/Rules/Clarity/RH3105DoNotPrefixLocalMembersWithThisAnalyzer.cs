@@ -30,7 +30,7 @@ public class RH3105DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH3105DoNotPrefixLocalMembersWithThisAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3105Title), nameof(AnalyzerResources.RH3105MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

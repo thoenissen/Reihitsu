@@ -31,7 +31,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5104CommentsMustBeOnTheirOwnLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5104Title), nameof(AnalyzerResources.RH5104MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

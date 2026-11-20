@@ -30,7 +30,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH5108ParameterListMustFollowDeclarationAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5108Title), nameof(AnalyzerResources.RH5108MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

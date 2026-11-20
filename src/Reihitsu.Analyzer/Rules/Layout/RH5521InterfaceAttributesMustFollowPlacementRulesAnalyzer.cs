@@ -28,8 +28,6 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer : TargetA
     /// </summary>
     public RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5521Title),
-               nameof(AnalyzerResources.RH5521MessageFormat),
                AttributeTargets.Interface,
                TargetAttributePlacementMode.SeparateLine)
     {

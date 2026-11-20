@@ -395,7 +395,7 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string regionName)
     {
-        return string.Format(AnalyzerResources.RH7406MessageFormat, regionName);
+        return string.Format(MessageFormat, regionName);
     }
 
     #endregion // Methods

@@ -16,7 +16,7 @@ public class CodeFixResourcesTests
     #region Tests
 
     /// <summary>
-    /// Verifies that all non-public static string properties of the AnalyzerResources type are not null or empty
+    /// Verifies that all non-public static string properties of the CodeFixResources type are not null or empty
     /// </summary>
     [TestMethod]
     public void AllPropertiesShouldNotBeNullOrEmpty()

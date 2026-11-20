@@ -43,7 +43,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, 3, 5, 3, 19, AnalyzerResources.RH7302MessageFormat));
+                              ExpectedDiagnostic(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, 3, 5, 3, 19, MessageFormat));
     }
 
     #endregion // Tests

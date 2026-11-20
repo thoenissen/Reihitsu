@@ -30,7 +30,7 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// Constructor
     /// </summary>
     public RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7203Title), nameof(AnalyzerResources.RH7203MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

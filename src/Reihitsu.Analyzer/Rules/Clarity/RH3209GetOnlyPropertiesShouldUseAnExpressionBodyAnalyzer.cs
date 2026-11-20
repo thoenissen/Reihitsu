@@ -27,7 +27,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer : GetOnlyM
     /// Constructor
     /// </summary>
     public RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH3209Title), nameof(AnalyzerResources.RH3209MessageFormat), SyntaxKind.PropertyDeclaration)
+        : base(DiagnosticId, SyntaxKind.PropertyDeclaration)
     {
     }
 

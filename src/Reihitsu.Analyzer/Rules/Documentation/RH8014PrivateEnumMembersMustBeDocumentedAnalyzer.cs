@@ -30,7 +30,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyz
     /// Initializes a new instance of the <see cref="RH8014PrivateEnumMembersMustBeDocumentedAnalyzer"/> class
     /// </summary>
     public RH8014PrivateEnumMembersMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8014Title), nameof(AnalyzerResources.RH8014MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

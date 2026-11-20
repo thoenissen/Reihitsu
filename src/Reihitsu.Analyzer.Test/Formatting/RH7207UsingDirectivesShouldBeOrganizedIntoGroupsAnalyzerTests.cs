@@ -122,7 +122,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -399,7 +399,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -434,7 +434,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         await Verify(testCode,
                      fixedCode,
                      test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -462,7 +462,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+                     Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -514,7 +514,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -546,7 +546,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -576,7 +576,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -623,7 +623,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -673,7 +673,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -720,7 +720,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -767,7 +767,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -813,7 +813,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -849,7 +849,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -916,7 +916,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2952,7 +2952,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         // Verifies that exact and case-variant System roots form separate groups across compilation-unit and block-namespace scopes
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat, 2),
+                                  Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

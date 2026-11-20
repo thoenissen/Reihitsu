@@ -28,11 +28,9 @@ public abstract class GetOnlyMemberExpressionBodyAnalyzerBase : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message format resource name</param>
     /// <param name="declarationKind">Declaration kind: a property or an indexer declaration</param>
-    private protected GetOnlyMemberExpressionBodyAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, SyntaxKind declarationKind)
-        : base(diagnosticId, DiagnosticCategory.Clarity, titleResourceName, messageFormatResourceName)
+    private protected GetOnlyMemberExpressionBodyAnalyzerBase(string diagnosticId, SyntaxKind declarationKind)
+        : base(diagnosticId, DiagnosticCategory.Clarity)
     {
         _declarationKind = declarationKind;
     }

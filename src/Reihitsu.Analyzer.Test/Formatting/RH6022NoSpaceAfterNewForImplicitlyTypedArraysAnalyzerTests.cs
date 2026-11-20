@@ -67,7 +67,7 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH6022MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : BatchC
         // after the new keyword; the fixes only remove their own run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH6022MessageFormat, 2));
+                                  Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

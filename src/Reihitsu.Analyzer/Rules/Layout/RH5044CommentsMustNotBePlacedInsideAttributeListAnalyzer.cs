@@ -29,7 +29,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer : CommentR
     /// Constructor
     /// </summary>
     public RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5044Title), nameof(AnalyzerResources.RH5044MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

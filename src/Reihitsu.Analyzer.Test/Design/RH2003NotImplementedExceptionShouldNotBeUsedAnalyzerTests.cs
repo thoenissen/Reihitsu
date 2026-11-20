@@ -66,7 +66,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat));
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat, 6));
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -226,7 +226,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -295,7 +295,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat));
+        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

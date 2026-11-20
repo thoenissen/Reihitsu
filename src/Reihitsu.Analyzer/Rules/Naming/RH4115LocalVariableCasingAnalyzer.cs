@@ -34,8 +34,6 @@ public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase
     public RH4115LocalVariableCasingAnalyzer()
         : base(DiagnosticId,
                DiagnosticCategory.Naming,
-               nameof(AnalyzerResources.RH4115Title),
-               nameof(AnalyzerResources.RH4115MessageFormat),
                [
                    SyntaxKind.LocalDeclarationStatement,
                    SyntaxKind.ForStatement,

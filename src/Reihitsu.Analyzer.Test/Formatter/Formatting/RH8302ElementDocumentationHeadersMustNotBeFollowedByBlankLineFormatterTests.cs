@@ -48,7 +48,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
+                              Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer : D
     /// Constructor
     /// </summary>
     public RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8309Title), nameof(AnalyzerResources.RH8309MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

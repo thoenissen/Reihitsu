@@ -30,7 +30,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer : 
     /// Constructor
     /// </summary>
     public RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4124Title), nameof(AnalyzerResources.RH4124MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

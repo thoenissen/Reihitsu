@@ -41,7 +41,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
@@ -153,7 +153,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat, 2));
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
 
         await Verify(testData,
                      test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp12)),
-                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -244,7 +244,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
         // replacement span directly abuts the second occurrence's leading trivia
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat, 2));
+                                  Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

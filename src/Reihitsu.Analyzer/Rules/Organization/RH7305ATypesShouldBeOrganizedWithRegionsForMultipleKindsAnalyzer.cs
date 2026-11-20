@@ -30,7 +30,7 @@ public class RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : 
     /// Constructor
     /// </summary>
     public RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7305ATitle), nameof(AnalyzerResources.RH7305AMessageFormat), false)
+        : base(DiagnosticId, DiagnosticCategory.Organization, false)
     {
     }
 

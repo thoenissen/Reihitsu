@@ -28,8 +28,6 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer : TargetA
     /// </summary>
     public RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5524Title),
-               nameof(AnalyzerResources.RH5524MessageFormat),
                AttributeTargets.Parameter,
                TargetAttributeListShapeMode.MergedList)
     {

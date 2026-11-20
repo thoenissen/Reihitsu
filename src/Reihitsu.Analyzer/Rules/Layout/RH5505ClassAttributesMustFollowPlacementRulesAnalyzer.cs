@@ -28,8 +28,6 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzer : TargetAttri
     /// </summary>
     public RH5505ClassAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5505Title),
-               nameof(AnalyzerResources.RH5505MessageFormat),
                AttributeTargets.Class,
                TargetAttributePlacementMode.SeparateLine)
     {

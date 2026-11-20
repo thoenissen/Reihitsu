@@ -32,7 +32,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// Constructor
     /// </summary>
     public RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5301Title), nameof(AnalyzerResources.RH5301MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -30,7 +30,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnal
     /// Constructor
     /// </summary>
     public RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6005Title), nameof(AnalyzerResources.RH6005MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

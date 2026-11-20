@@ -30,7 +30,7 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     /// Constructor
     /// </summary>
     public RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7204Title), nameof(AnalyzerResources.RH7204MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

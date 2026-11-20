@@ -74,7 +74,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5402MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : B
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5402MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -443,7 +443,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : B
         // overlapping, exercising the batch fixer's handling of adjacent same-line replacements
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5402MessageFormat, 2));
+                                  Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

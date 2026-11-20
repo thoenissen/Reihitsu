@@ -30,7 +30,7 @@ public class RH2105NestedInterfacesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH2105NestedInterfacesShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2105Title), nameof(AnalyzerResources.RH2105MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

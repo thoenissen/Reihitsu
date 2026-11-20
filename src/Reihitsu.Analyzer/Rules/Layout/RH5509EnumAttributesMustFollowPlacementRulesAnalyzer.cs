@@ -28,8 +28,6 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzer : TargetAttrib
     /// </summary>
     public RH5509EnumAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5509Title),
-               nameof(AnalyzerResources.RH5509MessageFormat),
                AttributeTargets.Enum,
                TargetAttributePlacementMode.SeparateLine)
     {

@@ -33,7 +33,7 @@ public class RH4106PrivateFieldCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4106PrivateFieldCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4106Title), nameof(AnalyzerResources.RH4106MessageFormat), SyntaxKind.FieldDeclaration, CasingUtilities.IsUnderlineCamelCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.FieldDeclaration, CasingUtilities.IsUnderlineCamelCase)
     {
     }
 

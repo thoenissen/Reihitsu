@@ -370,19 +370,7 @@ public sealed class FluentChain
 
             case MemberAccessExpressionSyntax memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
                 {
-                    if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary
-                        && postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-                    {
-                        Collect(postfixUnary.Operand, pendingConditional, links, attachedParts);
-
-                        links.Add(new FluentChainLink(memberAccess, [postfixUnary.OperatorToken, memberAccess.OperatorToken], memberAccess.Name, IsInvoked(memberAccess)));
-                    }
-                    else
-                    {
-                        Collect(memberAccess.Expression, pendingConditional, links, attachedParts);
-
-                        links.Add(new FluentChainLink(memberAccess, [memberAccess.OperatorToken], memberAccess.Name, IsInvoked(memberAccess)));
-                    }
+                    CollectMemberAccess(memberAccess, pendingConditional, links, attachedParts);
                 }
                 break;
 
@@ -431,6 +419,34 @@ public sealed class FluentChain
                     attachedParts.Add(new FluentChainAttachedPart(FluentChainAttachedPartKind.ConditionalElementAccess, GetConditionalTokens(pendingConditional, elementBinding.ArgumentList.OpenBracketToken)));
                 }
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Collects the links and attached parts of a simple member access in source order: those of its receiver, then
+    /// the link the member access forms, which also holds a null-forgiving operator directly in front of its dot
+    /// </summary>
+    /// <param name="memberAccess">The simple member access</param>
+    /// <param name="pendingConditional">The conditional access whose binding is the leftmost node of the walked spine, if any</param>
+    /// <param name="links">The links collected so far</param>
+    /// <param name="attachedParts">The attached parts collected so far</param>
+    private static void CollectMemberAccess(MemberAccessExpressionSyntax memberAccess,
+                                            ConditionalAccessExpressionSyntax pendingConditional,
+                                            List<FluentChainLink> links,
+                                            List<FluentChainAttachedPart> attachedParts)
+    {
+        if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary
+            && postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+        {
+            Collect(postfixUnary.Operand, pendingConditional, links, attachedParts);
+
+            links.Add(new FluentChainLink(memberAccess, [postfixUnary.OperatorToken, memberAccess.OperatorToken], memberAccess.Name, IsInvoked(memberAccess)));
+        }
+        else
+        {
+            Collect(memberAccess.Expression, pendingConditional, links, attachedParts);
+
+            links.Add(new FluentChainLink(memberAccess, [memberAccess.OperatorToken], memberAccess.Name, IsInvoked(memberAccess)));
         }
     }
 

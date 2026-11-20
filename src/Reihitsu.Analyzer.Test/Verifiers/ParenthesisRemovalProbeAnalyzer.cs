@@ -22,7 +22,7 @@ public sealed class ParenthesisRemovalProbeAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public ParenthesisRemovalProbeAnalyzer()
-        : base(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3002Title), nameof(AnalyzerResources.RH3002MessageFormat))
+        : base(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

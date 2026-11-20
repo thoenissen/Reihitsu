@@ -29,7 +29,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     /// Constructor
     /// </summary>
     public RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5411Title), nameof(AnalyzerResources.RH5411MessageFormat), SyntaxKind.CollectionInitializerExpression)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.CollectionInitializerExpression)
     {
     }
 

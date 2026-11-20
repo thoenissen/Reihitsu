@@ -28,8 +28,6 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzer : TargetAttri
     /// </summary>
     public RH5519EventAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5519Title),
-               nameof(AnalyzerResources.RH5519MessageFormat),
                AttributeTargets.Event,
                TargetAttributePlacementMode.SeparateLine)
     {

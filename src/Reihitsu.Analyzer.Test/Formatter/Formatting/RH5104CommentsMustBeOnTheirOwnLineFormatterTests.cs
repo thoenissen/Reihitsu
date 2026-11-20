@@ -79,7 +79,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineFormatterTests : FormatterTestsBa
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task VerifyFormatterKeepsReportedCode(string source, string endOfLine)
     {
-        var expected = Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat);
+        var expected = Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, MessageFormat);
 
         await Verify(source, expected);
 

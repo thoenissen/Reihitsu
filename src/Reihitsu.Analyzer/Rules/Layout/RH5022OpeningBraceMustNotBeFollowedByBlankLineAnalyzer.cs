@@ -30,7 +30,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5022Title), nameof(AnalyzerResources.RH5022MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

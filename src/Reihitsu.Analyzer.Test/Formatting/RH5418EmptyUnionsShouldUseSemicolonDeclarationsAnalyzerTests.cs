@@ -95,9 +95,9 @@ public class RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzerTests : Batc
                      test =>
                      {
                          test.TestState.AdditionalReferences.Add(unionSupport);
-                         test.FixedState.ExpectedDiagnostics.AddRange(Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5418MessageFormat));
+                         test.FixedState.ExpectedDiagnostics.AddRange(Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
                      },
-                     Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5418MessageFormat, 3));
+                     Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -485,7 +485,7 @@ public class RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzerTests : Batc
 
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5418MessageFormat, 2),
+                                  Diagnostics(RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2),
                                   test => test.TestState.AdditionalReferences.Add(UnionSupport.GetReference()));
     }
 

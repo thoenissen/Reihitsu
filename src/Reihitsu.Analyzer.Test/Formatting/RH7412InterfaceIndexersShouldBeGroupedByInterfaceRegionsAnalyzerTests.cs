@@ -645,7 +645,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string interfaceName)
     {
-        return string.Format(AnalyzerResources.RH7412MessageFormat, interfaceName);
+        return string.Format(MessageFormat, interfaceName);
     }
 
     #endregion // Methods

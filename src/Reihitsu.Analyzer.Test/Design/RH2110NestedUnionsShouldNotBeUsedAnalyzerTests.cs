@@ -57,7 +57,7 @@ public class RH2110NestedUnionsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH2110NestedUnionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2110MessageFormat, 4));
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH2110NestedUnionsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>

@@ -27,7 +27,7 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer 
     /// Constructor
     /// </summary>
     public RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7405Title), nameof(AnalyzerResources.RH7405MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

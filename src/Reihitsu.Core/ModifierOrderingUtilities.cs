@@ -98,44 +98,9 @@ public static class ModifierOrderingUtilities
             return false;
         }
 
-        // The gap whose trivia is written behind a modifier: gap g lies between the written modifiers g - 1 and g, and
-        // the last gap between the last modifier and the token behind them
-        var gapBehindModifier = new int?[orderedModifiers.Count];
-
-        for (var gapIndex = 1; gapIndex <= modifiers.Count; gapIndex++)
+        if (TryGetGapBehindModifier(modifiers, nextToken, orderedModifiers, writtenIndices, out var gapBehindModifier) == false)
         {
-            if (HoldsCommentOrDirective(modifiers[gapIndex - 1].TrailingTrivia) == false
-                && HoldsCommentOrDirective(GetLeadingTriviaBehindGap(modifiers, nextToken, gapIndex)) == false)
-            {
-                continue;
-            }
-
-            var lastIndexInFront = -1;
-            var firstIndexBehind = orderedModifiers.Count;
-
-            for (var orderedIndex = 0; orderedIndex < orderedModifiers.Count; orderedIndex++)
-            {
-                if (writtenIndices[orderedIndex] < 0)
-                {
-                    continue;
-                }
-
-                if (writtenIndices[orderedIndex] < gapIndex)
-                {
-                    lastIndexInFront = orderedIndex;
-                }
-                else if (orderedIndex < firstIndexBehind)
-                {
-                    firstIndexBehind = orderedIndex;
-                }
-            }
-
-            if (firstIndexBehind < lastIndexInFront)
-            {
-                return false;
-            }
-
-            gapBehindModifier[lastIndexInFront] = gapIndex;
+            return false;
         }
 
         var rewrittenTokens = new List<SyntaxToken>(orderedModifiers.Count);
@@ -313,6 +278,60 @@ public static class ModifierOrderingUtilities
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Finds, for every modifier of the new order, the gap whose trivia is written behind it: gap g lies between the
+    /// written modifiers g - 1 and g, and the last gap between the last modifier and the token behind them. Only a gap
+    /// that holds a comment or a directive is written behind a modifier, behind the last modifier written in front of it
+    /// </summary>
+    /// <param name="modifiers">Modifiers as written</param>
+    /// <param name="nextToken">Token behind the modifiers</param>
+    /// <param name="orderedModifiers">The modifiers in the new order</param>
+    /// <param name="writtenIndices">The written index of every modifier of the new order, or a negative value for one the new order adds</param>
+    /// <param name="gapBehindModifier">The gap written behind each modifier of the new order, or <see langword="null"/> for none</param>
+    /// <returns><see langword="false"/> if a gap that holds a comment or a directive would have to move across a modifier</returns>
+    private static bool TryGetGapBehindModifier(SyntaxTokenList modifiers, SyntaxToken nextToken, SyntaxTokenList orderedModifiers, int[] writtenIndices, out int?[] gapBehindModifier)
+    {
+        gapBehindModifier = new int?[orderedModifiers.Count];
+
+        for (var gapIndex = 1; gapIndex <= modifiers.Count; gapIndex++)
+        {
+            if (HoldsCommentOrDirective(modifiers[gapIndex - 1].TrailingTrivia) == false
+                && HoldsCommentOrDirective(GetLeadingTriviaBehindGap(modifiers, nextToken, gapIndex)) == false)
+            {
+                continue;
+            }
+
+            var lastIndexInFront = -1;
+            var firstIndexBehind = orderedModifiers.Count;
+
+            for (var orderedIndex = 0; orderedIndex < orderedModifiers.Count; orderedIndex++)
+            {
+                if (writtenIndices[orderedIndex] < 0)
+                {
+                    continue;
+                }
+
+                if (writtenIndices[orderedIndex] < gapIndex)
+                {
+                    lastIndexInFront = orderedIndex;
+                }
+                else if (orderedIndex < firstIndexBehind)
+                {
+                    firstIndexBehind = orderedIndex;
+                }
+            }
+
+            if (firstIndexBehind < lastIndexInFront)
+            {
+                return false;
+            }
+
+            gapBehindModifier[lastIndexInFront] = gapIndex;
+        }
+
+        return true;
     }
 
     /// <summary>

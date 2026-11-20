@@ -29,7 +29,7 @@ public class RH5042CommentsMustNotBePlacedAroundAssignmentOperatorAnalyzer : Com
     /// Constructor
     /// </summary>
     public RH5042CommentsMustNotBePlacedAroundAssignmentOperatorAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5042Title), nameof(AnalyzerResources.RH5042MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

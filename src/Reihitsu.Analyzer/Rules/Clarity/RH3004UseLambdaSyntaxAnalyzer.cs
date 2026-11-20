@@ -29,7 +29,7 @@ public class RH3004UseLambdaSyntaxAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH3004UseLambdaSyntaxAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3004Title), nameof(AnalyzerResources.RH3004MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

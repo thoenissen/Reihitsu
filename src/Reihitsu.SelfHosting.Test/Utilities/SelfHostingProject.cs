@@ -26,6 +26,7 @@ internal sealed class SelfHostingProject
     /// <param name="outputKind">Compilation output kind</param>
     /// <param name="sdk">The project's Sdk attribute value</param>
     /// <param name="projectReferencePaths">Project reference paths</param>
+    /// <param name="isTestProject">Whether MSBuild marks the project as a test project</param>
     private SelfHostingProject(string projectFilePath,
                                string projectDirectoryPath,
                                string projectName,
@@ -33,7 +34,8 @@ internal sealed class SelfHostingProject
                                string targetFramework,
                                OutputKind outputKind,
                                string sdk,
-                               ImmutableArray<string> projectReferencePaths)
+                               ImmutableArray<string> projectReferencePaths,
+                               bool isTestProject)
     {
         ArgumentNullException.ThrowIfNull(projectFilePath);
         ArgumentNullException.ThrowIfNull(projectDirectoryPath);
@@ -50,6 +52,7 @@ internal sealed class SelfHostingProject
         OutputKind = outputKind;
         Sdk = sdk;
         ProjectReferencePaths = projectReferencePaths;
+        IsTestProject = isTestProject;
     }
 
     #endregion // Constructor
@@ -97,6 +100,13 @@ internal sealed class SelfHostingProject
     internal ImmutableArray<string> ProjectReferencePaths { get; }
 
     /// <summary>
+    /// Whether MSBuild sets <c>IsTestProject</c> to <c>true</c> for the project, so the analyzers judge its code as test
+    /// code: the project file sets the property itself, or it references <c>Microsoft.NET.Test.Sdk</c>, whose build
+    /// files set it
+    /// </summary>
+    internal bool IsTestProject { get; }
+
+    /// <summary>
     /// Absolute path to the project's assets file
     /// </summary>
     internal string ProjectAssetsPath => Path.Combine(ProjectDirectoryPath, "obj", "project.assets.json");
@@ -132,6 +142,7 @@ internal sealed class SelfHostingProject
                                                   .Select(projectReferencePath => GetNormalizedFullPath(projectDirectoryPath, projectReferencePath))
                                                   .OrderBy(projectReferencePath => projectReferencePath, StringComparer.OrdinalIgnoreCase)
                                                   .ToImmutableArray();
+        var isTestProject = IsMarkedAsTestProject(projectElement, namespaceName);
 
         return new SelfHostingProject(fullProjectFilePath,
                                       projectDirectoryPath,
@@ -140,7 +151,28 @@ internal sealed class SelfHostingProject
                                       targetFramework,
                                       outputKind,
                                       sdk,
-                                      projectReferencePaths);
+                                      projectReferencePaths,
+                                      isTestProject);
+    }
+
+    /// <summary>
+    /// Determines whether MSBuild marks the project as a test project: the value of an <c>IsTestProject</c> property the
+    /// project file sets, otherwise whether it references the package <c>Microsoft.NET.Test.Sdk</c>
+    /// </summary>
+    /// <param name="projectElement">Project element</param>
+    /// <param name="namespaceName">XML namespace</param>
+    /// <returns><see langword="true"/> if the project is a test project; otherwise, <see langword="false"/></returns>
+    private static bool IsMarkedAsTestProject(XElement projectElement, XNamespace namespaceName)
+    {
+        var isTestProject = GetPropertyValue(projectElement, namespaceName + "IsTestProject");
+
+        if (isTestProject != null)
+        {
+            return string.Equals(isTestProject, "true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return projectElement.Descendants(namespaceName + "PackageReference")
+                             .Any(packageReference => string.Equals(packageReference.Attribute("Include")?.Value, "Microsoft.NET.Test.Sdk", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

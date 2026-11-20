@@ -57,7 +57,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+                              Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+                              Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -138,7 +138,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+                              Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

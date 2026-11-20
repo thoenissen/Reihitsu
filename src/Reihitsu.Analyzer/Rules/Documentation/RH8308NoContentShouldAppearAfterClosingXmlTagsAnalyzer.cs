@@ -32,7 +32,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8308Title), nameof(AnalyzerResources.RH8308MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

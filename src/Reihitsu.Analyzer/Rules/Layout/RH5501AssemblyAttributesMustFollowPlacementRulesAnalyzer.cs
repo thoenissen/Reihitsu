@@ -28,8 +28,6 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer : TargetAt
     /// </summary>
     public RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5501Title),
-               nameof(AnalyzerResources.RH5501MessageFormat),
                AttributeTargets.Assembly,
                TargetAttributePlacementMode.SeparateLine)
     {

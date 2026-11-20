@@ -32,7 +32,7 @@ public class RH4104LocalFunctionNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4104LocalFunctionNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4104Title), nameof(AnalyzerResources.RH4104MessageFormat), SyntaxKind.LocalFunctionStatement, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.LocalFunctionStatement, CasingUtilities.IsPascalCase)
     {
     }
 

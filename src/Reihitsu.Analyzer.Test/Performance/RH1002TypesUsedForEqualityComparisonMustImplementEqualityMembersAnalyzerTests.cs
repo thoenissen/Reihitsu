@@ -1145,7 +1145,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [TestMethod]
     public async Task VerifyStructTypesUsedForEqualityComparisonMustImplementEqualityMembers()
     {
-        await Verify(TestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 13));
+        await Verify(TestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 13));
     }
 
     /// <summary>
@@ -1168,7 +1168,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-002")]
     public async Task VerifyKeySelectorOverloadChecksProjectedKeyTypeNotElementType()
     {
-        await Verify(SelectorOverloadTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(SelectorOverloadTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1180,7 +1180,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-002")]
     public async Task VerifyKeyValuePairSourceOverloadsCheckKeyTypeNotValueType()
     {
-        await Verify(KeyValuePairSourceTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(KeyValuePairSourceTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -1203,7 +1203,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyExplicitNullComparerArgumentDoesNotExempt()
     {
-        await Verify(ExplicitNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(ExplicitNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1214,7 +1214,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyWrappedNullComparerArgumentsDoNotExempt()
     {
-        await Verify(WrappedNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(WrappedNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -1225,7 +1225,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyValueTypeDefaultComparerNullabilityIsRespected()
     {
-        await Verify(ValueTypeDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(ValueTypeDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1236,7 +1236,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyFrameworkDefaultComparerDoesNotExempt()
     {
-        await Verify(FrameworkDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(FrameworkDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1248,7 +1248,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyCompositeNullComparerDoesNotExempt()
     {
-        await Verify(CompositeNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 6));
+        await Verify(CompositeNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -1260,7 +1260,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyNamedKeySelectorArgumentDoesNotDesyncComparerDetection()
     {
-        await Verify(NamedKeySelectorArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(NamedKeySelectorArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1272,7 +1272,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyDefaultComparerArgumentDoesNotExempt()
     {
-        await Verify(DefaultComparerArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(DefaultComparerArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1283,7 +1283,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-001")]
     public async Task VerifyByFamilyMethodsAreChecked()
     {
-        await Verify(ByFamilyTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
+        await Verify(ByFamilyTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -1294,7 +1294,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-001")]
     public async Task VerifyToHashSetIsChecked()
     {
-        await Verify(ToHashSetTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(ToHashSetTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1305,7 +1305,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-001")]
     public async Task VerifyContainsIsChecked()
     {
-        await Verify(ContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(ContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1316,7 +1316,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-001")]
     public async Task VerifySequenceEqualIsChecked()
     {
-        await Verify(SequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(SequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1328,7 +1328,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-005")]
     public async Task VerifyStaticContainsAndSequenceEqualFormsAreChecked()
     {
-        await Verify(StaticContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
+        await Verify(StaticContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -1339,7 +1339,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-005")]
     public async Task VerifyConditionalAccessContainsAndSequenceEqualAreChecked()
     {
-        await Verify(ConditionalAccessContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(ConditionalAccessContainsAndSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1361,7 +1361,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("SHARED-EQUAL-002")]
     public async Task VerifyContainsAndSequenceEqualWithNonCustomComparerAreChecked()
     {
-        await Verify(ContainsAndSequenceEqualNonCustomComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 5));
+        await Verify(ContainsAndSequenceEqualNonCustomComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -1393,7 +1393,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-004")]
     public async Task VerifyContainsOnReceiversWithoutDictionarySemanticsIsChecked()
     {
-        await Verify(ReadOnlyCollectionReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(ReadOnlyCollectionReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -1426,7 +1426,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-004")]
     public async Task VerifyContainsWithNonCustomComparerOnDictionaryReceiverIsChecked()
     {
-        await Verify(DictionaryReceiverContainsWithComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(DictionaryReceiverContainsWithComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1437,7 +1437,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-004")]
     public async Task VerifyContainsOnKeyValuePairSequenceWithoutDictionaryTypeIsChecked()
     {
-        await Verify(KeyValuePairSequenceContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(KeyValuePairSequenceContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1448,7 +1448,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-004")]
     public async Task VerifySequenceEqualOnDictionaryReceiverIsChecked()
     {
-        await Verify(DictionaryReceiverSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+        await Verify(DictionaryReceiverSequenceEqualTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1481,7 +1481,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [Requirement("RH1002-004")]
     public async Task VerifyContainsOnConcreteReadOnlyOnlyDictionaryIsChecked()
     {
-        await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(ReadOnlyOnlyDictionaryReceiverContainsTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1532,7 +1532,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 20));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 20));
     }
 
     /// <summary>
@@ -1613,7 +1613,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1699,7 +1699,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -1730,7 +1730,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -1800,7 +1800,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 10));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 10));
     }
 
     /// <summary>
@@ -1829,7 +1829,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1860,7 +1860,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1896,7 +1896,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1980,7 +1980,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 11));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 11));
     }
 
     /// <summary>
@@ -2016,7 +2016,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -2051,7 +2051,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2082,7 +2082,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2118,7 +2118,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -2157,7 +2157,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -2202,7 +2202,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -2234,7 +2234,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -2269,7 +2269,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2311,7 +2311,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2354,7 +2354,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2404,7 +2404,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 4));
+        await Verify(source, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     #endregion // Methods

@@ -29,7 +29,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer : State
     /// Constructor
     /// </summary>
     public RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5006Title), nameof(AnalyzerResources.RH5006MessageFormat), SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement)
     {
     }
 

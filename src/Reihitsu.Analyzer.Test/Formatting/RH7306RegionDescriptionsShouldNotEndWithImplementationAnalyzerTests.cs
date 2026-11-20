@@ -74,7 +74,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat, 2));
+                     Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -366,7 +366,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat));
+        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -384,7 +384,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
                                 #endregion // Record
                                 """;
 
-        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat));
+        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -425,7 +425,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
         // fixer must still converge to correcting them once
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat, 2));
+                                  Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -44,7 +44,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+                              Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

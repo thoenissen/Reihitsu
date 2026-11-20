@@ -44,7 +44,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5022MessageFormat));
+                              Diagnostics(RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

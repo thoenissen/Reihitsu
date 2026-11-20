@@ -30,7 +30,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5307Title), nameof(AnalyzerResources.RH5307MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

@@ -66,7 +66,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, AnalyzerResources.RH5030MessageFormat));
+                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, MessageFormat));
     }
 
     /// <summary>
@@ -344,7 +344,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+                              Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -424,7 +424,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat, 2));
+                              Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -476,7 +476,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, AnalyzerResources.RH5030MessageFormat));
+                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, MessageFormat));
     }
 
     /// <summary>
@@ -543,7 +543,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+                              Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -597,7 +597,7 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, AnalyzerResources.RH5030MessageFormat));
+                              ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, MessageFormat));
     }
 
     /// <summary>

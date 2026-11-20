@@ -55,7 +55,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat));
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat, 10));
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, MessageFormat, 10));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat));
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -231,7 +231,7 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH2007MessageFormat));
+        await Verify(testData, Diagnostics(RH2007DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

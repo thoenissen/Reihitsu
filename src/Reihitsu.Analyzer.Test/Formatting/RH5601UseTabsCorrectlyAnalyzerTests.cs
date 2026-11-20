@@ -54,7 +54,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         const string testData = "internal class TestClass\r\n{\r\n{|#0:\t|}void Method()\r\n    {\r\n    }\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n    }\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -232,7 +232,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         const string testData = "internal class TestClass\r\n{\r\n#pragma{|#0:\t|}warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n#pragma    warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -248,7 +248,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         const string testData = "internal class TestClass\n{\n    int{|#0:\t|}x;{|#1:\t|}// note\n}";
         const string fixedData = "internal class TestClass\n{\n    int    x;    // note\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -263,7 +263,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         const string testData = "#define{|#0:\t|}FEATURE\ninternal class TestClass\n{\n}";
         const string fixedData = "#define    FEATURE\ninternal class TestClass\n{\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         const string testData = "internal class TestClass\n{\n    int{|#0:\t|}{|#1:\t|}x;\n}";
         const string fixedData = "internal class TestClass\n{\n    int        x;\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -329,7 +329,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
 
         var testData = source.Replace("→", "\t");
 
-        await Verify(testData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -365,7 +365,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
 
         var testData = source.Replace("→", "\t");
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -597,7 +597,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -625,7 +625,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -649,7 +649,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -679,7 +679,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -708,7 +708,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -768,7 +768,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -795,7 +795,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -827,7 +827,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -853,7 +853,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -882,7 +882,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         await Verify(ExpandWhitespaceMarkers(testData),
                      ExpandWhitespaceMarkers(fixedData),
                      static test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
-                     Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+                     Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -911,7 +911,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         await Verify(ExpandWhitespaceMarkers(testData),
                      ExpandWhitespaceMarkers(fixedData),
                      static test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
-                     Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+                     Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -936,7 +936,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -961,7 +961,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -986,7 +986,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1011,7 +1011,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1036,7 +1036,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1061,7 +1061,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1092,7 +1092,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1117,7 +1117,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1147,7 +1147,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1174,7 +1174,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1200,7 +1200,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
                                  }
                                  """;
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -1217,7 +1217,7 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         // exercising the batch fixer's handling of adjacent same-line replacements
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+                                  Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

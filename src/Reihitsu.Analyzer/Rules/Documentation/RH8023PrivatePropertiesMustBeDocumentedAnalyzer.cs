@@ -28,7 +28,7 @@ public class RH8023PrivatePropertiesMustBeDocumentedAnalyzer : SplitElementDocum
     /// Constructor
     /// </summary>
     public RH8023PrivatePropertiesMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8023Title), nameof(AnalyzerResources.RH8023MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.PropertyDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.PropertyDeclaration)
     {
     }
 

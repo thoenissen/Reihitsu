@@ -29,7 +29,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     /// Constructor
     /// </summary>
     public RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7501Title), nameof(AnalyzerResources.RH7501MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

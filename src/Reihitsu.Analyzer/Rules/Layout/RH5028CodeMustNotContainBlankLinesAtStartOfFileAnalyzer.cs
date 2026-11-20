@@ -29,7 +29,7 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5028Title), nameof(AnalyzerResources.RH5028MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

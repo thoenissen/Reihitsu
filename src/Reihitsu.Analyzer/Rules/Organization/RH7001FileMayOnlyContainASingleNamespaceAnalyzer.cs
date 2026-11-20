@@ -28,7 +28,7 @@ public class RH7001FileMayOnlyContainASingleNamespaceAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH7001FileMayOnlyContainASingleNamespaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7001Title), nameof(AnalyzerResources.RH7001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

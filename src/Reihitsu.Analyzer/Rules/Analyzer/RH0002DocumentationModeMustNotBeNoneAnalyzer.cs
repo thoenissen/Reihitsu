@@ -31,7 +31,7 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzer : DiagnosticAnalyzerBa
     /// Constructor
     /// </summary>
     public RH0002DocumentationModeMustNotBeNoneAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Analyzer, nameof(AnalyzerResources.RH0002Title), nameof(AnalyzerResources.RH0002MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Analyzer)
     {
     }
 

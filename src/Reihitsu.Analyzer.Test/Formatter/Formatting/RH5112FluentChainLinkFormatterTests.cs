@@ -64,7 +64,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -218,7 +218,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -318,7 +318,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -368,7 +368,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -704,7 +704,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -875,7 +875,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """";
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -927,7 +927,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

@@ -956,7 +956,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string regionName, string expectedKind)
     {
-        return string.Format(AnalyzerResources.RH7308MessageFormat, regionName, expectedKind);
+        return string.Format(MessageFormat, regionName, expectedKind);
     }
 
     #endregion // Methods

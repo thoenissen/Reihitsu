@@ -38,7 +38,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5204Title), nameof(AnalyzerResources.RH5204MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

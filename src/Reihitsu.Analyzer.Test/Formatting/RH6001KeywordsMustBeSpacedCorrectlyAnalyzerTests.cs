@@ -72,7 +72,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -223,7 +223,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat, 11));
+        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 11));
     }
 
     /// <summary>
@@ -259,7 +259,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -950,7 +950,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
         await Verify(testData,
                      fixedData,
                      test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject),
-                     Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
+                     Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -993,7 +993,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTest
         // inserts a single space at its own keyword's boundary, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat, 2));
+                                  Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -29,7 +29,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH8104ElementParameterDocumentationMustHaveTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8104Title), nameof(AnalyzerResources.RH8104MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

@@ -48,7 +48,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, AnalyzerResources.RH5023MessageFormat));
+                              Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

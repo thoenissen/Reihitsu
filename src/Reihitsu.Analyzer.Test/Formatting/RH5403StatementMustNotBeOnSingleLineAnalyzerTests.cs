@@ -70,7 +70,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
 
         await Verify(testData,
                      test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject),
-                     Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat, 5));
+                     Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+        await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -204,7 +204,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+        await Verify(testData, Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -856,7 +856,7 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
         // overlap-discarding path rather than two independently applied changes
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat, 2));
+                                  Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -29,7 +29,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAn
     /// Constructor
     /// </summary>
     public RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7302Title), nameof(AnalyzerResources.RH7302MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

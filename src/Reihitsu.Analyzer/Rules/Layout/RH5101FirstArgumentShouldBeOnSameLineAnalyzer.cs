@@ -30,7 +30,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH5101FirstArgumentShouldBeOnSameLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5101Title), nameof(AnalyzerResources.RH5101MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

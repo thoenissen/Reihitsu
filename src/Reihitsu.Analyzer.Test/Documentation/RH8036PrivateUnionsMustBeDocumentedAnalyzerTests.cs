@@ -41,7 +41,7 @@ public class RH8036PrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8036PrivateUnionsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8036MessageFormat));
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8036PrivateUnionsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

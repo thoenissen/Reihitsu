@@ -52,7 +52,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineFormatterTests
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 18, AnalyzerResources.RH5016MessageFormat));
+                              ExpectedDiagnostic(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 18, MessageFormat));
     }
 
     #endregion // Tests

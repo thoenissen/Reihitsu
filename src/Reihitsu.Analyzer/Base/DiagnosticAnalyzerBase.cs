@@ -33,31 +33,42 @@ public class DiagnosticAnalyzerBase : DiagnosticAnalyzer
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName)
-        : this(diagnosticId, category, titleResourceName, messageFormatResourceName, true)
+    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category)
+        : this(diagnosticId, category, true)
     {
     }
 
     /// <summary>
-    /// Constructor
+    /// Constructor. The title and the message format of the rule are the resources <c>&lt;ID&gt;Title</c> and
+    /// <c>&lt;ID&gt;MessageFormat</c> of <see cref="AnalyzerResources"/>, named by the diagnostic ID
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
     /// <param name="isEnabledByDefault">Whether the rule is enabled by default</param>
-    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, bool isEnabledByDefault)
+    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, bool isEnabledByDefault)
     {
-        var title = new LocalizableResourceString(titleResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
-        var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
+        var title = new LocalizableResourceString(diagnosticId + "Title", AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
+        var messageFormat = new LocalizableResourceString(diagnosticId + "MessageFormat", AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
         _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
         _supportedDiagnostics = [_rule];
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Title of the rule in the current UI culture
+    /// </summary>
+    public string Title => _rule.Title.ToString();
+
+    /// <summary>
+    /// Message format of the rule in the current UI culture
+    /// </summary>
+    public string MessageFormat => _rule.MessageFormat.ToString();
+
+    #endregion // Properties
 
     #region Methods
 

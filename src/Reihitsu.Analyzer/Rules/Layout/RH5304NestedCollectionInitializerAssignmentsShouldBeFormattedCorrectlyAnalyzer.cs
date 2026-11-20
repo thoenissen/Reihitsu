@@ -31,7 +31,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// Constructor
     /// </summary>
     public RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5304Title), nameof(AnalyzerResources.RH5304MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

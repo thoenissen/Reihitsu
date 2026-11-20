@@ -46,7 +46,7 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class RH5048FluentChainLinkAnalyzerTests : AnalyzerTestsBase<RH5048Commen
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

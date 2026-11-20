@@ -53,7 +53,7 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     Diagnostic(RH4009NamespaceNotAllowedAnalyzer.DiagnosticId).WithSpan(3, 11, 3, 24).WithMessage(AnalyzerResources.RH4009MessageFormat));
+                     Diagnostic(RH4009NamespaceNotAllowedAnalyzer.DiagnosticId).WithSpan(3, 11, 3, 24).WithMessage(MessageFormat));
     }
 
     /// <summary>

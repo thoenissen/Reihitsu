@@ -44,7 +44,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat));
+                              Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

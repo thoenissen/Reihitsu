@@ -29,7 +29,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH8107VoidReturnValueMustNotBeDocumentedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8107Title), nameof(AnalyzerResources.RH8107MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

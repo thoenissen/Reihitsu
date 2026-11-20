@@ -31,7 +31,7 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     /// Constructor
     /// </summary>
     public RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8109Title), nameof(AnalyzerResources.RH8109MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

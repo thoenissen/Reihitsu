@@ -88,29 +88,10 @@ public abstract class StatementBracesCodeFixProviderBase : ReihitsuCodeFixProvid
         changes = null;
 
         var body = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<StatementSyntax>();
-        SyntaxToken ownerKeyword;
-        SyntaxToken headerEnd;
 
-        switch (body?.Parent)
+        if (TryGetOwnerTokens(body, out var ownerKeyword, out var headerEnd) == false)
         {
-            case IfStatementSyntax ifStatement:
-                {
-                    ownerKeyword = ifStatement.IfKeyword;
-                    headerEnd = ifStatement.CloseParenToken;
-                }
-                break;
-
-            case ElseClauseSyntax { Parent: IfStatementSyntax } elseClause:
-                {
-                    ownerKeyword = elseClause.ElseKeyword;
-                    headerEnd = elseClause.ElseKeyword;
-                }
-                break;
-
-            default:
-                {
-                    return false;
-                }
+            return false;
         }
 
         var lines = text.Lines;
@@ -169,6 +150,25 @@ public abstract class StatementBracesCodeFixProviderBase : ReihitsuCodeFixProvid
         changes = [openingChange, closingChange];
 
         return true;
+    }
+
+    /// <summary>
+    /// Gets the keyword of the <c>if</c> or <c>else</c> that owns a body, and the last token of the owner's header
+    /// </summary>
+    /// <param name="body">The reported body</param>
+    /// <param name="ownerKeyword">The <c>if</c> or <c>else</c> keyword of the owner</param>
+    /// <param name="headerEnd">The closing parenthesis of an <c>if</c>, or the <c>else</c> keyword</param>
+    /// <returns><see langword="true"/> when the body belongs to an <c>if</c> or an <c>else</c> of an <c>if</c></returns>
+    private static bool TryGetOwnerTokens(StatementSyntax body, out SyntaxToken ownerKeyword, out SyntaxToken headerEnd)
+    {
+        (ownerKeyword, headerEnd) = body?.Parent switch
+                                    {
+                                        IfStatementSyntax ifStatement => (ifStatement.IfKeyword, ifStatement.CloseParenToken),
+                                        ElseClauseSyntax { Parent: IfStatementSyntax } elseClause => (elseClause.ElseKeyword, elseClause.ElseKeyword),
+                                        _ => (default, default)
+                                    };
+
+        return ownerKeyword.IsKind(SyntaxKind.None) == false;
     }
 
     /// <summary>

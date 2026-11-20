@@ -39,7 +39,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -202,7 +202,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -389,7 +389,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -416,7 +416,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -443,7 +443,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -468,7 +468,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -648,7 +648,7 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -675,8 +675,8 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -703,8 +703,8 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -29,7 +29,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5011Title), nameof(AnalyzerResources.RH5011MessageFormat), SyntaxKind.BreakStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.BreakStatement)
     {
     }
 

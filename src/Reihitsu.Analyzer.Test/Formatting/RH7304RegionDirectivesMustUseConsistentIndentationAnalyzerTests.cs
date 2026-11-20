@@ -114,7 +114,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -198,7 +198,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -232,7 +232,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -389,7 +389,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
 
         await Verify(testData,
                      test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -468,7 +468,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                     Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -995,7 +995,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
         // Each fix only re-indents its own directive line, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH7304MessageFormat, 2));
+                                  Diagnostics(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

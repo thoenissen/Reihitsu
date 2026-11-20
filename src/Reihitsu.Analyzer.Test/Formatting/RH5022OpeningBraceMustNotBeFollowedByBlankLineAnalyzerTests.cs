@@ -69,7 +69,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5022MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -481,7 +481,7 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
         // removal span sits close behind the first fix's own removal
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5022MessageFormat, 2));
+                                  Diagnostics(RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

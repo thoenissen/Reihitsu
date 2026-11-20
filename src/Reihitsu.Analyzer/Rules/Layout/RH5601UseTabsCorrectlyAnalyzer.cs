@@ -29,7 +29,7 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5601UseTabsCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5601Title), nameof(AnalyzerResources.RH5601MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

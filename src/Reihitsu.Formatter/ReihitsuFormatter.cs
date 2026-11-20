@@ -356,7 +356,7 @@ public static class ReihitsuFormatter
 
         var originalLastToken = targetNode.GetLastToken();
         var formattedLastToken = formattedTarget.GetLastToken();
-        var trailingTrivia = EndTargetLineAsFormatted(originalLastToken.TrailingTrivia, ReihitsuFormatterHelpers.DetectEndOfLine(root));
+        var trailingTrivia = TargetWriteBackUtilities.EndTargetLineAsFormatted(originalLastToken.TrailingTrivia, ReihitsuFormatterHelpers.DetectEndOfLine(root));
 
         formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(trailingTrivia));
 
@@ -542,7 +542,7 @@ public static class ReihitsuFormatter
             trailingTrivia = RemoveLeadingComments(trailingTrivia, keptCommentCount);
         }
 
-        trailingTrivia = EndTargetLineAsFormatted(trailingTrivia, endOfLine);
+        trailingTrivia = TargetWriteBackUtilities.EndTargetLineAsFormatted(trailingTrivia, endOfLine);
 
         return formattedTarget.ReplaceTokens(markedTokens.Append(formattedLastToken).Distinct(),
                                              (original, rewritten) =>
@@ -553,34 +553,6 @@ public static class ReihitsuFormatter
                                                             ? unmarkedToken.WithTrailingTrivia(trailingTrivia)
                                                             : unmarkedToken;
                                              });
-    }
-
-    /// <summary>
-    /// Ends the target's last line, when its trailing trivia ends in a line break, as the phases end every other line of the
-    /// target: the line break is written in the line ending detected for the document, and the whitespace directly in front of
-    /// it is removed, behind the last token or behind a delimited comment alike (FMT-PIPE-010, SHARED-FIX-008). Whitespace in
-    /// front of a comment and the text of a comment stay; a trailing trivia without a line break, because code follows the
-    /// target on its line, is returned as it stands
-    /// </summary>
-    /// <param name="trailingTrivia">The trailing trivia written back behind the target</param>
-    /// <param name="endOfLine">The line ending detected for the document</param>
-    /// <returns>The trailing trivia with the target's last line ended as formatted</returns>
-    private static SyntaxTriviaList EndTargetLineAsFormatted(SyntaxTriviaList trailingTrivia, string endOfLine)
-    {
-        if (trailingTrivia.Count == 0
-            || trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return trailingTrivia;
-        }
-
-        var lineBreak = trailingTrivia[trailingTrivia.Count - 1];
-
-        if (lineBreak.ToFullString() != endOfLine)
-        {
-            lineBreak = SyntaxFactory.EndOfLine(endOfLine);
-        }
-
-        return TriviaListUtilities.RemoveTrailingWhitespace(trailingTrivia.RemoveAt(trailingTrivia.Count - 1)).Add(lineBreak);
     }
 
     /// <summary>
@@ -748,13 +720,13 @@ public static class ReihitsuFormatter
             return new FormattingResult<Document>(document, contextResult.Unsupported);
         }
 
-        if (TryGetSplitFields(contextResult.Output, targetField, targetFieldAnnotation, out var formattedFields) == false)
+        if (TargetWriteBackUtilities.TryGetSplitFields(contextResult.Output, targetField, targetFieldAnnotation, out var formattedFields) == false)
         {
             return new FormattingResult<Document>(document, null);
         }
 
         var sharesLineWithPrecedingMember = mayShareLineWithPrecedingMember
-                                            && StartsLineInLayout(formattedFields[0].GetFirstToken());
+                                            && TargetWriteBackUtilities.StartsLineInLayout(formattedFields[0].GetFirstToken());
 
         if (mayShareLineWithPrecedingMember
             && sharesLineWithPrecedingMember == false)
@@ -769,138 +741,25 @@ public static class ReihitsuFormatter
                                                     targetFieldAnnotation,
                                                     cancellationToken);
 
-            if (TryGetSplitFields(secondContextResult.Output, targetField, targetFieldAnnotation, out formattedFields) == false)
+            if (TargetWriteBackUtilities.TryGetSplitFields(secondContextResult.Output, targetField, targetFieldAnnotation, out formattedFields) == false)
             {
                 return new FormattingResult<Document>(document, null);
             }
         }
 
         var sharesLineWithFollowingMember = mayShareLineWithFollowingMember
-                                            && StartsLineInLayout(formattedFields[formattedFields.Count - 1].GetLastToken().GetNextToken());
+                                            && TargetWriteBackUtilities.StartsLineInLayout(formattedFields[formattedFields.Count - 1].GetLastToken().GetNextToken());
 
-        var memberIndentation = SyntaxFactory.Whitespace(new string(' ', SyntaxTokenPositionUtilities.GetColumn(formattedFields[1].GetFirstToken())));
-        var lineBreak = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
-        var fields = new List<MemberDeclarationSyntax>(formattedFields.Count);
-
-        for (var fieldIndex = 0; fieldIndex < formattedFields.Count; fieldIndex++)
-        {
-            var field = formattedFields[fieldIndex].WithoutAnnotations(targetFieldAnnotation);
-
-            if (fieldIndex == 0)
-            {
-                // The target's leading trivia is written back as it stands in the document (FMT-PIPE-018); behind another
-                // member, the line break in front of it puts it where the phases place a member
-                var leadingTrivia = sharesLineWithPrecedingMember
-                                        ? SyntaxFactory.TriviaList(memberIndentation).AddRange(TrimLeadingWhitespace(originalFirstToken.LeadingTrivia))
-                                        : originalFirstToken.LeadingTrivia;
-                var firstToken = field.GetFirstToken();
-
-                field = field.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(leadingTrivia).WithoutAnnotations(targetTokenAnnotation));
-            }
-
-            if (fieldIndex == formattedFields.Count - 1)
-            {
-                var trailingTrivia = sharesLineWithFollowingMember
-                                         ? TriviaListUtilities.RemoveTrailingWhitespace(originalLastToken.TrailingTrivia).Add(lineBreak)
-                                         : EndTargetLineAsFormatted(originalLastToken.TrailingTrivia, lineBreak.ToFullString());
-                var lastToken = field.GetLastToken();
-
-                field = field.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(trailingTrivia));
-            }
-
-            fields.Add(field);
-        }
-
-        var updatedMembers = new List<MemberDeclarationSyntax>(members.Count + fields.Count);
-
-        for (var memberIndex = 0; memberIndex < members.Count; memberIndex++)
-        {
-            var member = members[memberIndex];
-
-            if (memberIndex == targetIndex)
-            {
-                updatedMembers.AddRange(fields);
-            }
-            else if (memberIndex == targetIndex - 1
-                     && sharesLineWithPrecedingMember)
-            {
-                // A comment that trails the member in front stays behind it; only the whitespace behind it ends the line
-                var lastToken = member.GetLastToken();
-
-                updatedMembers.Add(member.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(TriviaListUtilities.RemoveTrailingWhitespace(lastToken.TrailingTrivia).Add(lineBreak))));
-            }
-            else if (memberIndex == targetIndex + 1
-                     && sharesLineWithFollowingMember)
-            {
-                // The member behind keeps its leading trivia, a documentation comment included, and starts the next line
-                var firstToken = member.GetFirstToken();
-
-                updatedMembers.Add(member.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList(memberIndentation).AddRange(TrimLeadingWhitespace(firstToken.LeadingTrivia)))));
-            }
-            else
-            {
-                updatedMembers.Add(member);
-            }
-        }
+        var updatedMembers = TargetWriteBackUtilities.ReplaceTargetBySplitFields(members,
+                                                                                 targetIndex,
+                                                                                 formattedFields,
+                                                                                 sharesLineWithPrecedingMember,
+                                                                                 sharesLineWithFollowingMember,
+                                                                                 ReihitsuFormatterHelpers.DetectEndOfLine(root),
+                                                                                 targetTokenAnnotation,
+                                                                                 targetFieldAnnotation);
 
         return new FormattingResult<Document>(document.WithSyntaxRoot(root.ReplaceNode(declaringType, declaringType.WithMembers(SyntaxFactory.List(updatedMembers)))), null);
-    }
-
-    /// <summary>
-    /// Gets the fields the split makes of the target in a formatted copy of the context, in source order
-    /// </summary>
-    /// <param name="formattedContext">The formatted copy of the context</param>
-    /// <param name="targetField">The field declaration the split splits</param>
-    /// <param name="targetFieldAnnotation">The annotation that marks every field the split makes of the target</param>
-    /// <param name="formattedFields">One field per declarator of the target</param>
-    /// <returns><see langword="true"/> if the copy holds one single-declarator field per declarator of the target; otherwise, <see langword="false"/></returns>
-    private static bool TryGetSplitFields(SyntaxNode formattedContext, FieldDeclarationSyntax targetField, SyntaxAnnotation targetFieldAnnotation, out List<FieldDeclarationSyntax> formattedFields)
-    {
-        formattedFields = formattedContext.GetAnnotatedNodes(targetFieldAnnotation)
-                                          .OfType<FieldDeclarationSyntax>()
-                                          .ToList();
-
-        return formattedFields.Count == targetField.Declaration.Variables.Count
-               && formattedFields.All(field => field.Declaration.Variables.Count == 1);
-    }
-
-    /// <summary>
-    /// Determines whether the phases started the line of a member's first token in a formatted copy of the context: the token
-    /// starts its line, or a documentation comment in its leading trivia does (FMT-PIPE-029). The documentation-comment phase
-    /// starts the line of a documentation comment written behind code, and the line-break phase starts a member's line where
-    /// the gap in front of it holds no line break, so reading the result covers both without restating either
-    /// </summary>
-    /// <param name="firstToken">The member's first token in the formatted copy of the context</param>
-    /// <returns><see langword="true"/> if the token or a documentation comment in front of it starts a line; otherwise, <see langword="false"/></returns>
-    private static bool StartsLineInLayout(SyntaxToken firstToken)
-    {
-        if (SyntaxTokenPositionUtilities.StartsLine(firstToken))
-        {
-            return true;
-        }
-
-        var leadingTrivia = firstToken.LeadingTrivia;
-
-        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
-        {
-            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(leadingTrivia[triviaIndex])
-                && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(firstToken, triviaIndex))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Removes the whitespace a trivia list starts with
-    /// </summary>
-    /// <param name="trivia">The trivia list</param>
-    /// <returns>The trivia list without its leading whitespace</returns>
-    private static SyntaxTriviaList TrimLeadingWhitespace(SyntaxTriviaList trivia)
-    {
-        return SyntaxFactory.TriviaList(trivia.SkipWhile(static item => item.IsKind(SyntaxKind.WhitespaceTrivia)));
     }
 
     /// <summary>

@@ -29,7 +29,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzer : DiagnosticAnalyzer
     /// Constructor
     /// </summary>
     public RH7004UsingDeclarationsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7004Title), nameof(AnalyzerResources.RH7004MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

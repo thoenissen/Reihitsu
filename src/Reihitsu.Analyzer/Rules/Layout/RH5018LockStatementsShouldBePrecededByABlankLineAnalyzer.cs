@@ -29,7 +29,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer : Statemen
     /// Constructor
     /// </summary>
     public RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5018Title), nameof(AnalyzerResources.RH5018MessageFormat), SyntaxKind.LockStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.LockStatement)
     {
     }
 

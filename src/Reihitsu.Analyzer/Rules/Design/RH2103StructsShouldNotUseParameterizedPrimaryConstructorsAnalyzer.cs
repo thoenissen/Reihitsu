@@ -29,7 +29,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer :
     /// Constructor
     /// </summary>
     public RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2103Title), nameof(AnalyzerResources.RH2103MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

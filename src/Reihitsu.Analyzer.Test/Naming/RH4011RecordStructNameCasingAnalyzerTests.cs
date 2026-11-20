@@ -37,7 +37,7 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
                                  public record struct Currencyvalue(decimal Amount);
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4011RecordStructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4011MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4011RecordStructNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public class RH4011RecordStructNameCasingAnalyzerTests : BatchCodeFixTestsBase<R
         // outside its own declaration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4011RecordStructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4011MessageFormat, 2));
+                                  Diagnostics(RH4011RecordStructNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

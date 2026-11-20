@@ -62,7 +62,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  internal partial record struct TestRecordStruct;
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 5));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 2));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -382,7 +382,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -425,7 +425,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -465,7 +465,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -498,7 +498,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -704,7 +704,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
         // computed against overlapping subtrees while their text changes stay confined to the inserted keyword
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat, 2));
+                                  Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

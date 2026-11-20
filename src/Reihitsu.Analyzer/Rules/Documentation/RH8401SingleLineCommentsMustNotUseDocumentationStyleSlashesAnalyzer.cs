@@ -31,7 +31,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     /// Constructor
     /// </summary>
     public RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8401Title), nameof(AnalyzerResources.RH8401MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

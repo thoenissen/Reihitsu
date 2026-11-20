@@ -43,7 +43,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+                              Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

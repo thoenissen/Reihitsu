@@ -30,7 +30,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH7104PartialElementsMustDeclareAccessModifierAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7104Title), nameof(AnalyzerResources.RH7104MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

@@ -71,7 +71,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -249,7 +249,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -313,7 +313,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -333,7 +333,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  internal delegate void TestDelegate(int value);
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -353,7 +353,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  internal record TestRecord(int Value);
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -373,7 +373,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  internal record struct TestRecord(int Value);
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
 
         await Verify(testData,
                      test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat, 6));
+                     Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -523,7 +523,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -603,7 +603,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -633,7 +633,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -749,7 +749,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
         // occurrences are corrected independently
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat, 2));
+                                  Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

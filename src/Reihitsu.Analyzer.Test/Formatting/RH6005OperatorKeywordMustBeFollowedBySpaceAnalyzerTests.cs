@@ -57,7 +57,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -250,7 +250,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : BatchCode
         // at their own keyword's boundary, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat, 2));
+                                  Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

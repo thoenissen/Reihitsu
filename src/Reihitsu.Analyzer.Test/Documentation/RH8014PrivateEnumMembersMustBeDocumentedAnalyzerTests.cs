@@ -37,7 +37,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8014MessageFormat));
+        await Verify(source, Diagnostics(RH8014PrivateEnumMembersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

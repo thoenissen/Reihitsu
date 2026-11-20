@@ -37,7 +37,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 3, 3, 11, AnalyzerResources.RH5204MessageFormat));
+                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 3, 3, 11, MessageFormat));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 1, 3, 11, AnalyzerResources.RH5204MessageFormat));
+                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 1, 3, 11, MessageFormat));
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 4, 11, 4, 12, AnalyzerResources.RH5204MessageFormat));
+                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 4, 11, 4, 12, MessageFormat));
     }
 
     #endregion // Tests

@@ -26,7 +26,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer : Region
     /// Constructor
     /// </summary>
     public RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5031Title), nameof(AnalyzerResources.RH5031MessageFormat), requirePrecedingBlankLine: true)
+        : base(DiagnosticId, requirePrecedingBlankLine: true)
     {
     }
 

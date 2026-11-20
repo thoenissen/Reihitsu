@@ -54,7 +54,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -302,7 +302,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+                              Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

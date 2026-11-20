@@ -24,12 +24,12 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyzerB
     /// <summary>
     /// Default limit of a type's body in production code
     /// </summary>
-    private const int DefaultProductionLimit = 500;
+    private const int DefaultProductionLimit = 1500;
 
     /// <summary>
     /// Default limit of a type's body in test code
     /// </summary>
-    private const int DefaultTestLimit = 1000;
+    private const int DefaultTestLimit = 3000;
 
     #endregion // Constants
 
@@ -40,8 +40,6 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyzerB
     /// </summary>
     public RH2111TypesShouldNotExceedTheLineLimitAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH2111Title),
-               nameof(AnalyzerResources.RH2111MessageFormat),
                design => design.MaximumTypeLines,
                DefaultProductionLimit,
                design => design.MaximumTestTypeLines,

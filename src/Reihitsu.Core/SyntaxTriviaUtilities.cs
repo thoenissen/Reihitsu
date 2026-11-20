@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -503,150 +502,11 @@ public static class SyntaxTriviaUtilities
     /// <returns><see langword="true"/> if the braces would split a directive pair</returns>
     public static bool SplitsDirectivePair(SyntaxNode root, int openBracePosition, int closeBracePosition)
     {
-        var conditionalGroups = new Stack<int>();
-        var regionStarts = new Stack<int>();
-        var lastDirectiveOfSetting = new Dictionary<(SyntaxKind Kind, string Setting), int>();
-        var lastDirectiveOfAllSettings = new Dictionary<SyntaxKind, int>();
+        var scan = new DirectivePairSplitScan(openBracePosition, closeBracePosition);
 
-        bool SplitsSpan(int start, int end)
-        {
-            var openInside = start < openBracePosition && openBracePosition <= end;
-            var closeInside = start < closeBracePosition && closeBracePosition <= end;
-
-            return openInside != closeInside;
-        }
-
-        bool SplitsSettingPair(SyntaxKind kind, IReadOnlyList<string> settings, int position)
-        {
-            var splits = false;
-
-            if (settings.Count == 0)
-            {
-                foreach (var entry in lastDirectiveOfSetting.Where(entry => entry.Key.Kind == kind).ToList())
-                {
-                    splits |= SplitsSpan(entry.Value, position);
-                    lastDirectiveOfSetting.Remove(entry.Key);
-                }
-
-                if (lastDirectiveOfAllSettings.TryGetValue(kind, out var previousPosition))
-                {
-                    splits |= SplitsSpan(previousPosition, position);
-                }
-
-                lastDirectiveOfAllSettings[kind] = position;
-
-                return splits;
-            }
-
-            foreach (var setting in settings)
-            {
-                var hasPrevious = lastDirectiveOfSetting.TryGetValue((kind, setting), out var previousPosition);
-
-                if (lastDirectiveOfAllSettings.TryGetValue(kind, out var allSettingsPosition)
-                    && (hasPrevious == false || allSettingsPosition > previousPosition))
-                {
-                    previousPosition = allSettingsPosition;
-                    hasPrevious = true;
-                }
-
-                splits |= hasPrevious && SplitsSpan(previousPosition, position);
-                lastDirectiveOfSetting[(kind, setting)] = position;
-            }
-
-            return splits;
-        }
-
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsDirective))
-        {
-            var position = trivia.SpanStart;
-
-            switch (trivia.GetStructure())
-            {
-                case IfDirectiveTriviaSyntax:
-                    {
-                        conditionalGroups.Push(position);
-                    }
-                    break;
-
-                case ElifDirectiveTriviaSyntax:
-                case ElseDirectiveTriviaSyntax:
-                case EndIfDirectiveTriviaSyntax:
-                    {
-                        if (conditionalGroups.Count > 0)
-                        {
-                            if (SplitsSpan(conditionalGroups.Pop(), position))
-                            {
-                                return true;
-                            }
-
-                            if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia) == false)
-                            {
-                                conditionalGroups.Push(position);
-                            }
-                        }
-                    }
-                    break;
-
-                case RegionDirectiveTriviaSyntax:
-                    {
-                        regionStarts.Push(position);
-                    }
-                    break;
-
-                case EndRegionDirectiveTriviaSyntax:
-                    {
-                        if (regionStarts.Count > 0
-                            && SplitsSpan(regionStarts.Pop(), position))
-                        {
-                            return true;
-                        }
-                    }
-                    break;
-
-                case PragmaWarningDirectiveTriviaSyntax pragmaWarningDirective:
-                    {
-                        if (SplitsSettingPair(SyntaxKind.PragmaWarningDirectiveTrivia, pragmaWarningDirective.ErrorCodes.Select(GetWarningCode).ToList(), position))
-                        {
-                            return true;
-                        }
-                    }
-                    break;
-
-                case NullableDirectiveTriviaSyntax nullableDirective:
-                    {
-                        IReadOnlyList<string> settings = nullableDirective.TargetToken.IsKind(SyntaxKind.None)
-                                                             ? []
-                                                             : [nullableDirective.TargetToken.ValueText];
-
-                        if (SplitsSettingPair(SyntaxKind.NullableDirectiveTrivia, settings, position))
-                        {
-                            return true;
-                        }
-                    }
-                    break;
-
-                case PragmaChecksumDirectiveTriviaSyntax:
-                    {
-                        if (SplitsSettingPair(SyntaxKind.PragmaChecksumDirectiveTrivia, [], position))
-                        {
-                            return true;
-                        }
-                    }
-                    break;
-
-                case LineDirectiveTriviaSyntax:
-                case LineSpanDirectiveTriviaSyntax:
-                    {
-                        if (SplitsSettingPair(SyntaxKind.LineDirectiveTrivia, [], position))
-                        {
-                            return true;
-                        }
-                    }
-                    break;
-            }
-        }
-
-        return false;
+        return root.DescendantTrivia(descendIntoTrivia: true)
+                   .Where(trivia => trivia.IsDirective)
+                   .Any(scan.Splits);
     }
 
     /// <summary>
@@ -944,18 +804,6 @@ public static class SyntaxTriviaUtilities
         }
 
         return normalized;
-    }
-
-    /// <summary>
-    /// Gets the warning a <c>#pragma warning</c> directive names, so that <c>CS0219</c> and <c>219</c> name the same one
-    /// </summary>
-    /// <param name="errorCode">Error code as written in the directive</param>
-    /// <returns>The warning</returns>
-    private static string GetWarningCode(ExpressionSyntax errorCode)
-    {
-        return errorCode is LiteralExpressionSyntax { Token.Value: int number }
-                   ? "CS" + number.ToString("D4", CultureInfo.InvariantCulture)
-                   : errorCode.ToString().Trim();
     }
 
     #endregion // Methods

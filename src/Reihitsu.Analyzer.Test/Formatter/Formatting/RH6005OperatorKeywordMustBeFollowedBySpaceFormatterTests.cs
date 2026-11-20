@@ -40,7 +40,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceFormatterTests : Formatte
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6005MessageFormat));
+                              Diagnostics(RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

@@ -27,7 +27,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
     /// Constructor
     /// </summary>
     public RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5034Title), nameof(AnalyzerResources.RH5034MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

@@ -28,7 +28,7 @@ public class RH8026NonPrivateFieldsMustBeDocumentedAnalyzer : SplitElementDocume
     /// Constructor
     /// </summary>
     public RH8026NonPrivateFieldsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8026Title), nameof(AnalyzerResources.RH8026MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.FieldDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.FieldDeclaration)
     {
     }
 

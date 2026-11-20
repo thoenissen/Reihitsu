@@ -30,7 +30,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBas
     /// Constructor
     /// </summary>
     public RH7108EventAccessorsMustFollowOrderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7108Title), nameof(AnalyzerResources.RH7108MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

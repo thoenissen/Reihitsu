@@ -51,7 +51,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyFormatterTest
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 1, 6, 2, AnalyzerResources.RH5308MessageFormat));
+                              ExpectedDiagnostic(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 1, 6, 2, MessageFormat));
     }
 
     /// <summary>

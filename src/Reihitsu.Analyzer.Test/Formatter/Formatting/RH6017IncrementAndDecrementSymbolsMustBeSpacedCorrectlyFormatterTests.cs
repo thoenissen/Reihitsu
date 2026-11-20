@@ -46,7 +46,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyFormatterTes
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+                              Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

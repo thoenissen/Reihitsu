@@ -28,8 +28,6 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer : TargetAttr
     /// </summary>
     public RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5504Title),
-               nameof(AnalyzerResources.RH5504MessageFormat),
                AttributeTargets.Module,
                TargetAttributeListShapeMode.SplitLists)
     {

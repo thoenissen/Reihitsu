@@ -29,7 +29,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
     /// Constructor
     /// </summary>
     public RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5047Title), nameof(AnalyzerResources.RH5047MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

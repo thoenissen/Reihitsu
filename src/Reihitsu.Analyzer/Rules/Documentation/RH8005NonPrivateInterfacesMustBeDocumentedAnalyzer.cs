@@ -28,7 +28,7 @@ public class RH8005NonPrivateInterfacesMustBeDocumentedAnalyzer : SplitElementDo
     /// Constructor
     /// </summary>
     public RH8005NonPrivateInterfacesMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8005Title), nameof(AnalyzerResources.RH8005MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.InterfaceDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.InterfaceDeclaration)
     {
     }
 

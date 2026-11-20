@@ -50,7 +50,7 @@ public class RH5525DelegateAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5525MessageFormat));
+                     Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5525DelegateAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5525MessageFormat));
+                     Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -149,7 +149,7 @@ public class RH5525DelegateAttributesMustFollowPlacementRulesAnalyzerTests : Bat
         // opening bracket, and the second fix rewrites the gap up to the delegate keyword, so their fix spans abut
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5525MessageFormat, 2));
+                                  Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

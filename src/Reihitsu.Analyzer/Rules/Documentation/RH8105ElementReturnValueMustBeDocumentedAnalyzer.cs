@@ -29,7 +29,7 @@ public class RH8105ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH8105ElementReturnValueMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8105Title), nameof(AnalyzerResources.RH8105MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

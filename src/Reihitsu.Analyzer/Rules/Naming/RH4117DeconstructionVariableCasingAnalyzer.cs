@@ -32,7 +32,7 @@ public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4117DeconstructionVariableCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4117Title), nameof(AnalyzerResources.RH4117MessageFormat), SyntaxKind.DeclarationExpression, CasingUtilities.IsCamelCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.DeclarationExpression, CasingUtilities.IsCamelCase)
     {
     }
 

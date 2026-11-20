@@ -30,7 +30,7 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : M
     /// Constructor
     /// </summary>
     public RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7409Title), nameof(AnalyzerResources.RH7409MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

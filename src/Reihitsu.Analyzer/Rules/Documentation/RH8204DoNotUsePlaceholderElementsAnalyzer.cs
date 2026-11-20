@@ -30,7 +30,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH8204DoNotUsePlaceholderElementsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8204Title), nameof(AnalyzerResources.RH8204MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

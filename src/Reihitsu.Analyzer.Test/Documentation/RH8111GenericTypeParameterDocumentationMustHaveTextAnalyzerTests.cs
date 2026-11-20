@@ -36,7 +36,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat));
+        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat));
+        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -243,7 +243,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat));
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

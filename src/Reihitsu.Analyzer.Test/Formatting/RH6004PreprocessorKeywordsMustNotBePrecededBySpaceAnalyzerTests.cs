@@ -57,7 +57,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
                                  + "    }\n"
                                  + "}";
 
-        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat, 4));
+        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -207,7 +207,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : B
         // leading whitespace run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat, 2));
+                                  Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

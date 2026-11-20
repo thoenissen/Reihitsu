@@ -73,7 +73,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(testData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
                                                    RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -191,7 +191,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
                                                    RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -228,7 +228,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(testData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
                                                    RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -264,7 +264,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
                                                    RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -431,7 +431,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Tests
@@ -461,7 +461,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : Ba
         // Verifies that Fix All removes multiple same-line whitespace runs in one iteration
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat, 2),
+                                  Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

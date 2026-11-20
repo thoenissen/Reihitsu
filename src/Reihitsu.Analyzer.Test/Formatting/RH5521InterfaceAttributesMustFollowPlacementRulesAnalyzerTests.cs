@@ -50,7 +50,7 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzerTests : Ba
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5521MessageFormat));
+                     Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzerTests : Ba
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5521MessageFormat));
+                     Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -177,7 +177,7 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzerTests : Ba
         // opening bracket, and the second fix rewrites the gap up to the interface keyword, so their fix spans abut
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5521MessageFormat, 2));
+                                  Diagnostics(RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

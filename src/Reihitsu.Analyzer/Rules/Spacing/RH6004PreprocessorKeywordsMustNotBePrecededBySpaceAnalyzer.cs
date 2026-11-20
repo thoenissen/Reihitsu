@@ -30,7 +30,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6004Title), nameof(AnalyzerResources.RH6004MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

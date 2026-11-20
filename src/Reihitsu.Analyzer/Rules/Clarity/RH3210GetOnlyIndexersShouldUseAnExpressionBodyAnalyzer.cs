@@ -27,7 +27,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer : GetOnlyMem
     /// Constructor
     /// </summary>
     public RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH3210Title), nameof(AnalyzerResources.RH3210MessageFormat), SyntaxKind.IndexerDeclaration)
+        : base(DiagnosticId, SyntaxKind.IndexerDeclaration)
     {
     }
 

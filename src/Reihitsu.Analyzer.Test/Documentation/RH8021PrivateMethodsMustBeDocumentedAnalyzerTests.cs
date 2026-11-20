@@ -36,7 +36,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -257,7 +257,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -293,7 +293,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -366,7 +366,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -385,7 +385,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

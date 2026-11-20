@@ -31,7 +31,7 @@ public class RH3005UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH3005UseReadableConditionsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3005Title), nameof(AnalyzerResources.RH3005MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

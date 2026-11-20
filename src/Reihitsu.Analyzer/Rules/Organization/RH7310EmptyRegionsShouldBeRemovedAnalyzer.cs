@@ -31,7 +31,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH7310EmptyRegionsShouldBeRemovedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7310Title), nameof(AnalyzerResources.RH7310MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

@@ -52,7 +52,7 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 14, AnalyzerResources.RH5003MessageFormat));
+                              ExpectedDiagnostic(RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 14, MessageFormat));
     }
 
     #endregion // Tests

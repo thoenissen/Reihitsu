@@ -33,7 +33,7 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzer : DiagnosticAnaly
     /// Constructor
     /// </summary>
     public RH7110MembersMustBeOrderedByAccessibilityAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7110Title), nameof(AnalyzerResources.RH7110MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

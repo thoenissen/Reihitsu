@@ -44,7 +44,7 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
+                              Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

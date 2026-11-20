@@ -59,7 +59,7 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, AnalyzerResources.RH7205MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -400,7 +400,7 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
         // already clears both
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, AnalyzerResources.RH7205MessageFormat, 2));
+                                  Diagnostics(RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

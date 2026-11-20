@@ -30,8 +30,6 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer : TargetAt
     /// </summary>
     public RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5530Title),
-               nameof(AnalyzerResources.RH5530MessageFormat),
                AttributeTargets.Method,
                TargetAttributePlacementMode.SeparateLine)
     {

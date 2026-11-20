@@ -162,7 +162,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 4));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData.ReplaceLineEndings(System.Environment.NewLine), Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+        await Verify(testData, resultData.ReplaceLineEndings(System.Environment.NewLine), Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -230,7 +230,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   internal record struct Sample;
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -308,7 +308,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -582,7 +582,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 13));
+        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 13));
     }
 
     /// <summary>
@@ -609,7 +609,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
 
         await Verify(testData,
                      test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -729,7 +729,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -754,7 +754,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -836,7 +836,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 8));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 8));
     }
 
     /// <summary>
@@ -886,7 +886,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 7));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 7));
     }
 
     /// <summary>
@@ -960,7 +960,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(resultData),
-                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 4));
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -1304,7 +1304,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     {
         await Verify(AttributedMethodSource,
                      AttributedMethodFixedSource,
-                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1318,7 +1318,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     {
         await Verify(NormalizeToCarriageReturnLineFeed(AttributedMethodSource),
                      NormalizeToCarriageReturnLineFeed(AttributedMethodFixedSource),
-                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1334,7 +1334,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     {
         await Verify(AttributedTypeAndMemberSource,
                      AttributedTypeAndMemberFixedSource,
-                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1348,7 +1348,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
     {
         await Verify(NormalizeToCarriageReturnLineFeed(AttributedTypeAndMemberSource),
                      NormalizeToCarriageReturnLineFeed(AttributedTypeAndMemberFixedSource),
-                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+                     Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1386,7 +1386,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1424,7 +1424,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1460,7 +1460,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1498,7 +1498,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1531,7 +1531,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2012,7 +2012,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                                   }
                                   """;
 
-        return new FixAllScenario(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 2));
+        return new FixAllScenario(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

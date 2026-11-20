@@ -43,7 +43,7 @@ public class RH7001FileMayOnlyContainASingleNamespaceAnalyzerTests : AnalyzerTes
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7001FileMayOnlyContainASingleNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7001MessageFormat));
+        await Verify(testData, Diagnostics(RH7001FileMayOnlyContainASingleNamespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

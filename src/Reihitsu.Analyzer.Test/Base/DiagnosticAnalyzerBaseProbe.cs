@@ -18,7 +18,7 @@ public sealed class DiagnosticAnalyzerBaseProbe : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public DiagnosticAnalyzerBaseProbe()
-        : base("RH2001", DiagnosticCategory.Design, nameof(AnalyzerResources.RH2001Title), nameof(AnalyzerResources.RH2001MessageFormat))
+        : base("RH2001", DiagnosticCategory.Design)
     {
     }
 

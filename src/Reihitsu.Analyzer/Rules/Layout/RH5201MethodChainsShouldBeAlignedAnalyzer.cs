@@ -27,7 +27,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5201MethodChainsShouldBeAlignedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5201Title), nameof(AnalyzerResources.RH5201MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

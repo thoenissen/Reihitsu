@@ -30,7 +30,7 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Memb
     /// Constructor
     /// </summary>
     public RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7403Title), nameof(AnalyzerResources.RH7403MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

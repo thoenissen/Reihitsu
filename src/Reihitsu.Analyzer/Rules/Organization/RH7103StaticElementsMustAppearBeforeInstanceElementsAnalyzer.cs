@@ -33,7 +33,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer : Diag
     /// Constructor
     /// </summary>
     public RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7103Title), nameof(AnalyzerResources.RH7103MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

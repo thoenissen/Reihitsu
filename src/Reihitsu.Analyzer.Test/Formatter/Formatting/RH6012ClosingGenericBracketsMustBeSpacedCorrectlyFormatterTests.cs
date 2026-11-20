@@ -45,7 +45,7 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6012MessageFormat));
+                              Diagnostics(RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

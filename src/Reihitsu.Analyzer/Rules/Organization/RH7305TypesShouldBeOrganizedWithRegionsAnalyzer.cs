@@ -30,7 +30,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWit
     /// Constructor
     /// </summary>
     public RH7305TypesShouldBeOrganizedWithRegionsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7305Title), nameof(AnalyzerResources.RH7305MessageFormat), true)
+        : base(DiagnosticId, DiagnosticCategory.Organization, true)
     {
     }
 

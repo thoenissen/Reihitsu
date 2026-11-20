@@ -29,7 +29,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : 
     /// Constructor
     /// </summary>
     public RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8402Title), nameof(AnalyzerResources.RH8402MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

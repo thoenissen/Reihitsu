@@ -67,22 +67,18 @@ public abstract class LineCountAnalyzerBase : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format, whose arguments are the count and the limit</param>
     /// <param name="productionSetting">Reads the production setting from the design section</param>
     /// <param name="defaultProductionLimit">Default limit of production code</param>
     /// <param name="testSetting">Reads the test setting from the design section</param>
     /// <param name="defaultTestLimit">Default limit of test code</param>
     /// <param name="syntaxKinds">Syntax kinds of the judged declarations</param>
     private protected LineCountAnalyzerBase(string diagnosticId,
-                                            string titleResourceName,
-                                            string messageFormatResourceName,
                                             Func<ConfigurationCategoryDesign, int?> productionSetting,
                                             int defaultProductionLimit,
                                             Func<ConfigurationCategoryDesign, int?> testSetting,
                                             int defaultTestLimit,
                                             params SyntaxKind[] syntaxKinds)
-        : base(diagnosticId, DiagnosticCategory.Design, titleResourceName, messageFormatResourceName)
+        : base(diagnosticId, DiagnosticCategory.Design)
     {
         _productionSetting = productionSetting;
         _defaultProductionLimit = defaultProductionLimit;

@@ -43,7 +43,7 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer.DiagnosticId, AnalyzerResources.RH7002MessageFormat, 3));
+        await Verify(source, Diagnostics(RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer.DiagnosticId, AnalyzerResources.RH7002MessageFormat));
+        await Verify(source, Diagnostics(RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

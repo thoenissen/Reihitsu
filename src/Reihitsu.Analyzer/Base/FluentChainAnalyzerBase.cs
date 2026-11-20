@@ -18,10 +18,8 @@ public abstract class FluentChainAnalyzerBase : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message resource name</param>
-    protected FluentChainAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
+    protected FluentChainAnalyzerBase(string diagnosticId)
+        : base(diagnosticId, DiagnosticCategory.Layout)
     {
     }
 

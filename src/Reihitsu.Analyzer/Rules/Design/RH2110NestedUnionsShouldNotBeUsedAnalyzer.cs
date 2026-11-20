@@ -30,7 +30,7 @@ public class RH2110NestedUnionsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2110NestedUnionsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2110Title), nameof(AnalyzerResources.RH2110MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

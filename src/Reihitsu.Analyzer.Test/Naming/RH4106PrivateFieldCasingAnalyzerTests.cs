@@ -62,7 +62,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1121,7 +1121,7 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
         // group that Fix All skips entirely, while the unrelated third field is still corrected
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat, 3),
+                                  Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, MessageFormat, 3),
                                   config =>
                                   {
                                       // The two colliding fields are the one shape where the two paths differ: applying the fixes one
@@ -1129,10 +1129,10 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                       // duplicate-target group and corrects neither
                                       config.BatchFixedCode = batchFixedCode;
 
-                                      config.FixedState.ExpectedDiagnostics.Add(Diagnostic(RH4106PrivateFieldCasingAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(AnalyzerResources.RH4106MessageFormat));
+                                      config.FixedState.ExpectedDiagnostics.Add(Diagnostic(RH4106PrivateFieldCasingAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(MessageFormat));
 
-                                      config.BatchFixedState.ExpectedDiagnostics.Add(Diagnostic(RH4106PrivateFieldCasingAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(AnalyzerResources.RH4106MessageFormat));
-                                      config.BatchFixedState.ExpectedDiagnostics.Add(Diagnostic(RH4106PrivateFieldCasingAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(AnalyzerResources.RH4106MessageFormat));
+                                      config.BatchFixedState.ExpectedDiagnostics.Add(Diagnostic(RH4106PrivateFieldCasingAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(MessageFormat));
+                                      config.BatchFixedState.ExpectedDiagnostics.Add(Diagnostic(RH4106PrivateFieldCasingAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(MessageFormat));
 
                                       // The two skipped candidates keep the batch loop running for a second, no-op pass
                                       config.NumberOfFixAllIterations = -2;

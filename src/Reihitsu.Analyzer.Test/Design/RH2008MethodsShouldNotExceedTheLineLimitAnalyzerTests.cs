@@ -523,7 +523,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
 
     /// <summary>
     /// Verifies the test-project part of the example of SHARED-LINES-002: a production setting does not apply to test
-    /// code, whose default of 100 applies
+    /// code, whose default of 120 applies
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -560,21 +560,21 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies the default test limit of RH2008-001 without a configuration file: 100 lines of code are not reported
-    /// and 101 are, with the count and the limit in the message
+    /// Verifies the default test limit of RH2008-001 without a configuration file: 120 lines of code are not reported
+    /// and 121 are, with the count and the limit in the message
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2008-001")]
     [Requirement("SHARED-LINES-002")]
-    public async Task DefaultTestLimitIsOneHundred()
+    public async Task DefaultTestLimitIsOneHundredTwenty()
     {
-        await VerifyLines(CreateMethodsAround(100), null, "build_property.IsTestProject = true", LineLimit(0, 101, 100));
+        await VerifyLines(CreateMethodsAround(120), null, "build_property.IsTestProject = true", LineLimit(0, 121, 120));
     }
 
     /// <summary>
     /// Verifies the example of RH2008-001 that a configured production setting alone leaves the test limit at its
-    /// default: a test method with 70 lines of code is not reported, one with 101 is
+    /// default: a test method with 70 lines of code is not reported, one with 121 is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -582,9 +582,9 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [Requirement("SHARED-LINES-002")]
     public async Task ConfiguredProductionSettingLeavesTestDefault()
     {
-        var source = $"class C\n{{\n{CreateMethod("M70", 70, false)}\n{CreateMethod("M101", 101, true)}}}\n";
+        var source = $"class C\n{{\n{CreateMethod("M70", 70, false)}\n{CreateMethod("M121", 121, true)}}}\n";
 
-        await VerifyLines(source, """{ "design": { "maximumMethodLines": 40 } }""", "build_property.IsTestProject = true", LineLimit(0, 101, 100));
+        await VerifyLines(source, """{ "design": { "maximumMethodLines": 40 } }""", "build_property.IsTestProject = true", LineLimit(0, 121, 120));
     }
 
     /// <summary>
@@ -642,8 +642,8 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that a test setting without a valid value keeps the default test limit: 100 lines of code are not
-    /// reported and 101 are
+    /// Verifies that a test setting without a valid value keeps the default test limit: 120 lines of code are not
+    /// reported and 121 are
     /// </summary>
     /// <param name="configuration">Text of <c>reihitsu.json</c></param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -655,7 +655,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [DataRow("{ } junk")]
     public async Task InvalidTestSettingKeepsDefaultTestLimit(string configuration)
     {
-        await VerifyLines(CreateMethodsAround(100), configuration, "build_property.IsTestProject = true", LineLimit(0, 101, 100));
+        await VerifyLines(CreateMethodsAround(120), configuration, "build_property.IsTestProject = true", LineLimit(0, 121, 120));
     }
 
     /// <summary>

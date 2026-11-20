@@ -29,7 +29,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer :
     /// Constructor
     /// </summary>
     public RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5401Title), nameof(AnalyzerResources.RH5401MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

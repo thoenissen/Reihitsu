@@ -36,7 +36,7 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : Empty
     /// Constructor
     /// </summary>
     public RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3106Title), nameof(AnalyzerResources.RH3106MessageFormat), SyntaxKind.AnonymousMethodExpression)
+        : base(DiagnosticId, DiagnosticCategory.Clarity, SyntaxKind.AnonymousMethodExpression)
     {
     }
 

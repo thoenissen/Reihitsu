@@ -29,7 +29,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer : Diagnost
     /// Constructor
     /// </summary>
     public RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5023Title), nameof(AnalyzerResources.RH5023MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

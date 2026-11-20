@@ -15,6 +15,365 @@ namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 [TestClass]
 public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
 {
+    #region Constants
+
+    /// <summary>
+    /// Input of <see cref="RemovesBlankLineBetweenCommentAndEveryNamedBraceOrBracket"/>
+    /// </summary>
+    private const string EveryNamedBraceOrBracketInput = """
+                                                         namespace N
+                                                         {
+                                                             class C
+                                                             {
+                                                                 int P
+                                                                 // accessor
+
+                                                                 {
+                                                                     get;
+                                                                 }
+
+                                                                 void M(int a, object o)
+                                                                 // body
+
+                                                                 {
+                                                                     if (a > 0)
+                                                                     // if body
+
+                                                                     {
+                                                                         a++;
+                                                                         // end block
+
+                                                                     }
+
+                                                                     var p = new P
+                                                                     // initializer
+
+                                                                     {
+                                                                         X = 1
+                                                                         // end initializer
+
+                                                                     };
+                                                                     int[] f = [
+                                                                         1
+                                                                         // end list
+
+                                                                     ];
+                                                                     var b = o is [
+                                                                             1
+                                                                             // end pattern
+
+                                                                         ];
+                                                                     var s = a switch
+                                                                     {
+                                                                         _ => 0
+                                                                         // end switch
+
+                                                                     };
+                                                                     System.Action l = () =>
+                                                                     // lambda
+
+                                                                     {
+                                                                     };
+                                                                 }
+                                                                 // end type
+
+                                                             }
+                                                         }
+                                                         """;
+
+    /// <summary>
+    /// Expected output of <see cref="RemovesBlankLineBetweenCommentAndEveryNamedBraceOrBracket"/>
+    /// </summary>
+    private const string EveryNamedBraceOrBracketExpected = """
+                                                            namespace N
+                                                            {
+                                                                class C
+                                                                {
+                                                                    int P
+
+                                                                    // accessor
+                                                                    {
+                                                                        get;
+                                                                    }
+
+                                                                    void M(int a, object o)
+
+                                                                    // body
+                                                                    {
+                                                                        if (a > 0)
+
+                                                                        // if body
+                                                                        {
+                                                                            a++;
+
+                                                                            // end block
+                                                                        }
+
+                                                                        var p = new P
+
+                                                                                // initializer
+                                                                                {
+                                                                                    X = 1
+
+                                                                                    // end initializer
+                                                                                };
+                                                                        int[] f = [
+                                                                                      1
+
+                                                                                      // end list
+                                                                                  ];
+                                                                        var b = o is [
+                                                                                         1
+
+                                                                                     // end pattern
+                                                                                     ];
+                                                                        var s = a switch
+                                                                                {
+                                                                                    _ => 0
+
+                                                                                    // end switch
+                                                                                };
+                                                                        System.Action l = () =>
+
+                                                                                          // lambda
+                                                                                          {
+                                                                                          };
+                                                                    }
+
+                                                                    // end type
+                                                                }
+                                                            }
+                                                            """;
+
+    /// <summary>
+    /// Input of <see cref="RemovesBlankLineBetweenCommentAndEveryBraceAndChainedKeywordOfSpecificationExample"/>
+    /// </summary>
+    private const string SpecificationExampleInput = """"
+                                                     using System.Collections.Generic;
+
+                                                     static class E
+                                                     {
+                                                         extension(int i)
+                                                         // g
+
+                                                         {
+                                                             public int D => i;
+                                                             // h
+
+                                                         }
+                                                     }
+
+                                                     class P
+                                                     {
+                                                         public List<int> L { get; } = new();
+                                                     }
+
+                                                     class C
+                                                     {
+                                                         int[] G =
+                                                         {
+                                                             1
+                                                             // d
+
+                                                         };
+
+                                                         int[,] H =
+                                                         {
+                                                             { 1 },
+                                                             // e
+
+                                                             { 2 }
+                                                         };
+
+                                                         void M(object o, int a)
+                                                         {
+                                                             int[] g;
+                                                             g = new int[]
+                                                                 // c
+
+                                                                 {
+                                                                     1,
+                                                                     2
+                                                                     // d
+
+                                                                 };
+
+                                                             if (o is C
+                                                                 // e
+
+                                                                 { })
+                                                             {
+                                                             }
+
+                                                             var p = new P
+                                                                     {
+                                                                         L =
+                                                                         {
+                                                                             1
+                                                                             // d
+
+                                                                         }
+                                                                     };
+
+                                                             var s = $$"""
+                                                                 {{
+                                                                     a
+                                                                     // f
+
+                                                                 }}
+                                                                 """;
+
+                                                             if (a > 0)
+                                                             {
+                                                                 a++;
+                                                             }
+                                                             // c
+
+                                                             else
+                                                             {
+                                                                 a--;
+                                                             }
+
+                                                             try
+                                                             {
+                                                                 a++;
+                                                             }
+                                                             // t
+
+                                                             catch
+                                                             {
+                                                             }
+                                                             // u
+
+                                                             finally
+                                                             {
+                                                             }
+
+                                                             do
+                                                             {
+                                                                 a++;
+                                                             }
+                                                             // f
+
+                                                             while (a > 0);
+                                                         }
+                                                     }
+                                                     """";
+
+    /// <summary>
+    /// Expected output of <see cref="RemovesBlankLineBetweenCommentAndEveryBraceAndChainedKeywordOfSpecificationExample"/>
+    /// </summary>
+    private const string SpecificationExampleExpected = """"
+                                                        using System.Collections.Generic;
+
+                                                        static class E
+                                                        {
+                                                            extension(int i)
+
+                                                            // g
+                                                            {
+                                                                public int D => i;
+
+                                                                // h
+                                                            }
+                                                        }
+
+                                                        class P
+                                                        {
+                                                            public List<int> L { get; } = new();
+                                                        }
+
+                                                        class C
+                                                        {
+                                                            int[] G = {
+                                                                          1
+
+                                                                          // d
+                                                                      };
+
+                                                            int[,] H = {
+                                                                           { 1 },
+
+                                                                           // e
+                                                                           { 2 }
+                                                                       };
+
+                                                            void M(object o, int a)
+                                                            {
+                                                                int[] g;
+                                                                g = new int[]
+
+                                                                    // c
+                                                                    {
+                                                                        1,
+                                                                        2
+
+                                                                        // d
+                                                                    };
+
+                                                                if (o is C
+
+                                                                // e
+                                                                { })
+                                                                {
+                                                                }
+
+                                                                var p = new P
+                                                                        {
+                                                                            L = {
+                                                                                    1
+
+                                                                                    // d
+                                                                                }
+                                                                        };
+
+                                                                var s = $$"""
+                                                                          {{
+                                                                              a
+
+                                                                              // f
+                                                                          }}
+                                                                          """;
+
+                                                                if (a > 0)
+                                                                {
+                                                                    a++;
+                                                                }
+
+                                                                // c
+                                                                else
+                                                                {
+                                                                    a--;
+                                                                }
+
+                                                                try
+                                                                {
+                                                                    a++;
+                                                                }
+
+                                                                // t
+                                                                catch
+                                                                {
+                                                                }
+
+                                                                // u
+                                                                finally
+                                                                {
+                                                                }
+
+                                                                do
+                                                                {
+                                                                    a++;
+                                                                }
+
+                                                                // f
+                                                                while (a > 0);
+                                                            }
+                                                        }
+                                                        """";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -188,128 +547,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     [Requirement("FMT-INDENT-006")]
     public void RemovesBlankLineBetweenCommentAndEveryNamedBraceOrBracket()
     {
-        const string input = """
-                             namespace N
-                             {
-                                 class C
-                                 {
-                                     int P
-                                     // accessor
-
-                                     {
-                                         get;
-                                     }
-
-                                     void M(int a, object o)
-                                     // body
-
-                                     {
-                                         if (a > 0)
-                                         // if body
-
-                                         {
-                                             a++;
-                                             // end block
-
-                                         }
-
-                                         var p = new P
-                                         // initializer
-
-                                         {
-                                             X = 1
-                                             // end initializer
-
-                                         };
-                                         int[] f = [
-                                             1
-                                             // end list
-
-                                         ];
-                                         var b = o is [
-                                                 1
-                                                 // end pattern
-
-                                             ];
-                                         var s = a switch
-                                         {
-                                             _ => 0
-                                             // end switch
-
-                                         };
-                                         System.Action l = () =>
-                                         // lambda
-
-                                         {
-                                         };
-                                     }
-                                     // end type
-
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                namespace N
-                                {
-                                    class C
-                                    {
-                                        int P
-
-                                        // accessor
-                                        {
-                                            get;
-                                        }
-
-                                        void M(int a, object o)
-
-                                        // body
-                                        {
-                                            if (a > 0)
-
-                                            // if body
-                                            {
-                                                a++;
-
-                                                // end block
-                                            }
-
-                                            var p = new P
-
-                                                    // initializer
-                                                    {
-                                                        X = 1
-
-                                                        // end initializer
-                                                    };
-                                            int[] f = [
-                                                          1
-
-                                                          // end list
-                                                      ];
-                                            var b = o is [
-                                                             1
-
-                                                         // end pattern
-                                                         ];
-                                            var s = a switch
-                                                    {
-                                                        _ => 0
-
-                                                        // end switch
-                                                    };
-                                            System.Action l = () =>
-
-                                                              // lambda
-                                                              {
-                                                              };
-                                        }
-
-                                        // end type
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(EveryNamedBraceOrBracketInput, EveryNamedBraceOrBracketExpected);
     }
 
     /// <summary>
@@ -1326,227 +1564,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     [Requirement("FMT-BLANK-020")]
     public void RemovesBlankLineBetweenCommentAndEveryBraceAndChainedKeywordOfSpecificationExample()
     {
-        const string input = """"
-                             using System.Collections.Generic;
-
-                             static class E
-                             {
-                                 extension(int i)
-                                 // g
-
-                                 {
-                                     public int D => i;
-                                     // h
-
-                                 }
-                             }
-
-                             class P
-                             {
-                                 public List<int> L { get; } = new();
-                             }
-
-                             class C
-                             {
-                                 int[] G =
-                                 {
-                                     1
-                                     // d
-
-                                 };
-
-                                 int[,] H =
-                                 {
-                                     { 1 },
-                                     // e
-
-                                     { 2 }
-                                 };
-
-                                 void M(object o, int a)
-                                 {
-                                     int[] g;
-                                     g = new int[]
-                                         // c
-
-                                         {
-                                             1,
-                                             2
-                                             // d
-
-                                         };
-
-                                     if (o is C
-                                         // e
-
-                                         { })
-                                     {
-                                     }
-
-                                     var p = new P
-                                             {
-                                                 L =
-                                                 {
-                                                     1
-                                                     // d
-
-                                                 }
-                                             };
-
-                                     var s = $$"""
-                                         {{
-                                             a
-                                             // f
-
-                                         }}
-                                         """;
-
-                                     if (a > 0)
-                                     {
-                                         a++;
-                                     }
-                                     // c
-
-                                     else
-                                     {
-                                         a--;
-                                     }
-
-                                     try
-                                     {
-                                         a++;
-                                     }
-                                     // t
-
-                                     catch
-                                     {
-                                     }
-                                     // u
-
-                                     finally
-                                     {
-                                     }
-
-                                     do
-                                     {
-                                         a++;
-                                     }
-                                     // f
-
-                                     while (a > 0);
-                                 }
-                             }
-                             """";
-        const string expected = """"
-                                using System.Collections.Generic;
-
-                                static class E
-                                {
-                                    extension(int i)
-
-                                    // g
-                                    {
-                                        public int D => i;
-
-                                        // h
-                                    }
-                                }
-
-                                class P
-                                {
-                                    public List<int> L { get; } = new();
-                                }
-
-                                class C
-                                {
-                                    int[] G = {
-                                                  1
-
-                                                  // d
-                                              };
-
-                                    int[,] H = {
-                                                   { 1 },
-
-                                                   // e
-                                                   { 2 }
-                                               };
-
-                                    void M(object o, int a)
-                                    {
-                                        int[] g;
-                                        g = new int[]
-
-                                            // c
-                                            {
-                                                1,
-                                                2
-
-                                                // d
-                                            };
-
-                                        if (o is C
-
-                                        // e
-                                        { })
-                                        {
-                                        }
-
-                                        var p = new P
-                                                {
-                                                    L = {
-                                                            1
-
-                                                            // d
-                                                        }
-                                                };
-
-                                        var s = $$"""
-                                                  {{
-                                                      a
-
-                                                      // f
-                                                  }}
-                                                  """;
-
-                                        if (a > 0)
-                                        {
-                                            a++;
-                                        }
-
-                                        // c
-                                        else
-                                        {
-                                            a--;
-                                        }
-
-                                        try
-                                        {
-                                            a++;
-                                        }
-
-                                        // t
-                                        catch
-                                        {
-                                        }
-
-                                        // u
-                                        finally
-                                        {
-                                        }
-
-                                        do
-                                        {
-                                            a++;
-                                        }
-
-                                        // f
-                                        while (a > 0);
-                                    }
-                                }
-                                """";
-
-        AssertRuleResult(input, expected);
+        AssertRuleResult(SpecificationExampleInput, SpecificationExampleExpected);
     }
 
     /// <summary>

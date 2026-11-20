@@ -55,7 +55,7 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
         // Verifies multiple variables in a nested deconstruction are renamed together by Fix All in one iteration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat, 2),
+                                  Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

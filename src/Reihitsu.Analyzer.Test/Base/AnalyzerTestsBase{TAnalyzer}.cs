@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 
+using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Test.Verifiers;
 
 namespace Reihitsu.Analyzer.Test.Base;
@@ -20,6 +21,16 @@ namespace Reihitsu.Analyzer.Test.Base;
 public abstract class AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
+    #region Properties
+
+    /// <summary>
+    /// The message format that the analyzer under test publishes for its rule, the text its diagnostics are reported
+    /// with
+    /// </summary>
+    protected static string MessageFormat => ((DiagnosticAnalyzerBase)(DiagnosticAnalyzer)new TAnalyzer()).MessageFormat;
+
+    #endregion // Properties
+
     #region Methods
 
     /// <summary>
