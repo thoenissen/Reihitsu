@@ -20,6 +20,7 @@ Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | Skeptic's follow-up candidate: formatter does not break in front of a chain link whose operator stands behind the `*/` of a multi-line comment that starts behind code (FMT-BREAK-019) | Dropped, not filed | Only a rare input class (a comment spanning lines inside a chain) is served; `AGENTS.md`, *Code-fix coverage* / lead.md *Follow-ups* | Nothing changes; the construct stays as main writes it | — |
+| 3 | Spec author amendment | Should tests pin `main`'s `*/.Next` join for the `q` shape (answer 3A)? | No. Test case `q` only through the anchor: RH5201 reports nothing on the 3A layout, and a unit test of the anchor selection if one fits. No full formatter-output test pins the join | The join departs from unchanged SHARED-CHAIN-005/FMT-BREAK-019 (rare shape, decision 1); pinning it would lock a deviation in | The maintainer chose the column in 3A; the join is `main`'s unchanged output, not asserted | — |
 | 2 | Skeptic | Skeptic's internal findings (RH5112-003 text, RH5201-002 `Why:`) | Route to the spec author together with the answer to the `*/` reading question | Spec wording only | Spec text is internal | — |
 
 ## Follow-up candidates
@@ -30,5 +31,6 @@ Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
 
 - Last step finished: claim, toolchain prepared.
 - Last step finished: skeptic (proceed), handover 02-skeptic.md.
-- Batch 1 answered.
+- Batch 1 answered. Spec amendment done (03-spec-author.md, change doc Accepted).
+- Next: test implementer.
 - Next (was: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
