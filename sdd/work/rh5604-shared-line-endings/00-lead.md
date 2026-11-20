@@ -9,7 +9,7 @@
 
 ## Maintainer answers
 
-None yet.
+1. Output question (auditor finding 1): RH5604 on a line ended by a lone CR, U+0085, U+2028 or U+2029 (in code, at a directive's end, inside a `///` comment) — keep today's behavior: reported, and the fix converts it to the file's line ending; the rule's spec states it for every line-break character, and the characterization tests stay. Answer: **A**.
 
 ## Decisions taken
 
@@ -37,5 +37,5 @@ None yet.
 - Done: spec author (04, 5239d8e; intros clarified, Code owners lines unchanged), cleaner (05, clean).
 - Done: spec checker (06, consistent, 909b83b). Build green on 909b83b; main at 31d2931 (no merge needed).
 - Done: auditor (07, findings, 12d012c).
-- Waiting: output question 1 to the maintainer (auditor finding 1: RH5604 on lone CR / U+0085 / U+2028 / U+2029 terminators; characterization tests pin it).
-- Worklist after the answer (repair round 1): finding 1 per answer (A: spec author extends RH5604-001/005 to every terminator, tags tests; B: follow-up + test handling); finding 2 (text only): spec author drops implementation sentences from the intros of line-endings.md and RH5604.md, keeps the behavioral sentence; then spec checker, auditor on the repair, validator.
+- Answered: output question 1 → A.
+- Worklist after the answer (repair round 1): finding 1 per answer A: spec author states RH5604 for every line-break character, then test implementer tags the characterization tests with the requirement(s); finding 2 (text only): spec author drops implementation sentences from the intros of line-endings.md and RH5604.md, keeps the behavioral sentence; then spec checker, auditor on the repair, validator.
