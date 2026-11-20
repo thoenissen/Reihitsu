@@ -35,4 +35,5 @@ None yet.
 - Done: test implementer (02, tests written, 51b10d0).
 - Done: implementer (03, tests pass, 936efd0).
 - Done: spec author (04, 5239d8e; intros clarified, Code owners lines unchanged), cleaner (05, clean).
-- Next: spec checker.
+- Done: spec checker (06, consistent, 909b83b). Build green on 909b83b; main at 31d2931 (no merge needed).
+- Next: auditor on 909b83b; then validator, issue manager (1 follow-up), note, publish.
