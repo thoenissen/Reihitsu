@@ -1532,12 +1532,14 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that links of the prefix in front of the first invoked link are not reported for sharing a line
+    /// Verifies that links of the prefix in front of the first invoked link are not reported for sharing a line, and that the
+    /// first invoked link aligned under the last of them is not reported for its column
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5201-001")]
     [Requirement("SHARED-CHAIN-005")]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyPrefixLinksSharingALineAreNotReported()
     {
         const string testData = """
@@ -1550,12 +1552,196 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                     private static Example Run(Example c)
                                     {
                                         return c.Next.Next
-                                                .Self();
+                                                     .Self();
                                     }
                                 }
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the example of RH5201-001: a later call that shares the line of the first call is reported, while the links of
+    /// a prefix and of a chain without a call that share a line are not, and a call wrapped under the last prefix link is not
+    /// reported for its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-001")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyExampleOfLaterCallSharingALineIsReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    C Next { get; set; }
+                                    C Self() => this;
+
+                                    void M(int[] items, C c)
+                                    {
+                                        var a = items.Where(x => x > 0)
+                                                     .Select(x => x){|#0:.|}ToList();
+                                        var b = c.Next
+                                                 .Next.Next;
+                                        var d = c.Next.Next
+                                                      .Self();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the example of RH5201-002 for a prefix of property reads: a wrapped link under the chain's first link is
+    /// reported and a wrapped link under the last link in front of it is not, with and without a later call, while a chain
+    /// with one link in front of its first wrapped link stays aligned under that link; the fix moves both reported links under
+    /// the last prefix link in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyLinkWrappedBehindPrefixIsReportedUnlessUnderTheLastPrefixLink()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    C Next { get; set; }
+                                    C Self() => this;
+
+                                    void M(C c)
+                                    {
+                                        var a = c.Next.Next
+                                                 {|#0:.|}Self();
+                                        var b = c.Next.Next
+                                                      .Self();
+                                        var d = c.Next.Next
+                                                 {|#1:.|}Next;
+                                        var e = c.Next.Next
+                                                      .Next;
+                                        var f = c.Next
+                                                 .Next.Next
+                                                 .Self();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      C Next { get; set; }
+                                      C Self() => this;
+
+                                      void M(C c)
+                                      {
+                                          var a = c.Next.Next
+                                                        .Self();
+                                          var b = c.Next.Next
+                                                        .Self();
+                                          var d = c.Next.Next
+                                                        .Next;
+                                          var e = c.Next.Next
+                                                        .Next;
+                                          var f = c.Next
+                                                   .Next.Next
+                                                   .Self();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix moves a call wrapped under the chain's first link under the last prefix link under CRLF line
+    /// endings, also when applied to the document without markup
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyLinkWrappedBehindPrefixIsFixedUnderTheLastPrefixLinkWithCrLf()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    C Next { get; set; }
+                                    C Self() => this;
+
+                                    void M(C c)
+                                    {
+                                        var a = c.Next.Next
+                                                 {|RH5201:.|}Self();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      C Next { get; set; }
+                                      C Self() => this;
+
+                                      void M(C c)
+                                      {
+                                          var a = c.Next.Next
+                                                        .Self();
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that a link behind the closing <c>*/</c> of a comment that starts behind code does not start a line, so it is
+    /// the anchor of the wrapped link behind it: the wrapped link under the operator of that link is not reported, and one
+    /// under the chain's first link is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyLinkBehindCommentThatStartsBehindCodeIsTheAnchor()
+    {
+        const string alignedData = """
+                                   class C
+                                   {
+                                       C Next { get; set; }
+                                       C Self() => this;
+
+                                       void M(C x)
+                                       {
+                                           var q = x.Next /* c
+                                               */.Next
+                                                 .Self();
+                                       }
+                                   }
+                                   """;
+
+        const string misalignedData = """
+                                      class C
+                                      {
+                                          C Next { get; set; }
+                                          C Self() => this;
+
+                                          void M(C x)
+                                          {
+                                              var q = x.Next /* c
+                                                  */.Next
+                                                       {|#0:.|}Self();
+                                          }
+                                      }
+                                      """;
+
+        await Verify(alignedData);
+        await Verify(NormalizeToCarriageReturnLineFeed(alignedData));
+        await Verify(misalignedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2633,12 +2819,12 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                          .C = 5;
                                         a?[0].C = 5;
                                         a?.B?.B
-                                         .C = 5;
+                                            .C = 5;
                                         a?.B
                                          .B
                                          .C = 5;
                                         a.B?.B
-                                         .C = 5;
+                                           .C = 5;
                                         a?[0].B
                                              .C = 5;
                                     }

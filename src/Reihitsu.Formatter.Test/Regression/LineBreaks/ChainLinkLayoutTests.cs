@@ -2583,9 +2583,10 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a wrapped call after a property prefix stays wrapped under the prefix
+    /// Verifies that a wrapped call after a property prefix stays wrapped, under the last link of the prefix
     /// </summary>
     [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
     public void WrappedCallAfterPropertyPrefixStaysUnderPrefix()
     {
         // Arrange
@@ -2595,7 +2596,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                                  public void M()
                                  {
                                      var r = x.Items.Count
-                                              .ToString();
+                                                    .ToString();
                                  }
                              }
                              """;
