@@ -23,6 +23,7 @@
 | 1 | Skeptic | Architecture finding: which bracketed lists hold an index is stated twice (formatter `LineBreakListRewriter.IsElementAccessArgumentList`, analyzer `RH5307...IsIndexerArgumentList`), both with the same omission | Change the structure in this run: one shared predicate in an existing `Reihitsu.Core` utility class, used by both; no new type | Narrow fix would keep a second statement of the rule that already drifted; few lines, within the components the run changes and Core | Same outputs as the narrow fix | — |
 | 2 | Skeptic | RH5307-001 restates FMT-BREAK-014's list of parent kinds | Have RH5307-001 refer to FMT-BREAK-014 instead (spec author, with the Accepted status follow-up) | One statement of the rule | Spec wording only | — |
 | 3 | Skeptic | Characterization test for fixed-size buffer `fixed int b[⏎3];` | Test implementer adds it | Pins the excluded fourth parent | Characterizes `main` output, unchanged | — |
+| 5 | Test implementer | `FormatNode` on a bracketed list inside a tree misplaces the column even for `d[...]` | Dropped, not a follow-up | No caller formats such a list through `FormatNode` (RH5307 fix uses `FormatNodeInDocumentAsync`) — AGENTS.md *Supported inputs* | No caller reaches it | — |
 | 4 | Skeptic | #1877's P11 "RH5307 stays silent" rationale is stale | Drop it; PR states the difference | Superseded by #1878 | Rationale only | — |
 
 ## Follow-up candidates
@@ -35,4 +36,5 @@
 - Skeptic 02 (7f8e64fa): both premises real, agrees with 1A/2A, no new output questions, no follow-ups.
 - Output questions answered 1A, 2A (spec already written on 1A/2A).
 - Spec author 03 (96c005be): answers recorded, change doc Accepted, decision 2 done.
-- Now: test implementer (04). Then implementer (decision 1: shared predicate in Core).
+- Test implementer 04 (44d72441): 18 formatter + 34 analyzer rows fail as expected.
+- Now: implementer (05), decision 1 (shared predicate in Core). Then cleaner.
