@@ -62,3 +62,25 @@ _None._ The change removes the shared decision the line-break and indentation ph
 ## Follow-up candidates
 
 _None._
+
+## Addendum — adjacent fix (lead decisions 8–10)
+
+Commit: 09255b9
+
+- Decision 8: `FluentChain.GetLinkOperatorTokens` stays public (option A). Decision 9: the precheck's superset of the chain's links is accepted as specified.
+- Decision 10, the adjacent fix: `AttachedPartGapUtilities.StartsLinkOperator` (`src/Reihitsu.Formatter/Pipeline/Core/Utilities/AttachedPartGapUtilities.cs`) no longer carries its own copy of the rule. It finds the member access or member binding whose `.` follows the `!` (directly, or behind the `?` of a conditional access), and it answers whether the `!` is the first of that link's `FluentChain.GetLinkOperatorTokens`. The behavior is unchanged. The summary is updated (FC-031). Requirements: FMT-UNSUP-014, FMT-BREAK-040, SHARED-CHAIN-001.
+- Round delta: 1 file, +19 −7. Total production diff (`git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'`): 5 files changed, 127 insertions(+), 49 deletions(-). No new type.
+- Policy owners after the round: the rule for which tokens form a link operator is stated only in `FluentChain.GetLinkOperatorTokens`. The chain model, the precheck (FMT-UNSUP-015), and `AttachedPartGapUtilities.StartsLinkOperator` (FMT-UNSUP-014, FMT-BREAK-039/040) read it.
+
+Tests run (Debug):
+
+```text
+formatter, filter over ArgumentListLineStartTests, AttachedPartLineStartTests, ChainGapJoinTests, ChainLinkLayoutTests,
+  ConditionalAccessWrapBetweenOperatorTokensTests, JoinSeparatorPhaseTests, ReihitsuFormatterDetachedRootTests,
+  ReihitsuFormatterNodeColumnTests, UnsupportedAttachedPartCommentTests, UnsupportedLinkOperatorCommentTests,
+  WithElementSpacingTests                                   Passed! - Failed: 0, Passed: 694, Total: 694
+formatter project                                           Passed! - Failed: 0, Passed: 6321, Total: 6321
+architecture project                                        Passed! - Failed: 0, Passed: 198, Total: 198
+cli, CliHiddenCodeEndToEndTests                             Passed! - Failed: 0, Passed: 48, Total: 48
+analyzer, RH3202 | RH5112                                   Passed! - Failed: 0, Passed: 170, Total: 170
+```
