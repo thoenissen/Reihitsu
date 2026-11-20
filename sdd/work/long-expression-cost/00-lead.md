@@ -28,5 +28,5 @@ None yet.
 
 ## Open worklist / next step
 
-- Last step: cleaner (04-cleaner.md, clean, no changes), 0abf970.
-- Next: spec checker (05-spec-checker.md), then auditor, validator.
+- Last step: spec checker (05-spec-checker.md, consistent), 3824241.
+- Next: auditor (06-auditor.md), then validator.
