@@ -20,6 +20,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 7 | Audit 1 | Package README Formatter column ✔ for RH5419 although the formatter keeps a wrapped parameter list | Keep ✔ | Same convention as RH5111, which also carries an SHARED-DIAG-010 exception and ✔; the formatter clears the arrow part | README column is not a rule page or diagnostic; convention unchanged | — |
+| 6 | Audit 1 | Fix offered when a comment/directive between `this` and `[` keeps the `[` on its own line | Refuse the class: withhold the fix | Rare input class (comment between `this` and `[`), AGENTS.md Code-fix coverage; the maintainer's D asked for one line, which the fix cannot give here | Withholding for a rare class puts nothing in question | (round 2) |
 | 5 | Repair round 1 | Re-run cleaner after the ruleset-only repair? | Skipped | The repair touched only `Release.ruleset` (XML, no C#); nothing for the formatter or the Release build to clean beyond what the implementer's build showed | Internal process step | 90e48de |
 | 4 | Implementer | Shared `AttributeListCodeFixUtilities` used by RH5401 and RH5419 | Accepted | Moves RH5401's guard instead of copying it (avoids FC-015 two owners); ~89 of ~120 lines moved; part of the issue's own fix, not escalation 9 | RH5401 behavior unchanged, its tests pass | b3265ac |
 | 3 | Spec author follow-up | Change the formatter in this run? | No; the fix joins the parameter list itself, formatter join stays a follow-up | Maintainer allowed a formatter change only if the fix needs it; it does not (formatter keeps a one-line list, FMT-BREAK-012) | Maintainer answer covers it | 65f3e42 |
@@ -44,4 +46,6 @@
 - Ruleset repaired (09-implementer.md, 90e48de). Repair round 1 of 3 (spec checker findings).
 - Batch 2 output question posted (block comment in one-line parameter list). Answered 1A.
 - Spec checker re-run consistent (10-spec-checker.md, 55e4af0). Build green. Auditor spawned on head 55e4af0, main 31d2931 (11-auditor.md).
+- Auditor (11-auditor.md, 861011f) audited 57a8dea: findings. #1 fix offered with comment/directive between `this` and `[` leaves two lines -> rare class, refuse (withhold fix): spec author amends RH5419-004, test implementer flips 2 tests + adds directive/one-line-list cases, implementer measures one-line check from first token after attribute lists. #2 FC-015 JoinParameterList copies LineBreakTriviaUtilities.JoinGaps / TokenGapAnalysis.HasLineBreak -> implementer reuses them. README Formatter ✔ kept (decision 7).
+- Repair round 2 of 3: spec author (12) -> test implementer (13) -> implementer (14) -> cleaner (15) -> spec checker (16) -> auditor (17, repair only) -> validator.
 - Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
