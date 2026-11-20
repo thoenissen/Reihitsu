@@ -31,4 +31,5 @@ None yet.
 ## Open worklist / next step
 
 - Done: skeptic (01, proceed).
-- Next: test implementer — pin the U+2028 / lone CR fix cases and the fix on a file the formatter refuses (01-skeptic); then implementer.
+- Done: test implementer (02, tests written, 51b10d0).
+- Next: implementer.
