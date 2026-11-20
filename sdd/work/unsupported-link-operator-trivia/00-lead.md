@@ -40,7 +40,7 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 
 ## Follow-up candidates
 
-- Escalation 10 candidate (01-spec-author.md): comment between a link's `.` and its member name (`a.B(). // c` ⏎ `C();`) — declare unsupported in a change of its own? Maintainer answered 2A: declare in a change of its own → follow-up issue carrying the answer.
+- Escalation 10 candidate (01-spec-author.md): comment between a link's `.` and its member name (`a.B(). // c` ⏎ `C();`) — declare unsupported in a change of its own? Maintainer answered 2A: declare in a change of its own → filed as #1888 (14-issue-manager.md).
 
 ## Open worklist / next step
 
