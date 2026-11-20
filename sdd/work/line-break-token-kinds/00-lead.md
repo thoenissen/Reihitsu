@@ -16,12 +16,15 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Issue reports no wrong output — escalation 4? | No escalation; the issue is a structural (FC-015) refactor, not an observed bug. Proceed with characterization tests instead of a reproduction | Escalation 4 covers a reported wrong output that does not reproduce; #1886 reports none | Refactor keeps every output; tests pin it | — |
+| 2 | Skeptic | Scope of the shared definition | Narrower than the issue: share only which trivia/tokens carry a line break; the analyzer's "mixed" rule and the detection's "predominant" rule stay separate; the analyzer keeps using `DetectEndOfLine`. Shared predicate(s) or one enumeration — implementer's choice | Merging the two decisions would change visible output | Outputs unchanged by construction | — |
+| 3 | Skeptic | Optional RH5604-002 clarification (all-U+2028 file not reported) | Skip; no spec author stage | P11 already covers the relation; not a defect | No text or code change | — |
 
 ## Follow-up candidates
 
-None yet.
+- RH5604 under `DocumentationMode.None` (FC-040), unverified — `01-skeptic.md`
 
 ## State
 
-- Last step: claim, lane, 00-lead.md written.
-- Next: spawn skeptic.
+- Last step: skeptic (01-skeptic.md, proceed narrower). No output questions.
+- Next: test implementer (characterization tests).
