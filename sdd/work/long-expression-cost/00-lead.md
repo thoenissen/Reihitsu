@@ -16,12 +16,15 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Issue goals (agent-filed) | Drop the chain and concatenation rows as already met by #1862 (now linear); restate "slowest phase" per defect; widen the array row to every long sibling list (initializers, collection expressions, argument lists, enum members, class members, block statements); keep "output unchanged on the repository's own sources" | 01-skeptic.md measurements | Output stays byte-identical; a cost change only | 72f3885 |
+| 2 | Skeptic | Scope of defect B (per-token previous/next-token navigation across five phases) | Fix defect A (nested conditional in `TernaryLineBreakRewriter`) and every implicated site of defect B, since fixing only the largest sites leaves the growth quadratic. It is the issue's own fix, so not escalation 9; a site that cannot be made linear with a cheap change is left as is and its remaining cost recorded per phase with the reason | Issue asks for linear cost where a cheap change allows; FC-016 | Output unchanged | — |
+| 3 | Skeptic | Form of the reproduction | Scaling-ratio tests (time at N versus 2N, or an operation count), never an absolute wall-clock budget | CI contention would make a budget flaky | Tests only | — |
 
 ## Follow-up candidates
 
-None yet.
+- (01-skeptic.md) CLI: a very deep spine (6400-link chain, 16 000 concatenation terms) overflows the stack in `LayoutComputer.ComputeBlockIndentation`, killing the CLI process (exit 134, later files unprocessed, no summary), while a deeper input (32 000 terms) is reported per file with exit 2. Visible CLI behavior, outside the run's issue: file as a follow-up carrying the output question in 01-skeptic.md (recommended there: report the file as an error and continue).
 
 ## Open worklist / next step
 
-- Last step: claim (draft PR #1883), toolchain prepared.
-- Next: skeptic on the premise (01-skeptic.md).
+- Last step: skeptic (01-skeptic.md, verdict proceed narrower, no output questions). No output-question batch needed before tests.
+- Next: test implementer (02-test-implementer.md).
