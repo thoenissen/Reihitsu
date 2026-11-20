@@ -33,5 +33,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 
 - Last step finished: skeptic (02, f987f50): proceed; Q5 added; architecture finding decided (#1).
 - Spec author 03 done (d24a646): two rules RH5115/RH5116 specified, change doc Accepted; lane check confirmed behavior-change.
-- Next: test implementer (04).
+- Test implementer 04 done (4043635): 112 tests, fail for the right reason against stubs; test project needs the four types.
+- Next: implementer (05), including decision #1 (move the predicate to Core).
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
