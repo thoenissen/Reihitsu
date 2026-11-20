@@ -1003,6 +1003,83 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     }
 
     /// <summary>
+    /// Verifies that a line break between the type and <c>this</c>, which the formatter keeps, withholds the fix, while the
+    /// diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixIsWithheldForALineBreakBetweenTheTypeAndThis(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:int
+                                      this[int a,
+                                           int b] => a;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a line break between a modifier and the type, which the formatter keeps, withholds the fix, while the
+    /// diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixIsWithheldForALineBreakBetweenAModifierAndTheType(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:public
+                                      int this[int a,
+                                               int b] => a;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a line break between an explicit interface name and <c>this</c>, which the formatter keeps, withholds
+    /// the fix, while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixIsWithheldForALineBreakBetweenAnExplicitInterfaceNameAndThis(string endOfLine)
+    {
+        const string source = """
+                              interface I
+                              {
+                                  int this[int a, int b] { get; }
+                              }
+
+                              class C : I
+                              {
+                                  {|RH5419:int I.
+                                      this[int a,
+                                           int b] => a;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that an indexer the fix puts on one line, which shares its line with a member behind it, keeps its own
     /// line, and that the member behind it starts on the next line
     /// </summary>
@@ -1217,6 +1294,10 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
                                   {|RH5419:int this // note
                                       [double d]
                                       => 1;|}
+
+                                  {|RH5419:int
+                                      this[decimal a,
+                                           decimal b] => 1;|}
 
                                   {|RH5419:int this[long i] // note
                                       => 1;|}
