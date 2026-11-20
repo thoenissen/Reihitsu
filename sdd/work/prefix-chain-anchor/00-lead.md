@@ -40,3 +40,5 @@ Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
 - Repair round 1: #1 → test implementer (09-test-implementer.md), #2 → spec author (10-spec-author.md); then cleaner, spec checker, auditor (repair only), validator.
 - PR review note to add: until `binaries/` is rebuilt, a repository chain with two or more links in front of a wrap cannot satisfy both the build's old-anchor RH5201 and the new formatter.
 - Next (was: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
+- Repair audit (13-auditor.md, audited head b9381d5): pass, text cleanup; finding #3 (change-doc wording, text only) → spec author (14-spec-author.md), proven text-only by diff against b9381d5 limited to .md.
+- Next: validator on final tree, then publish (no follow-up candidates → no issue manager).
