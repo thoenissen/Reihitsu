@@ -1,5 +1,55 @@
 # Phase 7 · 1.5.0 run graph (milestone 7)
 
+## Update 2026-11-20 (b)
+
+Base: `claude/sdd-coordinator` ea018438 (contains `origin/main` 9a89c85e). No open pull requests. Open issues of milestone 7: #352 #892 #893 #896 #897 #1877 #1878. Merged since (a): #1881 (#894, FMT-UNSUP-015), #1882 (#851, RH5419), #1883 (#1803), #1884 (#1873), #1885 (#1874). Premises re-checked by reading code on this base (no SDK, nothing run).
+
+### Triage of the issues without milestone (proposal)
+
+| # | Group | Premise (by reading) | Reachability | Proposed | Reason | Lane / files (1.5.0 only) |
+|---|---|---|---|---|---|---|
+| #1886 line-break carrier kinds defined three times | Maintenance | Holds: `LineEndingUtilities.DetectEndOfLine` and `NormalizeLineEndings` (`Core/LineEndingUtilities.cs`) and `RH5604…Analyzer.cs:55,65` each enumerate `EndOfLineTrivia` + `XmlTextLiteralNewLineToken` | RH5604 analyzer/fix; every whole-document format (output unchanged) | **1.5.0** | Small remainder of the 1.5.0 RH5604 line-ending share (#1874/#1885); no new type needed, triggers nothing | bug fix (no output change) · `src/Reihitsu.Core/LineEndingUtilities.cs`, `src/Reihitsu.Analyzer/Rules/Layout/RH5604CodeMustNotContainMixedLineEndingsAnalyzer.cs`, a Core test (new `Core.Test/LineEndingUtilitiesTests.cs` if needed); RH5604 tests unchanged |
+| #1887 stack overflow on deep spines aborts the CLI | **Critical bug** (crashes the CLI; per-file processing lost) | Holds by reading, observed per issue: `LayoutComputer.ComputeBlockIndentation` (`:94`, recursive `:111`) has no stack guard; `rg EnsureSufficientExecutionStack src` finds none. Roslyn's own rewriters throw `InsufficientExecutionStackException`, which `FormatCommandHandler.cs:532` already turns into `Error processing` | CLI and whole-document formatting (rare: thousands of nested links, generated code); also a code fix that formats such a chain (exception instead of process death) | **1.5.0** | Crash = critical per triage.md; found by the 1.5.0 #1803 run. **Not an output question:** CLI-016 ("A failing file does not stop the run") already prescribes the issue's option A, so this is a bug against the spec | bug fix · `src/Reihitsu.Formatter/Pipeline/Indentation/Utilities/LayoutComputer.cs` (guard, e.g. `RuntimeHelpers.EnsureSufficientExecutionStack`), `Formatter.Test/Regression/FullPipeline/LongExpressionCostTests.cs` or a new regression class, `Cli.Test/EndToEnd/CliEndToEndTests.cs`; the run checks other custom recursion the same inputs reach. Fence: not `FluentChain.cs`, `MethodChainAlignmentContributor.cs` (#896); a site there becomes a follow-up after #896 |
+| #1888 comment/directive between a link's `.` and its member name | Extension (declare unsupported) | Holds: `ChainLineBreakRewriter.cs:273` `CloseGap(link.DotToken, …)` keeps the gap via `WouldJoinAcrossUnjoinableTrivia`; FMT-UNSUP-015 covers operator tokens only; #1881's change doc (`unsupported-link-operator-trivia.md:363-371`) records the maintainer's answer "declare it, in a change of its own" (batch 1, 2A) | CLI/whole document; chain fixes (RH5112/RH5201/RH2001/RH7101 tests pinned by #894's sibling) | **1.5.0** | Remainder of #894's declared shape, already decided; deletes the last dot-to-name guard use. **No output question left** (decision recorded) | behavior change · model #1881: `Precheck/PrecheckPhase.cs`, `unsupported-syntax.md`, `line-breaks.md` (FMT-BREAK-020), `ChainLineBreakRewriter.cs`, possibly `Core/FluentChain.cs`, `MethodChainAlignmentContributor.cs`, `AttachedPartGapUtilities.cs`, `ChainLinkLayoutTests.cs`, `ChainGapJoinTests.cs`, new `Unit/Precheck/` class, `FormatterTestsBase.cs`, `CliHiddenCodeEndToEndTests.cs`, RH5112/RH5201/RH2001/RH7101 tests and specs, `AGENTS.md` (`PrecheckPhase` row), change doc |
+| #1889 join an expression-bodied indexer's wrapped parameter list | Extension, OQ | Holds: FMT-BREAK-012 keeps the list; `SHARED-DIAG-010` and `RH5419.md:22` record RH5419's exception as the maintainer's wish | CLI/whole document | 1.7.0 | Not a defect of RH5419: the exception is a recorded decision; a formatter join of one list kind is T11 line-break work (with #1653 indexer accessor list; related #1650, 1.10.0) and leaves block-bodied indexers open | — |
+| #1890 `Release.ruleset` misses shipped rules; test both directions | Maintenance | Holds, **understated**: not only RH5417 — 14 shipped rules have no entry and never had one: RH5113 RH5308 RH5417 RH6023 RH6024 RH7110 RH7308 RH7309 RH7310 RH7311 RH7409 RH7410 RH7411 RH7412. `RulesetTests.EveryReihitsuEntryNamesAShippedRule` checks one direction only. `Debug.ruleset` lists only RH7305A/RH8402 (None) and is not in scope | repository build | **1.5.0** | Small, no follow-up (the self-hosting scan already keeps the repository clean of every shipped rule); part of 1.5.0's repository enablement. The run adds all 14 (agent-filed goal widened on evidence) | tests · `Release.ruleset`, `src/Reihitsu.SelfHosting.Test/Repository/RulesetTests.cs` |
+
+Duplicates: none (223 open issues searched). Related: #1889 ↔ #1653 (1.7.0), #1650 (1.10.0); #1888 ↔ #894/FMT-UNSUP-015; #1887 ↔ #1803.
+
+### Re-verified runs
+
+- **#896** — ready (#894 merged). Anchor owner unchanged: `FluentChain.GetAnchorLink` (`Core/FluentChain.cs:273`), used by `MethodChainAlignmentContributor.cs:36` and `RH5201…Analyzer.cs:46`; pinned tests `ChainLinkLayoutTests.cs`, `RH5201FluentChainLinkFormatterTests.cs`, `Core.Test/FluentChainTests.cs:168-191`. Files: those, `indentation.md`, `sdd/specs/shared/fluent-chain-layout.md` (SHARED-CHAIN-007), `sdd/specs/analyzer/RH5201.md`, RH5201 analyzer tests, change doc. Behavior change, OQ in the issue (call-less chains).
+- **#892** — ready (#851, #895 merged). New rule; FMT-BREAK-040 ends "No analyzer rule reports such a part", so the run edits `line-breaks.md`. The analyzer cannot call the formatter's `AttachedPartGapUtilities` (internal, formatter): either a cheap own predicate or a move to Core (then `AttachedPartGapUtilities.cs`, `PrecheckPhase.cs`, `AttachedPartLineStartRewriter.cs`, `ListElementInteriorJoinRewriter.cs`). Files: new analyzer/fix/spec/page/tests, registry (`AnalyzerResources.resx`, `CodeFixResources.resx`/`.cs`, `Debug.ruleset`, `Release.ruleset`, `sdd/specs/README.md`, package `README.MD`), `line-breaks.md`. **Fence:** not `Core/FluentChain.cs`, `fluent-chain-layout.md`, RH5201 files (#896); scope re-derived under P11 in the run.
+- **#1877 #1878** — premise unchanged after #1883: `LineBreakListRewriter.IsElementAccessArgumentList` (`:68-72`) and `RH5307…Analyzer.cs:49` still exclude `ElementBindingExpression`. Files as in (a); `line-breaks.md` (FMT-BREAK-014) collides with #892, so it waits for #892. Fence: no resx edit (else also after #897).
+- **#893** — **case 2 is settled**: an attached part kept on its own line by a comment is refused by FMT-UNSUP-014, the rest of a split operator by FMT-UNSUP-015, and `MethodChainAlignmentContributor.AlignRestOfRun` is gone (`rg AlignRestOfRun` empty). Run case 1 only and say so in the PR. Shares RH5201/chain files with #896 and #1888.
+- **#897** — unchanged (resx titles/messages of RH5112/RH5048). **#352** — unchanged, last and alone.
+
+### Start now (pairwise no shared file, no dependency)
+
+`/squad #896` · `/squad #892` (fenced) · after the maintainer confirms the triage: `/squad #1887` · `/squad #1886`
+
+Pairwise: #896 chain anchor/alignment files and `fluent-chain-layout.md`; #892 registry + `line-breaks.md` + optionally attached-part/precheck files, fenced off #896's; #1887 `LayoutComputer.cs` + tests; #1886 `LineEndingUtilities.cs` + RH5604 analyzer. Only `requirement-ids.txt` may be shared.
+
+### After X merges, start Y (replaces the table of (a))
+
+| When merged | Start | Reason |
+|---|---|---|
+| #892 | `/squad #1877 #1878` | `line-breaks.md` |
+| #892 | `/squad #897` and `/squad #1890` (disjoint: resx vs `Release.ruleset`) | registry |
+| #896 + #892 + #1877 #1878 | `/squad #1888` | `FluentChain.cs`, `MethodChainAlignmentContributor.cs`, `ChainLinkLayoutTests.cs`, RH5201 tests (#896); `line-breaks.md`, precheck/attached-part files (#892, #1877) |
+| #1888 (+ #897 if it edits a resource text) | `/squad #893` (case 1 only) | RH5201/chain files; unsupported-shape run first |
+| #1887, if it found recursion in #896's files | follow-up of #1887 | `FluentChain.cs`/`MethodChainAlignmentContributor.cs` |
+| every other 1.5.0 run | `/squad #352` | registry end; `ConfigurationCategoryDesign.cs`; self-hosting may force refactors anywhere |
+| 1.5.0 tag | `/squad #1880` (1.6.0) | rebuilt `binaries/` |
+
+Critical path: #892 → #1877 #1878 → #1888 → #893 → #352.
+
+### Needs the maintainer
+
+1. Confirm the triage: #1886, #1887 (critical bug), #1888, #1890 → 1.5.0; #1889 → 1.7.0 (its OQ asked in that run).
+2. #1887: its "output question" is already answered by CLI-016 (option A); proposed to run it as a bug fix without asking.
+3. Nothing to close.
+
 ## Update 2026-11-20
 
 Base: `claude/sdd-coordinator` 46530e72 (contains `origin/main` 31d2931a). No open pull requests. Open issues of milestone 7: #352 #851 #892 #893 #894 #896 #897 #1803. Premises re-checked by reading code on this base (no SDK, nothing run).
