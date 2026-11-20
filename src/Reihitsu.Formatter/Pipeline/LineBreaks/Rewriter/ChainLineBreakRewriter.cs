@@ -43,8 +43,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </item>
 /// </list>
 /// <para>
-/// A gap that holds a comment, a preprocessor directive or disabled text is never closed, so trivia is neither moved
-/// nor absorbed. The indentation phase aligns whatever such a gap keeps on its own line
+/// A gap in front of a link operator or between its dot and the member name that holds a comment, a preprocessor
+/// directive or disabled text is never closed, so trivia is neither moved nor absorbed. A gap between two tokens of a link
+/// operator never holds such trivia: the precheck refuses an input that holds it (FMT-UNSUP-015)
 /// </para>
 /// </summary>
 internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
@@ -199,7 +200,9 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Selects the gaps between consecutive tokens of a link operator for closing, except gaps that hold blocking trivia
+    /// Selects every gap between consecutive tokens of a link operator that holds a line break for closing. Such a gap holds
+    /// nothing but whitespace, because the precheck refuses an input with a comment, a preprocessor directive or disabled text
+    /// between two tokens of a link operator (FMT-UNSUP-015)
     /// </summary>
     /// <param name="tokens">The tokens in source order</param>
     /// <param name="gaps">The gaps to join</param>
@@ -208,7 +211,10 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     {
         for (var tokenIndex = 1; tokenIndex < tokens.Count; tokenIndex++)
         {
-            CloseGap(tokens[tokenIndex - 1], tokens[tokenIndex], gaps);
+            if (HasLineBreak(tokens[tokenIndex - 1], tokens[tokenIndex]))
+            {
+                gaps.Add((tokens[tokenIndex - 1], tokens[tokenIndex]));
+            }
         }
     }
 
