@@ -352,9 +352,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         return statement switch
                {
-                   LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Declaration.Variables
-                                                                                                   .Select(variable => variable.Identifier.ValueText)
-                                                                                                   .Concat(GetDesignatedNames(localDeclaration.Declaration)),
+                   LocalDeclarationStatementSyntax localDeclaration => GetDeclaredNames(localDeclaration.Declaration),
                    LocalFunctionStatementSyntax localFunction => [localFunction.Identifier.ValueText],
                    ExpressionStatementSyntax expressionStatement => GetDesignatedNames(expressionStatement.Expression),
                    ReturnStatementSyntax { Expression: not null } returnStatement => GetDesignatedNames(returnStatement.Expression),
@@ -365,6 +363,18 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                    LockStatementSyntax lockStatement => GetDesignatedNames(lockStatement.Expression),
                    _ => []
                };
+    }
+
+    /// <summary>
+    /// Gets the names a variable declaration declares, followed by the names its initializers designate
+    /// </summary>
+    /// <param name="declaration">Variable declaration</param>
+    /// <returns>The declared and designated names</returns>
+    private static IEnumerable<string> GetDeclaredNames(VariableDeclarationSyntax declaration)
+    {
+        return declaration.Variables
+                          .Select(variable => variable.Identifier.ValueText)
+                          .Concat(GetDesignatedNames(declaration));
     }
 
     /// <summary>
