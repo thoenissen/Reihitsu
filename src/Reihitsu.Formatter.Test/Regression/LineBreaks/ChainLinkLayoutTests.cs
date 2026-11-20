@@ -13,6 +13,81 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
+    /// Verifies that every token of a link operator split by whitespace alone ends up on the line of the operator's first token, in
+    /// every context: a sole <c>?.</c>, <c>!.</c>, and <c>!?.</c>, a later link of a wrapped chain, an interpolation hole, a lambda,
+    /// a link operator behind a comment in front of it, and a <c>!.</c> behind another null-forgiving operator
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-019")]
+    public void EveryTokenOfALinkOperatorSplitByWhitespaceJoinsTheLineOfItsFirstToken()
+    {
+        // Arrange
+        const string input = """
+                             #nullable enable
+
+                             using System.Linq;
+
+                             public class Sample
+                             {
+                                 public object? M(dynamic a, string? s, string? u, string? w, string?[] xs)
+                                 {
+                                     var p = a?
+                                         .B();
+                                     var q = s!
+                                         .Length;
+                                     var r = u!
+                                         ?
+                                         .Length;
+                                     var t = a.B()
+                                              .C()?
+                                              .D();
+                                     var i = $"{s?
+                                         .Length}";
+                                     var l = xs.Select(y => y?
+                                         .Length);
+                                     var f = a // c
+                                         ?
+                                         .B();
+                                     var g = w!
+                                         !
+                                         .Length;
+
+                                     return p ?? q + r + t + i + l + f + g;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                #nullable enable
+
+                                using System.Linq;
+
+                                public class Sample
+                                {
+                                    public object? M(dynamic a, string? s, string? u, string? w, string?[] xs)
+                                    {
+                                        var p = a?.B();
+                                        var q = s!.Length;
+                                        var r = u!?.Length;
+                                        var t = a.B()
+                                                 .C()
+                                                 ?.D();
+                                        var i = $"{s?.Length}";
+                                        var l = xs.Select(y => y?.Length);
+                                        var f = a // c
+                                                ?.B();
+                                        var g = w!!.Length;
+
+                                        return p ?? q + r + t + i + l + f + g;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that breaks inside <c>?.</c> and <c>!.</c> of later links move in front of the operator, with <c>?</c> and
     /// <c>!</c> aligned like <c>.</c>
     /// </summary>
@@ -957,10 +1032,11 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment between <c>!</c> and <c>?.</c> stays behind the <c>!</c>, which starts the line
+    /// Verifies that a comment between <c>!</c> and <c>?.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentBetweenNullForgivingAndConditionalKeepsCommentBehindNullForgiving()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentBetweenNullForgivingAndConditionalIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -975,28 +1051,16 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public void M()
-                                    {
-                                        var r = a.B()
-                                                 ! // c
-                                                 ?.C()
-                                                 .D();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that a comment between <c>!?</c> and <c>.</c> keeps <c>!?</c> together and puts <c>.</c> under <c>!</c>
+    /// Verifies that a comment between <c>!?</c> and <c>.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentInsideNullForgivingConditionalOperatorKeepsOperatorStartTogether()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentBetweenNullForgivingConditionalAndDotIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1010,27 +1074,16 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public void M()
-                                    {
-                                        var r = a.B()
-                                                 !? // c
-                                                 .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that a comment inside <c>!.</c> stays behind <c>!</c> and the <c>.</c> goes under the <c>!</c>
+    /// Verifies that a comment between <c>!</c> and <c>.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentInsideNullForgivingMemberAccessPutsDotUnderNullForgiving()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentInsideNullForgivingMemberAccessIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1044,20 +1097,8 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public void M()
-                                    {
-                                        var r = x.Y()
-                                                 ! // c
-                                                 .Z();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// c");
     }
 
     /// <summary>

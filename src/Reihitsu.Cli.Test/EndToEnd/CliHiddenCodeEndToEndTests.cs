@@ -228,6 +228,30 @@ public class CliHiddenCodeEndToEndTests
     private const string AttachedConditionalElementAccessCommentSource = "class C\n{\n    int? M(int[]? n)\n    {\n        return n? // first\n            [0];\n    }\n}\n";
 
     /// <summary>
+    /// The file of the FMT-UNSUP-015 change's example of a line comment between the <c>?</c> and the <c>.</c> of a <c>?.</c>, which
+    /// starts in line 5, column 20
+    /// </summary>
+    private const string LinkOperatorLineCommentSource = "class C\n{\n    object M(dynamic a)\n    {\n        var r = a? // note\n            .B();\n\n        return r;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-015 change's example of a conditional group between the <c>!</c> and the <c>.</c> of a <c>!.</c>,
+    /// whose <c>#if</c> starts in line 8, column 1
+    /// </summary>
+    private const string LinkOperatorConditionalGroupSource = "#nullable enable\n\nclass C\n{\n    string M()\n    {\n        return Get()!\n#if DEBUG\n            .Trim();\n#else\n            .ToUpper();\n#endif\n    }\n\n    string? Get()\n    {\n        return null;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-015 change's example of a <c>!.</c> and a <c>!?.</c> split by comments in a wrapped chain, whose
+    /// first comment starts in line 8, column 24
+    /// </summary>
+    private const string LinkOperatorWrappedChainSource = "#nullable enable\n\nclass C\n{\n    object? M(dynamic a, string? s)\n    {\n        var r = a.B()\n                 .C()! // c1\n                 .D()\n                 ?.E();\n        var t = s!\n            // c2\n            ?.Length;\n\n        return r ?? t;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-015 change's example of block comments inside link operators on one line, whose first comment
+    /// starts in line 7, column 20
+    /// </summary>
+    private const string LinkOperatorSameLineCommentSource = "#nullable enable\n\nclass C\n{\n    object? M(string? s, string? t, string? u)\n    {\n        var a = s? /* c1 */ .Length;\n        var b = t! /* c2 */ .Length;\n        var c = u! /* c3 */ ?.Length;\n        var d = u!? /* c4 */ .Length;\n\n        return a ?? b + c + d;\n    }\n}\n";
+
+    /// <summary>
     /// A formatted file
     /// </summary>
     private const string FormattedSource = "class B\n{\n    void M()\n    {\n    }\n}";
@@ -600,6 +624,36 @@ public class CliHiddenCodeEndToEndTests
 
             Assert.AreEqual(ExitCodes.Error, exitCode);
             Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output examples of FMT-UNSUP-015: files with a comment, a directive, or a conditional group between the
+    /// tokens of a <c>?.</c>, <c>!.</c>, or <c>!?.</c> operator — behind the <c>?</c>, between the <c>!</c> and the <c>.</c> in every
+    /// build, in a wrapped chain, and on one line — are each left unchanged, reported with the reason and the first comment's or
+    /// directive's line and column, and the run exits with code 2
+    /// </summary>
+    /// <param name="source">The file's text</param>
+    /// <param name="line">The reported line</param>
+    /// <param name="column">The reported column</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-015")]
+    [DataRow(LinkOperatorLineCommentSource, 5, 20, DisplayName = "Line comment between the question mark and the dot")]
+    [DataRow(LinkOperatorConditionalGroupSource, 8, 1, DisplayName = "Conditional group between the exclamation mark and the dot")]
+    [DataRow(LinkOperatorWrappedChainSource, 8, 24, DisplayName = "Comments inside link operators of a wrapped chain")]
+    [DataRow(LinkOperatorSameLineCommentSource, 7, 20, DisplayName = "Block comments inside link operators on one line")]
+    public async Task CommentOrDirectiveInsideALinkOperatorIsReportedAsUnsupported(string source, int line, int column)
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("a.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive inside a ?. or !. operator. The file was left unchanged." }, Lines(error));
             Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
