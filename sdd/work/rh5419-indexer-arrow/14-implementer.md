@@ -1,5 +1,5 @@
 Role: implementer
-Commit: 7a5693d (production change; this handover is amended into the same commit)
+Commit: 381f12c
 Verdict: tests pass
 
 Repair round 2: auditor findings #1 and #2 (`11-auditor.md`), amended RH5419-004 (`12-spec-author.md`), tests from `13-test-implementer.md`. The prompt carried no intended fix, suspected cause, or hoped-for verdict beyond naming the findings.
