@@ -220,7 +220,7 @@ Every other code fix that formats a statement or member holding such a chain giv
 
 **6. The RH5201 rule page** says that a continuation line aligns with the first call, or, when no call comes before the first wrapped line, with the last member access in front of that line (before: with the chain's first member access).
 
-**7. Repository source.** Files of this repository that hold such a chain are reformatted, layout only.
+**7. Repository source.** No file of this repository is reformatted to the new anchor. The analyzers under `binaries/` that build the repository still align a wrapped link under the chain's first link until `binaries/` is rebuilt, so a chain with two or more links in front of its first wrapped link would fail one of the two anchors. The four repository chains with such a prefix are rewritten instead, with a new local or a new private method, so that at most one link stands in front of the first wrapped link and both anchors give the same column; each rewrite keeps the same calls in the same order.
 
 ## Decisions
 
@@ -232,7 +232,7 @@ The first invoked link in front of the first wrapped link stays the anchor when 
 
 The maintainer answered the three output questions of this change, each with the recommended option:
 
-- **A wrapped link behind a prefix of property reads** aligns under the last link in front of the first wrapped link (visible changes 1, 3, 4, 5, 6, and 7): `x.Items.Length` ⏎ `.ToString()` aligns under `.Length`. RH5201 reports and fixes to that column, and the RH5112 and RH5111 fixes write it.
+- **A wrapped link behind a prefix of property reads** aligns under the last link in front of the first wrapped link (visible changes 1, 3, 4, 5, and 6): `x.Items.Length` ⏎ `.ToString()` aligns under `.Length`. RH5201 reports and fixes to that column, and the RH5112 and RH5111 fixes write it.
 - **A chain without any call** follows the same rule (visible change 2): `order.Customer.Address` ⏎ `.City` aligns under `.Address`.
 - **A link behind a comment that spans lines and starts behind code** does not start a line for the anchor: a line break inside the text of a delimited comment does not count (visible change 3, `q`). `.Self()` aligns under the `.` of the `.Next` behind `*/`.
 
