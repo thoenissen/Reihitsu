@@ -9,8 +9,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 /// source wraps between the <c>?</c> and the <c>.</c> or <c>[</c> of the operator. <c>?.</c> and <c>?[</c> stay
 /// together: the wrap is treated like the same link wrapped before the <c>?</c>, so the shapes verified through
 /// <c>AssertConditionalAndPlainFormsMatch</c> get the layout of the same chain written with a plain <c>.</c>.
-/// When a comment, directive, or disabled text keeps <c>?</c> and its binding token apart, the binding token is
-/// aligned under its <c>?</c>
+/// A comment, directive, or disabled text between <c>?</c> and its binding token refuses the input as unsupported
 /// </summary>
 [TestClass]
 public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBase
@@ -1197,11 +1196,11 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a line comment between <c>?</c> and <c>.</c> stays directly after the <c>?</c>, and the
-    /// binding <c>.</c> starts the next line aligned under that <c>?</c>
+    /// Verifies that a line comment between <c>?</c> and <c>.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void LineCommentBetweenQuestionMarkAndDotKeepsCommentAndAlignsDotUnderQuestionMark()
+    [Requirement("FMT-UNSUP-015")]
+    public void LineCommentBetweenQuestionMarkAndDotIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1216,29 +1215,16 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return list.Select(o => o)
-                                                   ? // note
-                                                   .Select(o => o)
-                                                   ?.Select(o => o);
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// note");
     }
 
     /// <summary>
-    /// Verifies that a block comment between <c>?</c> and <c>.</c> stays directly after the <c>?</c>, and the
-    /// binding <c>.</c> starts the next line aligned under that <c>?</c>
+    /// Verifies that a block comment between <c>?</c> and <c>.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void BlockCommentBetweenQuestionMarkAndDotKeepsCommentAndAlignsDotUnderQuestionMark()
+    [Requirement("FMT-UNSUP-015")]
+    public void BlockCommentBetweenQuestionMarkAndDotIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1253,29 +1239,16 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return list.Select(o => o)
-                                                   ? /* note */
-                                                   .Select(o => o)
-                                                   ?.Select(o => o);
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "/* note */");
     }
 
     /// <summary>
-    /// Verifies that a <c>#pragma</c> directive between <c>?</c> and <c>.</c> keeps its own line, and the
-    /// binding <c>.</c> starts the following line aligned under that <c>?</c>
+    /// Verifies that a <c>#pragma</c> directive between <c>?</c> and <c>.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void PragmaBetweenQuestionMarkAndDotKeepsDirectiveAndAlignsDotUnderQuestionMark()
+    [Requirement("FMT-UNSUP-015")]
+    public void PragmaBetweenQuestionMarkAndDotIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1291,30 +1264,16 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return list.Select(o => o)
-                                                   ?
-                                #pragma warning disable CS0168
-                                                   .Select(o => o)
-                                                   ?.Select(o => o);
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "#pragma warning disable CS0168");
     }
 
     /// <summary>
-    /// Verifies that disabled text between <c>?</c> and <c>.</c> is preserved verbatim, and the binding
-    /// <c>.</c> starts the following line aligned under that <c>?</c>
+    /// Verifies that a fully inactive group with disabled text between <c>?</c> and <c>.</c> of a later link refuses the input
     /// </summary>
     [TestMethod]
-    public void DisabledTextBetweenQuestionMarkAndDotIsPreservedAndDotAlignsUnderQuestionMark()
+    [Requirement("FMT-UNSUP-015")]
+    public void DisabledTextBetweenQuestionMarkAndDotIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1332,32 +1291,17 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return list.Select(o => o)
-                                                   ?
-                                #if false
-                                                   junk
-                                #endif
-                                                   .Select(o => o)
-                                                   ?.Select(o => o);
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "#if false");
     }
 
     /// <summary>
-    /// Verifies that each conditional link is decided on its own: the uncommented link is joined to <c>?.</c>,
-    /// and the commented one keeps its comment after the <c>?</c> with the <c>.</c> aligned under it
+    /// Verifies that a comment between <c>?</c> and <c>.</c> of one link refuses the input, although the other links of the chain
+    /// hold no comment
     /// </summary>
     [TestMethod]
-    public void CommentOnOneLinkOnlyLeavesOtherLinksJoined()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentOnOneLinkOfAWrappedChainIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1372,29 +1316,16 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return list.Select(o => o)
-                                                   ?.Select(o => o)
-                                                   ? // note
-                                                   .Select(o => o);
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// note");
     }
 
     /// <summary>
-    /// Verifies that a sole conditional link with a comment between <c>?</c> and <c>.</c> is treated as
-    /// wrapped: the <c>?</c> starts its own aligned line and the <c>.</c> is aligned under it
+    /// Verifies that a comment between <c>?</c> and <c>.</c> of a sole conditional link behind an invocation refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentOnSoleLinkMovesQuestionMarkOntoItsOwnLine()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentOnSoleLinkBehindAnInvocationIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1408,20 +1339,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return a.B()
-                                                ? // note
-                                                .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// note");
     }
 
     /// <summary>
@@ -1446,11 +1365,11 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a comment between <c>?</c> and <c>.</c> on an identifier-rooted chain leaves the <c>?</c>
-    /// on the root line, where the uncommented chain joins its first link, and aligns the <c>.</c> under it
+    /// Verifies that a comment between <c>?</c> and <c>.</c> of the first link of an identifier-rooted chain refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentAfterQuestionMarkOnIdentifierRootKeepsQuestionMarkOnRootLine()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentAfterQuestionMarkOnIdentifierRootIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1465,28 +1384,16 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return a? // note
-                                                .B()
-                                                .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// note");
     }
 
     /// <summary>
-    /// Verifies that a comment on its own line between <c>?</c> and <c>.</c> is kept, and both the comment
-    /// and the binding <c>.</c> are aligned under the <c>?</c>
+    /// Verifies that a comment on a line of its own between <c>?</c> and <c>.</c> refuses the input
     /// </summary>
     [TestMethod]
-    public void OwnLineCommentBetweenQuestionMarkAndDotAlignsCommentAndDotUnderQuestionMark()
+    [Requirement("FMT-UNSUP-015")]
+    public void OwnLineCommentBetweenQuestionMarkAndDotIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1502,22 +1409,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return a?
-
-                                                // note
-                                                .B()
-                                                .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// note");
     }
 
     /// <summary>
@@ -1544,11 +1437,11 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a comment between <c>?</c> and <c>.</c> in a short member-access chain refuses the join,
-    /// keeps the <c>?</c> on the root line, and aligns the <c>.</c> under it
+    /// Verifies that a comment between <c>?</c> and <c>.</c> in a short member-access chain refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentBetweenQuestionMarkAndDotInShortChainAlignsDotUnderQuestionMark()
+    [Requirement("FMT-UNSUP-015")]
+    public void CommentBetweenQuestionMarkAndDotInShortChainIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1562,19 +1455,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return a? // c
-                                                .B;
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// c");
     }
 
     /// <summary>

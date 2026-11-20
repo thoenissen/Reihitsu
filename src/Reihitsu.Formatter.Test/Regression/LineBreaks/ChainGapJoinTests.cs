@@ -320,11 +320,11 @@ public class ChainGapJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line comment inside a link operator keeps its line, so the operator is not joined
+    /// Verifies that a single-line comment inside a link operator refuses the input, so no join inside the operator meets it
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void SingleLineCommentInsideLinkOperatorKeepsItsLine()
+    [Requirement("FMT-UNSUP-015")]
+    public void SingleLineCommentInsideLinkOperatorIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -338,21 +338,9 @@ public class ChainGapJoinTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(dynamic a)
-                                    {
-                                        var x = a.B()
-                                                 ? // c
-                                                 .C()
-                                                 .D();
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "// c");
     }
 
     /// <summary>
@@ -431,11 +419,11 @@ public class ChainGapJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive inside a link operator keeps its line, so the operator is not joined
+    /// Verifies that a directive inside a link operator refuses the input, so no join inside the operator meets it
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void DirectiveInsideLinkOperatorKeepsItsLine()
+    [Requirement("FMT-UNSUP-015")]
+    public void DirectiveInsideLinkOperatorIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -451,23 +439,9 @@ public class ChainGapJoinTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(dynamic a)
-                                    {
-                                        var x = a.B()
-                                                 ?
-                                #if X
-                                #endif
-                                                 .C()
-                                                 .D();
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkOperatorCommentReason, input, "#if X");
     }
 
     /// <summary>

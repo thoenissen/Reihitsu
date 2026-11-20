@@ -230,6 +230,41 @@ public sealed class FluentChain
     }
 
     /// <summary>
+    /// Gets the tokens of the link operator of a member access or member binding. This is the one statement of which tokens
+    /// form a link operator: the chain model builds its links from it, and the formatter's precheck refuses a comment, a
+    /// preprocessor directive or disabled text between two of them. A simple member access gives its <c>.</c>, behind the
+    /// <c>!</c> of a null-forgiving operator that is its expression (<c>!.</c>); a member binding gives the <c>?</c> of its
+    /// conditional access and its <c>.</c> (<c>?.</c>), behind the <c>!</c> of a null-forgiving operator that is the
+    /// conditional access's expression (<c>!?.</c>). The tokens of one operator all belong to the member access or to the
+    /// conditional access
+    /// </summary>
+    /// <param name="node">The member access or member binding</param>
+    /// <returns>The operator tokens in source order, ending with the dot; empty for any other node</returns>
+    public static IReadOnlyList<SyntaxToken> GetLinkOperatorTokens(ExpressionSyntax node)
+    {
+        switch (node)
+        {
+            case MemberAccessExpressionSyntax memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
+                {
+                    return memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary
+                           && postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression)
+                               ? [postfixUnary.OperatorToken, memberAccess.OperatorToken]
+                               : [memberAccess.OperatorToken];
+                }
+
+            case MemberBindingExpressionSyntax memberBinding when memberBinding.OperatorToken.GetPreviousToken().Parent is ConditionalAccessExpressionSyntax conditionalAccess:
+                {
+                    return GetConditionalTokens(conditionalAccess, memberBinding.OperatorToken);
+                }
+
+            default:
+                {
+                    return [];
+                }
+        }
+    }
+
+    /// <summary>
     /// Gets the link whose operator the wrapped links of the chain align to: the first invoked link in front of the first
     /// link that starts a line, or the chain's first link when no invoked link comes first. When a comment, a preprocessor
     /// directive or disabled text keeps the chain's first link on its own line, the chain aligns to its root instead
@@ -404,7 +439,7 @@ public sealed class FluentChain
 
             case MemberBindingExpressionSyntax memberBinding when pendingConditional != null:
                 {
-                    links.Add(new FluentChainLink(memberBinding, GetConditionalTokens(pendingConditional, memberBinding.OperatorToken), memberBinding.Name, IsInvoked(memberBinding)));
+                    links.Add(new FluentChainLink(memberBinding, GetLinkOperatorTokens(memberBinding), memberBinding.Name, IsInvoked(memberBinding)));
                 }
                 break;
 
@@ -435,19 +470,14 @@ public sealed class FluentChain
                                             List<FluentChainLink> links,
                                             List<FluentChainAttachedPart> attachedParts)
     {
-        if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary
-            && postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-        {
-            Collect(postfixUnary.Operand, pendingConditional, links, attachedParts);
+        var receiver = memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary
+                       && postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression)
+                           ? postfixUnary.Operand
+                           : memberAccess.Expression;
 
-            links.Add(new FluentChainLink(memberAccess, [postfixUnary.OperatorToken, memberAccess.OperatorToken], memberAccess.Name, IsInvoked(memberAccess)));
-        }
-        else
-        {
-            Collect(memberAccess.Expression, pendingConditional, links, attachedParts);
+        Collect(receiver, pendingConditional, links, attachedParts);
 
-            links.Add(new FluentChainLink(memberAccess, [memberAccess.OperatorToken], memberAccess.Name, IsInvoked(memberAccess)));
-        }
+        links.Add(new FluentChainLink(memberAccess, GetLinkOperatorTokens(memberAccess), memberAccess.Name, IsInvoked(memberAccess)));
     }
 
     #endregion // Methods

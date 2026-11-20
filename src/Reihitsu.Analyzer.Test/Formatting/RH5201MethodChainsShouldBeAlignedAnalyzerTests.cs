@@ -2552,6 +2552,36 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies the change example: a comment between the <c>?</c> and the <c>.</c> of a link withholds the fix, because the
+    /// formatter refuses the statement the fix formats, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-015")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task NoFixIsOfferedForACommentInsideALinkOperator(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  object M(dynamic a)
+                                  {
+                                      var r = a.B(){|RH5201:?|} // note
+                                               .C()
+                                          {|RH5201:.|}D();
+
+                                      return r;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that a comment between the type and the name of the declaration that starts the chain's line withholds
     /// the fix: the fix formats that statement as the chain's context, which the formatter refuses, although the chain
     /// itself holds no refused shape

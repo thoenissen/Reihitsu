@@ -55,6 +55,12 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string AttachedPartCommentReason = "a comment or directive in front of an argument list, an element access, or a null-forgiving operator";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between two tokens of a <c>?.</c>, <c>!.</c>, or <c>!?.</c>
+    /// operator (FMT-UNSUP-015)
+    /// </summary>
+    protected const string LinkOperatorCommentReason = "a comment or directive inside a ?. or !. operator";
+
     #endregion // Constants
 
     #region Fields
