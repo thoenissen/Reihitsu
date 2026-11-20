@@ -94,11 +94,19 @@ internal sealed class CleanupPhase : IFormattingPhase
         }
         else
         {
-            // includeZeroWidth: true is required here — EndOfFileToken is zero-width, so the default
+            // The next token without text matters here — EndOfFileToken is zero-width, so the default
             // GetNextToken() skips over it and returns None for the file's last real token exactly as
             // it would for a genuinely detached node, making the two arms indistinguishable and
-            // defeating the EndOfFileToken.LeadingTrivia check below.
-            var nextToken = original.GetNextToken(includeZeroWidth: true);
+            // defeating the EndOfFileToken.LeadingTrivia check below. Only a token with no following
+            // token with text can be followed by EndOfFileToken, so the zero-width-inclusive navigation,
+            // which walks every sibling, runs for that token alone; a zero-width token in front of a
+            // token with text, such as an omitted array size, takes neither arm below either way.
+            var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(original);
+
+            if (nextToken.IsKind(SyntaxKind.None))
+            {
+                nextToken = original.GetNextToken(includeZeroWidth: true);
+            }
 
             // SyntaxToken.GetNextToken() skips trivia, so knowing the next token is EndOfFileToken only
             // proves no further real token follows — it says nothing about whether that token's own
@@ -182,7 +190,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     /// <returns>The trailing trivia list with end-of-line trailing whitespace removed</returns>
     private static SyntaxTriviaList StripTrailingWhitespaceAtEndOfLine(SyntaxTriviaList trailing, SyntaxToken originalToken)
     {
-        return EndOfLineWhitespace.StripBeforeFollowingLineBreak(trailing, originalToken.GetNextToken().LeadingTrivia);
+        return EndOfLineWhitespace.StripBeforeFollowingLineBreak(trailing, SyntaxTokenNavigationUtilities.GetNextToken(originalToken).LeadingTrivia);
     }
 
     /// <summary>

@@ -75,7 +75,7 @@ internal sealed class AttachedPartLineStartRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        previousToken = token.GetPreviousToken();
+        previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         return previousToken.IsKind(SyntaxKind.None) == false
                && previousToken.Span.IsEmpty == false

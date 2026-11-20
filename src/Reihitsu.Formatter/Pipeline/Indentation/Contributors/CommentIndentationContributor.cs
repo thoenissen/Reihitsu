@@ -68,7 +68,7 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
             alignColumn += FormattingContext.IndentSize;
         }
 
-        var previousToken = PrecedingTokenFacts.From(token.GetPreviousToken());
+        var previousToken = PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(token));
         var leadingTrivia = token.LeadingTrivia;
 
         for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)

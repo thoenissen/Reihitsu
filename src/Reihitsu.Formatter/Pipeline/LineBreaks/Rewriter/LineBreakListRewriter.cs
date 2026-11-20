@@ -88,7 +88,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         where TNode : SyntaxNode
     {
         var openParenToken = GetOpenToken(parameterList);
-        var previousToken = openParenToken.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(openParenToken);
 
         if (previousToken == default
             || previousToken.IsKind(SyntaxKind.None)

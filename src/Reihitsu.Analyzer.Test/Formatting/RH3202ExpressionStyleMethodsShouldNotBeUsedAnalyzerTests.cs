@@ -2040,6 +2040,47 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies the change example: the fix formats the method it builds, the formatter refuses a method that holds a comment
+    /// between the <c>?</c> and the <c>.</c> of a link, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-015")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInsideALinkOperator(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(string s) {|RH3202:=> s? // note
+                                                      .Length ?? 0|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a method that holds a block comment between the tokens of a <c>!.</c> or a
+    /// <c>!?.</c> on one line, and the diagnostic stays
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-015")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    int M(string? t) {|RH3202:=> t! /* c */ .Length|};\n}", DisplayName = "Block comment between the exclamation mark and the dot")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    int? M(string? u) {|RH3202:=> u! /* c */ ?.Length|};\n}", DisplayName = "Block comment between the exclamation mark and the question mark")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    int? M(string? u) {|RH3202:=> u!? /* c */ .Length|};\n}", DisplayName = "Block comment between the question mark and the dot of !?.")]
+    public async Task VerifyNoFixIsOfferedForACommentInsideANullForgivingLinkOperator(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

@@ -277,6 +277,47 @@ public class RH7101DoNotCombineFieldsCommentAndDirectiveTests : BatchCodeFixTest
     }
 
     /// <summary>
+    /// Verifies the change example: a comment between the <c>?</c> and the <c>.</c> of a link in a declarator's value withholds the
+    /// fix, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleCommentInsideALinkOperatorWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private static string Source = "";
+
+                                  private int? _a = Source? // one
+                                                          .Length, {|RH7101:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the tokens of a <c>?.</c>, a <c>!.</c>, or a <c>!?.</c> elsewhere in the type withholds the
+    /// fix
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int? M(string s)\n    {\n        return s? /* c */ .Length;\n    }\n}", DisplayName = "Inside a ?.")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(string? s)\n    {\n        return s! /* c */ .Length;\n    }\n}", DisplayName = "Inside a !.")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    private int _x, {|RH7101:_y|};\n\n    int? M(string? s)\n    {\n        return s!\n            // c\n            ?.Length;\n    }\n}", DisplayName = "Inside a !?.")]
+    public async Task CommentInsideALinkOperatorElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies that a comment in front of a binary operator elsewhere in the type does not withhold the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>

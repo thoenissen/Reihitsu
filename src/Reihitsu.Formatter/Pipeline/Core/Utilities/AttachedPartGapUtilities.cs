@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 /// <summary>
@@ -52,7 +54,7 @@ internal static class AttachedPartGapUtilities
                                                              },
                    SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax { Parent: ElementAccessExpressionSyntax },
                    SyntaxKind.QuestionToken => IsConditionalAccessOperator(token)
-                                               && IsElementBindingOpenBracket(token.GetNextToken()),
+                                               && IsElementBindingOpenBracket(SyntaxTokenNavigationUtilities.GetNextToken(token)),
                    SyntaxKind.ExclamationToken => token.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression)
                                                   && StartsLinkOperator(token) == false,
                    _ => false
@@ -84,22 +86,32 @@ internal static class AttachedPartGapUtilities
     }
 
     /// <summary>
-    /// Determines whether the <c>!</c> of a null-forgiving operator is the first token of a link operator: a <c>.</c>
-    /// of a member access, or the <c>?.</c> of a conditional member access, follows it (SHARED-CHAIN-001)
+    /// Determines whether the <c>!</c> of a null-forgiving operator is the first token of a link operator (<c>!.</c>,
+    /// <c>!?.</c>; SHARED-CHAIN-001). The link is the member access or member binding whose <c>.</c> follows the <c>!</c>,
+    /// directly or behind the <c>?</c> of a conditional access, and <see cref="FluentChain.GetLinkOperatorTokens"/>
+    /// states which tokens form its operator
     /// </summary>
     /// <param name="token">The <c>!</c></param>
     /// <returns><see langword="true"/> if the <c>!</c> starts a link operator; otherwise, <see langword="false"/></returns>
     private static bool StartsLinkOperator(SyntaxToken token)
     {
-        var nextToken = token.GetNextToken();
+        var dotToken = SyntaxTokenNavigationUtilities.GetNextToken(token);
 
-        if (nextToken.IsKind(SyntaxKind.DotToken))
+        if (IsConditionalAccessOperator(dotToken))
         {
-            return nextToken.Parent is MemberAccessExpressionSyntax;
+            dotToken = SyntaxTokenNavigationUtilities.GetNextToken(dotToken);
         }
 
-        return IsConditionalAccessOperator(nextToken)
-               && nextToken.GetNextToken().IsKind(SyntaxKind.DotToken);
+        if (dotToken.IsKind(SyntaxKind.DotToken) == false
+            || dotToken.Parent is not ExpressionSyntax link)
+        {
+            return false;
+        }
+
+        var operatorTokens = FluentChain.GetLinkOperatorTokens(link);
+
+        return operatorTokens.Count > 0
+               && operatorTokens[0] == token;
     }
 
     #endregion // Methods

@@ -39,7 +39,7 @@ public static class DeclarationModifierUtilities
                         .Where(static modifier => IsAccessibilityModifier(modifier.Kind()))
                         .SelectMany(static modifier => modifier.LeadingTrivia
                                                                .Concat(modifier.TrailingTrivia)
-                                                               .Concat(modifier.GetNextToken().LeadingTrivia))
+                                                               .Concat(SyntaxTokenNavigationUtilities.GetNextToken(modifier).LeadingTrivia))
                         .Any(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
                                               || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
     }
@@ -113,7 +113,7 @@ public static class DeclarationModifierUtilities
         var declarationWithoutLeadingTrivia = memberDeclaration.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxFactory.TriviaList()));
         var modifiers = declarationWithoutLeadingTrivia.Modifiers;
         var originalFollowingToken = modifiers.Count > 0
-                                         ? modifiers[modifiers.Count - 1].GetNextToken()
+                                         ? SyntaxTokenNavigationUtilities.GetNextToken(modifiers[modifiers.Count - 1])
                                          : GetFirstTokenBehindAttributeLists(declarationWithoutLeadingTrivia);
         var followingToken = originalFollowingToken;
         var updatedModifiers = ReplaceAccessibilityModifiers(modifiers, accessibilityModifiers, ref followingToken);
@@ -303,7 +303,7 @@ public static class DeclarationModifierUtilities
         }
 
         return memberDeclaration.AttributeLists.Count > 0
-                   ? memberDeclaration.AttributeLists[memberDeclaration.AttributeLists.Count - 1].GetLastToken().GetNextToken()
+                   ? SyntaxTokenNavigationUtilities.GetNextToken(memberDeclaration.AttributeLists[memberDeclaration.AttributeLists.Count - 1].GetLastToken())
                    : memberDeclaration.GetFirstToken();
     }
 

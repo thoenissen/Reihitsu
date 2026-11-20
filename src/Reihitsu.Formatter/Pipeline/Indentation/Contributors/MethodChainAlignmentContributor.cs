@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,8 +10,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Aligns the continuation lines of member-access chains, based on the shared <see cref="FluentChain"/> model. Every
-/// link operator that starts a line (<c>.</c>, <c>?.</c>, <c>!.</c> or <c>!?.</c>) is aligned to the chain's anchor;
-/// the rest of an operator that blocking trivia keeps on the next line goes under the operator's first token. An
+/// link operator that starts a line (<c>.</c>, <c>?.</c>, <c>!.</c> or <c>!?.</c>) is aligned to the chain's anchor.
+/// No later token of a link operator starts a line: the line-break phase joins every gap inside one (FMT-BREAK-019),
+/// and an input that holds a comment, a directive, or disabled text there is refused (FMT-UNSUP-015). An
 /// attached part never starts a line: the line-break phase joins every gap in front of and inside one (FMT-BREAK-039,
 /// FMT-BREAK-040), and an input that holds a comment, a directive, or disabled text there is refused (FMT-UNSUP-014).
 /// Only the outermost node of a chain is aligned. The chain rule decides which node that is, and for a node
@@ -67,7 +66,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <returns>The adjusted column for the chain anchor</returns>
     private static int GetChainAnchorColumn(SyntaxToken anchorDot, SyntaxToken firstDot, LayoutModel model)
     {
-        var prevToken = firstDot.GetPreviousToken();
+        var prevToken = SyntaxTokenNavigationUtilities.GetPreviousToken(firstDot);
 
         if (prevToken.IsKind(SyntaxKind.CloseBraceToken)
             && prevToken.Parent is InitializerExpressionSyntax initExpr
@@ -115,23 +114,6 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         }
     }
 
-    /// <summary>
-    /// Aligns every token after the first one in a link operator under the operator's first token when blocking trivia
-    /// keeps it on its own line
-    /// </summary>
-    /// <param name="tokens">The operator's tokens in source order</param>
-    /// <param name="model">The layout model</param>
-    private static void AlignRestOfRun(IReadOnlyList<SyntaxToken> tokens, LayoutModel model)
-    {
-        for (var tokenIndex = 1; tokenIndex < tokens.Count; tokenIndex++)
-        {
-            if (LayoutComputer.IsFirstOnLine(tokens[tokenIndex]))
-            {
-                LayoutComputer.SetIfFirstOnLine(tokens[tokenIndex], LayoutComputer.GetAdjustedColumn(tokens[0], model), "MethodChainOperator", model);
-            }
-        }
-    }
-
     #endregion // Methods
 
     #region ILayoutContributor
@@ -153,8 +135,6 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         foreach (var link in chain.Links)
         {
             LayoutComputer.SetIfFirstOnLine(link.OperatorToken, anchorColumn, "MethodChain", model);
-
-            AlignRestOfRun(link.OperatorTokens, model);
         }
     }
 
