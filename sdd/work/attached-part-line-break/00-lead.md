@@ -19,9 +19,10 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | Skeptic (02) | Architecture finding FC-015: the analyzer needs the attached-part gap predicate, which lives only in the formatter's internal `AttachedPartGapUtilities` | Move the predicate (its `[`/`?[`/`!` part at least) into `Reihitsu.Core` in this run; formatter precheck, line-break phase and RH5115 analyzer all use the one copy. No private copy in the analyzer | A private copy would be a second statement of the rule (the narrow fix adds a copy); the move is ~117 lines, no new logic, within the analyzer and its formatter counterpart, below the escalation-9 bound | Pure move; formatter output unchanged, guarded by existing formatter tests | — |
+| 1 | Skeptic (02) | Architecture finding FC-015: the analyzer needs the attached-part gap predicate, which lives only in the formatter's internal `AttachedPartGapUtilities` | Move the predicate (its `[`/`?[`/`!` part at least) into `Reihitsu.Core` in this run; formatter precheck, line-break phase and RH5115 analyzer all use the one copy. No private copy in the analyzer | A private copy would be a second statement of the rule (the narrow fix adds a copy); the move is ~117 lines, no new logic, within the analyzer and its formatter counterpart, below the escalation-9 bound | Pure move; formatter output unchanged, guarded by existing formatter tests | d86230e |
 | 2 | Skeptic (02) | Issue goal "use `FluentChain.AttachedParts`" and the stale formatter-owner reference | Replace with the moved predicate; the fix decides chain layout vs. plain join by `FluentChain.Create(...).Links.Count > 0` | `FluentChain` folds the `!` of `x!?[0]` differently from the join | Internal | — |
 | 3 | Spec author (03) | Keep the RH5116 page sentence that a `!` directly in front of `.` or `?.` is not reported? | Keep | It states the rule's scope, as RH5105's page states what is outside its rule; it is not a list of corner cases or withheld fixes | Scope decided by answers 1A/4A; the sentence describes it | d24a646 |
+| 4 | Implementer (05) | New shared type `AttachedPartLineBreakCodeFixProviderBase` beyond the specs' four types | Accept | It is the issue's own fix shared by two thin providers; without it the two providers would copy the same logic. Not a structural change under escalation 9 | Internal structure | d86230e |
 
 ## Follow-up candidates
 
@@ -34,5 +35,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 - Last step finished: skeptic (02, f987f50): proceed; Q5 added; architecture finding decided (#1).
 - Spec author 03 done (d24a646): two rules RH5115/RH5116 specified, change doc Accepted; lane check confirmed behavior-change.
 - Test implementer 04 done (4043635): 112 tests, fail for the right reason against stubs; test project needs the four types.
-- Next: implementer (05), including decision #1 (move the predicate to Core).
+- Implementer 05 done (d86230e, handover 9661311): all tests pass in Debug; predicate moved to Core as public `AttachedPartGapUtilities`.
+- Next: cleaner (06).
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
