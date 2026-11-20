@@ -26,5 +26,5 @@ None yet.
 
 ## State
 
-- Last step: skeptic (01-skeptic.md, proceed narrower). No output questions.
-- Next: test implementer (characterization tests).
+- Last step: implementer (03-implementer.md, 92678eb). Lane confirmed.
+- Next: cleaner, then spec checker.
