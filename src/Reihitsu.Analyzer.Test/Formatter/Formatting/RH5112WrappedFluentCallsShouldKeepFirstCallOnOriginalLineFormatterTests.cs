@@ -93,7 +93,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
+                              Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

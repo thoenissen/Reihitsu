@@ -31,7 +31,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               internal record struct {|#0:Measurement|};
                               """;
 
-        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               public record struct {|#0:Vector2D|}(double X, double Y);
                               """;
 
-        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               internal record struct {|#0:SensorReading|};
                               """;
 
-        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               internal record struct {|#0:Pair|}<T>(T First, T Second);
                               """;
 
-        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8009MessageFormat));
+        await Verify(source, Diagnostics(RH8009NonPrivateRecordStructsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

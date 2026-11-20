@@ -30,7 +30,7 @@ public class RH2107NestedEnumsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2107NestedEnumsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2107Title), nameof(AnalyzerResources.RH2107MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

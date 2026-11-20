@@ -13,6 +13,203 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source of <see cref="VerifySpecificationExampleMergeQualifiersOfTypeParameters"/>
+    /// </summary>
+    private const string MergeQualifiersOfTypeParametersSource = """
+                                                                 using System;
+                                                                 using System.Collections.Generic;
+
+                                                                 /// <summary>
+                                                                 /// Marks a declaration
+                                                                 /// </summary>
+                                                                 [AttributeUsage(AttributeTargets.All)]
+                                                                 public sealed class MarkAttribute : Attribute
+                                                                 {
+                                                                     /// <summary>
+                                                                     /// Creates the attribute
+                                                                     /// </summary>
+                                                                     /// <param name="value">Value</param>
+                                                                     public MarkAttribute(int value)
+                                                                     {
+                                                                     }
+                                                                 }
+
+                                                                 /// <summary>
+                                                                 /// Extensions
+                                                                 /// </summary>
+                                                                 public static partial class Extensions
+                                                                 {
+                                                                     /// <summary>
+                                                                     /// Lists
+                                                                     /// </summary>
+                                                                     /// <typeparam name="T">Element</typeparam>
+                                                                     /// <param name="values">Values</param>
+                                                                     extension<T>(List<T> values)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// More lists
+                                                                     /// </summary>
+                                                                     extension<T>(List<T> values)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Arrays
+                                                                     /// </summary>
+                                                                     /// <typeparam name="T">Element</typeparam>
+                                                                     /// <param name="values">Values</param>
+                                                                     extension<T>(T[] values)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// More arrays
+                                                                     /// </summary>
+                                                                     /// <param name="values">Values</param>
+                                                                     extension<{|#0:U|}>(U[] values)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Sequences
+                                                                     /// </summary>
+                                                                     /// <typeparam name="T">Element</typeparam>
+                                                                     /// <param name="items">Items</param>
+                                                                     extension<T>(IEnumerable<T> items) where T : IComparable, IDisposable
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// More sequences
+                                                                     /// </summary>
+                                                                     extension<T>(IEnumerable<T> items) where T : IDisposable, IComparable
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Sets of references
+                                                                     /// </summary>
+                                                                     /// <typeparam name="T">Element</typeparam>
+                                                                     /// <param name="items">Items</param>
+                                                                     extension<T>(ISet<T> items) where T : class
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Sets of values
+                                                                     /// </summary>
+                                                                     /// <param name="items">Items</param>
+                                                                     extension<{|#1:T|}>(ISet<T> items) where T : struct
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Read-only lists
+                                                                     /// </summary>
+                                                                     /// <typeparam name="T">Element</typeparam>
+                                                                     /// <param name="items">Items</param>
+                                                                     extension<T>(IList<T> items)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Marked read-only lists
+                                                                     /// </summary>
+                                                                     /// <param name="items">Items</param>
+                                                                     extension<[Mark(0)] {|#2:T|}>(IList<T> items)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Spans
+                                                                     /// </summary>
+                                                                     /// <param name="span">Span</param>
+                                                                     extension(ref Span<int> span)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Scoped spans
+                                                                     /// </summary>
+                                                                     extension(scoped ref Span<int> span)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Read-only references
+                                                                     /// </summary>
+                                                                     /// <param name="number">Number</param>
+                                                                     extension(in decimal number)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Read-only references, declared otherwise
+                                                                     /// </summary>
+                                                                     extension(ref readonly decimal number)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Marked longs
+                                                                     /// </summary>
+                                                                     /// <param name="value">Value</param>
+                                                                     extension([Mark(1)] long value)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Longs marked otherwise
+                                                                     /// </summary>
+                                                                     extension([Mark(2)] long value)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Marked integers
+                                                                     /// </summary>
+                                                                     /// <param name="value">Value</param>
+                                                                     extension([Mark(1)] int value)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// More marked integers
+                                                                     /// </summary>
+                                                                     extension([Mark(1)] int value)
+                                                                     {
+                                                                     }
+
+                                                                     /// <summary>
+                                                                     /// Single values
+                                                                     /// </summary>
+                                                                     /// <param name="value">Value</param>
+                                                                     extension(float value)
+                                                                     {
+                                                                     }
+                                                                 }
+
+                                                                 /// <summary>
+                                                                 /// More extensions
+                                                                 /// </summary>
+                                                                 public static partial class Extensions
+                                                                 {
+                                                                     /// <summary>
+                                                                     /// More single values
+                                                                     /// </summary>
+                                                                     extension(float value)
+                                                                     {
+                                                                     }
+                                                                 }
+                                                                 """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -37,7 +234,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -133,7 +330,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -255,7 +452,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -305,7 +502,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -370,7 +567,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -413,7 +610,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -526,7 +723,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -550,7 +747,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -562,197 +759,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
     [Requirement("SHARED-DOC-013")]
     public async Task VerifySpecificationExampleMergeQualifiersOfTypeParameters()
     {
-        const string source = """
-                              using System;
-                              using System.Collections.Generic;
-
-                              /// <summary>
-                              /// Marks a declaration
-                              /// </summary>
-                              [AttributeUsage(AttributeTargets.All)]
-                              public sealed class MarkAttribute : Attribute
-                              {
-                                  /// <summary>
-                                  /// Creates the attribute
-                                  /// </summary>
-                                  /// <param name="value">Value</param>
-                                  public MarkAttribute(int value)
-                                  {
-                                  }
-                              }
-
-                              /// <summary>
-                              /// Extensions
-                              /// </summary>
-                              public static partial class Extensions
-                              {
-                                  /// <summary>
-                                  /// Lists
-                                  /// </summary>
-                                  /// <typeparam name="T">Element</typeparam>
-                                  /// <param name="values">Values</param>
-                                  extension<T>(List<T> values)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// More lists
-                                  /// </summary>
-                                  extension<T>(List<T> values)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Arrays
-                                  /// </summary>
-                                  /// <typeparam name="T">Element</typeparam>
-                                  /// <param name="values">Values</param>
-                                  extension<T>(T[] values)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// More arrays
-                                  /// </summary>
-                                  /// <param name="values">Values</param>
-                                  extension<{|#0:U|}>(U[] values)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Sequences
-                                  /// </summary>
-                                  /// <typeparam name="T">Element</typeparam>
-                                  /// <param name="items">Items</param>
-                                  extension<T>(IEnumerable<T> items) where T : IComparable, IDisposable
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// More sequences
-                                  /// </summary>
-                                  extension<T>(IEnumerable<T> items) where T : IDisposable, IComparable
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Sets of references
-                                  /// </summary>
-                                  /// <typeparam name="T">Element</typeparam>
-                                  /// <param name="items">Items</param>
-                                  extension<T>(ISet<T> items) where T : class
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Sets of values
-                                  /// </summary>
-                                  /// <param name="items">Items</param>
-                                  extension<{|#1:T|}>(ISet<T> items) where T : struct
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Read-only lists
-                                  /// </summary>
-                                  /// <typeparam name="T">Element</typeparam>
-                                  /// <param name="items">Items</param>
-                                  extension<T>(IList<T> items)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Marked read-only lists
-                                  /// </summary>
-                                  /// <param name="items">Items</param>
-                                  extension<[Mark(0)] {|#2:T|}>(IList<T> items)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Spans
-                                  /// </summary>
-                                  /// <param name="span">Span</param>
-                                  extension(ref Span<int> span)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Scoped spans
-                                  /// </summary>
-                                  extension(scoped ref Span<int> span)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Read-only references
-                                  /// </summary>
-                                  /// <param name="number">Number</param>
-                                  extension(in decimal number)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Read-only references, declared otherwise
-                                  /// </summary>
-                                  extension(ref readonly decimal number)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Marked longs
-                                  /// </summary>
-                                  /// <param name="value">Value</param>
-                                  extension([Mark(1)] long value)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Longs marked otherwise
-                                  /// </summary>
-                                  extension([Mark(2)] long value)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Marked integers
-                                  /// </summary>
-                                  /// <param name="value">Value</param>
-                                  extension([Mark(1)] int value)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// More marked integers
-                                  /// </summary>
-                                  extension([Mark(1)] int value)
-                                  {
-                                  }
-
-                                  /// <summary>
-                                  /// Single values
-                                  /// </summary>
-                                  /// <param name="value">Value</param>
-                                  extension(float value)
-                                  {
-                                  }
-                              }
-
-                              /// <summary>
-                              /// More extensions
-                              /// </summary>
-                              public static partial class Extensions
-                              {
-                                  /// <summary>
-                                  /// More single values
-                                  /// </summary>
-                                  extension(float value)
-                                  {
-                                  }
-                              }
-                              """;
-
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 3));
+        await Verify(MergeQualifiersOfTypeParametersSource, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -787,7 +794,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

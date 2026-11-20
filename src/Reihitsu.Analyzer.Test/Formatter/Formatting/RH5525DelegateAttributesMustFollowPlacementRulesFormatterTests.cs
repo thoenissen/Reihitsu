@@ -41,7 +41,7 @@ public class RH5525DelegateAttributesMustFollowPlacementRulesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5525MessageFormat));
+                              Diagnostics(RH5525DelegateAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -30,7 +30,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH6021ColonsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6021Title), nameof(AnalyzerResources.RH6021MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

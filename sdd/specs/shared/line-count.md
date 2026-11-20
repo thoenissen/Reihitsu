@@ -99,7 +99,7 @@ class C
 }
 ```
 
-With `{ "design": { "maximumMethodLines": 2 }, "formatting": 1 }`, `N` is reported as well, although RH0001 reports the unknown section `formatting`. Without a `reihitsu.json`, with `{ "design": { } }`, with `{ "design": { "maximumMethodLines": 0 } }`, with `{ "design": { "maximumMethodLines": "2" } }`, with an empty `reihitsu.json`, with `{ } junk`, and with `{ "design": { "maximumTestMethodLines": 2 } }`, the default production limit of 60 lines applies and neither method is reported. In a test project, `{ "design": { "maximumMethodLines": 2 } }` does not apply: the default test limit of 100 lines applies, and neither method is reported; `{ "design": { "maximumTestMethodLines": 2 } }` reports `N`.
+With `{ "design": { "maximumMethodLines": 2 }, "formatting": 1 }`, `N` is reported as well, although RH0001 reports the unknown section `formatting`. Without a `reihitsu.json`, with `{ "design": { } }`, with `{ "design": { "maximumMethodLines": 0 } }`, with `{ "design": { "maximumMethodLines": "2" } }`, with an empty `reihitsu.json`, with `{ } junk`, and with `{ "design": { "maximumTestMethodLines": 2 } }`, the default production limit of 60 lines applies and neither method is reported. In a test project, `{ "design": { "maximumMethodLines": 2 } }` does not apply: the default test limit of 120 lines applies, and neither method is reported; `{ "design": { "maximumTestMethodLines": 2 } }` reports `N`.
 
 ### SHARED-LINES-003 — Test code is the code of a test project
 

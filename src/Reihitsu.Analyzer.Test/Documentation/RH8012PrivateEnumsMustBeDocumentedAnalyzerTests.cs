@@ -38,7 +38,7 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8012MessageFormat));
+        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8012MessageFormat));
+        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8012MessageFormat));
+        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class RH8012PrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8012MessageFormat));
+        await Verify(source, Diagnostics(RH8012PrivateEnumsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

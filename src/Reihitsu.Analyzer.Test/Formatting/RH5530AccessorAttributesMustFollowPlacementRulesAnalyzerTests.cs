@@ -59,7 +59,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -188,7 +188,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -249,7 +249,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -407,7 +407,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -457,7 +457,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat));
+                     Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -509,7 +509,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzerTests : Bat
         // which used to make its derived indentation zero-width
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5530MessageFormat, 2));
+                                  Diagnostics(RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

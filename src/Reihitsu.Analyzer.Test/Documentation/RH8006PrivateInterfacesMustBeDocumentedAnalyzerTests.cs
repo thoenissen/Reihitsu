@@ -37,7 +37,7 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8006MessageFormat));
+        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8006MessageFormat));
+        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH8006PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8006MessageFormat));
+        await Verify(source, Diagnostics(RH8006PrivateInterfacesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

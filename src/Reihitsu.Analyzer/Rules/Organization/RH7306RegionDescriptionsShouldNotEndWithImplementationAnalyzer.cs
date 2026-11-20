@@ -34,7 +34,7 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer : Re
     /// Constructor
     /// </summary>
     public RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7306Title), nameof(AnalyzerResources.RH7306MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

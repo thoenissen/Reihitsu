@@ -29,7 +29,7 @@ public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer : State
     /// Constructor
     /// </summary>
     public RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5015Title), nameof(AnalyzerResources.RH5015MessageFormat), SyntaxKind.CheckedStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.CheckedStatement)
     {
     }
 

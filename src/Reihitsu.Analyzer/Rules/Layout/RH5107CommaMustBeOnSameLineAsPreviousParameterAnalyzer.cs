@@ -30,7 +30,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5107Title), nameof(AnalyzerResources.RH5107MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

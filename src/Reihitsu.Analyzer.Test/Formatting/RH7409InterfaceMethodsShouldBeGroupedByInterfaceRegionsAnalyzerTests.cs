@@ -1160,7 +1160,7 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string interfaceName)
     {
-        return string.Format(AnalyzerResources.RH7409MessageFormat, interfaceName);
+        return string.Format(MessageFormat, interfaceName);
     }
 
     #endregion // Methods

@@ -51,7 +51,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -244,7 +244,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -286,7 +286,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -318,7 +318,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(source,
                      source,
                      Diagnostic(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId).WithSpan(7, 9, 8, 1)
-                                                                                 .WithMessage(AnalyzerResources.RH8202MessageFormat));
+                                                                                 .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -345,7 +345,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(source,
                      source,
                      Diagnostic(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId).WithSpan(6, 9, 8, 1)
-                                                                                 .WithMessage(AnalyzerResources.RH8202MessageFormat));
+                                                                                 .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -411,7 +411,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -448,7 +448,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -548,7 +548,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -593,7 +593,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -653,7 +653,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -710,7 +710,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -769,7 +769,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                                             }
                                                             """);
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 3));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -805,7 +805,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -832,7 +832,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(source,
                      source,
                      Diagnostic(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId).WithSpan(6, 9, 7, 1)
-                                                                                 .WithMessage(AnalyzerResources.RH8202MessageFormat));
+                                                                                 .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -923,7 +923,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -964,7 +964,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                                             }
                                                             """);
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1002,7 +1002,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1038,7 +1038,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1079,7 +1079,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -1121,7 +1121,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
         // Verifies multiple value tags are detected and fixed together
         return new FixAllScenario(source,
                                   fixedSource,
-                                  Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat, 2),
+                                  Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

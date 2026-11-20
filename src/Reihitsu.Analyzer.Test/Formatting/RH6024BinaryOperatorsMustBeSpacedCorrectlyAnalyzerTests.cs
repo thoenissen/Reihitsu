@@ -384,7 +384,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -418,7 +418,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -451,7 +451,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -484,7 +484,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -540,7 +540,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -573,7 +573,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1307,7 +1307,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
         // Verifies that Fix All normalizes multiple keyword-operator diagnostics in one iteration
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat, 2),
+                                  Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

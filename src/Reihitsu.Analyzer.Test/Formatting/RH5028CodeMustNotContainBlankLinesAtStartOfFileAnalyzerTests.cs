@@ -58,7 +58,7 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan(1, 1, 3, 1).WithMessage(AnalyzerResources.RH5028MessageFormat));
+                     Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan(1, 1, 3, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -244,8 +244,8 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Batc
         return new FixAllScenario(testData,
                                   fixedData,
                                   [
-                                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 1, 1, 3, 1).WithMessage(AnalyzerResources.RH5028MessageFormat),
-                                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 1, 1, 2, 1).WithMessage(AnalyzerResources.RH5028MessageFormat)
+                                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 1, 1, 3, 1).WithMessage(MessageFormat),
+                                      Diagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 1, 1, 2, 1).WithMessage(MessageFormat)
                                   ],
                                   config =>
                                   {

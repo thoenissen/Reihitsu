@@ -30,7 +30,7 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4008NamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4008MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4008NamespaceCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RH4008NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH4008Namesp
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4008NamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4008MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4008NamespaceCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

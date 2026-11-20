@@ -30,11 +30,9 @@ public abstract class ExpressionBodyAnalyzerBase<TNode> : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message format resource name</param>
     /// <param name="syntaxKind">Syntax kind of <typeparamref name="TNode"/></param>
-    private protected ExpressionBodyAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
-        : base(diagnosticId, DiagnosticCategory.Clarity, titleResourceName, messageFormatResourceName)
+    private protected ExpressionBodyAnalyzerBase(string diagnosticId, SyntaxKind syntaxKind)
+        : base(diagnosticId, DiagnosticCategory.Clarity)
     {
         _syntaxKind = syntaxKind;
     }

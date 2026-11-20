@@ -70,7 +70,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
 
         await Verify(testData.Replace("\r\n", "\n"),
                      fixedData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
+                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat));
+                     Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -742,7 +742,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
         // Verifies two expression-bodied constructors are fixed in one Fix All iteration
         return new FixAllScenario(testData.Replace("\r\n", "\n"),
                                   resultData.Replace("\r\n", "\n"),
-                                  Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3203MessageFormat, 2),
+                                  Diagnostics(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

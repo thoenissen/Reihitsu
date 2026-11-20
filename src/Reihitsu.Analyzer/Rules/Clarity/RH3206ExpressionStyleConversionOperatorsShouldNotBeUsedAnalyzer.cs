@@ -28,7 +28,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer : E
     /// Constructor
     /// </summary>
     public RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH3206Title), nameof(AnalyzerResources.RH3206MessageFormat), SyntaxKind.ConversionOperatorDeclaration)
+        : base(DiagnosticId, SyntaxKind.ConversionOperatorDeclaration)
     {
     }
 

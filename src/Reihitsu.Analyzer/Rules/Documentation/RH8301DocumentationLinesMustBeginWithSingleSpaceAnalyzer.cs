@@ -33,7 +33,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     /// Constructor
     /// </summary>
     public RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8301Title), nameof(AnalyzerResources.RH8301MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

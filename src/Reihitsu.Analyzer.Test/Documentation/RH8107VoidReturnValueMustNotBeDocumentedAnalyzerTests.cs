@@ -56,7 +56,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -136,7 +136,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -257,7 +257,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -301,7 +301,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -335,7 +335,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
         await Verify(source,
                      source,
                      Diagnostic(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId).WithSpan(6, 9, 7, 1)
-                                                                                              .WithMessage(AnalyzerResources.RH8107MessageFormat));
+                                                                                              .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -362,7 +362,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
         await Verify(source,
                      source,
                      Diagnostic(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId).WithSpan(5, 9, 7, 1)
-                                                                                              .WithMessage(AnalyzerResources.RH8107MessageFormat));
+                                                                                              .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -408,7 +408,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -475,7 +475,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -577,7 +577,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -684,7 +684,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -802,7 +802,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -916,7 +916,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
 
         await Verify(source,
                      fixedSource,
-                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat, 2));
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Tests
@@ -964,7 +964,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : BatchCodeFi
         // Verifies multiple returns tags are detected and fixed together
         return new FixAllScenario(source,
                                   fixedSource,
-                                  Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat, 2),
+                                  Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

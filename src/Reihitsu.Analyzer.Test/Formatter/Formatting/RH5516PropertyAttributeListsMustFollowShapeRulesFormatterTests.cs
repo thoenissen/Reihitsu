@@ -49,7 +49,7 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5516MessageFormat));
+                              Diagnostics(RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

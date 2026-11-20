@@ -69,7 +69,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -217,7 +217,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -657,7 +657,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
         // removal span sits close behind the first fix's own removal
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat, 2));
+                                  Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

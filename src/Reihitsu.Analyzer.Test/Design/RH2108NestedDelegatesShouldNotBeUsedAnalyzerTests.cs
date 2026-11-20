@@ -32,7 +32,7 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2108NestedDelegatesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2108MessageFormat));
+        await Verify(source, Diagnostics(RH2108NestedDelegatesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class RH2108NestedDelegatesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2108NestedDelegatesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2108MessageFormat, 3));
+        await Verify(source, Diagnostics(RH2108NestedDelegatesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests

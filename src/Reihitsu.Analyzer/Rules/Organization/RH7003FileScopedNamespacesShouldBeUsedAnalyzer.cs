@@ -29,7 +29,7 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzer : DiagnosticAnalyzer
     /// Constructor
     /// </summary>
     public RH7003FileScopedNamespacesShouldBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7003Title), nameof(AnalyzerResources.RH7003MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

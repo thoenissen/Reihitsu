@@ -50,7 +50,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
+                              Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
+                              Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

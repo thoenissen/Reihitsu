@@ -43,7 +43,7 @@ public class RH6019PositiveSignsMustBeSpacedCorrectlyFormatterTests : FormatterT
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6019MessageFormat));
+                              Diagnostics(RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

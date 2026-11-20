@@ -34,7 +34,7 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
         await Verify(source,
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+                                                                                          .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -79,9 +79,9 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
                          test.SolutionTransforms.Add(ApplyDocumentationModeNone);
                      },
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat),
+                                                                                          .WithMessage(MessageFormat),
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+                                                                                          .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
         await Verify(source,
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+                                                                                          .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
         await Verify(source,
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+                                                                                          .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
         await Verify("{|#0:|}",
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNone),
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat));
+                                                                                          .WithMessage(MessageFormat));
     }
 
     #endregion // Tests

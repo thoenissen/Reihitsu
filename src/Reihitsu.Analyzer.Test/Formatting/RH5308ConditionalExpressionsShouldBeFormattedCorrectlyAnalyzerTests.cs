@@ -101,7 +101,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -237,7 +237,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -284,7 +284,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1107,7 +1107,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
         // the surviving single fix already re-anchors both conditionals' ? and : tokens in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
+                                  Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

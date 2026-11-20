@@ -40,7 +40,7 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4122SingleLetterParameterNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4122MessageFormat, 3));
+        await Verify(testCode, Diagnostics(RH4122SingleLetterParameterNamesAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4122SingleLetterParameterNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4122MessageFormat));
+        await Verify(testCode, Diagnostics(RH4122SingleLetterParameterNamesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4122SingleLetterParameterNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4122MessageFormat, 4));
+        await Verify(testCode, Diagnostics(RH4122SingleLetterParameterNamesAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>

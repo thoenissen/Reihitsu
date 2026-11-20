@@ -30,7 +30,7 @@ public class RH3201CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH3201CommentsMustContainTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3201Title), nameof(AnalyzerResources.RH3201MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

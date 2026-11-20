@@ -29,7 +29,7 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer : Comment
     /// Constructor
     /// </summary>
     public RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5041Title), nameof(AnalyzerResources.RH5041MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

@@ -39,7 +39,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -130,7 +130,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 3));
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+                              Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

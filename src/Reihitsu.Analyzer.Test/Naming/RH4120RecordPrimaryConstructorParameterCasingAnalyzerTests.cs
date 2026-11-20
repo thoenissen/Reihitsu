@@ -38,7 +38,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                                  public record Product(string ProductCode);
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4120MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4120MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                                  public record struct ProductId(string ValueCode);
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4120MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -538,7 +538,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
         // synthesized property and the named argument that reads it
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4120MessageFormat, 2));
+                                  Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -34,7 +34,7 @@ public class RH2105NestedInterfacesShouldNotBeUsedAnalyzerTests : AnalyzerTestsB
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2105NestedInterfacesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2105MessageFormat));
+        await Verify(source, Diagnostics(RH2105NestedInterfacesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class RH2105NestedInterfacesShouldNotBeUsedAnalyzerTests : AnalyzerTestsB
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2105NestedInterfacesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2105MessageFormat, 3));
+        await Verify(source, Diagnostics(RH2105NestedInterfacesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests

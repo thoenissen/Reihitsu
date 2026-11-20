@@ -44,7 +44,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -185,7 +185,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -236,7 +236,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -323,7 +323,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+                              Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

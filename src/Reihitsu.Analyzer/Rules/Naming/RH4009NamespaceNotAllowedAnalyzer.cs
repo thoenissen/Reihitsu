@@ -31,7 +31,7 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4009NamespaceNotAllowedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4009Title), nameof(AnalyzerResources.RH4009MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

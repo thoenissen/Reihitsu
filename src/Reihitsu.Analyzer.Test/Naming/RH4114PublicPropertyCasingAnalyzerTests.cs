@@ -56,7 +56,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -901,7 +901,7 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         // outside its own declaration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4114MessageFormat, 2));
+                                  Diagnostics(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

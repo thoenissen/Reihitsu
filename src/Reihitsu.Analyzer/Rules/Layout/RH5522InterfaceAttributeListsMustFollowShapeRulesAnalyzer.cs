@@ -28,8 +28,6 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer : TargetA
     /// </summary>
     public RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5522Title),
-               nameof(AnalyzerResources.RH5522MessageFormat),
                AttributeTargets.Interface,
                TargetAttributeListShapeMode.SplitLists)
     {

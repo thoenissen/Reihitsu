@@ -61,7 +61,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -203,7 +203,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -352,7 +352,7 @@ public class RH4004EnumNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4004Enu
         // property types
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4004MessageFormat, 2));
+                                  Diagnostics(RH4004EnumNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -65,7 +65,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -251,7 +251,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -306,7 +306,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -602,7 +602,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -699,7 +699,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -761,7 +761,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -900,7 +900,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1221,7 +1221,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      },
-                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1271,7 +1271,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      },
-                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1389,7 +1389,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+                     Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -1470,7 +1470,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : BatchCodeFixTestsBa
         // Verifies Fix All inserts one blank line after every affected closing brace in braced switch-section bodies
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat, 2),
+                                  Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

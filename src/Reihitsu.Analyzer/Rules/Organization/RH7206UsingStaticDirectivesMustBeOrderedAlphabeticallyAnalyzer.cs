@@ -30,7 +30,7 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
     /// Constructor
     /// </summary>
     public RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7206Title), nameof(AnalyzerResources.RH7206MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

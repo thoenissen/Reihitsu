@@ -60,7 +60,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
 
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -270,7 +270,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
 
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -306,7 +306,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 internal enum {|#0:TestEnum|} { First }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -327,7 +327,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
         await VerifyNoCodeFixIsOffered(testData.Replace("{|#0:extension|}", "{|RH5404:extension|}"));
     }
 
@@ -569,7 +569,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 internal struct {|#0:TestStruct|} { private int _value; }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -585,7 +585,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 internal interface {|#0:ITestInterface|} { void Method(); }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -601,7 +601,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 internal record {|#0:TestRecord|} { public int Value { get; init; } }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -618,7 +618,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                 internal record struct {|#0:TestRecordStruct|} { public int Value { get; init; } }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -906,7 +906,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                  """;
 
         // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat, 2));
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1050,7 +1050,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
         // overlap-discarding path rather than two independently applied changes
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat, 2));
+                                  Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

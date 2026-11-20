@@ -56,7 +56,7 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5004MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -151,7 +151,7 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5004MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -207,7 +207,7 @@ public class RH5004DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
         // sits directly against the first fix's trailing while clause
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5004MessageFormat, 2));
+                                  Diagnostics(RH5004DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -29,7 +29,7 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAn
     /// Constructor
     /// </summary>
     public RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2003Title), nameof(AnalyzerResources.RH2003MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

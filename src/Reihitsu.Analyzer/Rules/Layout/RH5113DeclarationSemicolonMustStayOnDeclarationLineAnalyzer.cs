@@ -30,7 +30,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer : Diagn
     /// Constructor
     /// </summary>
     public RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5113Title), nameof(AnalyzerResources.RH5113MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

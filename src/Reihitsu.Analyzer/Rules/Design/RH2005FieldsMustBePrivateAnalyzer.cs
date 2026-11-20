@@ -30,7 +30,7 @@ public class RH2005FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2005FieldsMustBePrivateAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2005Title), nameof(AnalyzerResources.RH2005MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

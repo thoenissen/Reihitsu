@@ -108,7 +108,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -275,7 +275,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -305,7 +305,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -364,7 +364,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -394,7 +394,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -434,7 +434,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -464,7 +464,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                                           }
                                                           """);
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -496,7 +496,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -513,7 +513,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                 public record R(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -534,7 +534,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -555,7 +555,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -573,7 +573,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                     int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -602,7 +602,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -621,7 +621,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
                                 public record R(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -654,7 +654,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
 
         // The two trailing-text runs sit on different documentation lines, so the two deletions are disjoint
         // and neither shifts the other's span
-        return new FixAllScenario(source, fixedSource, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

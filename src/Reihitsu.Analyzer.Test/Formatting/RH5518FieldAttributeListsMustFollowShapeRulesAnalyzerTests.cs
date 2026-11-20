@@ -79,7 +79,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -228,7 +228,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
                                                    RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -277,7 +277,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat, 3));
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -319,7 +319,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -362,7 +362,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
-                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+                     Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
@@ -743,7 +743,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         // now stands.
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat, 2),
+                                  Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 2),
                                   Configure: config => config.NumberOfFixAllIterations = 1);
     }
 

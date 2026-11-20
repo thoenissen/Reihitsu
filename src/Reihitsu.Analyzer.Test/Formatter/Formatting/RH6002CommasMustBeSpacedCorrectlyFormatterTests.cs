@@ -41,7 +41,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class RH6002CommasMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+                              Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

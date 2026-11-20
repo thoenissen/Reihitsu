@@ -31,7 +31,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5106Title), nameof(AnalyzerResources.RH5106MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

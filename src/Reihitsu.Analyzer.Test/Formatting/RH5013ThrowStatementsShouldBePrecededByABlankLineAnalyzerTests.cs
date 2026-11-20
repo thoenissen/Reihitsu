@@ -58,7 +58,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -286,7 +286,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
         // in the same block; the pragma at file top suppresses CS0162 without touching either occurrence
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat, 2));
+                                  Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

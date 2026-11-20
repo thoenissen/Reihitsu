@@ -50,7 +50,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineFormatterTests : FormatterTest
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, 8, 13, 8, 20, AnalyzerResources.RH5101MessageFormat));
+                              ExpectedDiagnostic(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, 8, 13, 8, 20, MessageFormat));
     }
 
     #endregion // Tests

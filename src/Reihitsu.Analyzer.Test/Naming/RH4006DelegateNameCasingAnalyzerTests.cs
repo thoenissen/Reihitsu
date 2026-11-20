@@ -53,7 +53,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ public class RH4006DelegateNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH400
         // reference outside its own declaration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4006MessageFormat, 2));
+                                  Diagnostics(RH4006DelegateNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

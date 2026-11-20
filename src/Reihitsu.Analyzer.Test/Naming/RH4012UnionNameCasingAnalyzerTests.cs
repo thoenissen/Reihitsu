@@ -40,7 +40,7 @@ public class RH4012UnionNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4012Un
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH4012UnionNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4012MessageFormat));
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH4012UnionNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -375,7 +375,7 @@ public class RH4012UnionNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4012Un
         // rename changes as well
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4012UnionNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4012MessageFormat, 2),
+                                  Diagnostics(RH4012UnionNameCasingAnalyzer.DiagnosticId, MessageFormat, 2),
                                   test => test.TestState.AdditionalReferences.Add(UnionSupport.GetReference()));
     }
 

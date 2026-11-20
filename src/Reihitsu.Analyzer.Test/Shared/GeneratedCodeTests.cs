@@ -52,7 +52,7 @@ public class GeneratedCodeTests : AnalyzerTestsBase<RH1003UseStringInterpolation
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, AnalyzerResources.RH1003MessageFormat));
+        await Verify(testCode, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

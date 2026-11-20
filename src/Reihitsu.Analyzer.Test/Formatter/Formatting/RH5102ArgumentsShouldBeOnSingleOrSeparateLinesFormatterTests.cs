@@ -50,7 +50,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, 7, 26, 8, 35, AnalyzerResources.RH5102MessageFormat));
+                              ExpectedDiagnostic(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, 7, 26, 8, 35, MessageFormat));
     }
 
     /// <summary>

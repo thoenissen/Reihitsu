@@ -66,7 +66,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                  """;
         var testData = testDataWithTabMarker.Replace("{TAB}", "\t");
 
-        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -207,7 +207,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                  """;
         var testData = testDataWithWhitespaceMarker.Replace("{WHITESPACE}", "  ");
 
-        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -294,7 +294,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                                }
                                                """);
 
-        await Verify(testData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -331,7 +331,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -391,7 +391,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                  """;
         var testData = testDataWithMarker.Replace("{NBSP}", " ");
 
-        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -465,7 +465,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -768,7 +768,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
         // Verifies that continuation lines are detected and fixed together
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2),
+                                  Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

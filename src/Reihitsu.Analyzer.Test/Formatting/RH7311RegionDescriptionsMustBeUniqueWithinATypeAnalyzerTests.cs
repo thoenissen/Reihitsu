@@ -1177,7 +1177,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string regionDescription)
     {
-        return string.Format(AnalyzerResources.RH7311MessageFormat, regionDescription);
+        return string.Format(MessageFormat, regionDescription);
     }
 
     #endregion // Methods

@@ -54,7 +54,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
     /// Constructor
     /// </summary>
     public RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8306Title), nameof(AnalyzerResources.RH8306MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

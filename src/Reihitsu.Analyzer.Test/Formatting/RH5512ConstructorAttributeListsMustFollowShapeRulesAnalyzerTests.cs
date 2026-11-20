@@ -62,7 +62,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat));
+                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzerTests : 
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat));
+                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -174,7 +174,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzerTests : 
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat, 2));
+                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -220,7 +220,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat));
+                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -267,7 +267,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzerTests : 
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
-                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat));
+                     Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
@@ -402,7 +402,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzerTests : 
         // last attribute now stands.
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat, 2),
+                                  Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 2),
                                   Configure: config => config.NumberOfFixAllIterations = 1);
     }
 

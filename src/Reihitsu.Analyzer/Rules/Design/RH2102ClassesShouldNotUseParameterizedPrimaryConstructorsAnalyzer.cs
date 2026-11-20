@@ -29,7 +29,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer :
     /// Constructor
     /// </summary>
     public RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2102Title), nameof(AnalyzerResources.RH2102MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

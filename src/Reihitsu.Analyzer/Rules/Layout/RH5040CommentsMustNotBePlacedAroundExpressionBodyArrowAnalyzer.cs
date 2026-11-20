@@ -29,7 +29,7 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer : Co
     /// Constructor
     /// </summary>
     public RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5040Title), nameof(AnalyzerResources.RH5040MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

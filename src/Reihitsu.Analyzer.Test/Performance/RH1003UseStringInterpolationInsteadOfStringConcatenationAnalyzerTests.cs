@@ -37,7 +37,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, AnalyzerResources.RH1003MessageFormat));
+        await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, AnalyzerResources.RH1003MessageFormat));
+        await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzerTes
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, AnalyzerResources.RH1003MessageFormat));
+        await Verify(testData, Diagnostics(RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ public class RH2104NestedStructsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH2104NestedStructsShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH2104Title), nameof(AnalyzerResources.RH2104MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Design)
     {
     }
 

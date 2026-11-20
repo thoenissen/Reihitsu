@@ -51,8 +51,8 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, 5, 67, 5, 74, AnalyzerResources.RH3205MessageFormat),
-                              ExpectedDiagnostic(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, 7, 41, 7, 60, AnalyzerResources.RH3205MessageFormat));
+                              ExpectedDiagnostic(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, 5, 67, 5, 74, MessageFormat),
+                              ExpectedDiagnostic(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, 7, 41, 7, 60, MessageFormat));
     }
 
     #endregion // Tests

@@ -50,7 +50,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH5006MessageFormat));
+                              ExpectedDiagnostic(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, MessageFormat));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 15, 6, 22, AnalyzerResources.RH5006MessageFormat));
+                              ExpectedDiagnostic(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 15, 6, 22, MessageFormat));
     }
 
     #endregion // Tests

@@ -29,7 +29,7 @@ public class RH5407UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5407UseBracesConsistentlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5407Title), nameof(AnalyzerResources.RH5407MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

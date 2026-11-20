@@ -28,8 +28,6 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer : Targe
     /// </summary>
     public RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5512Title),
-               nameof(AnalyzerResources.RH5512MessageFormat),
                AttributeTargets.Constructor,
                TargetAttributeListShapeMode.SplitLists)
     {

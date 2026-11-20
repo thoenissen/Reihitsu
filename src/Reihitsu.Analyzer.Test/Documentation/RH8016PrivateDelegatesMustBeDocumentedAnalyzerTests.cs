@@ -35,7 +35,7 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
+        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
+        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
+        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
+        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class RH8016PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8016MessageFormat));
+        await Verify(source, Diagnostics(RH8016PrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

@@ -43,7 +43,7 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat));
+                              Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

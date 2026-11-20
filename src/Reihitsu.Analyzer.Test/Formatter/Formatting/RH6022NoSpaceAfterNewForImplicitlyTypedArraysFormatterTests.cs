@@ -43,7 +43,7 @@ public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysFormatterTests : Forma
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH6022MessageFormat));
+                              Diagnostics(RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

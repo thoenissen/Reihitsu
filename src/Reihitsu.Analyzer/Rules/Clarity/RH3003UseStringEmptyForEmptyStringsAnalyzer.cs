@@ -29,7 +29,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
     /// Constructor
     /// </summary>
     public RH3003UseStringEmptyForEmptyStringsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3003Title), nameof(AnalyzerResources.RH3003MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

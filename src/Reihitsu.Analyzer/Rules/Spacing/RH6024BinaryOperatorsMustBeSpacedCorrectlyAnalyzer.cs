@@ -67,7 +67,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
     /// Constructor
     /// </summary>
     public RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6024Title), nameof(AnalyzerResources.RH6024MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

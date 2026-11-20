@@ -33,7 +33,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerB
     /// Constructor
     /// </summary>
     public RH7102ConstantsMustAppearBeforeFieldsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7102Title), nameof(AnalyzerResources.RH7102MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

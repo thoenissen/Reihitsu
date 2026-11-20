@@ -30,7 +30,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBas
     /// Constructor
     /// </summary>
     public RH6001KeywordsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6001Title), nameof(AnalyzerResources.RH6001MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

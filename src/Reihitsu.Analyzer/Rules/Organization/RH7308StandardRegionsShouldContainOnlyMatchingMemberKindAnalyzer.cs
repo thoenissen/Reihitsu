@@ -145,7 +145,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     /// Constructor
     /// </summary>
     public RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7308Title), nameof(AnalyzerResources.RH7308MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

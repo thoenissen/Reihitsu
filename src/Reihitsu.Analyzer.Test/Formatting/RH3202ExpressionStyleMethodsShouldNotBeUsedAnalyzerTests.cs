@@ -195,7 +195,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -225,7 +225,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -260,7 +260,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -318,7 +318,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -351,7 +351,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -380,7 +380,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -599,7 +599,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat, 2));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -755,7 +755,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -774,7 +774,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -791,7 +791,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -809,7 +809,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -828,7 +828,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -843,8 +843,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         const string testData = "internal class C\n{\n    private int _a; /** a */ /** b */\n    public int M() {|#0:=> 1|};\n}";
         const string fixedData = "internal class C\n{\n    private int _a; /** a */ /** b */\n    public int M()\n    {\n        return 1;\n    }\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -858,8 +858,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         const string testData = "internal class C\n{ /** d */ public int M() {|#0:=> 1|};\n}";
         const string fixedData = "internal class C\n{ /** d */ public int M()\n  {\n      return 1;\n  }\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -873,8 +873,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         const string testData = "internal class C\n{\n    private int _a; /** d */ public int M() {|#0:=> 1|};\n}";
         const string fixedData = "internal class C\n{\n    private int _a; /** d */ public int M()\n                    {\n                        return 1;\n                    }\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2000,6 +2000,46 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies the change example: the fix formats the method it builds, the formatter refuses a method that holds a comment in
+    /// front of an element access, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-014")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnElementAccess(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int[] arr) {|RH3202:=> arr // first
+                                                      [0]|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a method that holds a block comment in front of an argument list on one line, or
+    /// between the <c>?</c> and the <c>[</c> of a conditional element access, and the diagnostic stays
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-014")]
+    [DataRow("class C\n{\n    int M() {|RH3202:=> Foo /* c */ (1)|};\n\n    int Foo(int x)\n    {\n        return x;\n    }\n}", DisplayName = "Block comment in front of an argument list")]
+    [DataRow("#nullable enable\n\nclass C\n{\n    int? M(int[]? n) {|RH3202:=> n? /* c */ [0]|};\n}", DisplayName = "Block comment between the question mark and the bracket")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfAnAttachedPart(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>
@@ -2060,7 +2100,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         // Verifies two expression-bodied methods are fixed in one Fix All iteration
         return new FixAllScenario(testData.Replace("\r\n", "\n"),
                                   resultData.Replace("\r\n", "\n"),
-                                  Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat, 2),
+                                  Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

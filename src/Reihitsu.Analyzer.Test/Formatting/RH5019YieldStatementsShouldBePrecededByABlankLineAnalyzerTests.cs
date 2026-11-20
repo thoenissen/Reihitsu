@@ -52,7 +52,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -355,7 +355,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
         // exempt from this rule, so two occurrences require two distinct non-yield predecessors
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat, 2));
+                                  Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
@@ -9,12 +10,11 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 /// <summary>
 /// Replaces the accessor list of a property or indexer that holds nothing but a <c>get</c> accessor with a
 /// member-level expression body, so <c>{ get => e; }</c> and <c>{ get { return e; } }</c> both become <c>=> e;</c>.
-/// A block-bodied getter qualifies exactly when <see cref="AccessorExpressionBodyTransform"/> would convert it.
-/// The accessor list is kept when the getter carries attributes or modifiers, has no body, or the property has an
-/// initializer, because none of them has a place on an expression-bodied member. It is also kept whenever a comment,
-/// directive, or disabled text sits in trivia the rewrite would delete or join onto another line; a comment trailing
-/// the getter's semicolon or the accessor list's closing brace already ends the member's last line and follows the
-/// new semicolon instead
+/// Whether a member is converted, and the conversion itself, are owned by
+/// <see cref="GetOnlyMemberExpressionBodyRewriteUtilities.TryConvertToExpressionBody"/>, which the analyzers that report
+/// get-only members and their code fixes use as well. The version gate reads
+/// <see cref="FormattingContext.LanguageVersion"/> rather than the node's parse options, because a node that an earlier
+/// rewriter replaced belongs to a new tree whose options fall back to the defaults
 /// </summary>
 internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewriter
 {
@@ -47,153 +47,6 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Determines the expression-bodied form of the accessor list's only accessor
-    /// </summary>
-    /// <param name="accessorList">The accessor list to inspect</param>
-    /// <param name="endOfLine">The end-of-line sequence of the formatting run</param>
-    /// <param name="getter">The expression-bodied getter, converted from a block body when necessary</param>
-    /// <returns><see langword="true"/> if the list holds a single plain getter that has an expression-bodied form; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// Attributes and modifiers on the getter have no place on the member: moving an attribute would change its
-    /// target, and dropping a modifier would lose a token. A block body is converted by
-    /// <see cref="AccessorExpressionBodyTransform.ConvertToExpressionBody"/>, so it qualifies under exactly the shape,
-    /// seam, and directive rules of the accessor-level conversion
-    /// </remarks>
-    private static bool TryGetExpressionBodiedGetter(AccessorListSyntax accessorList, string endOfLine, out AccessorDeclarationSyntax getter)
-    {
-        getter = null;
-
-        if (accessorList.OpenBraceToken.IsMissing
-            || accessorList.CloseBraceToken.IsMissing
-            || accessorList.Accessors.Count != 1)
-        {
-            return false;
-        }
-
-        var accessor = accessorList.Accessors[0];
-
-        if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration) == false
-            || accessor.AttributeLists.Count > 0
-            || accessor.Modifiers.Count > 0)
-        {
-            return false;
-        }
-
-        if (accessor.Body != null)
-        {
-            accessor = AccessorExpressionBodyTransform.ConvertToExpressionBody(accessor, endOfLine);
-        }
-
-        if (accessor.ExpressionBody == null
-            || accessor.SemicolonToken.IsMissing)
-        {
-            return false;
-        }
-
-        getter = accessor;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Determines whether the trivia the rewrite deletes or joins onto the member signature's line is plain layout.
-    /// These seams are the trailing trivia of the token before the accessor list, both sides of the opening brace,
-    /// the leading trivia of the <c>get</c> keyword, the getter semicolon's leading trivia, and the closing brace's
-    /// leading trivia. Neither gap around the getter's arrow is a seam to check: a getter written with an expression body
-    /// that holds a comment, a directive, or disabled text there is refused by the precheck (FMT-UNSUP-012,
-    /// FMT-UNSUP-013), and a getter converted from a block keeps its block when its keyword's trailing trivia holds one
-    /// (FMT-STRUCT-012) and gets an arrow with no trivia
-    /// </summary>
-    /// <param name="accessorList">The accessor list to inspect</param>
-    /// <param name="getter">The expression-bodied getter</param>
-    /// <returns><see langword="true"/> if every seam holds only layout trivia; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// The token before the accessor list lies outside the list. A comment trailing it would leave the arrow on the
-    /// next line once the opening brace is gone, so it is inspected together with the list's own seams
-    /// </remarks>
-    private static bool HasLayoutOnlySeams(AccessorListSyntax accessorList, AccessorDeclarationSyntax getter)
-    {
-        return AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.OpenBraceToken.GetPreviousToken().TrailingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.OpenBraceToken.LeadingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.OpenBraceToken.TrailingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(getter.Keyword.LeadingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(getter.SemicolonToken.LeadingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.CloseBraceToken.LeadingTrivia);
-    }
-
-    /// <summary>
-    /// Removes the layout trivia that separated the member signature from the accessor list, so the arrow follows
-    /// the signature on its line
-    /// </summary>
-    /// <typeparam name="TNode">The declaration type</typeparam>
-    /// <param name="node">The property or indexer declaration</param>
-    /// <returns>The declaration without trailing trivia on the token before the accessor list</returns>
-    /// <remarks>
-    /// The trivia is layout only, which <see cref="HasLayoutOnlySeams"/> establishes before the rewrite starts
-    /// </remarks>
-    private static TNode RemoveSignatureTrailingTrivia<TNode>(TNode node)
-        where TNode : BasePropertyDeclarationSyntax
-    {
-        var signatureEnd = node.AccessorList.OpenBraceToken.GetPreviousToken();
-
-        return node.ReplaceToken(signatureEnd, signatureEnd.WithTrailingTrivia(SyntaxFactory.TriviaList()));
-    }
-
-    /// <summary>
-    /// Builds the member-level arrow clause and semicolon that replace the accessor list
-    /// </summary>
-    /// <param name="accessorList">The accessor list to replace</param>
-    /// <param name="arrowExpressionClause">The member-level arrow clause</param>
-    /// <param name="semicolonToken">The member-level semicolon</param>
-    /// <returns><see langword="true"/> if the accessor list can be replaced without losing or misplacing trivia; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// A throw expression only exists from C# 7.0 on, so a getter that throws keeps its accessor list for earlier
-    /// language versions. The version is read from <see cref="FormattingContext.LanguageVersion"/> rather than the
-    /// node's parse options, because a node that an earlier rewriter replaced belongs to a new tree whose options fall
-    /// back to the defaults
-    /// </remarks>
-    private bool TryCreateExpressionBody(AccessorListSyntax accessorList,
-                                         out ArrowExpressionClauseSyntax arrowExpressionClause,
-                                         out SyntaxToken semicolonToken)
-    {
-        arrowExpressionClause = null;
-        semicolonToken = default;
-
-        if (TryGetExpressionBodiedGetter(accessorList, _context.EndOfLine, out var getter) == false)
-        {
-            return false;
-        }
-
-        var expression = getter.ExpressionBody.Expression;
-
-        if (expression is ThrowExpressionSyntax
-            && _context.LanguageVersion < LanguageVersion.CSharp7)
-        {
-            return false;
-        }
-
-        if (HasLayoutOnlySeams(accessorList, getter) == false
-            || AccessorExpressionBodyTransform.ContainsBlockingDirective(accessorList.Parent, accessorList)
-            || AccessorExpressionBodyTransform.TryRehostExpression(expression, out var bodyExpression) == false
-            || AccessorExpressionBodyTransform.TryBuildSemicolonTrailingTrivia(getter.SemicolonToken, accessorList.CloseBraceToken, _context.EndOfLine, out var semicolonTrailingTrivia) == false)
-        {
-            return false;
-        }
-
-        // The created arrow gets no whitespace on either side; the spacing phase spaces it like every arrow (FMT-STRUCT-026,
-        // FMT-SPACE-017). The created tokens are built with explicit trivia, so they carry no elastic trivia
-        arrowExpressionClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsGreaterThanToken, SyntaxFactory.TriviaList()),
-                                                                    bodyExpression);
-        semicolonToken = SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, semicolonTrailingTrivia);
-
-        return true;
-    }
-
-    #endregion // Methods
-
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
@@ -203,16 +56,10 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
 
         node = (PropertyDeclarationSyntax)base.VisitPropertyDeclaration(node);
 
-        if (node?.AccessorList == null
-            || node.Initializer != null
-            || TryCreateExpressionBody(node.AccessorList, out var arrowExpressionClause, out var semicolonToken) == false)
-        {
-            return node;
-        }
-
-        return RemoveSignatureTrailingTrivia(node).WithAccessorList(null)
-                                                  .WithExpressionBody(arrowExpressionClause)
-                                                  .WithSemicolonToken(semicolonToken);
+        return node != null
+               && GetOnlyMemberExpressionBodyRewriteUtilities.TryConvertToExpressionBody(node, _context.LanguageVersion, _context.EndOfLine, out var convertedMember)
+                   ? convertedMember
+                   : node;
     }
 
     /// <inheritdoc/>
@@ -222,15 +69,10 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
 
         node = (IndexerDeclarationSyntax)base.VisitIndexerDeclaration(node);
 
-        if (node?.AccessorList == null
-            || TryCreateExpressionBody(node.AccessorList, out var arrowExpressionClause, out var semicolonToken) == false)
-        {
-            return node;
-        }
-
-        return RemoveSignatureTrailingTrivia(node).WithAccessorList(null)
-                                                  .WithExpressionBody(arrowExpressionClause)
-                                                  .WithSemicolonToken(semicolonToken);
+        return node != null
+               && GetOnlyMemberExpressionBodyRewriteUtilities.TryConvertToExpressionBody(node, _context.LanguageVersion, _context.EndOfLine, out var convertedMember)
+                   ? convertedMember
+                   : node;
     }
 
     #endregion // CSharpSyntaxVisitor

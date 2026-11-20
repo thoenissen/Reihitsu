@@ -36,7 +36,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat, 2));
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat, 4));
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat));
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2102MessageFormat));
+        await Verify(source, Diagnostics(RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

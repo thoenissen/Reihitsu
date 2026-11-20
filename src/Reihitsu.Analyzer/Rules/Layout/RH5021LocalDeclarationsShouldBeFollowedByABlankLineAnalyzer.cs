@@ -29,7 +29,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer : State
     /// Constructor
     /// </summary>
     public RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5021Title), nameof(AnalyzerResources.RH5021MessageFormat), SyntaxKind.ExpressionStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.ExpressionStatement)
     {
     }
 

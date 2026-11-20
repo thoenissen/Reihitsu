@@ -29,7 +29,7 @@ public class RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5003Title), nameof(AnalyzerResources.RH5003MessageFormat), SyntaxKind.WhileStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.WhileStatement)
     {
     }
 

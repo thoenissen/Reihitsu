@@ -31,7 +31,7 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5027Title), nameof(AnalyzerResources.RH5027MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

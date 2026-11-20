@@ -28,7 +28,7 @@ public class RH8029PrivateEventsMustBeDocumentedAnalyzer : SplitElementDocumenta
     /// Constructor
     /// </summary>
     public RH8029PrivateEventsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8029Title), nameof(AnalyzerResources.RH8029MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.EventDeclaration, SyntaxKind.EventFieldDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.EventDeclaration, SyntaxKind.EventFieldDeclaration)
     {
     }
 

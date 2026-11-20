@@ -43,7 +43,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyFormatterTests : Formatte
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+                              Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyFormatterTests : Formatte
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat, 2));
+                              Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Tests

@@ -43,7 +43,7 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, 5, 5, 5, 29, AnalyzerResources.RH7301MessageFormat));
+                              ExpectedDiagnostic(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, 5, 5, 5, 29, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
 
         await VerifyFormatter(input,
                               fixedSource,
-                              Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+                              Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
 
         await VerifyFormatter(input,
                               fixedSource,
-                              Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+                              Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

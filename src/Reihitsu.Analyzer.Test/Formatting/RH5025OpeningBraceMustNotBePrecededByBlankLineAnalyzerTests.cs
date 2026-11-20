@@ -70,7 +70,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -652,7 +652,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
                                  }
                                  """";
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -918,7 +918,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
         // second fix's removal span sits close behind the first fix's own removal
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat, 2));
+                                  Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

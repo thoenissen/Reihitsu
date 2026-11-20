@@ -28,7 +28,7 @@ public class RH8011NonPrivateEnumsMustBeDocumentedAnalyzer : SplitElementDocumen
     /// Constructor
     /// </summary>
     public RH8011NonPrivateEnumsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8011Title), nameof(AnalyzerResources.RH8011MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.EnumDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.EnumDeclaration)
     {
     }
 

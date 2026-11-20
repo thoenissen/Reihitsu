@@ -59,7 +59,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -172,7 +172,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -415,7 +415,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -498,7 +498,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -550,7 +550,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -639,7 +639,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -761,7 +761,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -846,7 +846,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -967,7 +967,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1014,7 +1014,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1033,7 +1033,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1276,7 +1276,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1333,7 +1333,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1393,7 +1393,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1452,7 +1452,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1512,7 +1512,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1565,7 +1565,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1750,7 +1750,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1797,7 +1797,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1846,7 +1846,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2144,7 +2144,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2188,7 +2188,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                   }
                                   """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2216,7 +2216,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+        await Verify(testData, Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2244,7 +2244,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2916,7 +2916,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         // Verifies that Fix All converges when multiple complex elements contain misaligned expressions
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat, 2),
+                                  Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

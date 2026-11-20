@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Precheck;
 
@@ -56,6 +57,13 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// front of it (FMT-UNSUP-013)
     /// </summary>
     internal const string ExpressionBodyArrowLeadingCommentReason = "a comment or directive between the arrow of an expression body and the code in front of it";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of an argument list, an element access, a
+    /// conditional element access, or a null-forgiving operator, or between the <c>?</c> and the <c>[</c> of a conditional
+    /// element access (FMT-UNSUP-014)
+    /// </summary>
+    internal const string AttachedPartCommentReason = "a comment or directive in front of an argument list, an element access, or a null-forgiving operator";
 
     #endregion // Constants
 
@@ -115,34 +123,48 @@ internal sealed class PrecheckPhase : IFormattingPhase
 
         var (firstSeparatorTrivia, isDeclaratorComma) = FindTriviaInFrontOfComma(node);
 
+        var firstAttachedPartTrivia = FindTriviaInAttachedPartGap(node);
+
         // Of two shapes that start at the same trivia, the one listed first wins: FMT-UNSUP-004 keeps its reason for a comment,
         // and FMT-UNSUP-009 for a directive, in front of a comma between two declarators; FMT-UNSUP-009 gives its own for a
         // comment in front of every other comma inside a variable declaration, and FMT-UNSUP-010 gives its own for every other
         // directive inside a field declaration with several declarators. FMT-UNSUP-011, FMT-UNSUP-012, and FMT-UNSUP-013 are listed
         // last, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive behind a binary operator, and
-        // FMT-UNSUP-010 keeps its reason for a directive on either side of the arrow of an expression body, that they refuse as well
-        var candidates = isDeclaratorComma
-                             ? new List<(SyntaxTrivia? Trivia, string Reason)>
-                               {
-                                   (firstComment, VariableDeclarationCommentReason),
-                                   (firstSeparatorTrivia, ListSeparatorCommentReason),
-                                   (firstFieldDirective, FieldDeclarationDirectiveReason),
-                                   (firstOperatorTrivia, ConditionalOperatorCommentReason),
-                                   (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
-                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason),
-                                   (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason)
-                               }
-                             : new List<(SyntaxTrivia? Trivia, string Reason)>
-                               {
-                                   (firstFieldDirective, FieldDeclarationDirectiveReason),
-                                   (firstSeparatorTrivia, ListSeparatorCommentReason),
-                                   (firstComment, VariableDeclarationCommentReason),
-                                   (firstOperatorTrivia, ConditionalOperatorCommentReason),
-                                   (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
-                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason),
-                                   (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason)
-                               };
+        // FMT-UNSUP-010 keeps its reason for a directive on either side of the arrow of an expression body, that they refuse as well.
+        // FMT-UNSUP-014 is listed after them, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive in
+        // the gap of an attached part that they refuse as well
+        List<(SyntaxTrivia? Trivia, string Reason)> candidates = isDeclaratorComma
+                                                                     ? [
+                                                                           (firstComment, VariableDeclarationCommentReason),
+                                                                           (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                                                           (firstFieldDirective, FieldDeclarationDirectiveReason)
+                                                                       ]
+                                                                     : [
+                                                                           (firstFieldDirective, FieldDeclarationDirectiveReason),
+                                                                           (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                                                           (firstComment, VariableDeclarationCommentReason)
+                                                                       ];
 
+        candidates.AddRange([
+                                (firstOperatorTrivia, ConditionalOperatorCommentReason),
+                                (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
+                                (firstArrowTrivia, ExpressionBodyArrowCommentReason),
+                                (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason),
+                                (firstAttachedPartTrivia, AttachedPartCommentReason)
+                            ]);
+
+        return CreateFirstUnsupportedSyntax(node, candidates);
+    }
+
+    /// <summary>
+    /// Creates the unsupported shape of the candidate whose trivia starts first; of two candidates that start at the same
+    /// trivia, the one listed first wins
+    /// </summary>
+    /// <param name="node">The node the candidates were found in</param>
+    /// <param name="candidates">The first trivia of every shape, or <see langword="null"/> for a shape the node does not hold, with the shape's reason</param>
+    /// <returns>The shape with its location in the node's syntax tree, or <see langword="null"/> when the node holds none</returns>
+    private static UnsupportedSyntax CreateFirstUnsupportedSyntax(SyntaxNode node, List<(SyntaxTrivia? Trivia, string Reason)> candidates)
+    {
         (SyntaxTrivia? Trivia, string Reason) first = (null, null);
 
         foreach (var candidate in candidates)
@@ -333,6 +355,45 @@ internal sealed class PrecheckPhase : IFormattingPhase
 
         return FindFirstUnsupportedOperatorTrivia(previousToken.TrailingTrivia)
                    ?? FindFirstUnsupportedOperatorTrivia(arrowToken.LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text in a gap of an attached part (FMT-UNSUP-014): in front of the
+    /// first token of an argument list, an element access, a conditional element access, or a null-forgiving operator, or
+    /// between the <c>?</c> and the <c>[</c> of a conditional element access
+    /// (<see cref="AttachedPartGapUtilities.IsAttachedPartGap"/>), in the trailing trivia of the token in front of the gap or
+    /// in the leading trivia of the token behind it. The gap lies between two tokens, so a gap whose token in front lies
+    /// outside the node is not looked at (FMT-UNSUP-003). The node's tokens are walked once in text order
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaInAttachedPartGap(SyntaxNode node)
+    {
+        foreach (var token in node.DescendantTokens())
+        {
+            if (AttachedPartGapUtilities.IsAttachedPartGap(token) == false)
+            {
+                continue;
+            }
+
+            var previousToken = token.GetPreviousToken();
+
+            if (previousToken == default
+                || node.Span.Contains(previousToken.Span) == false)
+            {
+                continue;
+            }
+
+            var trivia = FindFirstUnsupportedOperatorTrivia(previousToken.TrailingTrivia)
+                             ?? FindFirstUnsupportedOperatorTrivia(token.LeadingTrivia);
+
+            if (trivia != null)
+            {
+                return trivia;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

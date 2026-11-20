@@ -31,7 +31,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               internal delegate void {|#0:Handler|}();
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               public delegate void {|#0:Callback|}();
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               delegate void {|#0:ImplicitInternalHandler|}();
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               internal delegate void {|#0:Handler|}();
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               internal delegate TResult {|#0:Transformer|}<TResult>(TResult input);
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public class RH8015NonPrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTe
                               internal delegate bool {|#0:Predicate|}(string value, int index);
                               """;
 
-        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8015MessageFormat));
+        await Verify(source, Diagnostics(RH8015NonPrivateDelegatesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

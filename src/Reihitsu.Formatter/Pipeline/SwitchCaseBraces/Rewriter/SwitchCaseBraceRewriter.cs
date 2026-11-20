@@ -334,101 +334,37 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns>The names of the directly declared locals</returns>
     private static IEnumerable<string> GetDirectlyDeclaredLocalNames(SyntaxList<StatementSyntax> statements)
     {
-        foreach (var sectionStatement in statements)
+        return statements.SelectMany(GetDirectlyDeclaredLocalNamesOfStatement);
+    }
+
+    /// <summary>
+    /// Gets the names of the locals that a statement declares directly in the scope that owns it, also behind a label,
+    /// outside any nested body; see <see cref="GetDirectlyDeclaredLocalNames(SyntaxList{StatementSyntax})"/>
+    /// </summary>
+    /// <param name="statement">The statement to inspect</param>
+    /// <returns>The names of the directly declared locals</returns>
+    private static IEnumerable<string> GetDirectlyDeclaredLocalNamesOfStatement(StatementSyntax statement)
+    {
+        while (statement is LabeledStatementSyntax labeledStatement)
         {
-            var statement = sectionStatement;
-
-            while (statement is LabeledStatementSyntax labeledStatement)
-            {
-                statement = labeledStatement.Statement;
-            }
-
-            switch (statement)
-            {
-                case LocalDeclarationStatementSyntax localDeclaration:
-                    {
-                        foreach (var variable in localDeclaration.Declaration.Variables)
-                        {
-                            yield return variable.Identifier.ValueText;
-                        }
-
-                        foreach (var name in GetDesignatedNames(localDeclaration.Declaration))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case LocalFunctionStatementSyntax localFunction:
-                    {
-                        yield return localFunction.Identifier.ValueText;
-                    }
-                    break;
-
-                case ExpressionStatementSyntax expressionStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(expressionStatement.Expression))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case ReturnStatementSyntax { Expression: not null } returnStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(returnStatement.Expression))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case ThrowStatementSyntax { Expression: not null } throwStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(throwStatement.Expression))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case YieldStatementSyntax { Expression: not null } yieldStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(yieldStatement.Expression))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case IfStatementSyntax ifStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(ifStatement.Condition))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case SwitchStatementSyntax switchStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(switchStatement.Expression))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-
-                case LockStatementSyntax lockStatement:
-                    {
-                        foreach (var name in GetDesignatedNames(lockStatement.Expression))
-                        {
-                            yield return name;
-                        }
-                    }
-                    break;
-            }
+            statement = labeledStatement.Statement;
         }
+
+        return statement switch
+               {
+                   LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Declaration.Variables
+                                                                                       .Select(variable => variable.Identifier.ValueText)
+                                                                                       .Concat(GetDesignatedNames(localDeclaration.Declaration)),
+                   LocalFunctionStatementSyntax localFunction => [localFunction.Identifier.ValueText],
+                   ExpressionStatementSyntax expressionStatement => GetDesignatedNames(expressionStatement.Expression),
+                   ReturnStatementSyntax { Expression: not null } returnStatement => GetDesignatedNames(returnStatement.Expression),
+                   ThrowStatementSyntax { Expression: not null } throwStatement => GetDesignatedNames(throwStatement.Expression),
+                   YieldStatementSyntax { Expression: not null } yieldStatement => GetDesignatedNames(yieldStatement.Expression),
+                   IfStatementSyntax ifStatement => GetDesignatedNames(ifStatement.Condition),
+                   SwitchStatementSyntax switchStatement => GetDesignatedNames(switchStatement.Expression),
+                   LockStatementSyntax lockStatement => GetDesignatedNames(lockStatement.Expression),
+                   _ => []
+               };
     }
 
     /// <summary>
@@ -653,6 +589,43 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Gets the statements that go into the block the braces wrap, with the trivia carried across the new braces: the open
+    /// brace's line ends in front of the first statement's comments, and the last statement's line ends behind its comments
+    /// </summary>
+    /// <param name="statements">The statements of the section</param>
+    /// <param name="statementsForBlock">The number of leading statements that go into the block</param>
+    /// <param name="eolTrivia">The line break of the document</param>
+    /// <returns>The statements of the block</returns>
+    private static List<StatementSyntax> GetBlockStatements(SyntaxList<StatementSyntax> statements, int statementsForBlock, SyntaxTrivia eolTrivia)
+    {
+        var blockStatements = new List<StatementSyntax>(statementsForBlock);
+
+        for (var statementIndex = 0; statementIndex < statementsForBlock; statementIndex++)
+        {
+            var stmt = statements[statementIndex];
+
+            // The open brace's line ends in front of the first statement's comments, which keep their layout and the
+            // blank lines in front of them; the blank-line phase, which runs after this phase, decides those
+            if (statementIndex == 0)
+            {
+                stmt = stmt.WithLeadingTrivia(SyntaxFactory.TriviaList(eolTrivia)
+                                                           .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(stmt.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
+            }
+
+            // The last statement's line ends behind its comments, so the close brace starts the next line
+            if (statementIndex == statementsForBlock - 1)
+            {
+                var lastToken = stmt.GetLastToken();
+                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastToken.TrailingTrivia, eolTrivia, endsLine: true)));
+            }
+
+            blockStatements.Add(stmt);
+        }
+
+        return blockStatements;
+    }
+
+    /// <summary>
     /// Adds braces around the non-terminal statements of a switch section.
     /// If braces already exist, the section is returned as-is. The section's last line is ended by the section itself,
     /// unless the token behind it already starts its line through line breaks in its leading trivia
@@ -701,29 +674,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                                      ? statements.Count - 1
                                      : statements.Count;
 
-        var blockStatements = new List<StatementSyntax>(statementsForBlock);
-
-        for (var statementIndex = 0; statementIndex < statementsForBlock; statementIndex++)
-        {
-            var stmt = statements[statementIndex];
-
-            // The open brace's line ends in front of the first statement's comments, which keep their layout and the
-            // blank lines in front of them; the blank-line phase, which runs after this phase, decides those
-            if (statementIndex == 0)
-            {
-                stmt = stmt.WithLeadingTrivia(SyntaxFactory.TriviaList(eolTrivia)
-                                                           .AddRange(BlockWrapTriviaUtilities.GetCarriedLeadingTrivia(stmt.GetLeadingTrivia(), keepBlankLinesAboveFirstComment: true)));
-            }
-
-            // The last statement's line ends behind its comments, so the close brace starts the next line
-            if (statementIndex == statementsForBlock - 1)
-            {
-                var lastToken = stmt.GetLastToken();
-                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(BlockWrapTriviaUtilities.GetCarriedTrailingTrivia(lastToken.TrailingTrivia, eolTrivia, endsLine: true)));
-            }
-
-            blockStatements.Add(stmt);
-        }
+        var blockStatements = GetBlockStatements(statements, statementsForBlock, eolTrivia);
 
         var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                                      .WithLeadingTrivia(SyntaxFactory.TriviaList())

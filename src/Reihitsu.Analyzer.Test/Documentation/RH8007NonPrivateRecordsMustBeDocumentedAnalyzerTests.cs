@@ -31,7 +31,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               internal record {|#0:CustomerRecord|};
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               public record {|#0:OrderRecord|};
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               internal record {|#0:EventRecord|};
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               record {|#0:ImplicitInternalRecord|};
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               internal record {|#0:ResultRecord|}<T>(T Value);
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               internal record {|#0:CoordinateRecord|}(double Latitude, double Longitude);
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class RH8007NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8007MessageFormat));
+        await Verify(source, Diagnostics(RH8007NonPrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

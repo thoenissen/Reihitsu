@@ -31,7 +31,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5408Title), nameof(AnalyzerResources.RH5408MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

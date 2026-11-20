@@ -52,7 +52,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -476,7 +476,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
         // point sits directly against the first fix's closing brace
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat, 2));
+                                  Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

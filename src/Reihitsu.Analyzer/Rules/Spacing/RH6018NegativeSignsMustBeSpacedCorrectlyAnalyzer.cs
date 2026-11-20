@@ -31,7 +31,7 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6018Title), nameof(AnalyzerResources.RH6018MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

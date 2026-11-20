@@ -30,7 +30,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
     /// Constructor
     /// </summary>
     public RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5024Title), nameof(AnalyzerResources.RH5024MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

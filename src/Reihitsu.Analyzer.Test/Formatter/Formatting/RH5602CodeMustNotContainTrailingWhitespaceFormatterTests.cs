@@ -43,7 +43,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceFormatterTests : Formatte
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+                              Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceFormatterTests : Formatte
                                  }
                                  """;
 
-        await VerifyFormatter(ExpandWhitespaceMarkers(testData), fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+        await VerifyFormatter(ExpandWhitespaceMarkers(testData), fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

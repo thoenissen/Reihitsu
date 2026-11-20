@@ -57,7 +57,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
 
         await Verify(testData,
                      fixedData,
-                     Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan(3, 2, 4, 1).WithMessage(AnalyzerResources.RH5603MessageFormat));
+                     Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan(3, 2, 4, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "internal class TestClass\n{\n}{|#0:\n\n|}";
         const string fixedData = "internal class TestClass\n{\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "internal class TestClass\r\n{\r\n}{|#0:\r\n\r\n|}";
         const string fixedData = "internal class TestClass\r\n{\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "internal class TestClass\r\n{\r\n}{|#0:\r\n\n|}";
         const string fixedData = "internal class TestClass\r\n{\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "internal class TestClass\n{\n}\n\n// end{|#0:\n|}";
         const string fixedData = "internal class TestClass\n{\n}\n\n// end";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\n{\n}{|#0:\n   \n|}";
         const string fixedData = "class C\n{\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\r\n{\r\n}{|#0:\r\n   \r\n|}";
         const string fixedData = "class C\r\n{\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\r{\r}{|#0:\r   \r|}";
         const string fixedData = "class C\r{\r}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -210,7 +210,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\n{\n}{|#0:\n  \n\t\n\n|}";
         const string fixedData = "class C\n{\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\n{\n}  {|#0:\n|}";
         const string fixedData = "class C\n{\n}  ";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -244,7 +244,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\n{\n}  {|#0:\n   \n|}";
         const string fixedData = "class C\n{\n}  ";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -259,7 +259,7 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         const string testData = "class C\n{\n}\n\n// end{|#0:\n   \n|}";
         const string fixedData = "class C\n{\n}\n\n// end";
 
-        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -311,8 +311,8 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   [
-                                      Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 3, 2, 4, 1).WithMessage(AnalyzerResources.RH5603MessageFormat),
-                                      Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 3, 2, 4, 1).WithMessage(AnalyzerResources.RH5603MessageFormat)
+                                      Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 3, 2, 4, 1).WithMessage(MessageFormat),
+                                      Diagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 3, 2, 4, 1).WithMessage(MessageFormat)
                                   ],
                                   config =>
                                   {

@@ -42,7 +42,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat));
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat));
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
@@ -123,7 +123,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat));
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
@@ -171,7 +171,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat, 2));
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
 
         await Verify(testData,
                      test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)),
-                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat));
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -265,7 +265,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
         // replacement span directly abuts the second occurrence's leading trivia
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat, 2));
+                                  Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

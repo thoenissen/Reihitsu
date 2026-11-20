@@ -36,7 +36,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat));
+        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
                               public delegate void Handler<T>(T value);
                               """;
 
-        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat));
+        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -222,7 +222,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat, 5));
+        await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -251,7 +251,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat));
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

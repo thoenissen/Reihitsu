@@ -44,7 +44,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 24, 3, 37, AnalyzerResources.RH3203MessageFormat));
+                              ExpectedDiagnostic(RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 24, 3, 37, MessageFormat));
     }
 
     #endregion // Tests

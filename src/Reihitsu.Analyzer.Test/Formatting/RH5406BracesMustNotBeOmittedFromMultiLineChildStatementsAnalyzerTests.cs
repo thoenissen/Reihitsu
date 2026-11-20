@@ -84,7 +84,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -248,7 +248,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -468,7 +468,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -989,7 +989,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         // the batch fixer applies both in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat, 2));
+                                  Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

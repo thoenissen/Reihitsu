@@ -30,7 +30,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
     /// Constructor
     /// </summary>
     public RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6015Title), nameof(AnalyzerResources.RH6015MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

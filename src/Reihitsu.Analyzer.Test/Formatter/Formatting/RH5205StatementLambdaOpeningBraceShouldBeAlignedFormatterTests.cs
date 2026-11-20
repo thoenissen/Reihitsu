@@ -53,7 +53,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, 8, 59, 8, 60, AnalyzerResources.RH5205MessageFormat));
+                              ExpectedDiagnostic(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, 8, 59, 8, 60, MessageFormat));
     }
 
     /// <summary>

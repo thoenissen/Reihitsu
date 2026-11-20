@@ -53,7 +53,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 21, 8, 10, AnalyzerResources.RH5301MessageFormat));
+                              ExpectedDiagnostic(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 21, 8, 10, MessageFormat));
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 25, 8, 10, AnalyzerResources.RH5301MessageFormat));
+                              ExpectedDiagnostic(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 25, 8, 10, MessageFormat));
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -309,7 +309,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -358,7 +358,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
+                              Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

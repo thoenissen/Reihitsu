@@ -37,7 +37,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyFormatterTests : FormatterT
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+                              Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -62,7 +62,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyFormatterTests : FormatterT
                                  }
                                  """;
 
-        await VerifyFormatter(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await VerifyFormatter(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

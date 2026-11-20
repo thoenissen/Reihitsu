@@ -29,7 +29,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : TrailingCom
     /// Constructor
     /// </summary>
     public RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5409Title), nameof(AnalyzerResources.RH5409MessageFormat), SyntaxKind.EnumDeclaration)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.EnumDeclaration)
     {
     }
 

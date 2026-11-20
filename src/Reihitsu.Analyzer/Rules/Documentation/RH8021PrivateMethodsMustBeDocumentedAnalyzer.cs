@@ -28,7 +28,7 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzer : SplitElementDocument
     /// Constructor
     /// </summary>
     public RH8021PrivateMethodsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8021Title), nameof(AnalyzerResources.RH8021MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.MethodDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.MethodDeclaration)
     {
     }
 

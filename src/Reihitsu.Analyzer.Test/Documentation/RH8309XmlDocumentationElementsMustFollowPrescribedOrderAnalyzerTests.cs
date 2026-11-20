@@ -162,7 +162,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -294,7 +294,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -380,7 +380,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -422,7 +422,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -464,7 +464,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -502,7 +502,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -536,7 +536,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -574,7 +574,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -670,7 +670,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -731,7 +731,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -783,7 +783,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -827,7 +827,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -954,7 +954,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1218,7 +1218,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1366,7 +1366,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1402,7 +1402,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1473,7 +1473,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1500,7 +1500,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  public class C { void I<T>() { } }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1527,7 +1527,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                                           public class C { void I<T>() { } }
                                                           """);
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1557,7 +1557,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1611,7 +1611,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1683,7 +1683,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1862,7 +1862,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1902,7 +1902,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                                           }
                                                           """);
 
-        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1923,7 +1923,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                 public record R(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1948,7 +1948,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -2009,7 +2009,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
 
         // The two members are directly adjacent and each reorders around the one blank line separating them,
         // which is where a rewrite of one declaration could reach into the other's leading trivia
-        return new FixAllScenario(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat, 2));
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

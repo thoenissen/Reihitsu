@@ -48,7 +48,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5402MessageFormat));
+                              Diagnostics(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

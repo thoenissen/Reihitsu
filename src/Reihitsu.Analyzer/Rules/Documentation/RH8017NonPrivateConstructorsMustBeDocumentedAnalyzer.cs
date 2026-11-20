@@ -28,7 +28,7 @@ public class RH8017NonPrivateConstructorsMustBeDocumentedAnalyzer : SplitElement
     /// Constructor
     /// </summary>
     public RH8017NonPrivateConstructorsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8017Title), nameof(AnalyzerResources.RH8017MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.ConstructorDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.ConstructorDeclaration)
     {
     }
 

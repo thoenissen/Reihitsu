@@ -34,7 +34,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     /// Constructor
     /// </summary>
     public RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8302Title), nameof(AnalyzerResources.RH8302MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

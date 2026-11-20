@@ -146,7 +146,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -247,7 +247,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -319,7 +319,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -367,7 +367,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -395,7 +395,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -452,7 +452,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -481,7 +481,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -514,7 +514,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -548,7 +548,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -593,7 +593,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -633,7 +633,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 3));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -675,7 +675,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -715,7 +715,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -749,7 +749,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -798,7 +798,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1045,7 +1045,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1082,7 +1082,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1124,7 +1124,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1221,7 +1221,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1247,7 +1247,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1267,7 +1267,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1289,7 +1289,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1318,7 +1318,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1341,7 +1341,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1426,7 +1426,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1461,7 +1461,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1590,7 +1590,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1611,7 +1611,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1631,7 +1631,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1651,7 +1651,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1677,7 +1677,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1701,7 +1701,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1741,7 +1741,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1769,7 +1769,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1804,7 +1804,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1843,7 +1843,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -1864,7 +1864,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 test.NumberOfIncrementalIterations = 2;
                                 test.NumberOfFixAllIterations = 1;
                             },
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1885,7 +1885,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 test.NumberOfIncrementalIterations = 2;
                                 test.NumberOfFixAllIterations = 1;
                             },
-                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -2671,7 +2671,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
         // Verifies that multiple indentation issues are detected and fixed together
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 6),
+                                  Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, MessageFormat, 6),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

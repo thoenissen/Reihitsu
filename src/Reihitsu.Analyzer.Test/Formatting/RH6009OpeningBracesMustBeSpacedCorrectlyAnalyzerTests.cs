@@ -63,7 +63,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat, 4));
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -256,7 +256,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -317,7 +317,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -343,7 +343,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -384,7 +384,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                 test.TestState.MarkupHandling = MarkupMode.None;
                                 test.FixedState.MarkupHandling = MarkupMode.None;
                             },
-                     Diagnostic(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId).WithSpan(4, 20, 4, 21).WithMessage(AnalyzerResources.RH6009MessageFormat));
+                     Diagnostic(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId).WithSpan(4, 20, 4, 21).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -453,7 +453,7 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
         // space at their own brace's boundary, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat, 2));
+                                  Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

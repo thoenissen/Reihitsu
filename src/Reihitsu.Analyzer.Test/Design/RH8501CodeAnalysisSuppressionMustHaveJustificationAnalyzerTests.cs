@@ -54,7 +54,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH8501MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH8501MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH8501MessageFormat));
+        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH8501MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
 
                                                              return transformedSolution;
                                                          }),
-                     Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH8501MessageFormat));
+                     Diagnostics(RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, MessageFormat));
 
         Assert.AreEqual(expectedMode, appliedMode);
     }

@@ -31,7 +31,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
     /// Constructor
     /// </summary>
     public RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8102Title), nameof(AnalyzerResources.RH8102MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

@@ -33,7 +33,7 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     /// Constructor
     /// </summary>
     public RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7205Title), nameof(AnalyzerResources.RH7205MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

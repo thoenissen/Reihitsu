@@ -29,7 +29,7 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5013Title), nameof(AnalyzerResources.RH5013MessageFormat), SyntaxKind.ThrowStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.ThrowStatement)
     {
     }
 

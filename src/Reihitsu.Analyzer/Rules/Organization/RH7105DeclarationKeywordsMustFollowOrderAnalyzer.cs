@@ -30,7 +30,7 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH7105DeclarationKeywordsMustFollowOrderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7105Title), nameof(AnalyzerResources.RH7105MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

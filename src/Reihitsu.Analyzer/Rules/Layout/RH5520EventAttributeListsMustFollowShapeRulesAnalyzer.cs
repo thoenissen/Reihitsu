@@ -28,8 +28,6 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzer : TargetAttri
     /// </summary>
     public RH5520EventAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5520Title),
-               nameof(AnalyzerResources.RH5520MessageFormat),
                AttributeTargets.Event,
                TargetAttributeListShapeMode.SplitLists)
     {

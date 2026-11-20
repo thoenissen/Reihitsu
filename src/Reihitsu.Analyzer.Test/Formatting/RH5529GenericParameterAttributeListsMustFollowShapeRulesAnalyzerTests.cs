@@ -56,7 +56,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -166,7 +166,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -231,7 +231,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -271,7 +271,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -315,7 +315,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -356,7 +356,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat, 4));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -394,7 +394,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -432,7 +432,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -468,7 +468,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                     Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         foreach (var index in new[] { 1 })
         {
@@ -564,7 +564,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
         // fully overlapping candidate changes to reconcile
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat, 2));
+                                  Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

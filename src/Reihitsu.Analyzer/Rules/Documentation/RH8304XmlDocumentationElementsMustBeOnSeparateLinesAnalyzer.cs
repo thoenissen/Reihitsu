@@ -31,7 +31,7 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     /// Constructor
     /// </summary>
     public RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8304Title), nameof(AnalyzerResources.RH8304MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

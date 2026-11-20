@@ -72,7 +72,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+        await Verify(testData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
                                                    RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -138,7 +138,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                 }
                                 """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
                                                    RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -264,7 +264,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                  + "    }\n"
                                  + "}";
 
-        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -331,7 +331,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
         // removes its own leading whitespace run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat, 2));
+                                  Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

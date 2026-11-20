@@ -43,7 +43,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -199,7 +199,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -295,7 +295,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -325,7 +325,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -352,7 +352,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -578,7 +578,7 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
         // Verifies two expression-bodied operators are fixed in one Fix All iteration
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3205MessageFormat, 2),
+                                  Diagnostics(RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

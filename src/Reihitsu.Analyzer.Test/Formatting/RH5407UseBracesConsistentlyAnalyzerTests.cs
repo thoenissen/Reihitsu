@@ -85,7 +85,7 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -201,7 +201,7 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -400,7 +400,7 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -776,7 +776,7 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
         // the batch fixer applies both in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat, 2));
+                                  Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

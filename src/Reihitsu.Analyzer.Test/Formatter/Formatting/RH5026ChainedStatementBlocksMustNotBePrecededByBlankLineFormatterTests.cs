@@ -54,7 +54,7 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat));
+                              Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -187,7 +187,7 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat, 3));
+                              Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests

@@ -146,7 +146,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -336,7 +336,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
 
         var crlfFixed = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode.Replace("{|#0:", string.Empty).Replace("|}", string.Empty)));
 
@@ -357,7 +357,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(NormalizeToCarriageReturnLineFeed(markedTestCode),
                      NormalizeToCarriageReturnLineFeed(fixedCode),
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
 
         var onceFixed = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
 
@@ -784,7 +784,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      },
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -857,7 +857,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      },
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -909,7 +909,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      },
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1041,7 +1041,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1087,7 +1087,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1205,7 +1205,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2389,7 +2389,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
         // fix's insertion point is unaffected by the first occurrence's own blank-line insertion
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat, 2));
+                                  Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

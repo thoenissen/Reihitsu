@@ -38,7 +38,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat));
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat));
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat));
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -263,7 +263,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 5));
+        await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>

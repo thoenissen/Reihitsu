@@ -48,7 +48,7 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+                              Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+                              Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

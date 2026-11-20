@@ -39,7 +39,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               internal readonly record struct Point(int X, int Y);
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -257,7 +257,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -319,7 +319,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -345,7 +345,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -399,7 +399,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>

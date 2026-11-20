@@ -67,7 +67,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7303DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7303MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH7303DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -730,7 +730,7 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
         // either one removes both directive lines: the two computed fixes target the exact same span, the
         // strongest form of interference in this batch, and the batch fixer must still converge to removing
         // them once
-        return new FixAllScenario(testData, fixedData, Diagnostics(RH7303DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7303MessageFormat, 2));
+        return new FixAllScenario(testData, fixedData, Diagnostics(RH7303DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

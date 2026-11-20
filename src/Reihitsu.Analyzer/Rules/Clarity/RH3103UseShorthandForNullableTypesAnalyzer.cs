@@ -29,7 +29,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH3103UseShorthandForNullableTypesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3103Title), nameof(AnalyzerResources.RH3103MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

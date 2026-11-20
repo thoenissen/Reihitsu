@@ -29,7 +29,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer : Sta
     /// Constructor
     /// </summary>
     public RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5016Title), nameof(AnalyzerResources.RH5016MessageFormat), SyntaxKind.UncheckedStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, SyntaxKind.UncheckedStatement)
     {
     }
 

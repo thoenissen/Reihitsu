@@ -27,11 +27,9 @@ public abstract class TrailingCommaAnalyzerBase<TNode> : DiagnosticAnalyzerBase
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message format resource name</param>
     /// <param name="syntaxKind">Syntax kind</param>
-    private protected TrailingCommaAnalyzerBase(string diagnosticId, Enumerations.DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    private protected TrailingCommaAnalyzerBase(string diagnosticId, Enumerations.DiagnosticCategory category, SyntaxKind syntaxKind)
+        : base(diagnosticId, category)
     {
         _syntaxKind = syntaxKind;
     }

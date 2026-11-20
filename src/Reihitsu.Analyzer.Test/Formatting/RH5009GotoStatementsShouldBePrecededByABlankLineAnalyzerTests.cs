@@ -54,7 +54,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -241,7 +241,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -304,7 +304,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat, 3));
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests
@@ -356,7 +356,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
         // insertion point is unaffected by the first occurrence's own blank-line insertion
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat, 2));
+                                  Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.Core.Rewriter;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
@@ -26,7 +27,9 @@ internal static class IndentationRewriter
     /// quotes (FMT-RAW-001). A placed line moves from the layout's column, not from the whitespace written for it, so a
     /// line whose column is below 0 before the move gets no whitespace here and its column from the move. The model
     /// numbers the lines of the root's tree, and placing lines changes no line break, so the rewritten tree has the same
-    /// line numbers; the root is the root of its own tree, as <see cref="IndentationPhase"/> makes an attached input
+    /// line numbers; the root is the root of its own tree, as <see cref="IndentationPhase"/> makes an attached input.
+    /// Every token is placed in one walk of the tree (<see cref="TokenRewriter"/>), so the cost grows with the number of
+    /// tokens
     /// </summary>
     /// <param name="root">The syntax tree root</param>
     /// <param name="model">The computed layout model</param>
@@ -36,7 +39,7 @@ internal static class IndentationRewriter
     {
         var lineStarts = LineStartIndex.For(root.SyntaxTree);
         var placedColumns = new Dictionary<int, int>();
-        var indented = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, lineStarts, model, placedColumns, cancellationToken));
+        var indented = TokenRewriter.RewriteTokens(root, token => ApplyIndentation(token, lineStarts, model, placedColumns, cancellationToken));
 
         return RawStringLineShifts.MoveLines(indented,
                                              (lineNumber, writtenColumn) => model.GetColumnAfterRawStringShift(lineNumber, placedColumns.TryGetValue(lineNumber, out var placedColumn) ? placedColumn : writtenColumn),
@@ -55,24 +58,22 @@ internal static class IndentationRewriter
     /// Roslyn's line table gives its position, which is the line the layout model numbers. A whitespace-only line at the
     /// end of the leading trivia of a token without text, such as the end of the file, takes the column its line has
     /// </summary>
-    /// <param name="original">The original token from the syntax tree</param>
-    /// <param name="rewritten">The rewritten token</param>
+    /// <param name="token">The token of the input tree, whose positions are those <paramref name="lineStarts"/> indexes</param>
     /// <param name="lineStarts">The line starts of the tree</param>
     /// <param name="model">The computed layout model</param>
     /// <param name="placedColumns">Receives the column before the move of every line placed, and of every later line of a placed <c>///</c> comment</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The token with corrected indentation</returns>
-    private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LineStartIndex lineStarts, LayoutModel model, Dictionary<int, int> placedColumns, CancellationToken cancellationToken)
+    private static SyntaxToken ApplyIndentation(SyntaxToken token, LineStartIndex lineStarts, LayoutModel model, Dictionary<int, int> placedColumns, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (original.IsMissing)
+        if (token.IsMissing)
         {
-            return rewritten;
+            return token;
         }
 
-        var originalTrivia = original.LeadingTrivia;
-        var trivia = rewritten.LeadingTrivia;
+        var trivia = token.LeadingTrivia;
         var result = new List<SyntaxTrivia>(trivia.Count + 1);
         var pendingWhitespace = new List<SyntaxTrivia>();
         var placesLine = false;
@@ -89,7 +90,7 @@ internal static class IndentationRewriter
             }
 
             if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) == false
-                && lineStarts.IsLineStart(originalTrivia[triviaIndex].FullSpan.Start, out var lineNumber))
+                && lineStarts.IsLineStart(triviaItem.FullSpan.Start, out var lineNumber))
             {
                 placesLine = true;
 
@@ -99,7 +100,7 @@ internal static class IndentationRewriter
                     triviaItem = DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, column);
 
                     // The later lines of the comment take the column of its first line, before the move as after it
-                    var lastLine = lineStarts.GetLine(originalTrivia[triviaIndex].Span.End - 1);
+                    var lastLine = lineStarts.GetLine(trivia[triviaIndex].Span.End - 1);
 
                     for (var continuationLine = lineNumber + 1; continuationLine <= lastLine; continuationLine++)
                     {
@@ -116,21 +117,21 @@ internal static class IndentationRewriter
             result.Add(triviaItem);
         }
 
-        if (original.Span.IsEmpty == false
-            && lineStarts.IsLineStart(original.SpanStart, out var tokenLine))
+        if (token.Span.IsEmpty == false
+            && lineStarts.IsLineStart(token.SpanStart, out var tokenLine))
         {
             placesLine = true;
 
             WriteLineStart(result, pendingWhitespace, tokenLine, model, placedColumns, false);
         }
-        else if (original.Span.IsEmpty
+        else if (token.Span.IsEmpty
                  && pendingWhitespace.Count > 0
-                 && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(original, originalTrivia.Count - pendingWhitespace.Count)
-                 && model.TryGetLayout(lineStarts.GetLine(original.SpanStart), out _))
+                 && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, trivia.Count - pendingWhitespace.Count)
+                 && model.TryGetLayout(lineStarts.GetLine(token.SpanStart), out _))
         {
             placesLine = true;
 
-            WriteLineStart(result, pendingWhitespace, lineStarts.GetLine(original.SpanStart), model, placedColumns, false);
+            WriteLineStart(result, pendingWhitespace, lineStarts.GetLine(token.SpanStart), model, placedColumns, false);
         }
         else
         {
@@ -138,8 +139,8 @@ internal static class IndentationRewriter
         }
 
         return placesLine
-                   ? rewritten.WithLeadingTrivia(SyntaxFactory.TriviaList(result))
-                   : rewritten;
+                   ? token.WithLeadingTrivia(SyntaxFactory.TriviaList(result))
+                   : token;
     }
 
     /// <summary>

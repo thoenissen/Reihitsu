@@ -30,7 +30,7 @@ public class RH4125SingleLetterLocalVariableNamesAnalyzer : DiagnosticAnalyzerBa
     /// Constructor
     /// </summary>
     public RH4125SingleLetterLocalVariableNamesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4125Title), nameof(AnalyzerResources.RH4125MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Naming)
     {
     }
 

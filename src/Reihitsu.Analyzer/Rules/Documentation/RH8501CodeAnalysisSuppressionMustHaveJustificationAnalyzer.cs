@@ -29,7 +29,7 @@ public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8501Title), nameof(AnalyzerResources.RH8501MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

@@ -64,7 +64,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -221,7 +221,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -323,7 +323,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -374,7 +374,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -425,7 +425,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -478,7 +478,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -529,7 +529,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -842,7 +842,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -945,7 +945,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -996,7 +996,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1047,7 +1047,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1138,7 +1138,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1258,7 +1258,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1311,7 +1311,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Tests

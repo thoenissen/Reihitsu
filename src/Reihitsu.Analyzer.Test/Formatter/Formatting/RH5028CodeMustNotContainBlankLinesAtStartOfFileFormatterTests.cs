@@ -28,7 +28,7 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, 1, 1, 3, 1, AnalyzerResources.RH5028MessageFormat));
+                              ExpectedDiagnostic(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, 1, 1, 3, 1, MessageFormat));
     }
 
     #endregion // Tests

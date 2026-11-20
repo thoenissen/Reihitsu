@@ -137,7 +137,7 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4109MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4109MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -824,13 +824,13 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
         // rename is refused while the unrelated second field is still corrected
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4109MessageFormat, 2),
+                                  Diagnostics(RH4109PublicFieldCasingAnalyzer.DiagnosticId, MessageFormat, 2),
                                   config =>
                                   {
                                       // "amount" cannot be corrected because the correctly cased sibling already owns the target name,
                                       // so its diagnostic survives. Both paths refuse it through the same conflict check, so the batch
                                       // result needs no separate expectation
-                                      config.FixedState.ExpectedDiagnostics.Add(Diagnostic(RH4109PublicFieldCasingAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(AnalyzerResources.RH4109MessageFormat));
+                                      config.FixedState.ExpectedDiagnostics.Add(Diagnostic(RH4109PublicFieldCasingAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey).WithMessage(MessageFormat));
 
                                       // The refused candidate keeps the batch loop running for a second, no-op pass
                                       config.NumberOfFixAllIterations = -2;

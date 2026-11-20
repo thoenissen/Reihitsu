@@ -34,7 +34,7 @@ public class RH8027PrivateFieldsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8027MessageFormat));
+        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class RH8027PrivateFieldsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8027MessageFormat, 5));
+        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -136,7 +136,7 @@ public class RH8027PrivateFieldsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8027MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class RH8027PrivateFieldsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8027MessageFormat));
+        await Verify(source, Diagnostics(RH8027PrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

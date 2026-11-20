@@ -28,7 +28,7 @@ public class RH8008PrivateRecordsMustBeDocumentedAnalyzer : SplitElementDocument
     /// Constructor
     /// </summary>
     public RH8008PrivateRecordsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8008Title), nameof(AnalyzerResources.RH8008MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.RecordDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.RecordDeclaration)
     {
     }
 

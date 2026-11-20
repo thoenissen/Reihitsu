@@ -55,7 +55,7 @@ public class RH5407UseBracesConsistentlyFormatterTests : FormatterTestsBase<RH54
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+                              Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

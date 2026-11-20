@@ -35,7 +35,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 6));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -305,7 +305,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 7));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 7));
     }
 
     /// <summary>
@@ -383,7 +383,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source.ReplaceLineEndings("\r\n"), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 7));
+        await Verify(source.ReplaceLineEndings("\r\n"), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 7));
     }
 
     /// <summary>
@@ -418,7 +418,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -448,7 +448,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -485,7 +485,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               public delegate void D();
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 6));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -537,7 +537,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 7));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 7));
     }
 
     /// <summary>
@@ -575,7 +575,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -600,7 +600,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -624,7 +624,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -665,7 +665,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -684,7 +684,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -708,7 +708,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

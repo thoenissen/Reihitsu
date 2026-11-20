@@ -56,7 +56,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1326,7 +1326,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
         // sits directly against the first fix's closing brace
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat, 2));
+                                  Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

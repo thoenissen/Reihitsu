@@ -43,7 +43,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
+                              Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

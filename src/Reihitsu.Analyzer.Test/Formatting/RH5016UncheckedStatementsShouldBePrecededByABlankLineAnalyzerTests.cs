@@ -54,7 +54,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -304,7 +304,7 @@ public class RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
         // insertion point sits directly against the first fix's closing brace
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5016MessageFormat, 2));
+                                  Diagnostics(RH5016UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

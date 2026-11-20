@@ -32,7 +32,7 @@ public class RH4118TupleElementCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4118TupleElementCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4118Title), nameof(AnalyzerResources.RH4118MessageFormat), SyntaxKind.TupleExpression, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.TupleExpression, CasingUtilities.IsPascalCase)
     {
     }
 

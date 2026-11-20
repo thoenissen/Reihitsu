@@ -29,7 +29,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH6002CommasMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6002Title), nameof(AnalyzerResources.RH6002MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

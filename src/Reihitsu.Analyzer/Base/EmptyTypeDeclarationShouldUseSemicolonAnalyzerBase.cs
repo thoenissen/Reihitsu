@@ -32,12 +32,10 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase : Diagn
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message resource name</param>
     /// <param name="declarationKind">Declaration kind</param>
     /// <param name="minimumLanguageVersion">Minimum required language version</param>
-    protected EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
-        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
+    protected EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase(string diagnosticId, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
+        : base(diagnosticId, DiagnosticCategory.Layout)
     {
         _declarationKind = declarationKind;
         _minimumLanguageVersion = minimumLanguageVersion;

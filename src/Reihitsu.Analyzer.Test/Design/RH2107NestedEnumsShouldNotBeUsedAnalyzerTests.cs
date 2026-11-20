@@ -35,7 +35,7 @@ public class RH2107NestedEnumsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2107NestedEnumsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2107MessageFormat));
+        await Verify(source, Diagnostics(RH2107NestedEnumsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH2107NestedEnumsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2107NestedEnumsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2107MessageFormat, 3));
+        await Verify(source, Diagnostics(RH2107NestedEnumsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests

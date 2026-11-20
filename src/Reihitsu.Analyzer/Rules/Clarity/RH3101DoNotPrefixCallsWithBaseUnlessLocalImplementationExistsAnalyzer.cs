@@ -30,7 +30,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     /// Constructor
     /// </summary>
     public RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3101Title), nameof(AnalyzerResources.RH3101MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Clarity)
     {
     }
 

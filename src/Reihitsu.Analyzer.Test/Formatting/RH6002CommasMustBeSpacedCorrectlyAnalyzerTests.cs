@@ -64,7 +64,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         const string testData = "internal class TestClass\r\n{\r\n    void Method(int x\f{|#0:,|} int y)\r\n    {\r\n    }\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n    void Method(int x, int y)\r\n    {\r\n    }\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         const string testData = "internal class TestClass\r\n{\r\n    void Method(int x{|#0:,|}\fint y)\r\n    {\r\n    }\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n    void Method(int x, int y)\r\n    {\r\n    }\r\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2));
+                     Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -380,7 +380,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -432,7 +432,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -465,7 +465,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -486,7 +486,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -617,7 +617,7 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         // Verifies that Fix All converges two interpolation-alignment commas in one document
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2),
+                                  Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

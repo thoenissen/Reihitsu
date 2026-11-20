@@ -58,7 +58,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5018MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -157,7 +157,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5018MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -213,7 +213,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Bat
         // point sits directly against the first fix's closing brace
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5018MessageFormat, 2));
+                                  Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

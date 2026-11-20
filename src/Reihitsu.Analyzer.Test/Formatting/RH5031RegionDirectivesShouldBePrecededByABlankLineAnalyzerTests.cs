@@ -98,7 +98,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 2));
+                     Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -419,7 +419,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -454,7 +454,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                  #endregion
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -525,7 +525,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -570,7 +570,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -651,7 +651,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : B
         // Verifies literal variants, delimited documentation, and disabled-text boundaries do not suppress active regions
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 5),
+                                  Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 5),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

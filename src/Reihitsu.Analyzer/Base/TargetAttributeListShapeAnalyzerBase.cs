@@ -28,16 +28,12 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message resource name</param>
     /// <param name="target">Target analyzed by this rule</param>
     /// <param name="listShapeMode">List-shape mode</param>
     protected TargetAttributeListShapeAnalyzerBase(string diagnosticId,
-                                                   string titleResourceName,
-                                                   string messageFormatResourceName,
                                                    AttributeTargets target,
                                                    TargetAttributeListShapeMode listShapeMode)
-        : base(diagnosticId, titleResourceName, messageFormatResourceName, target)
+        : base(diagnosticId, target)
     {
         _listShapeMode = listShapeMode;
     }

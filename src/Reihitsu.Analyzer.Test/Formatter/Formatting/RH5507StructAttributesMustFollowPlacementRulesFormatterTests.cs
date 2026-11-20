@@ -41,7 +41,7 @@ public class RH5507StructAttributesMustFollowPlacementRulesFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5507MessageFormat));
+                              Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

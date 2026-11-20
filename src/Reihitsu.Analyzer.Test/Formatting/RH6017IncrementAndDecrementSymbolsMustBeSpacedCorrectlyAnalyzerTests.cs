@@ -74,7 +74,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+        await Verify(testData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0: |}", " "),
                                                    RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -134,7 +134,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
                                 }
                                 """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(NormalizeToCarriageReturnLineFeed(testData.Replace("{|#0: |}", " ")),
                                                    RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
@@ -461,7 +461,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
         // decrement operator; the fixes only remove their own run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat, 2));
+                                  Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

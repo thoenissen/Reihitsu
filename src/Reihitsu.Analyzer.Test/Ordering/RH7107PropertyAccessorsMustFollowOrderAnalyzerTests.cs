@@ -65,7 +65,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -200,7 +200,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1414,7 +1414,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         // declaration and each accessor move has to stay confined to its own property
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7107MessageFormat, 2));
+                                  Diagnostics(RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

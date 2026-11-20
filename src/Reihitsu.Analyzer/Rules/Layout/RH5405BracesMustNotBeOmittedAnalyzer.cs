@@ -30,7 +30,7 @@ public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     public RH5405BracesMustNotBeOmittedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5405Title), nameof(AnalyzerResources.RH5405MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

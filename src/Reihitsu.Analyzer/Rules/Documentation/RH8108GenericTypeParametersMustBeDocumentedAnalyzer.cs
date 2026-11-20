@@ -31,7 +31,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
     /// Constructor
     /// </summary>
     public RH8108GenericTypeParametersMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8108Title), nameof(AnalyzerResources.RH8108MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

@@ -74,7 +74,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -241,7 +241,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -277,7 +277,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -410,7 +410,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -532,7 +532,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -638,7 +638,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -695,7 +695,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                                             }
                                                             """);
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -731,7 +731,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                 public record R(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -754,7 +754,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -772,7 +772,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                                 public record struct P(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -804,7 +804,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
                             }
                             """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Methods
@@ -834,7 +834,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
 
         // Two placeholders on the same summary line produce disjoint text edits, so the batch fixer can apply
         // both without either shifting the other's span
-        return new FixAllScenario(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 2));
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

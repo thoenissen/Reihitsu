@@ -122,7 +122,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -159,7 +159,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -379,7 +379,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 5));
+        await Verify(testData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -438,7 +438,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+        await Verify(testData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -466,7 +466,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -505,7 +505,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -826,7 +826,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
         // Verifies that Fix All removes complete blank-line runs after both documentation-comment forms in one iteration
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2),
+                                  Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

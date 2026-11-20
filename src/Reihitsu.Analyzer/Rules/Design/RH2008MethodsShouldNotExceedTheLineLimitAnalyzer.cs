@@ -29,7 +29,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyze
     /// <summary>
     /// Default limit of a member's body in test code
     /// </summary>
-    private const int DefaultTestLimit = 100;
+    private const int DefaultTestLimit = 120;
 
     #endregion // Constants
 
@@ -40,8 +40,6 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyze
     /// </summary>
     public RH2008MethodsShouldNotExceedTheLineLimitAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH2008Title),
-               nameof(AnalyzerResources.RH2008MessageFormat),
                design => design.MaximumMethodLines,
                DefaultProductionLimit,
                design => design.MaximumTestMethodLines,

@@ -54,7 +54,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5012MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5012MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
         // occurrence
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5012MessageFormat, 2));
+                                  Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -61,7 +61,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -224,7 +224,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -280,7 +280,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+        await Verify(testData, Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -640,7 +640,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         // outer and the nested switch expression's braces and arms in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat, 2));
+                                  Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

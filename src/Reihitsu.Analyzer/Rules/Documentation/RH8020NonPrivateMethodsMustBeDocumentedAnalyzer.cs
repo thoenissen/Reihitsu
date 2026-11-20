@@ -28,7 +28,7 @@ public class RH8020NonPrivateMethodsMustBeDocumentedAnalyzer : SplitElementDocum
     /// Constructor
     /// </summary>
     public RH8020NonPrivateMethodsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8020Title), nameof(AnalyzerResources.RH8020MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.MethodDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.MethodDeclaration)
     {
     }
 

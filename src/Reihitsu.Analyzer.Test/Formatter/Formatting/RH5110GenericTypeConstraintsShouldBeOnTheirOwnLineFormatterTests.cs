@@ -38,7 +38,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
+                              ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, MessageFormat));
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
+                              ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, MessageFormat));
     }
 
     /// <summary>

@@ -50,7 +50,7 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : Batch
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat));
+                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : Batch
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat));
+                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : Batch
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat));
+                     Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -212,7 +212,7 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzerTests : Batch
         // opening bracket, and the second fix rewrites the gap up to the class keyword, so their fix spans abut
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat, 2));
+                                  Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

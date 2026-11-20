@@ -44,7 +44,7 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+                              Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

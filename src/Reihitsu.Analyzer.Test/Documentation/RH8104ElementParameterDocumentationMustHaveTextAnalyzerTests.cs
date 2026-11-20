@@ -38,7 +38,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -206,7 +206,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -248,7 +248,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -287,7 +287,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -312,7 +312,7 @@ public class RH8104ElementParameterDocumentationMustHaveTextAnalyzerTests : Anal
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8104MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8104ElementParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

@@ -29,7 +29,7 @@ public class RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzer : Com
     /// Constructor
     /// </summary>
     public RH5037CommentsMustNotBePlacedBeforeContinuationClauseAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5037Title), nameof(AnalyzerResources.RH5037MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

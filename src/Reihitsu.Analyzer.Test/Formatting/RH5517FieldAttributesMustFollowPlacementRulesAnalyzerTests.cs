@@ -56,7 +56,7 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
+                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
+                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -215,7 +215,7 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
+                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -249,7 +249,7 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
+                     Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -354,7 +354,7 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         // which used to make its derived indentation zero-width
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat, 2));
+                                  Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

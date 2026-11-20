@@ -31,7 +31,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
     /// Constructor
     /// </summary>
     public RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5206Title), nameof(AnalyzerResources.RH5206MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

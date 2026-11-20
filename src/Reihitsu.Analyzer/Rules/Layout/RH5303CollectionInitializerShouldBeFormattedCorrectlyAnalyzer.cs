@@ -34,7 +34,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     /// Constructor
     /// </summary>
     public RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5303Title), nameof(AnalyzerResources.RH5303MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

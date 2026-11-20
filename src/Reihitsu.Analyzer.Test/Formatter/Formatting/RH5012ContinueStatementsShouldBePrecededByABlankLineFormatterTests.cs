@@ -52,7 +52,7 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineFormatterTests 
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 13, 8, 21, AnalyzerResources.RH5012MessageFormat));
+                              ExpectedDiagnostic(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 13, 8, 21, MessageFormat));
     }
 
     #endregion // Tests

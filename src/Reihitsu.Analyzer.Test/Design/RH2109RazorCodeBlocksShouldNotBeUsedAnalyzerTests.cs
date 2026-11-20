@@ -1587,7 +1587,7 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     private static DiagnosticResult RazorCodeBlock(int line, int column)
     {
         return Diagnostic(RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer.DiagnosticId).WithLocation("Counter.razor", line, column)
-                                                                                    .WithMessage(AnalyzerResources.RH2109MessageFormat);
+                                                                                    .WithMessage(MessageFormat);
     }
 
     /// <summary>
@@ -1600,7 +1600,7 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     private static DiagnosticResult RazorCodeBlockSpan(string path, int line, int column)
     {
         return Diagnostic(RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer.DiagnosticId).WithSpan(path, line, column, line, column + 5)
-                                                                                    .WithMessage(AnalyzerResources.RH2109MessageFormat);
+                                                                                    .WithMessage(MessageFormat);
     }
 
     #endregion // Methods

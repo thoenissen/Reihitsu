@@ -20,10 +20,8 @@ public abstract class CommentRegionAnalyzerBase : CommentPositionAnalyzerBase
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    protected CommentRegionAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, titleResourceName, messageFormatResourceName)
+    protected CommentRegionAnalyzerBase(string diagnosticId)
+        : base(diagnosticId)
     {
     }
 

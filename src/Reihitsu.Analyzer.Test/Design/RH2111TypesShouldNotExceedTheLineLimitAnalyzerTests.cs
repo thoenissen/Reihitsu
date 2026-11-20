@@ -69,34 +69,34 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     #region Tests — limit and configuration (RH2111-001, SHARED-LINES-002)
 
     /// <summary>
-    /// Verifies the default production limit of RH2111-001 without a configuration file: 500 lines of code are not
-    /// reported and 501 are, with the count and the limit in the message
+    /// Verifies the default production limit of RH2111-001 without a configuration file: 1500 lines of code are not
+    /// reported and 1501 are, with the count and the limit in the message
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
-    public async Task DefaultProductionLimitIsFiveHundred()
+    public async Task DefaultProductionLimitIsFifteenHundred()
     {
-        await VerifyLines(CreateTypesAround(500), null, LineLimit(0, 501, 500));
+        await VerifyLines(CreateTypesAround(1500), null, LineLimit(0, 1501, 1500));
     }
 
     /// <summary>
-    /// Verifies the default test limit of RH2111-001 without a configuration file: 1000 lines of code are not reported
-    /// and 1001 are, with the count and the limit in the message
+    /// Verifies the default test limit of RH2111-001 without a configuration file: 3000 lines of code are not reported
+    /// and 3001 are, with the count and the limit in the message
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
-    public async Task DefaultTestLimitIsOneThousand()
+    public async Task DefaultTestLimitIsThreeThousand()
     {
-        await VerifyLines(CreateTypesAround(1000), null, "build_property.IsTestProject = true", LineLimit(0, 1001, 1000));
+        await VerifyLines(CreateTypesAround(3000), null, "build_property.IsTestProject = true", LineLimit(0, 3001, 3000));
     }
 
     /// <summary>
     /// Verifies the example of RH2111-001 that a configured production setting alone leaves the test limit at its
-    /// default: a test class with 700 lines of code is not reported, one with 1001 is
+    /// default: a test class with 700 lines of code is not reported, one with 3001 is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -104,13 +104,13 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [Requirement("SHARED-LINES-002")]
     public async Task ConfiguredProductionSettingLeavesTestDefault()
     {
-        var source = $"{CreateType("T700", 700, false)}\n{CreateType("T1001", 1001, true)}";
+        var source = $"{CreateType("T700", 700, false)}\n{CreateType("T3001", 3001, true)}";
 
-        await VerifyLines(source, """{ "design": { "maximumTypeLines": 400 } }""", "build_property.IsTestingPlatformApplication = true", LineLimit(0, 1001, 1000));
+        await VerifyLines(source, """{ "design": { "maximumTypeLines": 400 } }""", "build_property.IsTestingPlatformApplication = true", LineLimit(0, 3001, 3000));
     }
 
     /// <summary>
-    /// Verifies that a configured test setting alone leaves the production limit at its default of 500
+    /// Verifies that a configured test setting alone leaves the production limit at its default of 1500
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -118,12 +118,12 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [Requirement("SHARED-LINES-002")]
     public async Task ConfiguredTestSettingLeavesProductionDefault()
     {
-        await VerifyLines(CreateTypesAround(500), """{ "design": { "maximumTestTypeLines": 300 } }""", LineLimit(0, 501, 500));
+        await VerifyLines(CreateTypesAround(1500), """{ "design": { "maximumTestTypeLines": 300 } }""", LineLimit(0, 1501, 1500));
     }
 
     /// <summary>
     /// Verifies the example of RH2111-001 that a setting RH0001 reports keeps the default: at
-    /// <c>"maximumTypeLines": 0</c>, a production type with 500 lines of code is not reported and one with 501 is
+    /// <c>"maximumTypeLines": 0</c>, a production type with 1500 lines of code is not reported and one with 1501 is
     /// </summary>
     /// <param name="configuration">Text of <c>reihitsu.json</c></param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -139,11 +139,11 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [DataRow("{ } junk")]
     public async Task InvalidSettingKeepsDefaultProductionLimit(string configuration)
     {
-        await VerifyLines(CreateTypesAround(500), configuration, LineLimit(0, 501, 500));
+        await VerifyLines(CreateTypesAround(1500), configuration, LineLimit(0, 1501, 1500));
     }
 
     /// <summary>
-    /// Verifies that an invalid test setting keeps the default test limit of 1000
+    /// Verifies that an invalid test setting keeps the default test limit of 3000
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -151,7 +151,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [Requirement("SHARED-LINES-002")]
     public async Task InvalidTestSettingKeepsDefaultTestLimit()
     {
-        await VerifyLines(CreateTypesAround(1000), """{ "design": { "maximumTestTypeLines": 0 } }""", "build_property.IsTestProject = true", LineLimit(0, 1001, 1000));
+        await VerifyLines(CreateTypesAround(3000), """{ "design": { "maximumTestTypeLines": 0 } }""", "build_property.IsTestProject = true", LineLimit(0, 3001, 3000));
     }
 
     /// <summary>

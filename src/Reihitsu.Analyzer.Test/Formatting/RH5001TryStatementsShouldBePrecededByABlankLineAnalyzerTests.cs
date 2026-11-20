@@ -61,7 +61,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5001MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -186,7 +186,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5001MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
         // narrow leading-trivia branch
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5001MessageFormat, 2));
+                                  Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -57,7 +57,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -376,7 +376,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -416,7 +416,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -466,7 +466,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -536,7 +536,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -576,7 +576,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -604,7 +604,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                     Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -692,7 +692,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
         // which used to make its derived indentation zero-width
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat, 2));
+                                  Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

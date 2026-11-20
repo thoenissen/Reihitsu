@@ -31,7 +31,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzer : DiagnosticAnalyzer
     /// Constructor
     /// </summary>
     public RH7309RegionsShouldFollowCategoryOrderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7309Title), nameof(AnalyzerResources.RH7309MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

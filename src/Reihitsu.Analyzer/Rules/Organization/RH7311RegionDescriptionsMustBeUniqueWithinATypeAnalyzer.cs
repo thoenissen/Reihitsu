@@ -32,7 +32,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7311Title), nameof(AnalyzerResources.RH7311MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

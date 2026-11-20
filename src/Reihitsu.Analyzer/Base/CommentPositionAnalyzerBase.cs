@@ -20,10 +20,8 @@ public abstract class CommentPositionAnalyzerBase : DiagnosticAnalyzerBase
     /// Constructor
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    protected CommentPositionAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
+    protected CommentPositionAnalyzerBase(string diagnosticId)
+        : base(diagnosticId, DiagnosticCategory.Layout)
     {
     }
 

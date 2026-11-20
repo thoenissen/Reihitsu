@@ -33,7 +33,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+                              Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
+                              Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

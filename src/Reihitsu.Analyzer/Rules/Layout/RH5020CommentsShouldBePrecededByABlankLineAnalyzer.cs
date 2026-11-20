@@ -29,7 +29,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnal
     /// Constructor
     /// </summary>
     public RH5020CommentsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5020Title), nameof(AnalyzerResources.RH5020MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

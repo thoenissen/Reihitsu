@@ -56,7 +56,7 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat));
+                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat));
+                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -203,7 +203,7 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat));
+                     Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -247,7 +247,7 @@ public class RH5519EventAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         // which used to make its derived indentation zero-width
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5519MessageFormat, 2));
+                                  Diagnostics(RH5519EventAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

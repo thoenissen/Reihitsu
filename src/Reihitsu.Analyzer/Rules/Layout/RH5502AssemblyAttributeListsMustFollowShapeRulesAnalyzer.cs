@@ -28,8 +28,6 @@ public class RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer : TargetAt
     /// </summary>
     public RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5502Title),
-               nameof(AnalyzerResources.RH5502MessageFormat),
                AttributeTargets.Assembly,
                TargetAttributeListShapeMode.SplitLists)
     {

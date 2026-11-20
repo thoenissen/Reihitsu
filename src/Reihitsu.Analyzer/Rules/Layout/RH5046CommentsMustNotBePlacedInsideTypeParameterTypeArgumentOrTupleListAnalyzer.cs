@@ -29,7 +29,7 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
     /// Constructor
     /// </summary>
     public RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5046Title), nameof(AnalyzerResources.RH5046MessageFormat))
+        : base(DiagnosticId)
     {
     }
 

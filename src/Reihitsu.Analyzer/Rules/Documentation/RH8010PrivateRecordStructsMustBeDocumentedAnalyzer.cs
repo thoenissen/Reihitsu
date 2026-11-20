@@ -28,7 +28,7 @@ public class RH8010PrivateRecordStructsMustBeDocumentedAnalyzer : SplitElementDo
     /// Constructor
     /// </summary>
     public RH8010PrivateRecordStructsMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8010Title), nameof(AnalyzerResources.RH8010MessageFormat), DocumentationAccessibilityGroup.Private, SyntaxKind.RecordStructDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.Private, SyntaxKind.RecordStructDeclaration)
     {
     }
 

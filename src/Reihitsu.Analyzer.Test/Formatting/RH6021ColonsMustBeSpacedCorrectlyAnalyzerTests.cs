@@ -66,7 +66,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -308,7 +308,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -901,7 +901,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -948,7 +948,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsB
         // same document; the fixes only rewrite their own colon's gaps, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat, 2));
+                                  Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

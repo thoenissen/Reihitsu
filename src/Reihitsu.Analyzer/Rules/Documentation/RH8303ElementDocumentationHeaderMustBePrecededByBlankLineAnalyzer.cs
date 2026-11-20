@@ -33,7 +33,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     /// Constructor
     /// </summary>
     public RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8303Title), nameof(AnalyzerResources.RH8303MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

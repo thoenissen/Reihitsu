@@ -31,7 +31,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5110Title), nameof(AnalyzerResources.RH5110MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

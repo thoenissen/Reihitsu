@@ -32,7 +32,7 @@ public class RH4121TypeParameterNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4121TypeParameterNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4121Title), nameof(AnalyzerResources.RH4121MessageFormat), SyntaxKind.TypeParameter, CasingUtilities.IsTypeParameterName)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.TypeParameter, CasingUtilities.IsTypeParameterName)
     {
     }
 

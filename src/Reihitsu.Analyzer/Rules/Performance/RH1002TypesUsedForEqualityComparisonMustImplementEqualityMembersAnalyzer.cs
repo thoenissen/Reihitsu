@@ -88,7 +88,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// Constructor
     /// </summary>
     public RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Performance, nameof(AnalyzerResources.RH1002Title), nameof(AnalyzerResources.RH1002MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Performance)
     {
     }
 

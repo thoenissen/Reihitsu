@@ -29,7 +29,7 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
     /// Constructor
     /// </summary>
     public RH5602CodeMustNotContainTrailingWhitespaceAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5602Title), nameof(AnalyzerResources.RH5602MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

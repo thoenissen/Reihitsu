@@ -51,7 +51,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -236,7 +236,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -473,7 +473,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
         // Verifies two expression-bodied finalizers are fixed in one Fix All iteration
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat, 2),
+                                  Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

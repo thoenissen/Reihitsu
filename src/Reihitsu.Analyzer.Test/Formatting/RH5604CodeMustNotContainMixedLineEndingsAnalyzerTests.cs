@@ -36,7 +36,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         const string testData = "internal class TestClass\r\n{\n    void Method()\r\n    {\r\n    }\r\n}";
         const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n    }\r\n}";
 
-        await Verify(testData, fixedData, Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+        await Verify(testData, fixedData, Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         await Verify(testData,
                      fixedData,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
 
         await Verify(testData,
                      fixedData,
-                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         await Verify(testData,
                      fixedData,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -138,7 +138,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
 
         await Verify(testData,
                      fixedData,
-                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(1, 1, 2, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                                 + "    }\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -228,7 +228,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                                 + "    }\r\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -245,7 +245,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                                 + "{|#0:{\n|}"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                                  + "{\r\n"
                                  + "}";
 
-        await Verify(testData, fixedData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -361,7 +361,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         await Verify(testData,
                      fixedData,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(AnalyzerResources.RH5604MessageFormat));
+                     Diagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -383,7 +383,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         // Suppression verification injects directives whose line endings change this document-wide policy fixture.
         await Verify(testData,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -402,7 +402,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                                 + "#endif\r\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+        await Verify(testData, Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
 
         await Verify(testData,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat));
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -514,7 +514,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
         // Verifies that XML and ordinary minority line endings are fixed in one Fix All iteration
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH5604MessageFormat, 2),
+                                  Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

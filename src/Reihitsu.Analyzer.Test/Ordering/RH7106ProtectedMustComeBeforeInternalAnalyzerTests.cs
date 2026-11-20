@@ -48,7 +48,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, AnalyzerResources.RH7106MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -866,7 +866,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
         // declaration and each one has to leave the other member's modifier list untouched
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, AnalyzerResources.RH7106MessageFormat, 2));
+                                  Diagnostics(RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

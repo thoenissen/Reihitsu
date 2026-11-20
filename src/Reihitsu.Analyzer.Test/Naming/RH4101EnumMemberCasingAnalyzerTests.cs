@@ -69,7 +69,7 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4101MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4101MessageFormat, 2));
+        await Verify(testCode, fixedCode, Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4101MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -307,7 +307,7 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
         // list. The second name also exercises the underscore segmentation of the PascalCase conversion
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4101MessageFormat, 2));
+                                  Diagnostics(RH4101EnumMemberCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

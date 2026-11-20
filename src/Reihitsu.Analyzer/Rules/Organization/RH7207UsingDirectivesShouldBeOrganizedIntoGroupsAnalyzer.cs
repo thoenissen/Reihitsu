@@ -30,7 +30,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// Constructor
     /// </summary>
     public RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7207Title), nameof(AnalyzerResources.RH7207MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

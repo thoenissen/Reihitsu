@@ -43,7 +43,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyFormatterTests : Form
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+                              Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

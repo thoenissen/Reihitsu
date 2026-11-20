@@ -30,7 +30,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// Initializes a new instance of the <see cref="RH8202ValueTagMustNotBeUsedAnalyzer"/> class
     /// </summary>
     public RH8202ValueTagMustNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8202Title), nameof(AnalyzerResources.RH8202MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

@@ -72,7 +72,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -136,7 +136,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -201,7 +201,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -234,7 +234,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -264,7 +264,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -318,7 +318,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -548,7 +548,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -583,7 +583,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -616,7 +616,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -659,7 +659,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -700,7 +700,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                 test.FixedState.MarkupHandling = MarkupMode.Allow;
                                 test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                             },
-                     Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
+                     Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -743,7 +743,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
         await Verify(testData,
                      fixedData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
+                     Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -774,7 +774,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -811,7 +811,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -848,7 +848,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -977,7 +977,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1001,7 +1001,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1020,7 +1020,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1184,7 +1184,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
         // Verifies that several leading commas in the same parameter list all converge to the same alignment column.
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat, 2));
+                                  Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

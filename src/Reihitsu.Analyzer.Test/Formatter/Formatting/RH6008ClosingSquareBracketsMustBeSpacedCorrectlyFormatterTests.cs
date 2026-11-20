@@ -45,7 +45,7 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyFormatterTests : Fo
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+                              Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

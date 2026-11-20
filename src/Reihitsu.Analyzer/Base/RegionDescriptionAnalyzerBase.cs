@@ -19,10 +19,8 @@ public abstract class RegionDescriptionAnalyzerBase : DiagnosticAnalyzerBase
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="titleResourceName">Resource name of the title</param>
-    /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    private protected RegionDescriptionAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    private protected RegionDescriptionAnalyzerBase(string diagnosticId, DiagnosticCategory category)
+        : base(diagnosticId, category)
     {
     }
 

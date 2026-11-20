@@ -28,8 +28,6 @@ public class RH5515PropertyAttributesMustFollowPlacementRulesAnalyzer : TargetAt
     /// </summary>
     public RH5515PropertyAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5515Title),
-               nameof(AnalyzerResources.RH5515MessageFormat),
                AttributeTargets.Property,
                TargetAttributePlacementMode.SeparateLine)
     {

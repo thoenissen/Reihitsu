@@ -32,7 +32,7 @@ public class RH4010RecordNameCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4010RecordNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4010Title), nameof(AnalyzerResources.RH4010MessageFormat), SyntaxKind.RecordDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.RecordDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

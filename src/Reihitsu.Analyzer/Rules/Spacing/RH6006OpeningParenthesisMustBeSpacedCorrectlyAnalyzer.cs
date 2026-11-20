@@ -29,7 +29,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Spacing, nameof(AnalyzerResources.RH6006Title), nameof(AnalyzerResources.RH6006MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Spacing)
     {
     }
 

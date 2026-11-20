@@ -79,7 +79,7 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -649,7 +649,7 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
         // second fix's removal span sits close behind the first fix's own removal
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat, 2));
+                                  Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

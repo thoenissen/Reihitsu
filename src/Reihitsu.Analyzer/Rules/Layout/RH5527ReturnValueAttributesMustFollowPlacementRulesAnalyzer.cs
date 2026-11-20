@@ -28,8 +28,6 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer : Targe
     /// </summary>
     public RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5527Title),
-               nameof(AnalyzerResources.RH5527MessageFormat),
                AttributeTargets.ReturnValue,
                TargetAttributePlacementMode.SeparateLine)
     {

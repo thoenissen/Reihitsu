@@ -52,7 +52,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
+                              Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -151,7 +151,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
 
         await Verify(testData,
                      test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject),
-                     Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
+                     Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         foreach (var endOfLine in new[] { "\n", "\r\n" })
         {

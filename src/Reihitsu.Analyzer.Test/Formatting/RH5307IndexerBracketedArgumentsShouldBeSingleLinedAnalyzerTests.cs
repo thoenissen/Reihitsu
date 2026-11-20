@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -49,7 +51,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -86,7 +88,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -281,7 +283,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+                     Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -501,12 +503,16 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
     }
 
     /// <summary>
-    /// Characterizes the current behavior that no fix is offered for a wrapped element access inside another bracketed
-    /// argument list, while the diagnostic is reported
+    /// Verifies that the fix joins a wrapped element access that stands inside the bracketed argument list of another
+    /// element access, and leaves the other list as written
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixIsNotOfferedForElementAccessInsideAnotherArgumentList()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsElementAccessInsideAnotherArgumentList(string endOfLine)
     {
         const string testCode = """
                                 class C
@@ -518,30 +524,746 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
                                     }
                                 }
                                 """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[] x, int[,] m)
+                                     {
+                                         var a = x[m[1, 2]];
+                                     }
+                                 }
+                                 """;
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
     /// <summary>
-    /// Characterizes the current behavior that no fix is offered for a wrapped element access whose receiver starts
-    /// with an element access that holds a comment, while the diagnostic is reported
+    /// Verifies that the fix joins a wrapped element access whose receiver is an element access with its list on one line
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixIsNotOfferedWhenReceiverStartsWithElementAccess()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAReceiverElementAccess(string endOfLine)
     {
         const string testCode = """
                                 class C
                                 {
                                     void M(int[][,] j)
                                     {
-                                        var a = {|RH5307:j[0 /* c */][1,
+                                        var b = {|RH5307:j[0][1,
+                                                     2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[][,] j)
+                                     {
+                                         var b = j[0][1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in the list of the receiver, which is an element access, does not keep the fix from
+    /// joining the reported list, and that the receiver stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAReceiverElementAccessWithAComment(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[][,] j)
+                                    {
+                                        var c = {|RH5307:j[0 /* c */][1,
                                                              2]|};
                                     }
                                 }
                                 """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[][,] j)
+                                     {
+                                         var c = j[0 /* c */][1, 2];
+                                     }
+                                 }
+                                 """;
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an argument spanning several lines in the list of the receiver does not keep the fix from joining
+    /// the reported list, and that the receiver's list, which is not reported, stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAReceiverElementAccessWithAMultiLineArgument(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[][,] j)
+                                    {
+                                        var d = {|RH5307:j[N(1,
+                                                    2)][1,
+                                                        2]|};
+                                    }
+
+                                    int N(int a, int b) => a;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[][,] j)
+                                     {
+                                         var d = j[N(1,
+                                                     2)][1, 2];
+                                     }
+
+                                     int N(int a, int b) => a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of the reported element access inside another argument list does not keep the
+    /// fix from joining the reported list, and that the space behind the comment stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixJoinsListBehindACommentInAnotherArgumentList(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] x, int[,] m)
+                                    {
+                                        var p = x[/* c */ {|RH5307:m[1,
+                                                            2]|}];
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[] x, int[,] m)
+                                     {
+                                         var p = x[/* c */ m[1, 2]];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped element access whose receiver is an element binding (<c>c?[0]</c>) is reported, although
+    /// the list of the element binding is not, and that the fix joins the reported list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-001")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAnElementBinding(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[][,] c)
+                                    {
+                                        var e = c?{|RH5307:[0][1,
+                                                      2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[][,] c)
+                                     {
+                                         var e = c?[0][1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access that stands inside the argument list of an element binding
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListInsideAnElementBinding(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] n, int[,] m)
+                                    {
+                                        var h = n?[{|RH5307:m[1,
+                                                     2]|}];
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[] n, int[,] m)
+                                     {
+                                         var h = n?[m[1, 2]];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access whose receiver is a member access that starts with an
+    /// element access
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAMemberAccessThatStartsWithAnElementAccess(string endOfLine)
+    {
+        const string testCode = """
+                                class D
+                                {
+                                    public int[][,] P;
+                                }
+
+                                class C
+                                {
+                                    void M(D[] a)
+                                    {
+                                        var i = {|RH5307:a[0].P[0][1,
+                                                          2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class D
+                                 {
+                                     public int[][,] P;
+                                 }
+
+                                 class C
+                                 {
+                                     void M(D[] a)
+                                     {
+                                         var i = a[0].P[0][1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access whose receiver is an access of the containing type's indexer
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAThisIndexerAccess(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int[,] this[int i] => null;
+
+                                    void M()
+                                    {
+                                        var j = {|RH5307:this[0][1,
+                                                        2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int[,] this[int i] => null;
+
+                                     void M()
+                                     {
+                                         var j = this[0][1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access that stands inside the argument list of an implicit element
+    /// access in an object initializer, and leaves the initializer as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListInsideAnImplicitElementAccess(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        var d = new Dictionary<int, int>
+                                                {
+                                                    [{|RH5307:m[1,
+                                                       2]|}] = 1,
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M(int[,] m)
+                                     {
+                                         var d = new Dictionary<int, int>
+                                                 {
+                                                     [m[1, 2]] = 1,
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that where both the reported list and the list of its receiver are reported, fixing one diagnostic after
+    /// the other and fixing all diagnostics at once join both lists
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixesJoinBothListsWhenTheReceiverListIsReportedToo(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,][,] j)
+                                    {
+                                        var n = {|RH5307:{|RH5307:j[0,
+                                                  1]|}[1,
+                                                     2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,][,] j)
+                                     {
+                                         var n = j[0, 1][1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that where both the reported list and the list of its receiver are reported, the fix of the outer
+    /// diagnostic joins only the outer list and the fix of the receiver's diagnostic only the receiver's list, the rest of
+    /// the access staying as written, and that applying the second fix behind the first joins both lists in either order
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyEachFixJoinsItsOwnListWhenTheReceiverListIsReportedToo(string endOfLine)
+    {
+        var source = ConvertEndOfLine("""
+                                      class C
+                                      {
+                                          void M(int[,][,] j)
+                                          {
+                                              var n = j[0,
+                                                        1][1,
+                                                           2];
+                                          }
+                                      }
+                                      """,
+                                      endOfLine);
+        var outerJoined = ConvertEndOfLine("""
+                                           class C
+                                           {
+                                               void M(int[,][,] j)
+                                               {
+                                                   var n = j[0,
+                                                             1][1, 2];
+                                               }
+                                           }
+                                           """,
+                                           endOfLine);
+        var receiverJoined = ConvertEndOfLine("""
+                                              class C
+                                              {
+                                                  void M(int[,][,] j)
+                                                  {
+                                                      var n = j[0, 1][1,
+                                                                   2];
+                                                  }
+                                              }
+                                              """,
+                                              endOfLine);
+        var bothJoined = ConvertEndOfLine("""
+                                          class C
+                                          {
+                                              void M(int[,][,] j)
+                                              {
+                                                  var n = j[0, 1][1, 2];
+                                              }
+                                          }
+                                          """,
+                                          endOfLine);
+
+        var afterOuterFix = await TryApplyCodeFixAtAsync(source,
+                                                         RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                         root => root.DescendantNodes()
+                                                                     .OfType<ElementAccessExpressionSyntax>()
+                                                                     .Single(access => access.Expression is ElementAccessExpressionSyntax)
+                                                                     .GetLocation());
+
+        Assert.AreEqual(outerJoined, afterOuterFix, "The fix of the outer diagnostic must join only the outer list.");
+        Assert.AreEqual(bothJoined, await ApplyCodeFixAsync(afterOuterFix), "The fix of the remaining diagnostic must join the receiver's list.");
+
+        var afterReceiverFix = await TryApplyCodeFixAtAsync(source,
+                                                            RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                            root => root.DescendantNodes()
+                                                                        .OfType<ElementAccessExpressionSyntax>()
+                                                                        .Single(access => access.Expression is IdentifierNameSyntax)
+                                                                        .GetLocation());
+
+        Assert.AreEqual(receiverJoined, afterReceiverFix, "The fix of the receiver's diagnostic must join only the receiver's list.");
+        Assert.AreEqual(bothJoined, await ApplyCodeFixAsync(afterReceiverFix), "The fix of the remaining diagnostic must join the outer list.");
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access that is the argument of an invocation
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListOfAnInvocationArgument(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        N({|RH5307:m[1,
+                                            2]|});
+                                    }
+
+                                    void N(int a)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,] m)
+                                     {
+                                         N(m[1, 2]);
+                                     }
+
+                                     void N(int a)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access that is an element of a collection expression, and leaves
+    /// the collection expression as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixJoinsListOfACollectionExpressionElement(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        int[] l = [{|RH5307:m[1,
+                                                     2]|}];
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,] m)
+                                     {
+                                         int[] l = [m[1, 2]];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access whose receiver is a parenthesized element access
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAParenthesizedReceiver(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[][,] j)
+                                    {
+                                        var o = {|RH5307:(j[0])[1,
+                                                       2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[][,] j)
+                                     {
+                                         var o = (j[0])[1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix joins a wrapped element access whose receiver is a member binding
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixJoinsListBehindAMemberBinding(string endOfLine)
+    {
+        const string testCode = """
+                                class E
+                                {
+                                    public int[,] P;
+                                }
+
+                                class C
+                                {
+                                    void M(E c)
+                                    {
+                                        var g = c?{|RH5307:.P[1,
+                                                     2]|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class E
+                                 {
+                                     public int[,] P;
+                                 }
+
+                                 class C
+                                 {
+                                     void M(E c)
+                                     {
+                                         var g = c?.P[1, 2];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that fixing one diagnostic after the other and fixing all diagnostics at once join every reported list of a
+    /// document that holds every receiver and container of the reported access the requirement names
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    public async Task VerifyFixesJoinEveryReportedListWhateverItsReceiverOrContainer(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class D
+                                {
+                                    public int[][,] P;
+                                }
+
+                                class C
+                                {
+                                    int[,] this[int i] => null;
+
+                                    void M(int[] x, int[,] m, int[][,] j, int[][,] c, int[] n, D[] a)
+                                    {
+                                        var va = x[{|RH5307:m[1,
+                                                     2]|}];
+                                        var vb = {|RH5307:j[0][1,
+                                                      2]|};
+                                        var vc = {|RH5307:j[0 /* c */][1,
+                                                              2]|};
+                                        var vd = {|RH5307:j[N(1,
+                                                     2)][1,
+                                                         2]|};
+                                        var vp = x[/* c */ {|RH5307:m[1,
+                                                             2]|}];
+                                        var ve = c?{|RH5307:[0][1,
+                                                       2]|};
+                                        var vh = n?[{|RH5307:m[1,
+                                                      2]|}];
+                                        var vi = {|RH5307:a[0].P[0][1,
+                                                           2]|};
+                                        var vj = {|RH5307:this[0][1,
+                                                         2]|};
+                                        var vm = new Dictionary<int, int>
+                                                 {
+                                                     [{|RH5307:m[1,
+                                                        2]|}] = 1,
+                                                 };
+                                    }
+
+                                    int N(int a, int b) => a;
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class D
+                                 {
+                                     public int[][,] P;
+                                 }
+
+                                 class C
+                                 {
+                                     int[,] this[int i] => null;
+
+                                     void M(int[] x, int[,] m, int[][,] j, int[][,] c, int[] n, D[] a)
+                                     {
+                                         var va = x[m[1, 2]];
+                                         var vb = j[0][1, 2];
+                                         var vc = j[0 /* c */][1, 2];
+                                         var vd = j[N(1,
+                                                      2)][1, 2];
+                                         var vp = x[/* c */ m[1, 2]];
+                                         var ve = c?[0][1, 2];
+                                         var vh = n?[m[1, 2]];
+                                         var vi = a[0].P[0][1, 2];
+                                         var vj = this[0][1, 2];
+                                         var vm = new Dictionary<int, int>
+                                                  {
+                                                      [m[1, 2]] = 1,
+                                                  };
+                                     }
+
+                                     int N(int a, int b) => a;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the wrapped argument list of a null-conditional element access is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5307-001")]
+    public async Task VerifyNullConditionalElementAccessIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] c)
+                                    {
+                                        var a = c?[1,
+                                                   2];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -633,12 +1355,11 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
                                  }
                                  """;
 
-        // The two indexer accesses sit side by side in one return statement, so both resolve to the identical
-        // fix target: the enclosing return statement. The batch fixer discards the second, overlapping action,
-        // and the surviving single fix already collapses both bracketed argument lists to a single line
+        // The two indexer accesses sit side by side in one return statement, so the fixes of the two
+        // diagnostics edit neighboring spans of the same statement
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat, 2));
+                                  Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -39,7 +39,207 @@ internal static class Program
     public static async Task<int> Main(string[] args)
     {
         var result = ParseArguments(args);
+        var exitCode = await HandleArgumentsWithoutFormattingAsync(result).ConfigureAwait(false);
 
+        if (exitCode != null)
+        {
+            return exitCode.Value;
+        }
+
+        if (result.ExceedingLanguageVersion != null)
+        {
+            await Console.Error.WriteLineAsync($"Warning: C# language version '{result.ExceedingLanguageVersion}' is newer than the newest supported version {result.LanguageVersion.ToDisplayString()}; formatting for {result.LanguageVersion.ToDisplayString()}.");
+        }
+
+        var paths = new List<string>(result.Paths);
+
+        if (paths.Count == 0)
+        {
+            paths.Add(Directory.GetCurrentDirectory());
+        }
+
+        return await RunFormatCommandAsync(result, paths.ToArray()).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Creates the format command handler from every parsed option value
+    /// </summary>
+    /// <param name="result">The parsed command-line arguments</param>
+    /// <param name="paths">The file or directory paths to process</param>
+    /// <param name="dependencies">The command dependencies</param>
+    /// <returns>The handler that runs the format command</returns>
+    internal static FormatCommandHandler CreateHandler(ParseResult result, string[] paths, FormatCommandDependencies dependencies)
+    {
+        return new FormatCommandHandler(paths,
+                                        result.CheckOnly,
+                                        result.DryRun,
+                                        result.Verbose,
+                                        result.Force,
+                                        result.Utf8Bom,
+                                        result.LanguageVersion,
+                                        dependencies,
+                                        result.SuppressUnsupported,
+                                        result.MaxParallelism);
+    }
+
+    /// <summary>
+    /// Parses command-line arguments into a <see cref="ParseResult"/>
+    /// </summary>
+    /// <param name="args">The command-line arguments to parse</param>
+    /// <returns>A <see cref="ParseResult"/> containing the parsed values</returns>
+    internal static ParseResult ParseArguments(string[] args)
+    {
+        var paths = new List<string>();
+        var result = new ParseResult(false, false, false, false, false, false, false, false, paths, null, LanguageVersionResolver.MaxSupportedLanguageVersion, null, null, Environment.ProcessorCount);
+        var pathsOnly = false;
+        string optionExpectingValue = null;
+
+        foreach (var arg in args)
+        {
+            if (optionExpectingValue != null)
+            {
+                result = ApplyOptionValue(result, optionExpectingValue, arg);
+                optionExpectingValue = null;
+            }
+            else if (pathsOnly)
+            {
+                paths.Add(arg);
+            }
+            else if (arg == "--")
+            {
+                // Everything after the "--" separator is treated as a path, even if it starts with "-".
+                pathsOnly = true;
+            }
+            else if (arg is LanguageVersionOption or MaxParallelismOption)
+            {
+                optionExpectingValue = arg;
+            }
+            else if (ApplyFlag(result, arg) is { } flagResult)
+            {
+                result = flagResult;
+            }
+            else if (arg.StartsWith('-'))
+            {
+                result = result with
+                                {
+                                    UnknownOption = result.UnknownOption ?? arg
+                                };
+            }
+            else
+            {
+                paths.Add(arg);
+            }
+        }
+
+        // The option is the last argument, so its value is missing. LanguageVersionFacts.TryParse would accept a
+        // missing value as the default version, which is why it never sees one.
+        if (optionExpectingValue != null)
+        {
+            result = WithArgumentError(result, $"Missing value for {optionExpectingValue}.");
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Applies an option that takes no value
+    /// </summary>
+    /// <param name="result">The arguments parsed so far</param>
+    /// <param name="arg">The argument</param>
+    /// <returns>The arguments with the option applied, or <see langword="null"/> when the argument is no such option</returns>
+    private static ParseResult? ApplyFlag(ParseResult result, string arg)
+    {
+        return arg switch
+               {
+                   "--check" => result with
+                                       {
+                                           CheckOnly = true
+                                       },
+                   "--dry-run" => result with
+                                         {
+                                             DryRun = true
+                                         },
+                   "--verbose" => result with
+                                         {
+                                             Verbose = true
+                                         },
+                   "--force" => result with
+                                       {
+                                           Force = true
+                                       },
+                   "--utf8-bom" => result with
+                                          {
+                                              Utf8Bom = true
+                                          },
+                   "--suppress-unsupported" => result with
+                                                      {
+                                                          SuppressUnsupported = true
+                                                      },
+                   "--help" or "-h" => result with
+                                              {
+                                                  ShowHelp = true
+                                              },
+                   "--version" => result with
+                                         {
+                                             ShowVersion = true
+                                         },
+                   _ => null
+               };
+    }
+
+    /// <summary>
+    /// Applies the value of <c>--lang-version</c> or <c>--max-parallelism</c>
+    /// </summary>
+    /// <param name="result">The arguments parsed so far</param>
+    /// <param name="option">The option the value belongs to</param>
+    /// <param name="value">The value given to the option</param>
+    /// <returns>The arguments with the value applied, or with an argument error when the value is invalid</returns>
+    private static ParseResult ApplyOptionValue(ParseResult result, string option, string value)
+    {
+        if (option == MaxParallelismOption)
+        {
+            return TryParseMaxParallelism(value, out var requestedParallelism)
+                       ? result with
+                                {
+                                    MaxParallelism = requestedParallelism
+                                }
+                       : WithArgumentError(result, $"Invalid value for {MaxParallelismOption}: '{value}'. Expected a whole number of 1 or more.");
+        }
+
+        if (LanguageVersionFacts.TryParse(value, out var requestedVersion))
+        {
+            return result with
+                          {
+                              LanguageVersion = LanguageVersionResolver.Resolve(requestedVersion),
+                              ExceedingLanguageVersion = LanguageVersionResolver.ExceedsMaximum(requestedVersion) ? value : null
+                          };
+        }
+
+        return WithArgumentError(result, $"Invalid value for {LanguageVersionOption}: '{value}'. Expected a C# language version such as 12, 12.0, latest, or preview.");
+    }
+
+    /// <summary>
+    /// Records an argument error unless an earlier one is recorded, so the first error is reported
+    /// </summary>
+    /// <param name="result">The arguments parsed so far</param>
+    /// <param name="argumentError">The error</param>
+    /// <returns>The arguments with the first error recorded</returns>
+    private static ParseResult WithArgumentError(ParseResult result, string argumentError)
+    {
+        return result with
+                      {
+                          ArgumentError = result.ArgumentError ?? argumentError
+                      };
+    }
+
+    /// <summary>
+    /// Handles the parsed arguments that end the run without formatting: an unknown option, an invalid option value,
+    /// <c>--help</c>, <c>--version</c>, and the combination of <c>--check</c> with <c>--dry-run</c>
+    /// </summary>
+    /// <param name="result">The parsed command-line arguments</param>
+    /// <returns>The exit code when the run ends here; otherwise, <see langword="null"/></returns>
+    private static async Task<int?> HandleArgumentsWithoutFormattingAsync(ParseResult result)
+    {
         if (result.UnknownOption != null)
         {
             await Console.Error.WriteLineAsync($"Unknown option: {result.UnknownOption}");
@@ -81,18 +281,17 @@ internal static class Program
             return ExitCodes.Error;
         }
 
-        if (result.ExceedingLanguageVersion != null)
-        {
-            await Console.Error.WriteLineAsync($"Warning: C# language version '{result.ExceedingLanguageVersion}' is newer than the newest supported version {result.LanguageVersion.ToDisplayString()}; formatting for {result.LanguageVersion.ToDisplayString()}.");
-        }
+        return null;
+    }
 
-        var paths = new List<string>(result.Paths);
-
-        if (paths.Count == 0)
-        {
-            paths.Add(Directory.GetCurrentDirectory());
-        }
-
+    /// <summary>
+    /// Runs the format command over the paths, canceling it gracefully on Ctrl+C
+    /// </summary>
+    /// <param name="result">The parsed command-line arguments</param>
+    /// <param name="paths">The file or directory paths to process</param>
+    /// <returns>The exit code of the format command</returns>
+    private static async Task<int> RunFormatCommandAsync(ParseResult result, string[] paths)
+    {
         using (var cancellationTokenSource = new CancellationTokenSource())
         {
             ConsoleCancelEventHandler cancelHandler = (_, eventArgs) =>
@@ -113,7 +312,7 @@ internal static class Program
                 var diffGenerator = new DefaultDiffGenerator();
 
                 var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
-                var handler = CreateHandler(result, paths.ToArray(), dependencies);
+                var handler = CreateHandler(result, paths, dependencies);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -134,194 +333,6 @@ internal static class Program
                 Console.CancelKeyPress -= cancelHandler;
             }
         }
-    }
-
-    /// <summary>
-    /// Creates the format command handler from every parsed option value
-    /// </summary>
-    /// <param name="result">The parsed command-line arguments</param>
-    /// <param name="paths">The file or directory paths to process</param>
-    /// <param name="dependencies">The command dependencies</param>
-    /// <returns>The handler that runs the format command</returns>
-    internal static FormatCommandHandler CreateHandler(ParseResult result, string[] paths, FormatCommandDependencies dependencies)
-    {
-        return new FormatCommandHandler(paths,
-                                        result.CheckOnly,
-                                        result.DryRun,
-                                        result.Verbose,
-                                        result.Force,
-                                        result.Utf8Bom,
-                                        result.LanguageVersion,
-                                        dependencies,
-                                        result.SuppressUnsupported,
-                                        result.MaxParallelism);
-    }
-
-    /// <summary>
-    /// Parses command-line arguments into a <see cref="ParseResult"/>
-    /// </summary>
-    /// <param name="args">The command-line arguments to parse</param>
-    /// <returns>A <see cref="ParseResult"/> containing the parsed values</returns>
-    internal static ParseResult ParseArguments(string[] args)
-    {
-        var checkOnly = false;
-        var dryRun = false;
-        var verbose = false;
-        var force = false;
-        var utf8Bom = false;
-        var suppressUnsupported = false;
-        var showHelp = false;
-        var showVersion = false;
-        var paths = new List<string>();
-        string unknownOption = null;
-        var languageVersion = LanguageVersionResolver.MaxSupportedLanguageVersion;
-        string exceedingLanguageVersion = null;
-        string argumentError = null;
-        var pathsOnly = false;
-        var expectsLanguageVersion = false;
-        var maxParallelism = Environment.ProcessorCount;
-        var expectsMaxParallelism = false;
-
-        foreach (var arg in args)
-        {
-            if (expectsMaxParallelism)
-            {
-                expectsMaxParallelism = false;
-
-                if (TryParseMaxParallelism(arg, out var requestedParallelism))
-                {
-                    maxParallelism = requestedParallelism;
-                }
-                else
-                {
-                    argumentError ??= $"Invalid value for {MaxParallelismOption}: '{arg}'. Expected a whole number of 1 or more.";
-                }
-
-                continue;
-            }
-
-            if (expectsLanguageVersion)
-            {
-                expectsLanguageVersion = false;
-
-                if (LanguageVersionFacts.TryParse(arg, out var requestedVersion))
-                {
-                    languageVersion = LanguageVersionResolver.Resolve(requestedVersion);
-                    exceedingLanguageVersion = LanguageVersionResolver.ExceedsMaximum(requestedVersion) ? arg : null;
-                }
-                else
-                {
-                    argumentError ??= $"Invalid value for {LanguageVersionOption}: '{arg}'. Expected a C# language version such as 12, 12.0, latest, or preview.";
-                }
-
-                continue;
-            }
-
-            if (pathsOnly)
-            {
-                paths.Add(arg);
-
-                continue;
-            }
-
-            switch (arg)
-            {
-                case "--":
-                    {
-                        // Everything after the "--" separator is treated as a path, even if it starts with "-".
-                        pathsOnly = true;
-                    }
-                    break;
-
-                case "--check":
-                    {
-                        checkOnly = true;
-                    }
-                    break;
-
-                case "--dry-run":
-                    {
-                        dryRun = true;
-                    }
-                    break;
-
-                case "--verbose":
-                    {
-                        verbose = true;
-                    }
-                    break;
-
-                case "--force":
-                    {
-                        force = true;
-                    }
-                    break;
-
-                case "--utf8-bom":
-                    {
-                        utf8Bom = true;
-                    }
-                    break;
-
-                case "--suppress-unsupported":
-                    {
-                        suppressUnsupported = true;
-                    }
-                    break;
-
-                case "--help":
-                case "-h":
-                    {
-                        showHelp = true;
-                    }
-                    break;
-
-                case "--version":
-                    {
-                        showVersion = true;
-                    }
-                    break;
-
-                case LanguageVersionOption:
-                    {
-                        expectsLanguageVersion = true;
-                    }
-                    break;
-
-                case MaxParallelismOption:
-                    {
-                        expectsMaxParallelism = true;
-                    }
-                    break;
-
-                default:
-                    {
-                        if (arg.StartsWith('-'))
-                        {
-                            unknownOption ??= arg;
-                        }
-                        else
-                        {
-                            paths.Add(arg);
-                        }
-                    }
-                    break;
-            }
-        }
-
-        // The option is the last argument, so its value is missing. LanguageVersionFacts.TryParse would accept a
-        // missing value as the default version, which is why it never sees one.
-        if (expectsLanguageVersion)
-        {
-            argumentError ??= $"Missing value for {LanguageVersionOption}.";
-        }
-
-        if (expectsMaxParallelism)
-        {
-            argumentError ??= $"Missing value for {MaxParallelismOption}.";
-        }
-
-        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, suppressUnsupported, showHelp, showVersion, paths, unknownOption, languageVersion, exceedingLanguageVersion, argumentError, maxParallelism);
     }
 
     /// <summary>

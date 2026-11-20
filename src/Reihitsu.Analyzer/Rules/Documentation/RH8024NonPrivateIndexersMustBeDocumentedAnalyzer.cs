@@ -28,7 +28,7 @@ public class RH8024NonPrivateIndexersMustBeDocumentedAnalyzer : SplitElementDocu
     /// Constructor
     /// </summary>
     public RH8024NonPrivateIndexersMustBeDocumentedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH8024Title), nameof(AnalyzerResources.RH8024MessageFormat), DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.IndexerDeclaration)
+        : base(DiagnosticId, DocumentationAccessibilityGroup.NonPrivate, SyntaxKind.IndexerDeclaration)
     {
     }
 

@@ -30,7 +30,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5402Title), nameof(AnalyzerResources.RH5402MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

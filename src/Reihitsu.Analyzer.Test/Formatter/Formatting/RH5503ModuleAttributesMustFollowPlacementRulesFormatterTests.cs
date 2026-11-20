@@ -41,7 +41,7 @@ public class RH5503ModuleAttributesMustFollowPlacementRulesFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5503MessageFormat));
+                              Diagnostics(RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

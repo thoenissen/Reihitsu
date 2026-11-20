@@ -27,7 +27,7 @@ public class RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : Region
     /// Constructor
     /// </summary>
     public RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7307Title), nameof(AnalyzerResources.RH7307MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Organization)
     {
     }
 

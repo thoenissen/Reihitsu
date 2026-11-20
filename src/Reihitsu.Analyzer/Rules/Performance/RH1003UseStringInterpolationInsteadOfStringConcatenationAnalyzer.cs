@@ -32,7 +32,7 @@ public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer : 
     /// Constructor
     /// </summary>
     public RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Performance, nameof(AnalyzerResources.RH1003Title), nameof(AnalyzerResources.RH1003MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Performance)
     {
     }
 

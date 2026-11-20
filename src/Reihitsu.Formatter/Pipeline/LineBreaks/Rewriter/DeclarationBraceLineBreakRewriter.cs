@@ -65,6 +65,18 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether a type declaration is a class, struct, interface, record, or union declaration whose opening
+    /// brace is not missing
+    /// </summary>
+    /// <param name="node">The type declaration</param>
+    /// <returns><see langword="true"/> if the declaration's braces are normalized</returns>
+    private static bool IsBracedTypeDeclaration(BaseTypeDeclarationSyntax node)
+    {
+        return node is ClassDeclarationSyntax or StructDeclarationSyntax or InterfaceDeclarationSyntax or RecordDeclarationSyntax or UnionDeclarationSyntax
+               && node.OpenBraceToken.IsMissing == false;
+    }
+
+    /// <summary>
     /// Places an opening and closing brace on their own lines and keeps the first content token
     /// correct
     /// </summary>
@@ -143,6 +155,34 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
         return node;
     }
 
+    /// <summary>
+    /// Normalizes the braces and the parameter-list opener of a declaration, and returns any other node unchanged, also a
+    /// type declaration whose opening brace is missing
+    /// </summary>
+    /// <param name="node">The visited node</param>
+    /// <returns>The updated node</returns>
+    private SyntaxNode NormalizeDeclaration(SyntaxNode node)
+    {
+        return node switch
+               {
+                   BaseTypeDeclarationSyntax typeDeclaration when IsBracedTypeDeclaration(typeDeclaration) => NormalizeTypeBraces(typeDeclaration),
+                   EnumDeclarationSyntax enumDeclaration => NormalizeTypeBraces(enumDeclaration),
+                   NamespaceDeclarationSyntax namespaceDeclaration => NormalizeBraces(namespaceDeclaration,
+                                                                                      static declaration => declaration.OpenBraceToken,
+                                                                                      static (declaration, token) => declaration.WithOpenBraceToken(token),
+                                                                                      static declaration => declaration.CloseBraceToken,
+                                                                                      static (declaration, token) => declaration.WithCloseBraceToken(token)),
+                   ConstructorDeclarationSyntax constructor => NormalizeConstructor(constructor),
+                   MethodDeclarationSyntax method => LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(method, method.ParameterList),
+                   ConversionOperatorDeclarationSyntax conversionOperator => LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(conversionOperator, conversionOperator.ParameterList),
+                   DestructorDeclarationSyntax destructor => LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(destructor, destructor.ParameterList),
+                   IndexerDeclarationSyntax indexer => _accessorListLayout.Apply(LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(indexer, indexer.ParameterList)),
+                   LocalFunctionStatementSyntax localFunction => LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(localFunction, localFunction.ParameterList),
+                   DelegateDeclarationSyntax delegateDeclaration => LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(delegateDeclaration, delegateDeclaration.ParameterList),
+                   _ => node
+               };
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -164,77 +204,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        switch (visited)
-        {
-            case ClassDeclarationSyntax:
-            case StructDeclarationSyntax:
-            case InterfaceDeclarationSyntax:
-            case RecordDeclarationSyntax:
-            case UnionDeclarationSyntax:
-                {
-                    var typeDeclaration = (BaseTypeDeclarationSyntax)visited;
-
-                    return typeDeclaration.OpenBraceToken.IsMissing
-                               ? visited
-                               : NormalizeTypeBraces(typeDeclaration);
-                }
-
-            case EnumDeclarationSyntax enumDeclaration:
-                {
-                    return NormalizeTypeBraces(enumDeclaration);
-                }
-
-            case NamespaceDeclarationSyntax namespaceDeclaration:
-                {
-                    return NormalizeBraces(namespaceDeclaration,
-                                           static declaration => declaration.OpenBraceToken,
-                                           static (declaration, token) => declaration.WithOpenBraceToken(token),
-                                           static declaration => declaration.CloseBraceToken,
-                                           static (declaration, token) => declaration.WithCloseBraceToken(token));
-                }
-
-            case ConstructorDeclarationSyntax constructor:
-                {
-                    return NormalizeConstructor(constructor);
-                }
-
-            case MethodDeclarationSyntax method:
-                {
-                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(method, method.ParameterList);
-                }
-
-            case ConversionOperatorDeclarationSyntax conversionOperator:
-                {
-                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(conversionOperator, conversionOperator.ParameterList);
-                }
-
-            case DestructorDeclarationSyntax destructor:
-                {
-                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(destructor, destructor.ParameterList);
-                }
-
-            case IndexerDeclarationSyntax indexer:
-                {
-                    indexer = LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(indexer, indexer.ParameterList);
-
-                    return _accessorListLayout.Apply(indexer);
-                }
-
-            case LocalFunctionStatementSyntax localFunction:
-                {
-                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(localFunction, localFunction.ParameterList);
-                }
-
-            case DelegateDeclarationSyntax delegateDeclaration:
-                {
-                    return LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine(delegateDeclaration, delegateDeclaration.ParameterList);
-                }
-
-            default:
-                {
-                    return visited;
-                }
-        }
+        return NormalizeDeclaration(visited);
     }
 
     #endregion // CSharpSyntaxVisitor

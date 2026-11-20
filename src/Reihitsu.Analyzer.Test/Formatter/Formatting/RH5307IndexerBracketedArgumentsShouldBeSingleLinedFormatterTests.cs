@@ -45,7 +45,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5307MessageFormat));
+                              Diagnostics(RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

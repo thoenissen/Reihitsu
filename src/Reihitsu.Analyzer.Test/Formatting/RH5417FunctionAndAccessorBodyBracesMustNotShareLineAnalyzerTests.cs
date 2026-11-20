@@ -116,7 +116,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -198,7 +198,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -216,7 +216,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -234,7 +234,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -287,7 +287,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -305,7 +305,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -332,7 +332,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -433,7 +433,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -459,7 +459,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 5));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -547,7 +547,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -594,7 +594,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 14));
+        await Verify(testData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 14));
     }
 
     /// <summary>
@@ -678,7 +678,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -736,7 +736,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -763,7 +763,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -793,7 +793,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -829,7 +829,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -865,7 +865,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -893,7 +893,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 """;
 
         await VerifyNoCodeFixIsOffered(testData,
-                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 3)));
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 3)));
     }
 
     /// <summary>
@@ -917,7 +917,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                                 """;
 
         await VerifyNoCodeFixIsOffered(testData,
-                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat)));
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat)));
     }
 
     /// <summary>
@@ -1053,7 +1053,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
                          test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", "is_global = true\ngenerated_code = false\n"));
                          test.FixedState.AnalyzerConfigFiles.Add(("/.globalconfig", "is_global = true\ngenerated_code = false\n"));
                      },
-                     Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+                     Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1654,7 +1654,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
         // closely spaced but non-overlapping replacements
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat, 2));
+                                  Diagnostics(RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

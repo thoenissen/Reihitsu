@@ -29,8 +29,6 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer : TargetAttr
     /// </summary>
     public RH5514MethodAttributeListsMustFollowShapeRulesAnalyzer()
         : base(DiagnosticId,
-               nameof(AnalyzerResources.RH5514Title),
-               nameof(AnalyzerResources.RH5514MessageFormat),
                AttributeTargets.Method,
                TargetAttributeListShapeMode.SplitLists)
     {

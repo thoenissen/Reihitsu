@@ -35,7 +35,7 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2101MessageFormat));
+        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2101MessageFormat, 7));
+        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 7));
     }
 
     /// <summary>
@@ -203,7 +203,7 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2101MessageFormat, 2));
+        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2101MessageFormat));
+        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -254,7 +254,7 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2101MessageFormat));
+        await Verify(source, Diagnostics(RH2101NestedClassesShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

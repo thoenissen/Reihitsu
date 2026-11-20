@@ -16,6 +16,166 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 [TestClass]
 public class ElseKeywordClosingBraceAuditFanOutTests : FormatterTestsBase
 {
+    #region Fields
+
+    /// <summary>
+    /// Audit variants, keyed by name, that <see cref="AuditFanOutNeverGluesElseOntoClosingBrace"/> formats
+    /// </summary>
+    private static readonly Dictionary<string, string> _auditFixtures = new Dictionary<string, string>
+                                                                        {
+                                                                            ["A_LiteralExample"] = """
+                                                                                                   class C
+                                                                                                   {
+                                                                                                       void M(bool value)
+                                                                                                       {
+                                                                                                           if (value)
+                                                                                                               DoSomething();
+                                                                                                           else
+                                                                                                               Thread.Sleep(100);
+                                                                                                       }
+                                                                                                   }
+                                                                                                   """,
+                                                                            ["B_OwnLineCommentBeforeElse"] = """
+                                                                                                             class C
+                                                                                                             {
+                                                                                                                 void M(bool value)
+                                                                                                                 {
+                                                                                                                     if (value)
+                                                                                                                         DoSomething();
+                                                                                                                     // otherwise wait
+                                                                                                                     else
+                                                                                                                         Thread.Sleep(100);
+                                                                                                                 }
+                                                                                                             }
+                                                                                                             """,
+                                                                            ["C_TrailingCommentOnThenBranch"] = """
+                                                                                                                class C
+                                                                                                                {
+                                                                                                                    void M(bool value)
+                                                                                                                    {
+                                                                                                                        if (value)
+                                                                                                                            DoSomething(); // note
+                                                                                                                        else
+                                                                                                                            Thread.Sleep(100);
+                                                                                                                    }
+                                                                                                                }
+                                                                                                                """,
+                                                                            ["D_DanglingNestedIfElse"] = """
+                                                                                                         class C
+                                                                                                         {
+                                                                                                             void M(bool a, bool b)
+                                                                                                             {
+                                                                                                                 if (a)
+                                                                                                                     if (b)
+                                                                                                                         DoSomething();
+                                                                                                                     else
+                                                                                                                         Thread.Sleep(100);
+                                                                                                             }
+                                                                                                         }
+                                                                                                         """,
+                                                                            ["E_MultiLineThenBranchStatement"] = """
+                                                                                                                 class C
+                                                                                                                 {
+                                                                                                                     void M(bool value)
+                                                                                                                     {
+                                                                                                                         if (value)
+                                                                                                                             DoSomething(firstArgument,
+                                                                                                                                         secondArgument);
+                                                                                                                         else
+                                                                                                                             Thread.Sleep(100);
+                                                                                                                     }
+                                                                                                                 }
+                                                                                                                 """,
+                                                                            ["F_LeadingCommentOnElseBody"] = """
+                                                                                                             class C
+                                                                                                             {
+                                                                                                                 void M(bool value)
+                                                                                                                 {
+                                                                                                                     if (value)
+                                                                                                                         DoSomething();
+                                                                                                                     else
+                                                                                                                         // wait a bit
+                                                                                                                         Thread.Sleep(100);
+                                                                                                                 }
+                                                                                                             }
+                                                                                                             """,
+                                                                            ["G_BlankLineBeforeElse"] = """
+                                                                                                        class C
+                                                                                                        {
+                                                                                                            void M(bool value)
+                                                                                                            {
+                                                                                                                if (value)
+                                                                                                                    DoSomething();
+
+                                                                                                                else
+                                                                                                                    Thread.Sleep(100);
+                                                                                                            }
+                                                                                                        }
+                                                                                                        """,
+                                                                            ["H_NestedInsideLoop"] = """
+                                                                                                     class C
+                                                                                                     {
+                                                                                                         void M(bool value)
+                                                                                                         {
+                                                                                                             foreach (var item in items)
+                                                                                                             {
+                                                                                                                 if (value)
+                                                                                                                     DoSomething(item);
+                                                                                                                 else
+                                                                                                                     Thread.Sleep(100);
+                                                                                                             }
+                                                                                                         }
+                                                                                                     }
+                                                                                                     """,
+                                                                            ["I_EmbeddedWhileInThenBranch"] = """
+                                                                                                              class C
+                                                                                                              {
+                                                                                                                  void M(bool a, bool b)
+                                                                                                                  {
+                                                                                                                      if (a)
+                                                                                                                          while (b)
+                                                                                                                              DoSomething();
+                                                                                                                      else
+                                                                                                                          Thread.Sleep(100);
+                                                                                                                  }
+                                                                                                              }
+                                                                                                              """,
+                                                                            ["J_ElseIfChainWithCommentBeforeFinalElse"] = """
+                                                                                                                          class C
+                                                                                                                          {
+                                                                                                                              void M(int value)
+                                                                                                                              {
+                                                                                                                                  if (value == 1)
+                                                                                                                                      First();
+                                                                                                                                  else if (value == 2)
+                                                                                                                                      Second();
+                                                                                                                                  // fallback
+                                                                                                                                  else
+                                                                                                                                      Third();
+                                                                                                                              }
+                                                                                                                          }
+                                                                                                                          """,
+                                                                            ["K_IfElseInsideSwitchSection"] = """
+                                                                                                              class C
+                                                                                                              {
+                                                                                                                  void M(int value, bool flag)
+                                                                                                                  {
+                                                                                                                      switch (value)
+                                                                                                                      {
+                                                                                                                          case 1:
+                                                                                                                              if (flag)
+                                                                                                                                  DoSomething();
+                                                                                                                              else
+                                                                                                                                  Thread.Sleep(100);
+                                                                                                                              break;
+                                                                                                                      }
+                                                                                                                  }
+                                                                                                              }
+                                                                                                              """,
+                                                                        };
+
+    #endregion // Fields
+
     #region Tests
 
     /// <summary>
@@ -25,163 +185,10 @@ public class ElseKeywordClosingBraceAuditFanOutTests : FormatterTestsBase
     [TestMethod]
     public void AuditFanOutNeverGluesElseOntoClosingBrace()
     {
-        var fixtures = new Dictionary<string, string>
-                       {
-                           ["A_LiteralExample"] = """
-                                                  class C
-                                                  {
-                                                      void M(bool value)
-                                                      {
-                                                          if (value)
-                                                              DoSomething();
-                                                          else
-                                                              Thread.Sleep(100);
-                                                      }
-                                                  }
-                                                  """,
-                           ["B_OwnLineCommentBeforeElse"] = """
-                                                            class C
-                                                            {
-                                                                void M(bool value)
-                                                                {
-                                                                    if (value)
-                                                                        DoSomething();
-                                                                    // otherwise wait
-                                                                    else
-                                                                        Thread.Sleep(100);
-                                                                }
-                                                            }
-                                                            """,
-                           ["C_TrailingCommentOnThenBranch"] = """
-                                                               class C
-                                                               {
-                                                                   void M(bool value)
-                                                                   {
-                                                                       if (value)
-                                                                           DoSomething(); // note
-                                                                       else
-                                                                           Thread.Sleep(100);
-                                                                   }
-                                                               }
-                                                               """,
-                           ["D_DanglingNestedIfElse"] = """
-                                                        class C
-                                                        {
-                                                            void M(bool a, bool b)
-                                                            {
-                                                                if (a)
-                                                                    if (b)
-                                                                        DoSomething();
-                                                                    else
-                                                                        Thread.Sleep(100);
-                                                            }
-                                                        }
-                                                        """,
-                           ["E_MultiLineThenBranchStatement"] = """
-                                                                class C
-                                                                {
-                                                                    void M(bool value)
-                                                                    {
-                                                                        if (value)
-                                                                            DoSomething(firstArgument,
-                                                                                        secondArgument);
-                                                                        else
-                                                                            Thread.Sleep(100);
-                                                                    }
-                                                                }
-                                                                """,
-                           ["F_LeadingCommentOnElseBody"] = """
-                                                            class C
-                                                            {
-                                                                void M(bool value)
-                                                                {
-                                                                    if (value)
-                                                                        DoSomething();
-                                                                    else
-                                                                        // wait a bit
-                                                                        Thread.Sleep(100);
-                                                                }
-                                                            }
-                                                            """,
-                           ["G_BlankLineBeforeElse"] = """
-                                                       class C
-                                                       {
-                                                           void M(bool value)
-                                                           {
-                                                               if (value)
-                                                                   DoSomething();
-
-                                                               else
-                                                                   Thread.Sleep(100);
-                                                           }
-                                                       }
-                                                       """,
-                           ["H_NestedInsideLoop"] = """
-                                                    class C
-                                                    {
-                                                        void M(bool value)
-                                                        {
-                                                            foreach (var item in items)
-                                                            {
-                                                                if (value)
-                                                                    DoSomething(item);
-                                                                else
-                                                                    Thread.Sleep(100);
-                                                            }
-                                                        }
-                                                    }
-                                                    """,
-                           ["I_EmbeddedWhileInThenBranch"] = """
-                                                             class C
-                                                             {
-                                                                 void M(bool a, bool b)
-                                                                 {
-                                                                     if (a)
-                                                                         while (b)
-                                                                             DoSomething();
-                                                                     else
-                                                                         Thread.Sleep(100);
-                                                                 }
-                                                             }
-                                                             """,
-                           ["J_ElseIfChainWithCommentBeforeFinalElse"] = """
-                                                                         class C
-                                                                         {
-                                                                             void M(int value)
-                                                                             {
-                                                                                 if (value == 1)
-                                                                                     First();
-                                                                                 else if (value == 2)
-                                                                                     Second();
-                                                                                 // fallback
-                                                                                 else
-                                                                                     Third();
-                                                                             }
-                                                                         }
-                                                                         """,
-                           ["K_IfElseInsideSwitchSection"] = """
-                                                             class C
-                                                             {
-                                                                 void M(int value, bool flag)
-                                                                 {
-                                                                     switch (value)
-                                                                     {
-                                                                         case 1:
-                                                                             if (flag)
-                                                                                 DoSomething();
-                                                                             else
-                                                                                 Thread.Sleep(100);
-                                                                             break;
-                                                                     }
-                                                                 }
-                                                             }
-                                                             """,
-                       };
-
         var glue = new Regex(@"\}[^\r\n]*\belse\b");
         var failures = new List<string>();
 
-        foreach (var fixture in fixtures)
+        foreach (var fixture in _auditFixtures)
         {
             foreach (var endOfLine in _lineEndings)
             {

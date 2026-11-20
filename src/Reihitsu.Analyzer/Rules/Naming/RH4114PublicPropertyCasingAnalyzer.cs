@@ -33,7 +33,7 @@ public class RH4114PublicPropertyCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4114PublicPropertyCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4114Title), nameof(AnalyzerResources.RH4114MessageFormat), SyntaxKind.PropertyDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.PropertyDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 

@@ -33,7 +33,7 @@ public class RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6013MessageFormat));
+                              Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -29,7 +29,7 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     /// Constructor
     /// </summary>
     public RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5103Title), nameof(AnalyzerResources.RH5103MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

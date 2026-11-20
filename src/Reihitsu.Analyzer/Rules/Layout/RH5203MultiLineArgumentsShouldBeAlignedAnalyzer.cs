@@ -31,7 +31,7 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzer : DiagnosticAnalyze
     /// Constructor
     /// </summary>
     public RH5203MultiLineArgumentsShouldBeAlignedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5203Title), nameof(AnalyzerResources.RH5203MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 

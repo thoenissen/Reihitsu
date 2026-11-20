@@ -30,7 +30,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     /// Constructor
     /// </summary>
     public RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5307Title), nameof(AnalyzerResources.RH5307MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 
@@ -39,11 +39,12 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Determines whether the list belongs to indexer/element access syntax
+    /// Determines whether the list belongs to indexer/element access syntax. The code fix asks it for the list a diagnostic
+    /// is located on, so the analyzer's reporting condition has one statement
     /// </summary>
     /// <param name="bracketedArgumentList">Bracketed argument list</param>
     /// <returns><see langword="true"/> when the parent is indexer/element access syntax; otherwise, <see langword="false"/></returns>
-    private static bool IsIndexerArgumentList(BracketedArgumentListSyntax bracketedArgumentList)
+    internal static bool IsIndexerArgumentList(BracketedArgumentListSyntax bracketedArgumentList)
     {
         return bracketedArgumentList.Parent is ElementAccessExpressionSyntax or ImplicitElementAccessSyntax;
     }
@@ -58,9 +59,10 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     /// which runs from the opening to the closing bracket. A comment behind the closing bracket lies
     /// outside it and must not suppress the diagnostic. The reported location ends at
     /// the closing bracket as well, so narrowing the guard cannot produce a diagnostic the fix is
-    /// unable to clear
+    /// unable to clear. The code fix asks this check for the list a diagnostic is located on, so it is
+    /// offered for exactly the lists the analyzer reports
     /// </remarks>
-    private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
+    internal static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
     {
         return SyntaxNodeUtilities.InteriorContainsCommentOrDirective(bracketedArgumentList) == false
                && SyntaxNodeUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);

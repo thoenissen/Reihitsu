@@ -5,7 +5,7 @@
 | ID prefix | FMT-SPACE |
 | Status | Active |
 | Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `AttributeTargetColonSpacingRule`, `ArrowSpacingRule`, `ConditionalOperatorSpacingRule`, `NameColonSpacingRule`, `WhenSpacingRule`, `DeclaredNameSpacingRule`, `AccessorListSpacingRule`, `RelationalPatternSpacingRule`, `PrefixKeywordSpacingRule`, `WithSpacingRule`, `LambdaReturnTypeSpacingRule`, `FunctionPointerCallingConventionSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
-| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-BREAK-037, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
+| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-BREAK-037, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, FMT-UNSUP-014, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.
 
@@ -1425,7 +1425,7 @@ unsafe class C
 
 ### FMT-SPACE-028 — No space between the `with` of a collection-expression element and its argument list
 
-The formatter MUST remove the whitespace between the `with` keyword of a `with(…)` element of a collection expression and the `(` of its argument list, an empty argument list (`with()`) included. A comment in the gap keeps its place, and the decision applies to the whitespace behind it (FMT-SPACE-013, FMT-SPACE-014). The `with` of a `with` expression is FMT-SPACE-025's and keeps one space on each side.
+The formatter MUST remove the whitespace between the `with` keyword of a `with(…)` element of a collection expression and the `(` of its argument list, an empty argument list (`with()`) included. The gap never holds a comment, a directive, or disabled text: the formatter refuses an input that holds one there, such as `[with /* size */ (4)]` (FMT-UNSUP-014). The `with` of a `with` expression is FMT-SPACE-025's and keeps one space on each side.
 
 Why: The `with(…)` element passes its arguments to the collection's constructor or factory, so it reads as a call, and the C# documentation writes it without a space: `[with(comparer), "a"]`. The repository already writes a keyword that takes an argument list in the same way where it has a rule for it — `new()` (FMT-SPACE-012). Without a rule, the gap is only collapsed (FMT-SPACE-002), so `with (comparer)` and `with(comparer)` would both stay.
 
@@ -1442,7 +1442,6 @@ class C
         HashSet<string> a = [with ( StringComparer.Ordinal ) , "x"];
         List<string> b = [with  (capacity: values.Length), .. values];
         List<string> c = [with ()];
-        List<string> d = [with /* size */ (4)];
     }
 }
 ```
@@ -1458,7 +1457,6 @@ class C
         HashSet<string> a = [with(StringComparer.Ordinal), "x"];
         List<string> b = [with(capacity: values.Length), .. values];
         List<string> c = [with()];
-        List<string> d = [with /* size */(4)];
     }
 }
 ```

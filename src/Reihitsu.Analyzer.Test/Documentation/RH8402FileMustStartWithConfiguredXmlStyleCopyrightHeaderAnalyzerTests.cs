@@ -240,7 +240,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
                      },
-                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat));
+                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
                      },
-                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat));
+                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -318,7 +318,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
                      },
-                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat));
+                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -356,7 +356,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
                      },
-                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat));
+                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -1067,7 +1067,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     private static DiagnosticResult CreateSpecificationFileDiagnostic()
     {
         return Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(SpecificationFilePath, 1, 1, 1, 1)
-                                                                                                        .WithMessage(AnalyzerResources.RH8402MessageFormat);
+                                                                                                        .WithMessage(MessageFormat);
     }
 
     /// <summary>
@@ -1208,8 +1208,8 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
         return new FixAllScenario(TestCode,
                                   fixedCode,
                                   [
-                                      Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat),
-                                      Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat)
+                                      Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan("/0/Test0.cs", 1, 1, 1, 1).WithMessage(MessageFormat),
+                                      Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan("/0/Test1.cs", 1, 1, 1, 1).WithMessage(MessageFormat)
                                   ],
                                   config =>
                                   {

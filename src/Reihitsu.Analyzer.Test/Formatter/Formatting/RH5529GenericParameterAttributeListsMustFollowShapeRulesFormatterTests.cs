@@ -42,7 +42,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesFormatterTe
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5529MessageFormat));
+                              Diagnostics(RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

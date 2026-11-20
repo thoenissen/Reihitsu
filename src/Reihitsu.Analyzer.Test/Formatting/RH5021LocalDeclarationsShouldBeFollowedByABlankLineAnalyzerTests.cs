@@ -66,7 +66,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -403,7 +403,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -447,7 +447,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat, 2));
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -482,7 +482,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -530,7 +530,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -678,7 +678,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
         // fix's insertion point is unaffected by the first occurrence's own blank-line insertion
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat, 2));
+                                  Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

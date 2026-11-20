@@ -50,7 +50,7 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 9, 8, 14, AnalyzerResources.RH5019MessageFormat));
+                              ExpectedDiagnostic(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 9, 8, 14, MessageFormat));
     }
 
     #endregion // Tests

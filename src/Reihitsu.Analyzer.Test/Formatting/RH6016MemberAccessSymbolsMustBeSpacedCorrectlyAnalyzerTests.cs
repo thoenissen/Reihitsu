@@ -100,7 +100,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -220,7 +220,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -339,7 +339,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -396,7 +396,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -429,7 +429,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -460,7 +460,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -501,7 +501,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                  }
                                  """;
 
-        await Verify(testData, fixedData, AllowUnsafe, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+        await Verify(testData, fixedData, AllowUnsafe, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -892,7 +892,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
         // fixer must converge in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat, 2));
+                                  Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

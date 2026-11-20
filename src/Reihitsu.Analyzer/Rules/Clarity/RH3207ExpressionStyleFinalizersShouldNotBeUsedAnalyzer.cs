@@ -28,7 +28,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer : Expression
     /// Constructor
     /// </summary>
     public RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH3207Title), nameof(AnalyzerResources.RH3207MessageFormat), SyntaxKind.DestructorDeclaration)
+        : base(DiagnosticId, SyntaxKind.DestructorDeclaration)
     {
     }
 

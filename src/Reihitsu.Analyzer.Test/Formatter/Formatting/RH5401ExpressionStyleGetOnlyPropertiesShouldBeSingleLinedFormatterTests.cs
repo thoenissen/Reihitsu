@@ -38,7 +38,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5401MessageFormat));
+                              Diagnostics(RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

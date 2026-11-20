@@ -34,12 +34,10 @@ public abstract class SplitElementDocumentationAnalyzerBase : DiagnosticAnalyzer
     /// Initializes a new instance of the <see cref="SplitElementDocumentationAnalyzerBase"/> class
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <param name="titleResourceName">Title resource name</param>
-    /// <param name="messageFormatResourceName">Message resource name</param>
     /// <param name="accessibilityGroup">Accessibility group</param>
     /// <param name="syntaxKinds">Syntax kinds to analyze</param>
-    protected SplitElementDocumentationAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, DocumentationAccessibilityGroup accessibilityGroup, params SyntaxKind[] syntaxKinds)
-        : base(diagnosticId, DiagnosticCategory.Documentation, titleResourceName, messageFormatResourceName)
+    protected SplitElementDocumentationAnalyzerBase(string diagnosticId, DocumentationAccessibilityGroup accessibilityGroup, params SyntaxKind[] syntaxKinds)
+        : base(diagnosticId, DiagnosticCategory.Documentation)
     {
         _accessibilityGroup = accessibilityGroup;
         _syntaxKinds = [.. syntaxKinds];

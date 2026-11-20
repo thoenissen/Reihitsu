@@ -29,7 +29,7 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
     /// Constructor
     /// </summary>
     public RH8030ElementDocumentationMustHaveSummaryTextAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8030Title), nameof(AnalyzerResources.RH8030MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation)
     {
     }
 

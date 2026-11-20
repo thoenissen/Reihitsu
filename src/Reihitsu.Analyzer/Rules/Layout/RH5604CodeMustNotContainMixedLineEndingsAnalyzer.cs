@@ -32,7 +32,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
     /// Constructor
     /// </summary>
     public RH5604CodeMustNotContainMixedLineEndingsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5604Title), nameof(AnalyzerResources.RH5604MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Layout)
     {
     }
 
