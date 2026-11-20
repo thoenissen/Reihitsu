@@ -14,9 +14,10 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 /// expressions and on a parent with many children: the cost must grow about in proportion to the length of the input, not with
 /// its square. Each test formats one input of a base size and one eight times as large, and compares the memory the formatting
 /// thread allocates and the time it takes. The comparison is a ratio, never an absolute budget: the allocated memory is exact
-/// for a given input, and the time is the shortest of several runs, so a loaded machine slows both sizes and does not move the
-/// ratio far. A cost in proportion to the length gives a ratio of about eight, a cost with the square of the length about
-/// sixty-four, and the bound lies between them
+/// for a given input, and the time is the cheapest of several alternating samples of about equal length, measured both as
+/// processor time and as wall-clock time, so a loaded machine slows both sizes alike and does not move the ratio far. A cost in
+/// proportion to the length gives a ratio of about eight, a cost with the square of the length about sixty-four, and the bound
+/// lies between them
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -36,15 +37,15 @@ public class LongExpressionCostTests : FormatterTestsBase
     private const double MaximumCostRatio = 16;
 
     /// <summary>
-    /// The number of runs of the base input, of which the shortest counts
+    /// The number of rounds that always run; a round takes one sample of each size, the base input formatted
+    /// <see cref="GrowthFactor"/> times in a row and then the large input once, and the cheapest sample of each size counts
     /// </summary>
-    private const int BaseRuns = 5;
+    private const int MinimumRounds = 3;
 
     /// <summary>
-    /// The largest number of runs of the large input, of which the shortest counts; the runs stop once the ratio is within the
-    /// bound
+    /// The largest number of rounds; after <see cref="MinimumRounds"/>, the rounds stop once the memory and the time are within the bound
     /// </summary>
-    private const int LargeRuns = 3;
+    private const int MaximumRounds = 9;
 
     /// <summary>
     /// The depth of the base input of a conditional chain
@@ -275,33 +276,56 @@ public class LongExpressionCostTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Formats the document once and returns the memory the formatting thread allocated and the time the formatting took
+    /// Gets the shorter of two time spans
+    /// </summary>
+    /// <param name="first">The first time span</param>
+    /// <param name="second">The second time span</param>
+    /// <returns>The shorter time span</returns>
+    private static TimeSpan Min(TimeSpan first, TimeSpan second)
+    {
+        return first < second ? first : second;
+    }
+
+    /// <summary>
+    /// Formats the document the given number of times in a row and returns, per formatting, the memory the formatting thread
+    /// allocated, the processor time the process used, and the wall-clock time that passed
     /// </summary>
     /// <param name="text">The source text</param>
-    /// <returns>The allocated bytes and the elapsed time</returns>
-    private (long AllocatedBytes, TimeSpan Elapsed) Measure(string text)
+    /// <param name="repetitions">How often the document is formatted</param>
+    /// <returns>The cost of one formatting</returns>
+    private (long AllocatedBytes, TimeSpan ProcessorTime, TimeSpan Elapsed) Measure(string text, int repetitions)
     {
         var tree = CSharpSyntaxTree.ParseText(text, cancellationToken: TestContext.CancellationToken);
 
         tree.GetRoot(TestContext.CancellationToken);
 
         var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+        var processorTimeBefore = Environment.CpuUsage.TotalTime;
         var stopwatch = Stopwatch.StartNew();
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+
+        for (var repetition = 0; repetition < repetitions; repetition++)
+        {
+            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+
+            Assert.IsNull(result.Unsupported, $"The input must not be refused: {result.Unsupported?.Reason}");
+        }
 
         stopwatch.Stop();
 
+        var processorTime = Environment.CpuUsage.TotalTime - processorTimeBefore;
         var allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
 
-        Assert.IsNull(result.Unsupported, $"The input must not be refused: {result.Unsupported?.Reason}");
-
-        return (allocated, stopwatch.Elapsed);
+        return (allocated / repetitions, processorTime / repetitions, stopwatch.Elapsed / repetitions);
     }
 
     /// <summary>
     /// Formats the document of the base size and the document <see cref="GrowthFactor"/> times as large, under LF and CRLF line
-    /// endings, and asserts that neither the allocated memory nor the shortest time grows by more than
-    /// <see cref="MaximumCostRatio"/>
+    /// endings, and asserts that neither the allocated memory nor the time grows by more than <see cref="MaximumCostRatio"/>.
+    /// Each sample of the base size formats it <see cref="GrowthFactor"/> times in a row, so a sample of either size lasts about
+    /// as long when the cost is in proportion to the length, and a pause of the machine weighs on both alike. The samples of the
+    /// two sizes alternate, and the cheapest of each size counts. The time counts as grown only when both the processor time and
+    /// the wall-clock time have grown: the processor time ignores the time other processes take from the machine, the wall-clock
+    /// time ignores work the runtime does on other threads, and a cost with the square of the length raises both
     /// </summary>
     /// <param name="description">What the input holds, for the message</param>
     /// <param name="createDocument">Creates the document, with LF line endings, for a given length</param>
@@ -314,36 +338,48 @@ public class LongExpressionCostTests : FormatterTestsBase
             var baseText = NormalizeLineEndings(createDocument(baseLength), endOfLine);
             var largeText = NormalizeLineEndings(createDocument(baseLength * GrowthFactor), endOfLine);
 
-            Measure(baseText);
+            Measure(baseText, GrowthFactor);
 
-            var baseCost = Enumerable.Range(0, BaseRuns).Select(_ => Measure(baseText)).ToList();
-            var baseBytes = baseCost.Min(cost => cost.AllocatedBytes);
-            var baseTime = baseCost.Min(cost => cost.Elapsed);
+            var baseBytes = long.MaxValue;
             var largeBytes = long.MaxValue;
-            var largeTime = TimeSpan.MaxValue;
+            var baseProcessorTime = TimeSpan.MaxValue;
+            var largeProcessorTime = TimeSpan.MaxValue;
+            var baseElapsed = TimeSpan.MaxValue;
+            var largeElapsed = TimeSpan.MaxValue;
+            var byteRatio = double.MaxValue;
+            var processorTimeRatio = double.MaxValue;
+            var elapsedRatio = double.MaxValue;
 
-            for (var run = 0; run < LargeRuns; run++)
+            for (var round = 1; round <= MaximumRounds; round++)
             {
-                var largeCost = Measure(largeText);
+                var baseCost = Measure(baseText, GrowthFactor);
+                var largeCost = Measure(largeText, 1);
 
+                baseBytes = Math.Min(baseBytes, baseCost.AllocatedBytes);
                 largeBytes = Math.Min(largeBytes, largeCost.AllocatedBytes);
-                largeTime = largeCost.Elapsed < largeTime ? largeCost.Elapsed : largeTime;
+                baseProcessorTime = Min(baseProcessorTime, baseCost.ProcessorTime);
+                largeProcessorTime = Min(largeProcessorTime, largeCost.ProcessorTime);
+                baseElapsed = Min(baseElapsed, baseCost.Elapsed);
+                largeElapsed = Min(largeElapsed, largeCost.Elapsed);
+                byteRatio = (double)largeBytes / Math.Max(1, baseBytes);
+                processorTimeRatio = (double)largeProcessorTime.Ticks / Math.Max(1, baseProcessorTime.Ticks);
+                elapsedRatio = (double)largeElapsed.Ticks / Math.Max(1, baseElapsed.Ticks);
 
-                if ((double)largeBytes / baseBytes <= MaximumCostRatio
-                    && largeTime.Ticks <= baseTime.Ticks * MaximumCostRatio)
+                if (round >= MinimumRounds
+                    && byteRatio <= MaximumCostRatio
+                    && Math.Min(processorTimeRatio, elapsedRatio) <= MaximumCostRatio)
                 {
                     break;
                 }
             }
 
-            var byteRatio = (double)largeBytes / baseBytes;
-            var timeRatio = (double)largeTime.Ticks / Math.Max(1, baseTime.Ticks);
             var lengths = $"{baseLength} and {baseLength * GrowthFactor}";
+            var times = $"processor time {baseProcessorTime.TotalMilliseconds:F1} ms and {largeProcessorTime.TotalMilliseconds:F1} ms (ratio {processorTimeRatio:F1}), wall-clock time {baseElapsed.TotalMilliseconds:F1} ms and {largeElapsed.TotalMilliseconds:F1} ms (ratio {elapsedRatio:F1})";
 
-            TestContext.WriteLine($"{description}, {endingName}: allocated {baseBytes / 1e6:F1} MB and {largeBytes / 1e6:F1} MB (ratio {byteRatio:F1}), shortest time {baseTime.TotalMilliseconds:F0} ms and {largeTime.TotalMilliseconds:F0} ms (ratio {timeRatio:F1})");
+            TestContext.WriteLine($"{description}, {endingName}: allocated {baseBytes / 1e6:F1} MB and {largeBytes / 1e6:F1} MB (ratio {byteRatio:F1}), {times}");
 
             Assert.IsLessThanOrEqualTo(MaximumCostRatio, byteRatio, $"Formatting {description} of lengths {lengths} under {endingName} line endings must allocate memory in proportion to the length: {baseBytes / 1e6:F1} MB and {largeBytes / 1e6:F1} MB, a ratio of {byteRatio:F1}.");
-            Assert.IsLessThanOrEqualTo(MaximumCostRatio, timeRatio, $"Formatting {description} of lengths {lengths} under {endingName} line endings must take time in proportion to the length: {baseTime.TotalMilliseconds:F0} ms and {largeTime.TotalMilliseconds:F0} ms, a ratio of {timeRatio:F1}.");
+            Assert.IsLessThanOrEqualTo(MaximumCostRatio, Math.Min(processorTimeRatio, elapsedRatio), $"Formatting {description} of lengths {lengths} under {endingName} line endings must take time in proportion to the length: {times}.");
         }
     }
 
