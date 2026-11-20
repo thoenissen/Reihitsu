@@ -69,7 +69,8 @@ public sealed class RulesetTests
 
     /// <summary>
     /// Verifies that the Release ruleset lists every rule the analyzer assembly ships, except the rules that
-    /// deliberately stay out of it, so no new rule is silently left out of the repository's own Release build
+    /// deliberately stay out of it, so the action of every shipped rule in the repository's own Release build is
+    /// written out explicitly and does not depend on the default severity or on warnings being treated as errors
     /// </summary>
     [TestMethod]
     public void ReleaseRulesetListsEveryShippedRule()
@@ -111,8 +112,8 @@ public sealed class RulesetTests
     }
 
     /// <summary>
-    /// Verifies that the Release ruleset turns on as errors, like every other rule it enables, the line-count rules
-    /// RH2008 and RH2111 and the shipped rules it once had no entry for
+    /// Verifies that the Release ruleset sets the action of the line-count rules RH2008 and RH2111 and of the
+    /// shipped rules it once had no entry for to error, like every other rule it enables
     /// </summary>
     /// <param name="ruleId">Rule ID</param>
     [TestMethod]
