@@ -8,7 +8,7 @@
 
 ## What
 
-A new Layout rule, **RH5419 — Expression style get-only indexers should be single lined** (Layout, Warning, enabled, Fix All), reports an expression-bodied indexer whose parameter list spans several lines, or whose `=>` or the first token of whose expression is not on the line of the `]` that closes its parameter list (RH5419-001). The diagnostic covers the whole indexer declaration (RH5419-002). The code fix puts the parameter list on one line and then formats the indexer as the formatter does in place, which joins the arrow and the start of the expression onto the line of the `]` (RH5419-003). It is withheld where a comment, a directive, or disabled text stands inside a parameter list on several lines, where the parameter list or the expression stays on several lines, where the formatter refuses the indexer for a comment, a directive, or disabled text around the `=>`, and in the attribute-list cases where RH5401's fix is withheld for a property (RH5419-004).
+A new Layout rule, **RH5419 — Expression style get-only indexers should be single lined** (Layout, Warning, enabled, Fix All), reports an expression-bodied indexer whose parameter list spans several lines, or whose `=>` or the first token of whose expression is not on the line of the `]` that closes its parameter list (RH5419-001). The diagnostic covers the whole indexer declaration (RH5419-002). The code fix puts the parameter list on one line and then formats the indexer as the formatter does in place, which joins the arrow and the start of the expression onto the line of the `]` (RH5419-003). It is withheld where a comment, a directive, or disabled text stands inside a parameter list on several lines, where the indexer's code from its first token behind its attribute lists through its `;` stays on several lines — a literal or the expression that the formatter keeps wrapped, or a comment or a directive in front of the `[` that keeps a line break, such as a line comment behind `this` — where the formatter refuses the indexer for a comment, a directive, or disabled text around the `=>`, and in the attribute-list cases where RH5401's fix is withheld for a property (RH5419-004).
 
 RH5401 stays properties-only. The formatter is unchanged: it already joins the arrow of an indexer (FMT-BREAK-026), and it keeps a parameter list on several lines (FMT-BREAK-012). RH5419 reports such a parameter list although the formatter keeps it, which SHARED-DIAG-010 records as an exception; a formatter that joins the parameter list of an expression-bodied indexer is a follow-up.
 
@@ -287,6 +287,24 @@ The token in front of an indexer's `=>` is always the `]` of its parameter list,
 
 The fix joins nothing inside a parameter list that already stands on one line, so a block comment there stays where it is; only a parameter list on several lines that holds a comment, a directive, or disabled text withholds the fix.
 
+### A comment or a directive in front of the `[` that keeps a line break withholds the fix
+
+The maintainer's answer asks for the whole indexer on one line. When a comment, a directive, or disabled text between `this` and the `[` keeps a line break in front of the `[` — a line comment behind `this`, a comment on a line of its own in front of the `[`, a directive between them — the fix could join the parameter list and the arrow but not the declaration, so it would write a two-line indexer nobody decided. That input is rare, so the fix is withheld for it and the diagnostic stays (RH5419-004): the one-line check measures the indexer from its first token behind its attribute lists through its `;`, the span RH5401's fix measures for a property. A block comment on the line of `this` (`int this /* c */ [`) and a bare line break between `this` and the `[`, which the formatter joins (FMT-BREAK-011), still get the fix, because the result is one line.
+
+```csharp
+// input
+class C
+{
+    int this // note
+        [sbyte a,
+         sbyte b] => a;
+}
+```
+
+```csharp
+// after: RH5419 on the indexer, and no code fix is offered; the code stays as written
+```
+
 ### The attribute-list guards are RH5401's
 
 The attribute lists of an indexer are those of a member, as for a property. RH5419-004 refers to RH5401-004 for them instead of restating it, so the two fixes cannot drift apart.
@@ -298,4 +316,5 @@ The attribute lists of an indexer are those of a member, as for a property. RH54
 - **Withhold the fix wherever the indexer's own code stays on several lines, as for a property** (batch 1, Q2: B; the issue's wording "offered when the whole declaration fits on one line") — rejected by the maintainer in favour of joining the parameter list.
 - **Report a parameter list on several lines only when the arrow is not on the line of its `]`** (batch 1, Q2 follow-up: C) — rejected by the maintainer.
 - **Join the parameter list of an expression-bodied indexer in the formatter in this run** — deferred: the fix does not need it (see *Decisions*), and it changes every whole-document run; a follow-up.
+- **Offer the fix when a comment or a directive in front of the `[` keeps a line break, writing the indexer on two lines** (`int this // note` above `[sbyte a, sbyte b] => a;`) — rejected: the maintainer asked for the indexer on one line, and the input is rare enough to leave to the author.
 - **Move RH5401-003 and RH5401-004 into a shared spec for both rules** — rejected for this change: it would retire two RH5401 requirements and re-tag their tests without changing any behavior; referencing RH5401's requirements by ID keeps one statement of the rule.
