@@ -30,7 +30,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 
 - Comment on thoenissen/Reihitsu#1827 (01-spec-author.md, 02-skeptic.md): this run leaves every argument list's `(` to it if 1A stands; its proposal to withhold the fix for a comment in the gap predates FMT-UNSUP-014, and SHARED-DIAG-010 now asks for a report without a fix.
 - Query clause layout (02-skeptic.md): `from v in arr⏎select v` puts `select` at the statement's column; no spec requirement decides it — an agent-filed issue carrying the output question drafted in 02-skeptic.md.
-- (superseded) Comment on thoenissen/Reihitsu#1827 that this run leaves every argument list's `(` to it, if output question 1A stands (01-spec-author.md).
 
 ## State
 
@@ -42,5 +41,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 - Spec checker 07 done (eb95cdc): consistent.
 - Before auditor: main 9a89c85 already merged, no open output questions, Release build green.
 - Auditor 08 pass (5c5f5b4) on audited SHA 8a333426dd61460dd10428a7d59b7a2401db6082, main 9a89c85.
-- Next: validator (09), then publish.
+- Validator 09 pass (4771e46): 19444 passed, Release 0 warnings.
+- Next: issue manager (10) with both follow-up candidates, then note, delete sdd/work, trigger commit, PR body.
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
