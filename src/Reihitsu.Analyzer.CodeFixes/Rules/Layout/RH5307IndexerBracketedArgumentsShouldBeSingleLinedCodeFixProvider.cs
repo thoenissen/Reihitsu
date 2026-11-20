@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -39,7 +40,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     /// <summary>
     /// Gets the node the fix formats: the bracketed argument list the diagnostic is located on (RH5307-003), whose first token
     /// keeps its line and column, so the code around it stays as written (RH5307-004, SHARED-FIX-006). The diagnostic covers
-    /// the whole element access, or, for an implicit element access, the list itself; the innermost node with exactly that
+    /// the whole element access, or, for an element binding or an implicit element access, the list itself; the innermost node with exactly that
     /// span is that element access or list, also where an argument or another node around it has the same span. Neither the
     /// receiver of the element access nor the code around it decides which list is fixed
     /// </summary>
@@ -63,7 +64,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
                                     };
 
         return bracketedArgumentList == null
-               || RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.IsIndexerArgumentList(bracketedArgumentList) == false
+               || SyntaxNodeUtilities.IsIndexArgumentList(bracketedArgumentList) == false
                || RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.CanSafelyCollapseToSingleLine(bracketedArgumentList) == false
                    ? null
                    : bracketedArgumentList;
