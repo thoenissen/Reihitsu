@@ -202,6 +202,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5112.md](analyzer/RH5112.md) | RH5112 | `RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer`, `RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider` |
 | [analyzer/RH5113.md](analyzer/RH5113.md) | RH5113 | `RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer`, `RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider` |
 | [analyzer/RH5114.md](analyzer/RH5114.md) | RH5114 | `RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer`, `RH5114UsingDirectivesMustBePlacedOnSeparateLinesCodeFixProvider` |
+| [analyzer/RH5115.md](analyzer/RH5115.md) | RH5115 | `RH5115IndexAndNullForgivingOperatorMustStayOnExpressionLineAnalyzer`, `RH5115IndexAndNullForgivingOperatorMustStayOnExpressionLineCodeFixProvider` |
 | [analyzer/RH5201.md](analyzer/RH5201.md) | RH5201 | `RH5201MethodChainsShouldBeAlignedAnalyzer`, `RH5201MethodChainsShouldBeAlignedCodeFixProvider` |
 | [analyzer/RH5202.md](analyzer/RH5202.md) | RH5202 | `RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer`, `RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider` |
 | [analyzer/RH5203.md](analyzer/RH5203.md) | RH5203 | `RH5203MultiLineArgumentsShouldBeAlignedAnalyzer`, `RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider` |
