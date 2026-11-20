@@ -24,4 +24,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (change doc + spec + rule page + README row).
+- Spec author done (01-spec-author.md, commit 7f9df95): change doc written; open output question Q1 (wrapped parameter list: fix offered vs withheld). Lane check confirmed behavior-change.
+- Next: skeptic running (02-skeptic.md); then batch output questions (Q1 + change doc visible outputs) before test implementer.
