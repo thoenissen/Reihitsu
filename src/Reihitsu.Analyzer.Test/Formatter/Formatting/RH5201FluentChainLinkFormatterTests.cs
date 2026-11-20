@@ -378,10 +378,12 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
     }
 
     /// <summary>
-    /// Verifies that a wrapped call after a property prefix is reported when it is not aligned with the first link
+    /// Verifies that a wrapped call after a property prefix is reported when it is not aligned with the last link of the
+    /// prefix, and that the formatter aligns it there
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyMisalignedCallAfterPropertyPrefixIsReported()
     {
         const string source = """
@@ -410,7 +412,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                        private static object Run(dynamic a, dynamic x, dynamic order)
                                        {
                                            return x.Items.Count
-                                                   .ToString();
+                                                         .ToString();
                                        }
 
                                        private static dynamic Get()
@@ -426,6 +428,70 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    """;
 
         await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped link of a chain without a call is reported when it stands under the chain's first link, and
+    /// that the formatter aligns it under the last link in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyMisalignedLinkOfCallLessChainIsReportedAndAlignedUnderTheLastLink()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic order)
+                                  {
+                                      return order.Customer.Address
+                                                  {|#0:.|}City;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal sealed class Example
+                                   {
+                                       private static object Run(dynamic order)
+                                       {
+                                           return order.Customer.Address
+                                                                .City;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that chains whose wrapped links stand under the last link in front of the first wrapped link are neither
+    /// reported nor changed by the formatter, with and without a later call and behind a conditional prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyLinksAlignedUnderTheLastPrefixLinkStayUnchanged()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic x, dynamic order)
+                                  {
+                                      var s = x.Items.Count
+                                                     .ToString();
+                                      var c = order.Customer.Address
+                                                            .City.Street
+                                                            .Name;
+                                      var g = x.Next?.Next
+                                                    ?.Name
+                                                    .Trim();
+
+                                      return s ?? c ?? g;
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
     }
 
     /// <summary>

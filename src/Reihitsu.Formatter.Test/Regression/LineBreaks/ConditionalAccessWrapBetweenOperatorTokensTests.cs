@@ -939,7 +939,7 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                                     public object M(dynamic a, dynamic list, dynamic obj)
                                     {
                                         return a.B.C
-                                                ?.D;
+                                                  ?.D;
                                     }
                                 }
                                 """;

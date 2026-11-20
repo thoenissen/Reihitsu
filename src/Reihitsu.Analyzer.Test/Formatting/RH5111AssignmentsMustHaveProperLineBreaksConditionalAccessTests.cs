@@ -297,7 +297,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
 
     /// <summary>
     /// Verifies that the fix of an assignment behind a nested conditional access whose assigned member stands on its own line puts
-    /// the member under the first <c>?</c>, where formatting the document puts it, under LF and CRLF
+    /// the member under the second <c>?</c>, the last link in front of it, where formatting the document puts it, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -343,7 +343,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
                                      void M(A a)
                                      {
                                          a?.B?.B
-                                          .C = 5;
+                                             .C = 5;
                                      }
                                  }
                                  """;
@@ -353,7 +353,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
 
     /// <summary>
     /// Verifies that the fix moves a wrapped assigned member written under the dot of the last binding of a nested conditional
-    /// access into the anchor's column, under the first <c>?</c>, under LF and CRLF
+    /// access into the anchor's column, under the <c>?</c> of that binding, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -399,7 +399,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
                                      void M(A a)
                                      {
                                          a?.B?.B
-                                          .C = 5;
+                                             .C = 5;
                                      }
                                  }
                                  """;
@@ -579,7 +579,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
 
     /// <summary>
     /// Verifies that the fix of an assignment behind a conditional access whose receiver holds a member access in front of its
-    /// <c>?</c> puts the wrapped member under the dot of that member access, under LF and CRLF
+    /// <c>?</c> puts the wrapped member under that <c>?</c>, the last link in front of it, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -625,7 +625,63 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
                                      void M(A a)
                                      {
                                          a.B?.B
-                                          .C = 5;
+                                            .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an assignment behind a conditional access with four links in front of its wrapped member,
+    /// two of them in front of the <c>?</c>, puts the member under the last of them, not under the second, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-006")]
+    public async Task VerifyFixAlignsAWrappedMemberBehindFourLinksAroundAConditionalAccessUnderTheLastOfThem()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B;
+                                    public A this[int i] => null;
+                                    public int C;
+                                    public A N()
+                                    {
+                                        return null;
+                                    }
+                                }
+
+                                class D
+                                {
+                                    void M(A a)
+                                    {
+                                        a.B.B?{|#0:.B.B
+                                           .C =
+                                            5|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B;
+                                     public A this[int i] => null;
+                                     public int C;
+                                     public A N()
+                                     {
+                                         return null;
+                                     }
+                                 }
+
+                                 class D
+                                 {
+                                     void M(A a)
+                                     {
+                                         a.B.B?.B.B
+                                                 .C = 5;
                                      }
                                  }
                                  """;
@@ -1203,12 +1259,12 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
                                           .C = 5;
                                          a?[0].C = 5;
                                          a?.B?.B
-                                          .C = 5;
+                                             .C = 5;
                                          a?.B
                                           .B
                                           .C = 5;
                                          a.B?.B
-                                          .C = 5;
+                                            .C = 5;
                                      }
                                  }
                                  """;

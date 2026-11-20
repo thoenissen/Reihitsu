@@ -965,9 +965,11 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
 
     /// <summary>
     /// Verifies that a wrapped member access on the left side of a compound null-conditional assignment is not reported when the chain starts with a property access
+    /// and the member access stands under the last link in front of it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
     public async Task VerifyWrappedLinkOfCompoundNullConditionalAssignmentAfterPrefixIsNotReported()
     {
         const string source = """
@@ -976,7 +978,7 @@ public class RH5112FluentChainLinkFormatterTests : FormatterTestsBase<RH5112Wrap
                                   private static object Run(dynamic a, dynamic x, dynamic order)
                                   {
                                       x.Y?.B
-                                       .C += 1;
+                                         .C += 1;
 
                                       return x;
                                   }

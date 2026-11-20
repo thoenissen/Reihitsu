@@ -7,13 +7,13 @@
 | Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | Uses | FMT-PIPE-002, FMT-PIPE-017, SHARED-BLANK-008, SHARED-COMMENT-012, SHARED-FIX-006, SHARED-FIX-007 |
 
-This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112 and RH5201 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
+This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112, RH5201, RH5115, and RH5116 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 
 ## Non-goals
 
 - Deciding when a chain is too long. Neither surface wraps a chain the author wrote on one line.
 - Comments between later links of a wrapped chain — only a comment in front of the first link has a rule.
-- How the formatter rejoins a member name split from its dot or an attached part split from its element — that is formatter-only layout, specified in FMT-BREAK.
+- How the formatter rejoins a member name split from its dot or an attached part split from its element — specified in FMT-BREAK; RH5115 reports an element access or a conditional element access split from its element, and RH5116 a null-forgiving operator.
 
 ## Requirements
 
@@ -249,9 +249,17 @@ class C
 
 ### SHARED-CHAIN-007 — Wrapped links align to the anchor link
 
-Every link that starts a line MUST start in the column of the chain's anchor: the operator of the first invoked link in front of the first link that starts a line, or the chain's first link when no invoked link comes before it. When SHARED-CHAIN-004 keeps the first link on its own line, the anchor is the start of the root. RH5201 reports a misaligned link; the formatter's indentation phase aligns it.
+Every link that starts a line MUST start in the column of the chain's anchor. A link starts a line here when a line break stands in the trivia between the first token of its operator and the token in front of it, counted as SHARED-BLANK-008 counts one: an end-of-line trivia, or the line break that ends a `///` comment, a directive, or disabled text. A line break inside the text of a delimited comment (`/* … */`, `/** … */`) does not count. A link whose operator stands behind the closing `*/` of a delimited comment that spans lines therefore starts a line here only when such a line break stands in front of the comment, as when the comment starts its own line (SHARED-CHAIN-005, example `r`); behind a comment that starts on the line of the token in front of it, the link does not start a line here, so it can be the anchor: in `x.Next /* c` ⏎ `*/ .Next` ⏎ `.Self()`, the first link that starts a line is `.Self()`, and the anchor is the `.Next` behind `*/`, not the first `.Next`. A line break between the operator's own tokens does not make the link start a line (SHARED-CHAIN-006). The anchor is the operator of:
 
-Why: Aligning the dots makes the chain read as a column of steps under the first one. The fallback to the root keeps the chain aligned when a comment prevents the first link from joining the root's line.
+- the first invoked link in front of the first link that starts a line, when an invoked link comes before it;
+- otherwise, the last link in front of the first link that starts a line — the last link of the prefix on the line the first wrapped link continues, such as `.Count` in `x.Items.Count` ⏎ `.ToString()`, and the last link of a chain without an invoked link, such as `.Address` in `order.Customer.Address` ⏎ `.City`;
+- otherwise — when the first link itself starts a line — the chain's first link.
+
+When SHARED-CHAIN-004 keeps the first link on its own line, the anchor is the start of the root. RH5201 reports a misaligned link; the formatter's indentation phase aligns it.
+
+Only the links in front of the first link that starts a line decide the anchor: a link behind it never becomes the anchor, also when it shares a line with it (`x.Items` ⏎ `.Count.Length` ⏎ `.ToString()` aligns to `.Items`, not to `.Count`). An invoked link in front of the first link that starts a line takes precedence over the links behind it on its line, so a chain whose later calls still share the root's line aligns to its first call, where formatting the chain leaves it as the last link on that line (SHARED-CHAIN-005).
+
+Why: Aligning the dots makes the chain read as a column of steps under the one they continue. When the first wrapped link continues a run of property reads (`x.Items.Count`), it continues the last of them, so it aligns under that one, as it aligns under the first call when the run ends with a call. The fallback to the root keeps the chain aligned when a comment prevents the first link from joining the root's line. The line breaks that decide the anchor are the ones SHARED-BLANK-008 counts, and a delimited comment belongs to the line it starts on (SHARED-COMMENT-012), so a link behind its `*/` continues the line the comment starts on and starts a line here only when that line is a new one.
 
 Example:
 
@@ -266,6 +274,15 @@ class C
             .Where(x => x.A);
         var c = items // c
             .Where(x => x.A);
+        var d = x.Items.Count
+            .ToString();
+        var e = order.Customer.Address
+            .City;
+        var f = x.Items
+            .Count.Length
+            .ToString();
+        var g = items.Where(x => x.A).Select(x => x.B)
+            .ToList();
     }
 }
 ```
@@ -278,9 +295,19 @@ class C
         var a = items.Where(x => x.A)
                      .Select(x => x.B);
         var b = this.Settings.Items
-                    .Where(x => x.A);
+                             .Where(x => x.A);
         var c = items // c
                 .Where(x => x.A);
+        var d = x.Items.Count
+                       .ToString();
+        var e = order.Customer.Address
+                              .City;
+        var f = x.Items
+                 .Count.Length
+                 .ToString();
+        var g = items.Where(x => x.A)
+                     .Select(x => x.B)
+                     .ToList();
     }
 }
 ```

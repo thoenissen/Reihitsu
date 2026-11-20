@@ -564,6 +564,48 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
+    /// Verifies the example of RH5112-003 for a prefix of property reads: the fix joins the first link to the root's line and
+    /// aligns the later wrapped link under the last link in front of it, in one application under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyFixAlignsLaterLinkUnderTheLastPrefixLink(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int[] Items { get; } = [];
+
+                                    void M(C x)
+                                    {
+                                        var s = x
+                                            {|RH5112:.|}Items.Length
+                                            .ToString();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  class C
+                                  {
+                                      int[] Items { get; } = [];
+
+                                      void M(C x)
+                                      {
+                                          var s = x.Items.Length
+                                                         .ToString();
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies that the wrapped first link of a chain without calls is reported and joined onto the root line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1305,12 +1347,12 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                          .C = 5;
                                         a?[0].C = 5;
                                         a?.B?.B
-                                         .C = 5;
+                                            .C = 5;
                                         a?.B
                                          .B
                                          .C = 5;
                                         a.B?.B
-                                         .C = 5;
+                                           .C = 5;
                                         a?[0].B
                                              .C = 5;
                                     }

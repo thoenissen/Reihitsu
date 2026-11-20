@@ -684,7 +684,326 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzerTests : BatchCodeFi
                      Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a foreign line break inside a CDATA section of a single-line documentation comment is reported and
+    /// rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the CDATA section</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideADocumentationCDataSectionIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    /// <summary>\n"
+                                + "{|#0:    /// <![CDATA[a¶|}"
+                                + "    /// b]]>\n"
+                                + "    /// </summary>\n"
+                                + "    internal int X;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    /// <summary>\n"
+                                 + "    /// <![CDATA[a\n"
+                                 + "    /// b]]>\n"
+                                 + "    /// </summary>\n"
+                                 + "    internal int X;\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an XML comment of a single-line documentation comment is reported and
+    /// rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the XML comment</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideADocumentationXmlCommentIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    /// <summary>\n"
+                                + "{|#0:    /// <!-- a¶|}"
+                                + "    /// b -->\n"
+                                + "    /// </summary>\n"
+                                + "    internal int X;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    /// <summary>\n"
+                                 + "    /// <!-- a\n"
+                                 + "    /// b -->\n"
+                                 + "    /// </summary>\n"
+                                 + "    internal int X;\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an element tag of a single-line documentation comment, between the element
+    /// name and an attribute, is reported and rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the element tag</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideADocumentationElementTagIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    /// <summary>\n"
+                                + "{|#0:    /// <para¶|}"
+                                + "    /// foo=\"a\">x</para>\n"
+                                + "    /// </summary>\n"
+                                + "    internal int X;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    /// <summary>\n"
+                                 + "    /// <para\n"
+                                 + "    /// foo=\"a\">x</para>\n"
+                                 + "    /// </summary>\n"
+                                 + "    internal int X;\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an attribute value of a single-line documentation comment is reported and
+    /// rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the attribute value</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideADocumentationAttributeValueIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    /// <summary>\n"
+                                + "{|#0:    /// <para foo=\"a¶|}"
+                                + "    /// b\">x</para>\n"
+                                + "    /// </summary>\n"
+                                + "    internal int X;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    /// <summary>\n"
+                                 + "    /// <para foo=\"a\n"
+                                 + "    /// b\">x</para>\n"
+                                 + "    /// </summary>\n"
+                                 + "    internal int X;\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside a CDATA section of a delimited (<c>/** ... */</c>) documentation comment is
+    /// reported and rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the CDATA section</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideADelimitedDocumentationCDataSectionIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    /**\n"
+                                + "{|#0:     * <summary><![CDATA[a¶|}"
+                                + "     * b]]></summary>\n"
+                                + "     */\n"
+                                + "    internal int X;\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    /**\n"
+                                 + "     * <summary><![CDATA[a\n"
+                                 + "     * b]]></summary>\n"
+                                 + "     */\n"
+                                 + "    internal int X;\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an interpolation hole of a regular interpolated string is a line break
+    /// between tokens, and is reported and rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the interpolation hole</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideAnInterpolationHoleIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "{|#0:    internal string S = $\"{1 +¶|}"
+                                + "        2}\";\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    internal string S = $\"{1 +\n"
+                                 + "        2}\";\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an interpolation hole of a raw interpolated string is a line break between
+    /// tokens, and is reported and rewritten to the predominant line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the interpolation hole</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-001")]
+    [Requirement("RH5604-005")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInsideARawInterpolationHoleIsFixedToThePredominantLineEnding(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    internal string S = $\"\"\"\n"
+                                + "{|#0:        {1 +¶|}"
+                                + "        2}\n"
+                                + "        \"\"\";\n"
+                                + "}";
+        const string fixedData = "internal class TestClass\n"
+                                 + "{\n"
+                                 + "    internal string S = $\"\"\"\n"
+                                 + "        {1 +\n"
+                                 + "        2}\n"
+                                 + "        \"\"\";\n"
+                                 + "}";
+
+        await VerifyForeignLineBreakIsFixed(testData, fixedData, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break in the literal text of a raw interpolated string is neither reported nor counted
+    /// </summary>
+    /// <param name="terminator">The foreign line break in the literal text</param>
+    /// <param name="endOfLine">The line ending of every other line break of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5604-003")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public async Task VerifyForeignLineBreakInTheTextOfARawInterpolatedStringDoesNotProduceDiagnostics(string terminator, string endOfLine)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "    internal string S = $\"\"\"\n"
+                                + "        a¶"
+                                + "        {1}\n"
+                                + "        \"\"\";\n"
+                                + "}";
+
+        await Verify(ConvertEndOfLine(testData, endOfLine).Replace(ForeignTerminatorPlaceholder, terminator));
+    }
+
+    /// <summary>
+    /// Verifies that a file whose every line break between tokens, at the end of a directive, and inside a documentation
+    /// comment is the same single-character terminator other than <c>\n</c> is not reported, because its line endings are
+    /// not mixed
+    /// </summary>
+    /// <param name="terminator">The terminator of every line break of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\r")]
+    [DataRow("\u0085")]
+    [DataRow("\u2028")]
+    [DataRow("\u2029")]
+    public async Task VerifyNoDiagnosticsWhenEveryLineBreakIsTheSameForeignTerminator(string terminator)
+    {
+        const string testData = "internal class TestClass\n"
+                                + "{\n"
+                                + "#pragma warning disable CS0169\n"
+                                + "    /// <summary>\n"
+                                + "    /// Gets the value.\n"
+                                + "    /// </summary>\n"
+                                + "    private int _x;\n"
+                                + "#pragma warning restore CS0169\n"
+                                + "}";
+
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(testData.Replace("\n", terminator), static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Verifies that the one foreign line break of a fixture is reported on its line and that the code fix rewrites it to
+    /// the predominant line ending of the file
+    /// </summary>
+    /// <param name="testData">The fixture, written with <c>\n</c>, whose foreign line break is the placeholder inside location 0</param>
+    /// <param name="fixedData">The expected result, written with <c>\n</c></param>
+    /// <param name="terminator">The foreign line break that replaces the placeholder</param>
+    /// <param name="endOfLine">The predominant line ending of the file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyForeignLineBreakIsFixed(string testData, string fixedData, string terminator, string endOfLine)
+    {
+        // Suppression verification injects directives whose line endings change this document-wide policy fixture.
+        await Verify(ConvertEndOfLine(testData, endOfLine).Replace(ForeignTerminatorPlaceholder, terminator),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
+                     Diagnostics(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

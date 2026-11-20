@@ -2,18 +2,18 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Core;
-
-namespace Reihitsu.Formatter.Pipeline.Core.Utilities;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// The one statement of the gaps of an attached part that the line-break phase joins (FMT-BREAK-039, FMT-BREAK-040) and
 /// that the precheck refuses when they hold a comment, a directive, or disabled text (FMT-UNSUP-014): the gap in front of
 /// the first token of an argument list, an element access, a conditional element access, or a null-forgiving operator,
 /// and the gap between the <c>?</c> and the <c>[</c> of a conditional element access. Each gap is named by the token
-/// behind it and decided by the syntax tree alone
+/// behind it and decided by the syntax tree alone. The analyzers that report a line break in such a gap (RH5115 for an
+/// element access and a conditional element access, RH5116 for a null-forgiving operator) and their code fixes decide by
+/// this statement as well
 /// </summary>
-internal static class AttachedPartGapUtilities
+public static class AttachedPartGapUtilities
 {
     #region Methods
 
@@ -24,7 +24,7 @@ internal static class AttachedPartGapUtilities
     /// </summary>
     /// <param name="token">The token behind the gap</param>
     /// <returns><see langword="true"/> if the gap in front of the token is a gap of an attached part; otherwise, <see langword="false"/></returns>
-    internal static bool IsAttachedPartGap(SyntaxToken token)
+    public static bool IsAttachedPartGap(SyntaxToken token)
     {
         return StartsAttachedPart(token)
                || IsElementBindingOpenBracket(token);
@@ -39,7 +39,7 @@ internal static class AttachedPartGapUtilities
     /// </summary>
     /// <param name="token">The token</param>
     /// <returns><see langword="true"/> if the token starts such a part; otherwise, <see langword="false"/></returns>
-    internal static bool StartsAttachedPart(SyntaxToken token)
+    public static bool StartsAttachedPart(SyntaxToken token)
     {
         return token.Kind() switch
                {
@@ -67,7 +67,7 @@ internal static class AttachedPartGapUtilities
     /// </summary>
     /// <param name="token">The token</param>
     /// <returns><see langword="true"/> if the token opens an element binding's argument list; otherwise, <see langword="false"/></returns>
-    private static bool IsElementBindingOpenBracket(SyntaxToken token)
+    public static bool IsElementBindingOpenBracket(SyntaxToken token)
     {
         return token.IsKind(SyntaxKind.OpenBracketToken)
                && token.Parent is BracketedArgumentListSyntax { Parent: ElementBindingExpressionSyntax };

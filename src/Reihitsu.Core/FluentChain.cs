@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -266,8 +267,9 @@ public sealed class FluentChain
 
     /// <summary>
     /// Gets the link whose operator the wrapped links of the chain align to: the first invoked link in front of the first
-    /// link that starts a line, or the chain's first link when no invoked link comes first. When a comment, a preprocessor
-    /// directive or disabled text keeps the chain's first link on its own line, the chain aligns to its root instead
+    /// link that starts a line; otherwise the last link in front of it; otherwise, when the chain's first link starts a
+    /// line itself, the chain's first link. When a comment, a preprocessor directive or disabled text keeps the chain's
+    /// first link on its own line, the chain aligns to its root instead
     /// </summary>
     /// <returns>The anchor link, or <see langword="null"/> when the chain aligns to its root or has no links</returns>
     public FluentChainLink GetAnchorLink()
@@ -277,6 +279,8 @@ public sealed class FluentChain
         {
             return null;
         }
+
+        FluentChainLink lastLinkInFront = null;
 
         foreach (var link in Links)
         {
@@ -289,9 +293,11 @@ public sealed class FluentChain
             {
                 return link;
             }
+
+            lastLinkInFront = link;
         }
 
-        return FirstLink;
+        return lastLinkInFront ?? FirstLink;
     }
 
     /// <summary>
@@ -382,7 +388,9 @@ public sealed class FluentChain
     }
 
     /// <summary>
-    /// Collects the links and attached parts of a chain spine in source order
+    /// Collects the links and attached parts of a chain spine in source order. The walk recurses once per spine node, so
+    /// it checks the execution stack on every level: a spine too deep for the stack throws a catchable
+    /// <see cref="System.InsufficientExecutionStackException"/> instead of terminating the process
     /// </summary>
     /// <param name="node">The spine node to walk</param>
     /// <param name="pendingConditional">The conditional access whose binding is the leftmost node of the walked spine, if any</param>
@@ -393,6 +401,8 @@ public sealed class FluentChain
                                 List<FluentChainLink> links,
                                 List<FluentChainAttachedPart> attachedParts)
     {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
+
         switch (node)
         {
             case InvocationExpressionSyntax invocation:

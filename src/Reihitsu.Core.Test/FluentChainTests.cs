@@ -153,21 +153,74 @@ public class FluentChainTests
     }
 
     /// <summary>
-    /// Verifies that the anchor is the first invoked link in front of the first link that starts a line, or the first
-    /// link when no invoked link comes first
+    /// Verifies that the anchor is the first invoked link in front of the first link that starts a line, also when later
+    /// links share its line, or the first link when the first link itself starts a line
     /// </summary>
     /// <param name="source">The expression source</param>
     /// <param name="expectedName">The member name of the expected anchor link</param>
     [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
     [DataRow("a.B().C()\n.D()", "B")]
     [DataRow("a.Prop.Foo()\n.Bar()", "Foo")]
     [DataRow("a?.B.C()\n.D()", "C")]
-    [DataRow("x.Items.Count\n.ToString()", "Items")]
+    [DataRow("items.Where(x => x.A).Select(x => x.B)\n.ToList()", "Where")]
+    [DataRow("x.Next.Self().Next\n.Self()", "Self")]
     [DataRow("a\n.B()\n.C()", "B")]
     [DataRow("a\n.Prop.Foo()", "Prop")]
     public void GetAnchorLinkReturnsFirstInvokedLinkBeforeFirstWrappedLink(string source, string expectedName)
     {
         Assert.AreEqual(expectedName, CreateChain(source).GetAnchorLink().Name.Identifier.Text);
+    }
+
+    /// <summary>
+    /// Verifies that, when no invoked link comes before the first link that starts a line, the anchor is the last link in
+    /// front of that link: behind a prefix of property reads, in a chain without a call, behind conditional and
+    /// null-forgiving links, behind attached parts and a root that spans lines, and behind a directive; a link behind the
+    /// first wrapped link never becomes the anchor, one link in front of it stays the anchor, and of three or more links in
+    /// front of it the last one is the anchor, not the second. A line break inside the text of a delimited comment does not
+    /// make the link behind its <c>*/</c> start a line, so that link is the anchor when the comment starts behind code, while
+    /// a link behind a comment that starts its own line starts a line
+    /// </summary>
+    /// <param name="source">The expression source</param>
+    /// <param name="expectedIndex">The index of the expected anchor link among the chain's links</param>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
+    [DataRow("x.Items.Count\n.ToString()", 1)]
+    [DataRow("x.Items.Length\n.ToString()", 1)]
+    [DataRow("order.Customer.Address\n.City", 1)]
+    [DataRow("order.Customer.Address\n.City.Street\n.Name", 1)]
+    [DataRow("this.Settings.Items\n.Where(x => x.A)", 1)]
+    [DataRow("System.String.Empty\n.Trim()", 1)]
+    [DataRow("x.Next.Next\n.Next\n.Self()", 1)]
+    [DataRow("x.Next?.Next\n?.Name\n.Trim()", 1)]
+    [DataRow("x?.Next?.Next\n?.Self()", 1)]
+    [DataRow("x!.Next.Next\n.Self()", 1)]
+    [DataRow("a.B?.B\n.C", 1)]
+    [DataRow("x.Arr[0].Next\n.Self()", 1)]
+    [DataRow("get(1,\n2\n).Next.Next\n.Self()", 1)]
+    [DataRow("new C\n{\n}.Next.Next\n.Self()", 1)]
+    [DataRow("x.Next.Next\n#if DEBUG\n.Self()\n#endif\n.Self()", 1)]
+    [DataRow("x.Next.Next.Next\n.Self()", 2)]
+    [DataRow("x.Next.Next.Next.Next\n.Next", 3)]
+    [DataRow("order.Customer.Address.Street\n.Name", 2)]
+    [DataRow("x.Next?.Next.Next\n.Self()", 2)]
+    [DataRow("a.B.D?.D.D\n.E", 3)]
+    [DataRow("x.A.B.C\n.D.E\n.F", 2)]
+    [DataRow("x.Next.Next.Next /* c\n*/ .Next\n.Self()", 3)]
+    [DataRow("x.Next.Next\n.Next.Next\n.Self()", 1)]
+    [DataRow("x.Items\n.Count.Length\n.ToString()", 0)]
+    [DataRow("x.Next\n.Next.Next\n.Self()", 0)]
+    [DataRow("x?[0, 1].Next\n.Self()", 0)]
+    [DataRow("a\n.Next.Next\n.Self()", 0)]
+    [DataRow("x.Next /* c\n*/ .Next\n.Self()", 1)]
+    [DataRow("x.Next /* c\n*/ .Next\n.Next\n.Self()", 1)]
+    [DataRow("x.Next\n/* c\n*/ .Next\n.Self()", 0)]
+    [DataRow("x.Next\n\n/* c\n*/ .Next\n.Self()", 0)]
+    public void GetAnchorLinkReturnsLastLinkInFrontOfFirstWrappedLinkWithoutInvokedLink(string source, int expectedIndex)
+    {
+        var chain = CreateChain(source);
+
+        Assert.AreSame(chain.Links[expectedIndex], chain.GetAnchorLink());
     }
 
     /// <summary>
