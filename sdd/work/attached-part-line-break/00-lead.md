@@ -13,7 +13,7 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 ## Maintainer answers
 
 - Batch 1 (Q1–Q5, before the test implementer): all as recommended — 1A (`[`, `?[`, `!` everywhere; no argument lists, those stay with #1827), 2A (comment/directive in the gap: reported, no fix), 3A (fix lays out the whole chain when the part is in a chain with links), 4A (build the rule; Warning, enabled, Fix All, nothing reported in a file with syntax errors), 5A (outside a chain the fix deletes only the gap). **Change to Q4:** make two rules instead of one — one for the index (`[` and `?[`), one for the null-forgiving `!`. The maintainer also asked whether rules for a wrapped `?` and for a wrapped `(` already exist (answered in chat: `?`/`?[` gaps are covered by the new index rule, `?.` is a normal chain link; argument-list `(` has no rule, only RH5105 for declaration parameter lists, and #1827 proposes one).
-- Pending: confirmation of the two rules' IDs and titles (proposed RH5115 index, RH5116 null-forgiving).
+- Rule identity: A — RH5115 "Index access must stay on the line of its expression" (reports `[` and `?[`, both gaps of `?[`); RH5116 "Null-forgiving operator must stay on the line of its expression" (reports `!`). Both Warning, enabled, Fix All, same fix behavior per 2A/3A/5A.
 
 ## Decisions taken
 
@@ -31,5 +31,5 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 ## State
 
 - Last step finished: skeptic (02, f987f50): proceed; Q5 added; architecture finding decided (#1).
-- Now: batch 1 answered; waiting for confirmation of the two rules' IDs/titles.
+- Now: all batch-1 answers in. Spawning a fresh spec author (03) to apply them.
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
