@@ -880,68 +880,126 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a line comment between <c>this</c> and the <c>[</c> of a parameter list on several lines does not
-    /// withhold the fix: it is not inside the parameter list, and the comment stays behind <c>this</c>
+    /// Verifies that a line comment behind <c>this</c> withholds the fix, while the diagnostic stays: it keeps the <c>[</c>
+    /// of the parameter list on several lines on another line than <c>this</c>, so the indexer cannot be put on one line
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH5419-003")]
     [Requirement("RH5419-004")]
-    public async Task VerifyFixIsOfferedForALineCommentInFrontOfTheOpeningBracket(string endOfLine)
+    public async Task VerifyFixIsWithheldForALineCommentBehindThis(string endOfLine)
     {
-        const string testCode = """
-                                class C
-                                {
-                                    {|RH5419:int this // c
-                                        [int a,
-                                         int b] => a;|}
-                                }
-                                """;
-        const string fixedCode = """
-                                 class C
-                                 {
-                                     int this // c
-                                     [int a, int b] => a;
-                                 }
-                                 """;
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:int this // c
+                                      [int a,
+                                       int b] => a;|}
+                              }
+                              """;
 
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that a block comment that starts its own line in front of the <c>[</c> of a parameter list on several
-    /// lines, in the leading trivia of the <c>[</c>, does not withhold the fix: it is not inside the parameter list, and the
-    /// comment stays in front of the <c>[</c>
+    /// Verifies that a block comment on a line of its own in front of the <c>[</c> of a parameter list on several lines,
+    /// in the leading trivia of the <c>[</c>, withholds the fix, while the diagnostic stays: the line break in front of it
+    /// stays, so the indexer cannot be put on one line
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH5419-003")]
     [Requirement("RH5419-004")]
-    public async Task VerifyFixIsOfferedForACommentInTheLeadingTriviaOfTheOpeningBracket(string endOfLine)
+    public async Task VerifyFixIsWithheldForACommentOnALineOfItsOwnInFrontOfTheOpeningBracket(string endOfLine)
     {
-        const string testCode = """
-                                class C
-                                {
-                                    {|RH5419:int this
-                                        /* c */ [int a,
-                                                 int b] => a;|}
-                                }
-                                """;
-        const string fixedCode = """
-                                 class C
-                                 {
-                                     int this
-                                     /* c */ [int a, int b] => a;
-                                 }
-                                 """;
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:int this
+                                      /* c */ [int a,
+                                               int b] => a;|}
+                              }
+                              """;
 
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a directive between <c>this</c> and the <c>[</c> of a parameter list on several lines withholds the
+    /// fix, while the diagnostic stays: the directive keeps the <c>[</c> on a line of its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixIsWithheldForADirectiveBetweenThisAndTheOpeningBracket(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:int this
+                              #if DEBUG
+                              #endif
+                                      [int a,
+                                       int b] => a;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a line comment behind <c>this</c> withholds the fix also when the parameter list stands on one line
+    /// and only the arrow is wrapped: the arrow could be joined, but the indexer would still span two lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixIsWithheldForALineCommentBehindThisInFrontOfAParameterListOnOneLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:int this // c
+                                      [int i]
+                                      => i;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a line comment behind a modifier withholds the fix, while the diagnostic stays: the measured code
+    /// starts at the first token behind the attribute lists, so the line break behind the modifier counts
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixIsWithheldForALineCommentBehindAModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5419:public // c
+                                  int this[int i]
+                                      => i;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -1102,8 +1160,8 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     /// <summary>
     /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the expression stays
     /// wrapped, when a comment or a directive stands inside a parameter list on several lines, when a literal spans lines
-    /// inside the parameter list, when a comment stands in front of or behind the arrow, and in the attribute-list cases of
-    /// a property
+    /// inside the parameter list, when a comment or a directive in front of the <c>[</c> keeps a line break, when a comment
+    /// stands in front of or behind the arrow, and in the attribute-list cases of a property
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1142,6 +1200,24 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
                                                       a
                                                       """] => 1;|}
 
+                                  {|RH5419:int this // note
+                                      [sbyte a,
+                                       sbyte b] => a;|}
+
+                                  {|RH5419:int this
+                                      /* note */ [ushort a,
+                                                  ushort b] => a;|}
+
+                                  {|RH5419:int this
+                              #if DEBUG
+                              #endif
+                                      [float a,
+                                       float b] => 1;|}
+
+                                  {|RH5419:int this // note
+                                      [double d]
+                                      => 1;|}
+
                                   {|RH5419:int this[long i] // note
                                       => 1;|}
 
@@ -1167,8 +1243,9 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies the specification example: a block comment inside a parameter list on one line, and one in front of the
-    /// <c>[</c> of a parameter list on several lines, do not withhold the fix, and both comments stay where they are
+    /// Verifies the specification example: a block comment inside a parameter list on one line, one on the line of
+    /// <c>this</c> in front of the <c>[</c> of a parameter list on several lines, and a documentation comment in front of
+    /// the indexer do not withhold the fix, and the comments stay where they are
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1187,6 +1264,10 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
 
                                     {|RH5419:int this /* c */ [sbyte a,
                                                       sbyte b] => a;|}
+
+                                    /// <summary>A</summary>
+                                    {|RH5419:int this[short a,
+                                             short b] => a;|}
                                 }
                                 """;
         const string fixedCode = """
@@ -1195,6 +1276,9 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
                                      int this[byte a /* c */] => a;
 
                                      int this /* c */ [sbyte a, sbyte b] => a;
+
+                                     /// <summary>A</summary>
+                                     int this[short a, short b] => a;
                                  }
                                  """;
 
