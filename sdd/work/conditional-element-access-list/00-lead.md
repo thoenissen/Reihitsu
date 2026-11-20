@@ -46,4 +46,5 @@
 - Cleaner 07 (9155c6cb): clean, Release 0 warnings.
 - Spec checker 08 (d7f0d6e2): one finding (change doc line ~142 still calls the location question open) → repair round 1, owner spec author.
 - Spec author 09 (b24dd885): finding repaired.
-- Now: spec checker (10); then auditor (11), validator.
+- Spec checker 10 (c8ab4a15): consistent. main 725ea151, branch up to date; build.sh green.
+- Now: auditor (11) on main SHA 725ea151; then validator.
