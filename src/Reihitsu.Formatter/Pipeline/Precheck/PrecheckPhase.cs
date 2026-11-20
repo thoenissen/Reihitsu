@@ -147,17 +147,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // FMT-UNSUP-014 is listed after them, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive in
         // the gap of an attached part that they refuse as well. FMT-UNSUP-015 is listed last, so FMT-UNSUP-010 keeps its reason
         // for a directive inside a link operator that it refuses as well
-        List<(SyntaxTrivia? Trivia, string Reason)> candidates = isDeclaratorComma
-                                                                     ? [
-                                                                           (firstComment, VariableDeclarationCommentReason),
-                                                                           (firstSeparatorTrivia, ListSeparatorCommentReason),
-                                                                           (firstFieldDirective, FieldDeclarationDirectiveReason)
-                                                                       ]
-                                                                     : [
-                                                                           (firstFieldDirective, FieldDeclarationDirectiveReason),
-                                                                           (firstSeparatorTrivia, ListSeparatorCommentReason),
-                                                                           (firstComment, VariableDeclarationCommentReason)
-                                                                       ];
+        var candidates = CreateDeclarationCandidates(isDeclaratorComma, firstComment, firstSeparatorTrivia, firstFieldDirective);
 
         candidates.AddRange([
                                 (firstOperatorTrivia, ConditionalOperatorCommentReason),
@@ -169,6 +159,31 @@ internal sealed class PrecheckPhase : IFormattingPhase
                             ]);
 
         return CreateFirstUnsupportedSyntax(node, candidates);
+    }
+
+    /// <summary>
+    /// Creates the candidates of the shapes that can start at the same trivia inside a variable or field declaration, in the
+    /// order that decides which reason wins: FMT-UNSUP-004 before FMT-UNSUP-009 before FMT-UNSUP-010 when the trivia stands in
+    /// front of a comma between two declarators, and the reverse order otherwise
+    /// </summary>
+    /// <param name="isDeclaratorComma">Whether the first trivia in front of a comma stands in front of a comma between two declarators</param>
+    /// <param name="firstComment">The first comment inside a variable declaration (FMT-UNSUP-004)</param>
+    /// <param name="firstSeparatorTrivia">The first trivia between a list element and a comma on a later line (FMT-UNSUP-009)</param>
+    /// <param name="firstFieldDirective">The first directive inside a field declaration with several declarators (FMT-UNSUP-010)</param>
+    /// <returns>The candidates in their order of precedence</returns>
+    private static List<(SyntaxTrivia? Trivia, string Reason)> CreateDeclarationCandidates(bool isDeclaratorComma, SyntaxTrivia? firstComment, SyntaxTrivia? firstSeparatorTrivia, SyntaxTrivia? firstFieldDirective)
+    {
+        return isDeclaratorComma
+                   ? [
+                         (firstComment, VariableDeclarationCommentReason),
+                         (firstSeparatorTrivia, ListSeparatorCommentReason),
+                         (firstFieldDirective, FieldDeclarationDirectiveReason)
+                     ]
+                   : [
+                         (firstFieldDirective, FieldDeclarationDirectiveReason),
+                         (firstSeparatorTrivia, ListSeparatorCommentReason),
+                         (firstComment, VariableDeclarationCommentReason)
+                     ];
     }
 
     /// <summary>
