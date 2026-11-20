@@ -12,6 +12,15 @@ namespace Reihitsu.Formatter.Test.Unit;
 [TestClass]
 public class ReihitsuFormatterLineEndingTests
 {
+    #region Constants
+
+    /// <summary>
+    /// Placeholder for the one foreign line break of an input, which a test replaces with the terminator under test
+    /// </summary>
+    private const string ForeignLineBreakPlaceholder = "¶";
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -138,6 +147,182 @@ public class ReihitsuFormatterLineEndingTests
     }
 
     /// <summary>
+    /// Verifies that a foreign line break inside a CDATA section of a single-line documentation comment is rewritten to the
+    /// detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the CDATA section</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-003")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideDocumentationCDataSectionIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    /// <summary>\n    /// <![CDATA[a¶    /// b]]>\n    /// </summary>\n    int A;\n}";
+        const string expected = "class C\n{\n    /// <summary>\n    /// <![CDATA[a\n    /// b]]>\n    /// </summary>\n    int A;\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an XML comment of a single-line documentation comment is rewritten to the
+    /// detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the XML comment</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-003")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideDocumentationXmlCommentIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    /// <summary>\n    /// <!-- a¶    /// b -->\n    /// </summary>\n    int A;\n}";
+        const string expected = "class C\n{\n    /// <summary>\n    /// <!-- a\n    /// b -->\n    /// </summary>\n    int A;\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an element tag of a single-line documentation comment, between the element
+    /// name and an attribute, is rewritten to the detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the element tag</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-003")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideDocumentationElementTagIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    /// <summary>\n    /// <para¶    /// foo=\"a\">x</para>\n    /// </summary>\n    int A;\n}";
+        const string expected = "class C\n{\n    /// <summary>\n    /// <para\n    /// foo=\"a\">x</para>\n    /// </summary>\n    int A;\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an attribute value of a single-line documentation comment is rewritten to
+    /// the detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the attribute value</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-003")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideDocumentationAttributeValueIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    /// <summary>\n    /// <para foo=\"a¶    /// b\">x</para>\n    /// </summary>\n    int A;\n}";
+        const string expected = "class C\n{\n    /// <summary>\n    /// <para foo=\"a\n    /// b\">x</para>\n    /// </summary>\n    int A;\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside a CDATA section of a delimited documentation comment is rewritten to the
+    /// detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the CDATA section</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-003")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideDelimitedDocumentationCDataSectionIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    /**\n     * <summary><![CDATA[a¶     * b]]></summary>\n     */\n    int A;\n}";
+        const string expected = "class C\n{\n    /**\n     * <summary><![CDATA[a\n     * b]]></summary>\n     */\n    int A;\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an interpolation hole of a regular interpolated string is a line break
+    /// between tokens and is rewritten to the detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the interpolation hole</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-001")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideInterpolationHoleIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    string s = $\"{1¶                  + 2}\";\n}";
+        const string expected = "class C\n{\n    string s = $\"{1\n                  + 2}\";\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break inside an interpolation hole of a raw interpolated string is a line break between
+    /// tokens and is rewritten to the detected line ending
+    /// </summary>
+    /// <param name="terminator">The foreign line break inside the interpolation hole</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-001")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInsideRawInterpolationHoleIsRewritten(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    string s = $\"\"\"\n                {1¶                 + 2}\n                \"\"\";\n}";
+        const string expected = "class C\n{\n    string s = $\"\"\"\n                {1\n                 + 2}\n                \"\"\";\n}";
+
+        AssertForeignLineBreakFormatted(input, expected, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a foreign line break in the literal text of a raw interpolated string is kept
+    /// </summary>
+    /// <param name="terminator">The foreign line break in the literal text</param>
+    /// <param name="endOfLine">The line ending of every other line break, which the formatter detects</param>
+    [TestMethod]
+    [Requirement("FMT-EOL-004")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r", "\n")]
+    [DataRow("\u2028", "\r\n")]
+    public void LineBreakInTextOfRawInterpolatedStringIsKept(string terminator, string endOfLine)
+    {
+        const string input = "class C\n{\n    string s = $\"\"\"\n                a¶                {1}\n                \"\"\";\n}";
+
+        AssertForeignLineBreakFormatted(input, input, terminator, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a file whose every line break is the same single-character terminator other than <c>\n</c> gets
+    /// <c>\n</c>, because a line break of a single character counts as <c>\n</c>
+    /// </summary>
+    /// <param name="terminator">The terminator of every line break of the input</param>
+    [TestMethod]
+    [Requirement("FMT-PIPE-007")]
+    [DataRow("\r")]
+    [DataRow("\u0085")]
+    [DataRow("\u2028")]
+    [DataRow("\u2029")]
+    public void FileWhoseEveryLineBreakIsTheSameOtherTerminatorGetsLineFeed(string terminator)
+    {
+        const string input = "class C\n{\n#pragma warning disable CS0169\n    /// <summary>\n    /// Gets the value.\n    /// </summary>\n    int x;\n#pragma warning restore CS0169\n}";
+
+        AssertFormatted(input.Replace("\n", terminator), input);
+    }
+
+    /// <summary>
     /// Makes line terminators visible, so an assertion message shows which one differs
     /// </summary>
     /// <param name="text">The text</param>
@@ -170,6 +355,20 @@ public class ReihitsuFormatterLineEndingTests
         Assert.AreEqual(Escape(actual), Escape(secondPass), "The formatter is not idempotent.");
 
         PhaseStabilityCheck.AssertNoPhaseChanges(output);
+    }
+
+    /// <summary>
+    /// Replaces every <c>\n</c> of the input and the expected output with the detected line ending and the placeholder with
+    /// the foreign line break, then verifies the formatted output as <see cref="AssertFormatted"/> does
+    /// </summary>
+    /// <param name="input">The input text, written with <c>\n</c> and one placeholder</param>
+    /// <param name="expected">The expected output, written with <c>\n</c>; a placeholder in it stands for the kept foreign line break</param>
+    /// <param name="terminator">The foreign line break that replaces the placeholder</param>
+    /// <param name="endOfLine">The detected line ending</param>
+    private void AssertForeignLineBreakFormatted(string input, string expected, string terminator, string endOfLine)
+    {
+        AssertFormatted(input.Replace("\n", endOfLine).Replace(ForeignLineBreakPlaceholder, terminator),
+                        expected.Replace("\n", endOfLine).Replace(ForeignLineBreakPlaceholder, terminator));
     }
 
     #endregion // Methods
