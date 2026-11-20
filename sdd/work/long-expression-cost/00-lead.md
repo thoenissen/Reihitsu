@@ -28,5 +28,5 @@ None yet.
 
 ## Open worklist / next step
 
-- Last step: implementer (03-implementer.md, tests pass), 3e94566.
-- Next: cleaner (04-cleaner.md), then spec checker, auditor, validator.
+- Last step: cleaner (04-cleaner.md, clean, no changes), 0abf970.
+- Next: spec checker (05-spec-checker.md), then auditor, validator.
