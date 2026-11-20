@@ -10,7 +10,8 @@ namespace Reihitsu.Core;
 
 /// <summary>
 /// Shared helpers for line endings: the one predicate for what terminates a line, which every component that scans text
-/// for line breaks uses, and the detection of the predominant end-of-line sequence of a syntax node
+/// for line breaks uses, the detection of the predominant end-of-line sequence of a syntax node, and the one rewrite of a
+/// node's line breaks to a line ending, which the formatter's line-ending phase and the mixed-line-ending code fix share
 /// </summary>
 public static class LineEndingUtilities
 {
@@ -71,6 +72,40 @@ public static class LineEndingUtilities
         return carriageReturnLineFeedCount >= lineFeedCount
                    ? "\r\n"
                    : "\n";
+    }
+
+    /// <summary>
+    /// Rewrites every line break of a node that differs from the given line ending to that line ending: documentation XML
+    /// newline tokens first, then end-of-line trivia, including the trivia that ends a directive. Line breaks inside
+    /// literals, other comments, and disabled text are not trivia or tokens of these kinds and keep their characters. The
+    /// method applies no other check, so it rewrites every node it is given. Without a line break to rewrite, the input
+    /// node itself is returned
+    /// </summary>
+    /// <param name="node">The syntax node to normalize</param>
+    /// <param name="endOfLine">The line ending every line break should have (<see cref="DetectEndOfLine"/>)</param>
+    /// <returns>The node with every line break rewritten to <paramref name="endOfLine"/>, or <paramref name="node"/> itself when none differs</returns>
+    public static SyntaxNode NormalizeLineEndings(SyntaxNode node, string endOfLine)
+    {
+        var documentationEndOfLinesToReplace = node.DescendantTokens(descendIntoTrivia: true)
+                                                   .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken) && token.Text != endOfLine)
+                                                   .ToArray();
+        var normalizedNode = documentationEndOfLinesToReplace.Length == 0
+                                 ? node
+                                 : node.ReplaceTokens(documentationEndOfLinesToReplace,
+                                                      (original, _) => original.CopyAnnotationsTo(SyntaxFactory.XmlTextNewLine(original.LeadingTrivia,
+                                                                                                                               endOfLine,
+                                                                                                                               original.ValueText,
+                                                                                                                               original.TrailingTrivia)));
+        var endOfLinesToReplace = normalizedNode.DescendantTrivia(descendIntoTrivia: true)
+                                                .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != endOfLine)
+                                                .ToArray();
+
+        if (endOfLinesToReplace.Length == 0)
+        {
+            return normalizedNode;
+        }
+
+        return normalizedNode.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(endOfLine));
     }
 
     /// <summary>

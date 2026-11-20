@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Formatter.Utilities;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -24,7 +23,9 @@ public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : ReihitsuC
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: rewrites every line break that differs from the predominant line ending through the rewrite the
+    /// formatter's line-ending phase shares, without any of the formatter's checks, so the fix also applies to files the
+    /// formatter refuses
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -38,32 +39,11 @@ public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : ReihitsuC
             return document;
         }
 
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var documentationEndOfLinesToReplace = root.DescendantTokens(descendIntoTrivia: true)
-                                                   .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken) && token.Text != endOfLine)
-                                                   .ToArray();
-        var normalizedRoot = documentationEndOfLinesToReplace.Length == 0
-                                 ? root
-                                 : root.ReplaceTokens(documentationEndOfLinesToReplace,
-                                                      (original, _) => original.CopyAnnotationsTo(SyntaxFactory.XmlTextNewLine(original.LeadingTrivia,
-                                                                                                                               endOfLine,
-                                                                                                                               original.ValueText,
-                                                                                                                               original.TrailingTrivia)));
-        var endOfLinesToReplace = normalizedRoot.DescendantTrivia(descendIntoTrivia: true)
-                                                .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != endOfLine)
-                                                .ToArray();
+        var normalizedRoot = LineEndingUtilities.NormalizeLineEndings(root, LineEndingUtilities.DetectEndOfLine(root));
 
-        if (documentationEndOfLinesToReplace.Length == 0 && endOfLinesToReplace.Length == 0)
-        {
-            return document;
-        }
-
-        if (endOfLinesToReplace.Length == 0)
-        {
-            return document.WithSyntaxRoot(normalizedRoot);
-        }
-
-        return document.WithSyntaxRoot(normalizedRoot.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(endOfLine)));
+        return normalizedRoot == root
+                   ? document
+                   : document.WithSyntaxRoot(normalizedRoot);
     }
 
     #endregion // Methods
