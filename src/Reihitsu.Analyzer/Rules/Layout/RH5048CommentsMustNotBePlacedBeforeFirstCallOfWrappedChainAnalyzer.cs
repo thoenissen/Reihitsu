@@ -10,7 +10,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5048: Comments must not be placed before the first call of a wrapped chain
+/// RH5048: Comments must not be placed before the first member access of a wrapped chain
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer : FluentChainAnalyzerBase
