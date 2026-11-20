@@ -58,16 +58,16 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a bracketed argument list is the argument list of an element access or of an implicit element
-    /// access, the lists whose arguments may be collapsed onto one line. The formatting root has no parent, so for the root
-    /// the facts the entry point captured from the document answer instead
+    /// Determines whether a bracketed argument list holds an index (<see cref="SyntaxNodeUtilities.IsIndexArgumentList"/>),
+    /// the lists whose arguments may be collapsed onto one line. The formatting root has no parent, so for the root the
+    /// facts the entry point captured from the document answer instead
     /// </summary>
     /// <param name="originalNode">The bracketed argument list as it entered this visit</param>
     /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
-    /// <returns><see langword="true"/> if the list belongs to an element access</returns>
+    /// <returns><see langword="true"/> if the list holds an index</returns>
     internal static bool IsElementAccessArgumentList(BracketedArgumentListSyntax originalNode, RootConstruct rootConstruct)
     {
-        return originalNode.Parent is ElementAccessExpressionSyntax or ImplicitElementAccessSyntax
+        return SyntaxNodeUtilities.IsIndexArgumentList(originalNode)
                || rootConstruct.IsRootIn(originalNode, RootConstruct.ElementAccessArguments);
     }
 

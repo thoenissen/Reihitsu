@@ -39,17 +39,6 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Determines whether the list belongs to indexer/element access syntax. The code fix asks it for the list a diagnostic
-    /// is located on, so the analyzer's reporting condition has one statement
-    /// </summary>
-    /// <param name="bracketedArgumentList">Bracketed argument list</param>
-    /// <returns><see langword="true"/> when the parent is indexer/element access syntax; otherwise, <see langword="false"/></returns>
-    internal static bool IsIndexerArgumentList(BracketedArgumentListSyntax bracketedArgumentList)
-    {
-        return bracketedArgumentList.Parent is ElementAccessExpressionSyntax or ImplicitElementAccessSyntax;
-    }
-
-    /// <summary>
     /// Determines whether a bracketed argument list can be safely collapsed to one line
     /// </summary>
     /// <param name="bracketedArgumentList">Bracketed argument list</param>
@@ -69,14 +58,14 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.BracketedArgumentList"/> occurrences used by indexer access
+    /// Analyzing all <see cref="SyntaxKind.BracketedArgumentList"/> occurrences that hold an index (<see cref="SyntaxNodeUtilities.IsIndexArgumentList"/>)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnBracketedArgumentList(SyntaxNodeAnalysisContext context)
     {
         var bracketedArgumentList = (BracketedArgumentListSyntax)context.Node;
 
-        if (IsIndexerArgumentList(bracketedArgumentList) == false
+        if (SyntaxNodeUtilities.IsIndexArgumentList(bracketedArgumentList) == false
             || CanSafelyCollapseToSingleLine(bracketedArgumentList) == false)
         {
             return;

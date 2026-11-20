@@ -1004,9 +1004,11 @@ class C
 
 ### FMT-BREAK-014 — Indexer arguments and angle-bracket lists are joined
 
-A wrapped bracketed argument list (`m[1, 2]`), type argument list, type parameter list, and function-pointer parameter list MUST be joined onto one line, unless an element itself spans several lines. The join only rewrites the gaps between the delimiters and the elements, so a comment behind the closing delimiter does not block it.
+A wrapped bracketed argument list that holds an index, type argument list, type parameter list, and function-pointer parameter list MUST be joined onto one line, unless an element itself spans several lines. The join only rewrites the gaps between the delimiters and the elements, so a comment behind the closing delimiter does not block it.
 
-Why: These lists are short by nature and read as part of a name or an index; wrapping them breaks up a type or an access expression without making it clearer. RH5307 reports a wrapped indexer argument list with the same guard.
+A bracketed argument list holds an index when its parent in the syntax tree is an `ElementAccessExpressionSyntax` (`m[1, 2]`, also behind a null-forgiving operator, `d![1, 2]`), the `ElementBindingExpressionSyntax` of a conditional element access (the `[1, 2]` of `c?[1, 2]`), or an `ImplicitElementAccessSyntax` (`[1, 2] = 3` in an object or dictionary initializer). Which of the three it is MUST NOT change whether the list is joined: `m[1,⏎2]`, `d![1,⏎2]`, and `c?[1,⏎2]` all become one line. The bracketed argument list of a fixed-size buffer's declarator (`fixed int b[3];`, parent `VariableDeclaratorSyntax`) holds a size, not an index, and this requirement does not decide it. For a conditional element access, this requirement owns the gaps from the list's `[` to its `]`; the gap in front of the `?` and the gap between the `?` and the `[` are FMT-BREAK-040's.
+
+Why: These lists are short by nature and read as part of a name or an index; wrapping them breaks up a type or an access expression without making it clearer. The `?` of a conditional element access and the `!` of a null-forgiving operator in front of the brackets change what the access does when the receiver is null, not what its index is, so the index reads the same behind them. RH5307 reports a wrapped index list with the same guard.
 
 Example:
 
@@ -1031,6 +1033,47 @@ class C<T, U>
     {
         var x = m[1, 2];
         var l = new List<int, string>();
+    }
+}
+```
+
+Example — the list of an element access behind a null-forgiving operator and the list of a conditional element access, with an opening bracket on its own and a list behind another conditional element access, are joined alike; a comment between the brackets keeps the list as written (FMT-BREAK-001):
+
+```csharp
+#nullable enable
+
+class C
+{
+    void M(int[,]? c, int[,] d, int[,][,]? e)
+    {
+        var a = c?[1,
+                   2];
+        var g = c?[
+            1, 2];
+        var i = e?[0,
+                   1]?[1,
+                       2];
+        var h = c?[1, // note
+                   2];
+        var b = d![1,
+                   2];
+    }
+}
+```
+
+```csharp
+#nullable enable
+
+class C
+{
+    void M(int[,]? c, int[,] d, int[,][,]? e)
+    {
+        var a = c?[1, 2];
+        var g = c?[1, 2];
+        var i = e?[0, 1]?[1, 2];
+        var h = c?[1, // note
+                   2];
+        var b = d![1, 2];
     }
 }
 ```

@@ -227,6 +227,22 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the bracketed argument list of a conditional element access as target, whose parent is an element binding, gets
+    /// its arguments collapsed onto one line like the list of an element access, with and without a tab in the target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    [Requirement("FMT-PIPE-024")]
+    public async Task ConditionalElementAccessArgumentListTargetGetsItsArgumentsCollapsed()
+    {
+        const string input = "class C\n{\n    void M(int[,] a)\n    {\n        var v = a?[⇥1,\n                   2];\n    }\n}";
+        const string expected = "class C\n{\n    void M(int[,] a)\n    {\n        var v = a?[1, 2];\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, Select<BracketedArgumentListSyntax>());
+    }
+
+    /// <summary>
     /// Verifies that a recursive pattern a <c>case</c> label introduces as target keeps its opening brace on the label's line, with
     /// and without a tab in the target
     /// </summary>

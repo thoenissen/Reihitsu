@@ -182,6 +182,19 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
+    /// Determines whether a bracketed argument list holds an index: the list of an element access (<c>d[1, 2]</c>,
+    /// <c>d![1, 2]</c>), of an element binding in a conditional access (<c>c?[1, 2]</c>), or of an implicit element access
+    /// in an object initializer (<c>[1, 2] = 3</c>). The size list of a fixed-size buffer is no index. This is the one
+    /// statement of the rule (FMT-BREAK-014) that the formatter's join and the RH5307 analyzer and code fix share
+    /// </summary>
+    /// <param name="bracketedArgumentList">Bracketed argument list</param>
+    /// <returns><see langword="true"/> if the list holds an index; otherwise <see langword="false"/></returns>
+    public static bool IsIndexArgumentList(BracketedArgumentListSyntax bracketedArgumentList)
+    {
+        return bracketedArgumentList.Parent is ElementAccessExpressionSyntax or ElementBindingExpressionSyntax or ImplicitElementAccessSyntax;
+    }
+
+    /// <summary>
     /// Determines whether a node is single line
     /// </summary>
     /// <param name="node">Node</param>

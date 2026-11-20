@@ -1009,6 +1009,50 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix, which formats the argument list, joins the wrapped list of a conditional element access in the first
+    /// argument, as it joins the list of an element access there
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-014")]
+    public async Task VerifyFixJoinsConditionalElementAccessListInTheFirstArgument(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] c)
+                                    {
+                                        N(
+                                            {|RH5101:c?[1,
+                                               2] ?? 0|}, 3);
+                                    }
+
+                                    void N(int a, int b)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,] c)
+                                     {
+                                         N(c?[1, 2] ?? 0, 3);
+                                     }
+
+                                     void N(int a, int b)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
