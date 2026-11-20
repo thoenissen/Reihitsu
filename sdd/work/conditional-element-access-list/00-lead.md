@@ -43,4 +43,5 @@
 - Implementer 05 (938ad38c code, 6f877378 handover): formatter green; 6 analyzer rows disputed (decisions 6, 7); decision 1 done.
 - Test implementer 06 (10dce053): decisions 6, 7, 8 done; RH5307 84 passed, Core 5 passed.
 - Cleaner 07 (9155c6cb): clean, Release 0 warnings.
-- Now: spec checker (08). Then auditor (09), validator.
+- Spec checker 08 (d7f0d6e2): one finding (change doc line ~142 still calls the location question open) → repair round 1, owner spec author.
+- Now: spec author (09) repair; then spec checker (10), auditor (11), validator.
