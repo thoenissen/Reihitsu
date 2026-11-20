@@ -29,5 +29,5 @@
 ## State
 
 - Audited SHA: —
-- Last step finished: test implementer — reproduced (01-test-implementer.md): the 14 rules of the triage list are missing; RH5115/RH5116 present.
-- Next step: implementer.
+- Last step finished: implementer — tests pass (02-implementer.md), 14 entries added in 36ac553b; Release build clean.
+- Next step: cleaner.
