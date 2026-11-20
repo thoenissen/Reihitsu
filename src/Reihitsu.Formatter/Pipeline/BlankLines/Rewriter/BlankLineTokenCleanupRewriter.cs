@@ -567,7 +567,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         token = base.VisitToken(token);
 
-        var previousToken = PrecedingTokenFacts.From(token.GetPreviousToken());
+        var previousToken = PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(token));
 
         if (previousToken.Exists == false)
         {

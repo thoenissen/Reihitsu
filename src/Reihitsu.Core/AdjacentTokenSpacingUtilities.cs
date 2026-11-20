@@ -27,8 +27,8 @@ public static class AdjacentTokenSpacingUtilities
     /// <returns>A tuple indicating whether the leading and trailing side are spaced</returns>
     public static (bool HasLeadingSpace, bool HasTrailingSpace) DetermineLineBreakTolerantSpacing(SyntaxToken token, SourceText sourceText)
     {
-        var previousToken = token.GetPreviousToken();
-        var nextToken = token.GetNextToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(token);
 
         var hasLeadingLineBreak = SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token);
         var hasTrailingLineBreak = SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken);
@@ -50,8 +50,8 @@ public static class AdjacentTokenSpacingUtilities
     /// <returns>A tuple indicating whether the leading and trailing side carry a same-line space or tab</returns>
     public static (bool HasLeadingSpace, bool HasTrailingSpace) DetermineSameLineAdjacentSpacing(SyntaxToken token, SourceText sourceText)
     {
-        var previousToken = token.GetPreviousToken();
-        var nextToken = token.GetNextToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(token);
 
         var hasLeadingSpace = previousToken != default
                               && previousToken.GetLocation().GetLineSpan().EndLinePosition.Line == token.GetLocation().GetLineSpan().StartLinePosition.Line

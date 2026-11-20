@@ -53,7 +53,7 @@ public static class SyntaxTokenPositionUtilities
             return false;
         }
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         if (previousToken.IsKind(SyntaxKind.None))
         {

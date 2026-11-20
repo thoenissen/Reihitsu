@@ -398,8 +398,8 @@ public static class FormattingTextAnalysisUtilities
     /// <returns><see langword="true"/> if the operator has a spacing violation</returns>
     public static bool HasOperatorSpacingViolation(SourceText sourceText, SyntaxToken operatorToken)
     {
-        var previousToken = operatorToken.GetPreviousToken();
-        var nextToken = operatorToken.GetNextToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(operatorToken);
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(operatorToken);
 
         if (previousToken.RawKind == 0
             || nextToken.RawKind == 0)

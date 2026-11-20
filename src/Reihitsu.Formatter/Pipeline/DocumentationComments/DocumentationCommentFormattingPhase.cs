@@ -277,7 +277,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             return false;
         }
 
-        var previousTokenFacts = PrecedingTokenFacts.From(owningToken.GetPreviousToken());
+        var previousTokenFacts = PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(owningToken));
 
         return BlockStartUtilities.IsFirstInBlock(previousTokenFacts) == false;
     }

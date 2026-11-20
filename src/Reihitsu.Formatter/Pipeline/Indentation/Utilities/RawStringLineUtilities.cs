@@ -3,6 +3,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 /// <summary>
@@ -79,7 +81,7 @@ internal static class RawStringLineUtilities
             return IsNonRawStringText(token);
         }
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         return token.LeadingTrivia.Count == 0
                && previousToken.Span.End == lineStart

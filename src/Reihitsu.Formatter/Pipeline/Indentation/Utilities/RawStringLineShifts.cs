@@ -215,7 +215,7 @@ internal sealed class RawStringLineShifts
 
             if (IsHoleOpeningLine(token, line.Start, out var interpolation))
             {
-                var previousToken = token.GetPreviousToken();
+                var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
                 if (previousToken.IsKind(SyntaxKind.InterpolatedStringTextToken) == false)
                 {

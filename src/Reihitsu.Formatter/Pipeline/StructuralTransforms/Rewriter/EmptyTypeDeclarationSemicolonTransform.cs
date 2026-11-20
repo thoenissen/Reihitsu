@@ -75,7 +75,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     private static TDeclaration ConvertToSemicolonDeclaration<TDeclaration>(TDeclaration declaration)
         where TDeclaration : TypeDeclarationSyntax
     {
-        var tokenBeforeOpenBrace = declaration.OpenBraceToken.GetPreviousToken();
+        var tokenBeforeOpenBrace = SyntaxTokenNavigationUtilities.GetPreviousToken(declaration.OpenBraceToken);
         var semicolonToken = CreateSemicolonToken(declaration.CloseBraceToken);
         var updatedDeclaration = declaration;
 

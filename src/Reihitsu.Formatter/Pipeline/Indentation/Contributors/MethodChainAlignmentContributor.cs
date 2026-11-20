@@ -67,7 +67,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <returns>The adjusted column for the chain anchor</returns>
     private static int GetChainAnchorColumn(SyntaxToken anchorDot, SyntaxToken firstDot, LayoutModel model)
     {
-        var prevToken = firstDot.GetPreviousToken();
+        var prevToken = SyntaxTokenNavigationUtilities.GetPreviousToken(firstDot);
 
         if (prevToken.IsKind(SyntaxKind.CloseBraceToken)
             && prevToken.Parent is InitializerExpressionSyntax initExpr

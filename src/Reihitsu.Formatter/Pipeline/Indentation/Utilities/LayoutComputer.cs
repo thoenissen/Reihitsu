@@ -501,7 +501,7 @@ internal static class LayoutComputer
             return false;
         }
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
 
         return previousToken.IsKind(SyntaxKind.None)
                || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token);

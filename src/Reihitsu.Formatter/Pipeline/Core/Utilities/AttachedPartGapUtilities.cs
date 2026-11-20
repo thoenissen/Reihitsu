@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 /// <summary>
@@ -52,7 +54,7 @@ internal static class AttachedPartGapUtilities
                                                              },
                    SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax { Parent: ElementAccessExpressionSyntax },
                    SyntaxKind.QuestionToken => IsConditionalAccessOperator(token)
-                                               && IsElementBindingOpenBracket(token.GetNextToken()),
+                                               && IsElementBindingOpenBracket(SyntaxTokenNavigationUtilities.GetNextToken(token)),
                    SyntaxKind.ExclamationToken => token.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression)
                                                   && StartsLinkOperator(token) == false,
                    _ => false
@@ -91,7 +93,7 @@ internal static class AttachedPartGapUtilities
     /// <returns><see langword="true"/> if the <c>!</c> starts a link operator; otherwise, <see langword="false"/></returns>
     private static bool StartsLinkOperator(SyntaxToken token)
     {
-        var nextToken = token.GetNextToken();
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(token);
 
         if (nextToken.IsKind(SyntaxKind.DotToken))
         {
@@ -99,7 +101,7 @@ internal static class AttachedPartGapUtilities
         }
 
         return IsConditionalAccessOperator(nextToken)
-               && nextToken.GetNextToken().IsKind(SyntaxKind.DotToken);
+               && SyntaxTokenNavigationUtilities.GetNextToken(nextToken).IsKind(SyntaxKind.DotToken);
     }
 
     #endregion // Methods
