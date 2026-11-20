@@ -1424,7 +1424,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
                                  }
                                  """;
 
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
     }
 
     /// <summary>
@@ -1693,7 +1693,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
                                  }
                                  """;
 
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
     }
 
     /// <summary>
@@ -1917,8 +1917,8 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
                                      {
                                          void M(int[,] c)
                                          {
-                                             var a = c?
-                                                 {|RH5115:[|}1,
+                                             var a = c{|RH5115:?|}
+                                                 [1,
                                                   2];
                                          }
                                      }
@@ -1928,8 +1928,8 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
                                   {
                                       void M(int[,] c)
                                       {
-                                          var a = c?
-                                              {|RH5115:[|}1, 2];
+                                          var a = c{|RH5115:?|}
+                                              [1, 2];
                                       }
                                   }
                                   """;
