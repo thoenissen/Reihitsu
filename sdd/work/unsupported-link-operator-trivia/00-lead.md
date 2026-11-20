@@ -20,6 +20,9 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 
 - Escalation 10 (declare the shape unsupported): answered before the run — **declare it, in this issue's change** (triage comment on #894, 2026-11-17).
 
+- Batch 1, Q1 (CLI reason text for FMT-UNSUP-015): **A** — `a comment or directive inside a ?. or !. operator`.
+- Batch 1, Q2 (escalation 10, comment/directive/disabled text between a link's `.` and its member name, e.g. `a.B(). // c` ⏎ `C();`): **A** — declare it unsupported, in a change of its own (follow-up issue carrying this answer).
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -33,12 +36,12 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 
 ## Follow-up candidates
 
-- Escalation 10 candidate (01-spec-author.md): comment between a link's `.` and its member name (`a.B(). // c` ⏎ `C();`) — declare unsupported in a change of its own? Ask with the next batch.
+- Escalation 10 candidate (01-spec-author.md): comment between a link's `.` and its member name (`a.B(). // c` ⏎ `C();`) — declare unsupported in a change of its own? Maintainer answered 2A: declare in a change of its own → follow-up issue carrying the answer.
 
 ## Open worklist / next step
 
 - Done: spec author (01, 568f167), skeptic (02, 49f7b66; verdict proceed, premise and reachability confirmed, `?[` already covered by FMT-UNSUP-014).
 - PR review note candidate: the visible cost is a comment justifying a `!` behind it in a wrapped chain (`x! // why` ⏎ `.Y()`); a comment in front of the `!` stays supported.
 - Spec-checker wording point: FMT-UNSUP-015's "meets FMT-UNSUP-004 only outside a value" may be vacuous (02-skeptic.md).
-- WAITING on batch 1 (asked in chat): (1) CLI reason text for FMT-UNSUP-015; (2) escalation 10 on the `.`-to-member-name gap.
-- Next after answers: spec author follow-up (Status Accepted, reason text per answer) → test implementer (03).
+- Batch 1 answered (1A, 2A). Reason text already A in the spec — no spec change needed.
+- Running: test implementer (03). Pending before spec checker: status-only spec-author follow-up to set the change doc `Status: Accepted`.
