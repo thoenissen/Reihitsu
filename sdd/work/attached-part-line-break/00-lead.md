@@ -36,5 +36,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 - Spec author 03 done (d24a646): two rules RH5115/RH5116 specified, change doc Accepted; lane check confirmed behavior-change.
 - Test implementer 04 done (4043635): 112 tests, fail for the right reason against stubs; test project needs the four types.
 - Implementer 05 done (d86230e, handover 9661311): all tests pass in Debug; predicate moved to Core as public `AttachedPartGapUtilities`.
-- Next: cleaner (06).
+- Cleaner 06 done (75b26fc): clean, Release build 0 warnings.
+- Next: spec checker (07).
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
