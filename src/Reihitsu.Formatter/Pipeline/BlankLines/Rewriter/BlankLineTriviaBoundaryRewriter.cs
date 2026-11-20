@@ -282,7 +282,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         token = base.VisitToken(token);
 
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
         var previousTokenFacts = PrecedingTokenFacts.From(previousToken);
         var isFirstBehindOpeningToken = BlockStartUtilities.IsFirstBehindOpeningToken(previousTokenFacts);
 

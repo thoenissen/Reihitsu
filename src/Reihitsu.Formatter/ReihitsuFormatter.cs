@@ -254,9 +254,10 @@ public static class ReihitsuFormatter
     }
 
     /// <summary>
-    /// Formats a target node using a containing node for positional context, then rewrites only the
-    /// target node back into the document. This is useful when the formatter phases need the code of the
-    /// context around the target to lay the target out
+    /// Formats a target node inside a containing node, then rewrites only the target node back into the document. The
+    /// formatter phases format the containing node, so the target is laid out in the code around it, which is useful when
+    /// the phases need that code to lay the target out; the containing node decides no column of the target's first
+    /// token, which keeps its line and its column in the document (FMT-PIPE-017, FMT-PIPE-018)
     /// </summary>
     /// <param name="document">The Roslyn Document containing both nodes</param>
     /// <param name="targetNode">The syntax node whose formatted result should be applied</param>
@@ -693,9 +694,9 @@ public static class ReihitsuFormatter
         // Whether another member shares the target's first or last line is a question only where nothing in the gap starts a
         // line in the document; where something does, the gap's trivia stays as it stands (FMT-PIPE-010, FMT-PIPE-018)
         var mayShareLineWithPrecedingMember = targetIndex > 0
-                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalFirstToken.GetPreviousToken(), originalFirstToken) == false;
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(SyntaxTokenNavigationUtilities.GetPreviousToken(originalFirstToken), originalFirstToken) == false;
         var mayShareLineWithFollowingMember = targetIndex < members.Count - 1
-                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, originalLastToken.GetNextToken()) == false;
+                                              && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(originalLastToken, SyntaxTokenNavigationUtilities.GetNextToken(originalLastToken)) == false;
 
         // A first field that keeps the target's line keeps its first token's document column, and the indentation phase lays
         // out its other lines from that column (FMT-PIPE-017). A first field that starts the next line, behind another member,
@@ -748,7 +749,7 @@ public static class ReihitsuFormatter
         }
 
         var sharesLineWithFollowingMember = mayShareLineWithFollowingMember
-                                            && TargetWriteBackUtilities.StartsLineInLayout(formattedFields[formattedFields.Count - 1].GetLastToken().GetNextToken());
+                                            && TargetWriteBackUtilities.StartsLineInLayout(SyntaxTokenNavigationUtilities.GetNextToken(formattedFields[formattedFields.Count - 1].GetLastToken()));
 
         var updatedMembers = TargetWriteBackUtilities.ReplaceTargetBySplitFields(members,
                                                                                  targetIndex,

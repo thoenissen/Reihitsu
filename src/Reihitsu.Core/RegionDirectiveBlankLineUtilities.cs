@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -241,7 +241,7 @@ public static class RegionDirectiveBlankLineUtilities
         if (token.Span.End > line.End
             || token.Span.End <= line.Start)
         {
-            token = token.GetPreviousToken();
+            token = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
         }
 
         return token.IsKind(kind)
@@ -262,7 +262,7 @@ public static class RegionDirectiveBlankLineUtilities
 
         if (token.SpanStart < line.Start)
         {
-            token = token.GetNextToken();
+            token = SyntaxTokenNavigationUtilities.GetNextToken(token);
         }
 
         return token.IsKind(kind)

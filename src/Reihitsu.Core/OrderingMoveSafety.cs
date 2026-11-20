@@ -207,7 +207,7 @@ public static class OrderingMoveSafety
     private static bool StartsItsLine(SyntaxNode node, TextLineCollection lines)
     {
         var firstToken = node.GetFirstToken();
-        var previousToken = firstToken.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(firstToken);
 
         return previousToken.IsKind(SyntaxKind.None)
                || lines.GetLineFromPosition(previousToken.Span.End).LineNumber < lines.GetLineFromPosition(firstToken.SpanStart).LineNumber;
@@ -234,7 +234,7 @@ public static class OrderingMoveSafety
     private static bool EndsItsLine(SyntaxNode node, TextLineCollection lines)
     {
         var lastToken = node.GetLastToken();
-        var nextToken = lastToken.GetNextToken();
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(lastToken);
 
         return IsLineStart(node.FullSpan.End, lines)
                && (nextToken.IsKind(SyntaxKind.None)

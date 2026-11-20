@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -127,7 +128,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var previousToken = operatorToken.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(operatorToken);
 
         if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, operatorToken))
         {

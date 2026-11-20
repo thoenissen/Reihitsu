@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 
 /// <summary>
@@ -44,7 +46,7 @@ internal sealed class DeclaredNameSpacingRule : ISpacingRule
 
         return right.Parent is SingleVariableDesignationSyntax or DiscardDesignationSyntax
                && IsDesignationBehindATypeOrPattern(right.Parent)
-               && left == right.GetPreviousToken();
+               && left == SyntaxTokenNavigationUtilities.GetPreviousToken(right);
     }
 
     /// <summary>

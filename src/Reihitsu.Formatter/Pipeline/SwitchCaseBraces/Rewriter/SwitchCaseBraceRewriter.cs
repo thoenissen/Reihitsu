@@ -581,7 +581,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        var nextToken = lastToken.GetNextToken();
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(lastToken);
 
         return nextToken.LeadingTrivia
                         .FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)

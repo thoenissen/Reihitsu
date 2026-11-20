@@ -54,7 +54,7 @@ internal static class AttachedPartGapUtilities
                                                              },
                    SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax { Parent: ElementAccessExpressionSyntax },
                    SyntaxKind.QuestionToken => IsConditionalAccessOperator(token)
-                                               && IsElementBindingOpenBracket(token.GetNextToken()),
+                                               && IsElementBindingOpenBracket(SyntaxTokenNavigationUtilities.GetNextToken(token)),
                    SyntaxKind.ExclamationToken => token.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression)
                                                   && StartsLinkOperator(token) == false,
                    _ => false
@@ -95,11 +95,11 @@ internal static class AttachedPartGapUtilities
     /// <returns><see langword="true"/> if the <c>!</c> starts a link operator; otherwise, <see langword="false"/></returns>
     private static bool StartsLinkOperator(SyntaxToken token)
     {
-        var dotToken = token.GetNextToken();
+        var dotToken = SyntaxTokenNavigationUtilities.GetNextToken(token);
 
         if (IsConditionalAccessOperator(dotToken))
         {
-            dotToken = dotToken.GetNextToken();
+            dotToken = SyntaxTokenNavigationUtilities.GetNextToken(dotToken);
         }
 
         if (dotToken.IsKind(SyntaxKind.DotToken) == false

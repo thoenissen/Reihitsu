@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
@@ -101,7 +102,7 @@ internal sealed class BracePlacer
             return node;
         }
 
-        var nextToken = openBrace.GetNextToken();
+        var nextToken = SyntaxTokenNavigationUtilities.GetNextToken(openBrace);
 
         if (nextToken == default || nextToken.IsMissing)
         {

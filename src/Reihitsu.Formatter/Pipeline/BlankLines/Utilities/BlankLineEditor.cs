@@ -168,7 +168,7 @@ internal sealed class BlankLineEditor
     /// <returns><see langword="true"/> if a blank line exists before the token; otherwise, <see langword="false"/></returns>
     public static bool HasBlankLineBeforeToken(SyntaxToken token)
     {
-        return AnalyzeGapBeforeLeadingTriviaIndex(token, token.LeadingTrivia.Count, PrecedingTokenFacts.From(token.GetPreviousToken())).BlankLineCount > 0;
+        return AnalyzeGapBeforeLeadingTriviaIndex(token, token.LeadingTrivia.Count, PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(token))).BlankLineCount > 0;
     }
 
     /// <summary>
@@ -291,7 +291,7 @@ internal sealed class BlankLineEditor
     /// <returns>The combined trivia sequence, in source order</returns>
     private static IEnumerable<SyntaxTrivia> CombinedLeadingTrivia(SyntaxToken token)
     {
-        return PrecedingTokenFacts.From(token.GetPreviousToken()).TrailingTrivia.Concat(token.LeadingTrivia);
+        return PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(token)).TrailingTrivia.Concat(token.LeadingTrivia);
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ internal sealed class BlankLineEditor
         where TNode : SyntaxNode
     {
         var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var previousToken = PrecedingTokenFacts.From(token.GetPreviousToken());
+        var previousToken = PrecedingTokenFacts.From(SyntaxTokenNavigationUtilities.GetPreviousToken(token));
         var lineBreakCount = previousToken.Exists
                                  ? AnalyzeGapBeforeLeadingTriviaIndex(token, token.LeadingTrivia.Count, previousToken).RequiredLineBreakCountForBlankLine
                                  : 1;

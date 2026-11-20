@@ -122,7 +122,7 @@ internal sealed class AccessorListLayout
             return false;
         }
 
-        var tokenBeforeOpenBrace = node.AccessorList.OpenBraceToken.GetPreviousToken();
+        var tokenBeforeOpenBrace = SyntaxTokenNavigationUtilities.GetPreviousToken(node.AccessorList.OpenBraceToken);
         var signatureStartToken = GetSingleLineSignatureStartToken(node);
 
         if (signatureStartToken == default

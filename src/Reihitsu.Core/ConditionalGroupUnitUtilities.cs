@@ -230,7 +230,7 @@ internal static class ConditionalGroupUnitUtilities
         }
 
         if (token.Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>() is { AttributeLists.Count: > 0 } attributedMember
-            && attributedMember.AttributeLists.Last().GetLastToken().GetNextToken() == token)
+            && SyntaxTokenNavigationUtilities.GetNextToken(attributedMember.AttributeLists.Last().GetLastToken()) == token)
         {
             lists.Add((attributedMember, true));
         }

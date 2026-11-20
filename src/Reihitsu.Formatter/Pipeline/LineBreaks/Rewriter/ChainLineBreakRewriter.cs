@@ -153,8 +153,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             if (linkIndex == 0)
             {
                 // A gap that holds a comment, a directive or disabled text is not closed, so the root line is broken.
-                isRootLineIntact = HasLineBreak(link.OperatorToken.GetPreviousToken(), link.OperatorToken) == false
-                                   || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(link.OperatorToken.GetPreviousToken(), link.OperatorToken) == false;
+                isRootLineIntact = HasLineBreak(SyntaxTokenNavigationUtilities.GetPreviousToken(link.OperatorToken), link.OperatorToken) == false
+                                   || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(SyntaxTokenNavigationUtilities.GetPreviousToken(link.OperatorToken), link.OperatorToken) == false;
             }
             else if (chain.IsPrefixLink(linkIndex))
             {
@@ -305,7 +305,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
         {
             var operatorToken = chain.Links[linkIndex].OperatorToken;
-            var previousToken = operatorToken.GetPreviousToken();
+            var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(operatorToken);
 
             if (linkIndex == 0)
             {

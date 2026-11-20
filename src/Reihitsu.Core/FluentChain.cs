@@ -98,7 +98,7 @@ public sealed class FluentChain
     /// The last token of the root, directly in front of the first link's operator; <see langword="default"/> for a chain
     /// without links
     /// </summary>
-    public SyntaxToken RootLastToken => Links.Count > 0 ? Links[0].OperatorToken.GetPreviousToken() : default;
+    public SyntaxToken RootLastToken => Links.Count > 0 ? SyntaxTokenNavigationUtilities.GetPreviousToken(Links[0].OperatorToken) : default;
 
     /// <summary>
     /// Whether the chain is wrapped: one of its link operators starts a line or holds a line break. The formatter only

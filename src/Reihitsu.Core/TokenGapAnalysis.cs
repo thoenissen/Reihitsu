@@ -127,7 +127,7 @@ public readonly struct TokenGapAnalysis
     /// <returns><see langword="true"/> if the trivia starts its line; otherwise, <see langword="false"/></returns>
     public static bool StartsLineAtLeadingTriviaIndex(SyntaxToken token, int leadingTriviaIndex)
     {
-        var previousToken = token.GetPreviousToken();
+        var previousToken = SyntaxTokenNavigationUtilities.GetPreviousToken(token);
         var hasPreviousToken = previousToken.IsKind(SyntaxKind.None) == false;
 
         return StartsLineAtLeadingTriviaIndex(token, leadingTriviaIndex, hasPreviousToken, hasPreviousToken ? previousToken.TrailingTrivia : default);
