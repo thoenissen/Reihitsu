@@ -37,5 +37,7 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 - Test implementer 04 done (4043635): 112 tests, fail for the right reason against stubs; test project needs the four types.
 - Implementer 05 done (d86230e, handover 9661311): all tests pass in Debug; predicate moved to Core as public `AttachedPartGapUtilities`.
 - Cleaner 06 done (75b26fc): clean, Release build 0 warnings.
-- Next: spec checker (07).
+- Spec checker 07 done (eb95cdc): consistent.
+- Before auditor: main 9a89c85 already merged, no open output questions, Release build green.
+- Next: auditor (08) on head eb95cdc + this note, main 9a89c85.
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
