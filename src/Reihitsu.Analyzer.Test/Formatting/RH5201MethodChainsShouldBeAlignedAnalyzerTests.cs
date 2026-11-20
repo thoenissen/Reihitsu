@@ -1699,6 +1699,69 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies that of three or more links in front of the first wrapped link only the last one is the anchor: a wrapped
+    /// link under the second or an earlier link is reported and one under the last link is not, with and without a later
+    /// call and behind a conditional link; the fix moves every reported link under the last link in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-007")]
+    public async Task VerifyLinkWrappedBehindThreeOrMoreLinksIsReportedUnlessUnderTheLastOfThem()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    C Next { get; set; }
+                                    C Self() => this;
+
+                                    void M(C c)
+                                    {
+                                        var a = c.Next.Next.Next
+                                                      {|#0:.|}Self();
+                                        var b = c.Next.Next.Next
+                                                 {|#1:.|}Self();
+                                        var d = c.Next.Next.Next
+                                                           .Self();
+                                        var e = c.Next.Next.Next.Next
+                                                           {|#2:.|}Next;
+                                        var f = c.Next.Next.Next.Next
+                                                                .Next;
+                                        var g = c.Next?.Next.Next
+                                                            .Self();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      C Next { get; set; }
+                                      C Self() => this;
+
+                                      void M(C c)
+                                      {
+                                          var a = c.Next.Next.Next
+                                                             .Self();
+                                          var b = c.Next.Next.Next
+                                                             .Self();
+                                          var d = c.Next.Next.Next
+                                                             .Self();
+                                          var e = c.Next.Next.Next.Next
+                                                                  .Next;
+                                          var f = c.Next.Next.Next.Next
+                                                                  .Next;
+                                          var g = c.Next?.Next.Next
+                                                              .Self();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 3));
+    }
+
+    /// <summary>
     /// Verifies that a link behind the closing <c>*/</c> of a comment that starts behind code does not start a line, so it is
     /// the anchor of the wrapped link behind it: the wrapped link under the operator of that link is not reported, and one
     /// under the chain's first link is

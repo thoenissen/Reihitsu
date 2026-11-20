@@ -176,9 +176,10 @@ public class FluentChainTests
     /// Verifies that, when no invoked link comes before the first link that starts a line, the anchor is the last link in
     /// front of that link: behind a prefix of property reads, in a chain without a call, behind conditional and
     /// null-forgiving links, behind attached parts and a root that spans lines, and behind a directive; a link behind the
-    /// first wrapped link never becomes the anchor, and one link in front of it stays the anchor. A line break inside the text
-    /// of a delimited comment does not make the link behind its <c>*/</c> start a line, so that link is the anchor when the
-    /// comment starts behind code, while a link behind a comment that starts its own line starts a line
+    /// first wrapped link never becomes the anchor, one link in front of it stays the anchor, and of three or more links in
+    /// front of it the last one is the anchor, not the second. A line break inside the text of a delimited comment does not
+    /// make the link behind its <c>*/</c> start a line, so that link is the anchor when the comment starts behind code, while
+    /// a link behind a comment that starts its own line starts a line
     /// </summary>
     /// <param name="source">The expression source</param>
     /// <param name="expectedIndex">The index of the expected anchor link among the chain's links</param>
@@ -199,6 +200,14 @@ public class FluentChainTests
     [DataRow("get(1,\n2\n).Next.Next\n.Self()", 1)]
     [DataRow("new C\n{\n}.Next.Next\n.Self()", 1)]
     [DataRow("x.Next.Next\n#if DEBUG\n.Self()\n#endif\n.Self()", 1)]
+    [DataRow("x.Next.Next.Next\n.Self()", 2)]
+    [DataRow("x.Next.Next.Next.Next\n.Next", 3)]
+    [DataRow("order.Customer.Address.Street\n.Name", 2)]
+    [DataRow("x.Next?.Next.Next\n.Self()", 2)]
+    [DataRow("a.B.D?.D.D\n.E", 3)]
+    [DataRow("x.A.B.C\n.D.E\n.F", 2)]
+    [DataRow("x.Next.Next.Next /* c\n*/ .Next\n.Self()", 3)]
+    [DataRow("x.Next.Next\n.Next.Next\n.Self()", 1)]
     [DataRow("x.Items\n.Count.Length\n.ToString()", 0)]
     [DataRow("x.Next\n.Next.Next\n.Self()", 0)]
     [DataRow("x?[0, 1].Next\n.Self()", 0)]

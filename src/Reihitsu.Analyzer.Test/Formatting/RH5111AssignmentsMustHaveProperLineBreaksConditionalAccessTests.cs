@@ -634,6 +634,62 @@ public class RH5111AssignmentsMustHaveProperLineBreaksConditionalAccessTests : B
     }
 
     /// <summary>
+    /// Verifies that the fix of an assignment behind a conditional access with four links in front of its wrapped member,
+    /// two of them in front of the <c>?</c>, puts the member under the last of them, not under the second, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-006")]
+    public async Task VerifyFixAlignsAWrappedMemberBehindFourLinksAroundAConditionalAccessUnderTheLastOfThem()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B;
+                                    public A this[int i] => null;
+                                    public int C;
+                                    public A N()
+                                    {
+                                        return null;
+                                    }
+                                }
+
+                                class D
+                                {
+                                    void M(A a)
+                                    {
+                                        a.B.B?{|#0:.B.B
+                                           .C =
+                                            5|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     public A B;
+                                     public A this[int i] => null;
+                                     public int C;
+                                     public A N()
+                                     {
+                                         return null;
+                                     }
+                                 }
+
+                                 class D
+                                 {
+                                     void M(A a)
+                                     {
+                                         a.B.B?.B.B
+                                                 .C = 5;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
     /// Verifies that the fix of an assignment behind a nested conditional access whose last binding is an element binding puts the
     /// wrapped member under the first <c>?</c>, under LF and CRLF
     /// </summary>

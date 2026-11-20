@@ -280,6 +280,62 @@ public class PrefixChainAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that of three or more links in front of the first wrapped link the last one is the anchor, not the second:
+    /// with and without a later call, behind a conditional link, and when the first link joins the root's line
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-007")]
+    public void ThreeOrMoreLinksInFrontOfTheFirstWrappedLinkAlignUnderTheLastOfThem()
+    {
+        // Arrange
+        const string input = """
+                             public class Sample
+                             {
+                                 public object M(dynamic x, dynamic order)
+                                 {
+                                     var a = x.Next.Next.Next
+                                         .Self();
+                                     var b = x.Next.Next.Next.Next
+                                         .Next;
+                                     var c = x.Next?.Next.Next
+                                         .Self();
+                                     var d = order.Customer.Address.Street
+                                         .Name;
+                                     var h = x
+                                         .Next.Next.Next
+                                         .Self();
+
+                                     return a ?? b ?? c ?? d ?? h;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Sample
+                                {
+                                    public object M(dynamic x, dynamic order)
+                                    {
+                                        var a = x.Next.Next.Next
+                                                           .Self();
+                                        var b = x.Next.Next.Next.Next
+                                                                .Next;
+                                        var c = x.Next?.Next.Next
+                                                            .Self();
+                                        var d = order.Customer.Address.Street
+                                                                      .Name;
+                                        var h = x.Next.Next.Next
+                                                           .Self();
+
+                                        return a ?? b ?? c ?? d ?? h;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies the side of the boundary the change leaves alone: a chain with one link in front of its first wrapped link
     /// aligns under that link, also behind a conditional element access, and a chain with a call in front of its first
     /// wrapped link aligns under that call, also when a property read and another call share its line
