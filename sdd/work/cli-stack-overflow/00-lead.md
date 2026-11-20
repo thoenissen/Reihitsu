@@ -46,4 +46,5 @@ _None_ (the analyzer-path candidate was covered by the fix, decision 9).
 - Done: skeptic (01-skeptic.md, verdict proceed, no output questions; handover commit 4c6ad52).
 - Done: test implementer (02-test-implementer.md, reproduced, 10 red / 4 green, commit 78fc63a).
 - Done: implementer (03-implementer.md, tests pass, commit 2f9aa25). Lane check: confirmed bug-fix.
-- Next: cleaner.
+- Done: cleaner (04-cleaner.md, clean, a788291).
+- Next: spec checker.
