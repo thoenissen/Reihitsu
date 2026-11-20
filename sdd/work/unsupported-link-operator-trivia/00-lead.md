@@ -49,4 +49,5 @@ The issue text proposes a new analyzer rule. The maintainer's triage comment on 
 - Spec-checker wording point: FMT-UNSUP-015's "meets FMT-UNSUP-004 only outside a value" may be vacuous (02-skeptic.md).
 - Batch 1 answered (1A, 2A). Reason text already A in the spec — no spec change needed.
 - Done: test implementer (03, e3e1766; 156 red refusal tests, all failing for the right reason). Done: implementer (04, 368d22a; all suites green). Implementer addendum done (09255b9). Spec author status-only (05, 51ee045). Cleaner clean (06, ca70d84). Spec checker consistent, no findings (07, 1011371; skeptic wording point not vacuous: attribute-argument case).
-- Audited SHA: 1011371 against main 31d2931. Running: auditor (08). Next: validator, issue manager (follow-up for 2A), note, publish.
+- Audited SHA: 1011371 against main 31d2931. Auditor (08, d0874b5): findings — #1 medium FC-003 missing FMT-UNSUP-004/015 overlap test (same requirement) → test implementer; #2 low FC-031 `FindTriviaInsideLinkOperator` summary says "exactly" (PR-introduced) → cleaner.
+- Repair round 1 of 3: test implementer (09) → cleaner (10) → spec checker (11) → auditor on repair (12) → validator.
