@@ -10,7 +10,8 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1, Q1 (rule as specified: reports, fix-withheld cases, title, rule page example): **A**.
+- Batch 1, Q2 (wrapped parameter list): neither A nor B — maintainer says the parameter list should not be wrapped, the indexer should be single line. Unclear which cases (does the rule report a wrapped parameter list when the arrow is already on the `]` line? does the formatter change?) — asked back (Q2 follow-up, options 2C/2D).
 
 ## Decisions taken
 
@@ -27,4 +28,4 @@
 
 - Spec author done (01-spec-author.md, commit 7f9df95): change doc written; open output question Q1 (wrapped parameter list: fix offered vs withheld). Lane check confirmed behavior-change.
 - Skeptic done (02-skeptic.md, 3ddc02a): proceed. FC-015 risk for auditor: RH5401 attribute-list guard must not be privately copied into RH5419 provider. Follow-up candidates recommended for dropping (rare / decided by RH5108 non-goal).
-- Output-question batch 1 posted to maintainer (Q1 rule as specified incl. title; Q2 wrapped parameter list A/B). WAITING for answers. Next: route answers to spec author (status Accepted), then test implementer.
+- Output-question batch 1 posted to maintainer (Q1 rule as specified incl. title; Q2 wrapped parameter list A/B). WAITING for the Q2 follow-up answer. Next: route answers to spec author (status Accepted), then test implementer.
