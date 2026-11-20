@@ -28,6 +28,6 @@
 
 ## State
 
-- Audited SHA: —
-- Last step finished: implementer — tests pass (02-implementer.md), 14 entries added in 36ac553b; Release build clean.
-- Next step: cleaner.
+- Audited SHA: 0374545c (auditor running; origin/main 725ea151)
+- Last step finished: cleaner clean (03), spec checker consistent (04), Release build green.
+- Next step: auditor verdict, then validator.
