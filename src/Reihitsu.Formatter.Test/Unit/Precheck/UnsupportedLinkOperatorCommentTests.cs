@@ -92,6 +92,36 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
                                                                     ["\n            /// <summary>x</summary>\n            ", "/// <summary>x</summary>"]
                                                                 ];
 
+    /// <summary>
+    /// The two comments placed into a gap inside an attribute argument, each as the text that replaces the gap, the text that is
+    /// reported, and a name
+    /// </summary>
+    private static readonly string[][] _attributeGapTrivia = [
+                                                                 [" /* c */ ", "/* c */", "block comment"],
+                                                                 [" // c\n            ", "// c", "line comment"]
+                                                             ];
+
+    /// <summary>
+    /// Members whose span is a variable declaration (FMT-UNSUP-004) and that carry an attribute, each as the member with the
+    /// placeholder <c>ARGUMENT</c> for the attribute's argument and a name
+    /// </summary>
+    private static readonly string[][] _attributedVariableDeclarations = [
+                                                                             ["    [Obsolete(nameof(ARGUMENT))]\n    private int _f;", "field with one declarator"],
+                                                                             ["    [Obsolete(nameof(ARGUMENT))]\n    private int _f, _g;", "field with several declarators"],
+                                                                             ["    [Obsolete(nameof(ARGUMENT))]\n    public event Action? E;", "event field"]
+                                                                         ];
+
+    /// <summary>
+    /// Members that are no variable declaration and that carry an attribute, each as the member with the placeholder
+    /// <c>ARGUMENT</c> for the attribute's argument and a name
+    /// </summary>
+    private static readonly string[][] _attributedOtherDeclarations = [
+                                                                          ["    [Obsolete(nameof(ARGUMENT))]\n    void A()\n    {\n    }", "method"],
+                                                                          ["    [Obsolete(nameof(ARGUMENT))]\n    int P { get; set; }", "property"],
+                                                                          ["    [Obsolete(nameof(ARGUMENT))]\n    class D\n    {\n    }", "nested class"],
+                                                                          ["    void A()\n    {\n        [Obsolete(nameof(ARGUMENT))]\n        void L()\n        {\n        }\n\n        L();\n    }", "local function"]
+                                                                      ];
+
     #endregion // Fields
 
     #region Properties
@@ -149,6 +179,18 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
             }
         }
     }
+
+    /// <summary>
+    /// Every gap of every link operator with every comment of <see cref="_attributeGapTrivia"/> in an attribute argument of every
+    /// member of <see cref="_attributedVariableDeclarations"/>
+    /// </summary>
+    public static IEnumerable<object[]> AttributedVariableDeclarationCases => CreateAttributeCases(_attributedVariableDeclarations);
+
+    /// <summary>
+    /// Every gap of every link operator with every comment of <see cref="_attributeGapTrivia"/> in an attribute argument of every
+    /// member of <see cref="_attributedOtherDeclarations"/>
+    /// </summary>
+    public static IEnumerable<object[]> AttributedOtherDeclarationCases => CreateAttributeCases(_attributedOtherDeclarations);
 
     #endregion // Properties
 
@@ -517,6 +559,60 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the overlap with FMT-UNSUP-004 outside an initializer value: a comment inside a link operator in an attribute
+    /// argument of a field or an event field stands in the span of the variable declaration, so the input is reported with the
+    /// reason of FMT-UNSUP-004 at the comment, for every gap of every link operator and with one or several declarators
+    /// </summary>
+    /// <param name="member">The member that holds the link operator</param>
+    /// <param name="reported">The text that is reported</param>
+    /// <param name="name">The name of the case</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    [Requirement("FMT-UNSUP-015")]
+    [DynamicData(nameof(AttributedVariableDeclarationCases))]
+    public void CommentInsideALinkOperatorInAnAttributeArgumentOfAVariableDeclarationGivesTheReasonOfTheVariableDeclaration(string member, string reported, string name)
+    {
+        AssertUnsupportedFor(VariableDeclarationCommentReason, WrapInClass(member), reported);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the overlap with FMT-UNSUP-004: the same comment in an attribute argument of a member that is no
+    /// variable declaration — a method, a property, a nested class, or a local function — gives the reason of FMT-UNSUP-015 at the
+    /// comment, for every gap of every link operator
+    /// </summary>
+    /// <param name="member">The member that holds the link operator</param>
+    /// <param name="reported">The text that is reported</param>
+    /// <param name="name">The name of the case</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    [Requirement("FMT-UNSUP-015")]
+    [DynamicData(nameof(AttributedOtherDeclarationCases))]
+    public void CommentInsideALinkOperatorInAnAttributeArgumentOfAnotherMemberGivesTheReasonOfTheLinkOperator(string member, string reported, string name)
+    {
+        AssertUnsupportedFor(LinkOperatorCommentReason, WrapInClass(member), reported);
+    }
+
+    /// <summary>
+    /// Verifies that a directive inside a link operator in an attribute argument of a field declaration, which FMT-UNSUP-004 does
+    /// not refuse, gives the reason of FMT-UNSUP-010 with several declarators and the reason of FMT-UNSUP-015 with one, in every
+    /// build
+    /// </summary>
+    /// <param name="defineX">Whether <c>X</c> is defined</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-015")]
+    [DataRow(false, DisplayName = "X not defined")]
+    [DataRow(true, DisplayName = "X defined")]
+    public void DirectiveInsideALinkOperatorInAnAttributeArgumentOfAFieldKeepsTheReasonOfTheFieldDeclaration(bool defineX)
+    {
+        const string attribute = "    [Obsolete(nameof(Source?\n#if X\n        .Length\n#else\n        .Length\n#endif\n        ))]\n";
+        var parseOptions = CreateOptions(defineX, "X");
+
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, WrapInClass($"{attribute}    private int _f, _g;"), "#if X", parseOptions: parseOptions);
+        AssertUnsupportedFor(LinkOperatorCommentReason, WrapInClass($"{attribute}    private int _f;"), "#if X", parseOptions: parseOptions);
+    }
+
+    /// <summary>
     /// Verifies that of a comment inside a link operator and a comment of another shape, the first in the text is reported, and
     /// that a comment in front of a <c>!</c> that starts a <c>!?.</c> is neither shape
     /// </summary>
@@ -794,6 +890,27 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
 
             Assert.IsNull(second.Unsupported, $"The formatted output must not be refused under {endingName} line endings:{endOfLine}{output}");
             Assert.AreEqual(output, second.Output.ToString(), $"The formatted output must be stable under {endingName} line endings.");
+        }
+    }
+
+    /// <summary>
+    /// Creates the cases of a comment inside every gap of every link operator in an attribute argument of every member given
+    /// </summary>
+    /// <param name="members">The members, each with the placeholder <c>ARGUMENT</c> for the attribute's argument and a name</param>
+    /// <returns>The member, the text that is reported, and the name of each case</returns>
+    private static IEnumerable<object[]> CreateAttributeCases(string[][] members)
+    {
+        foreach (var member in members)
+        {
+            foreach (var gap in _operatorGaps)
+            {
+                foreach (var trivia in _attributeGapTrivia)
+                {
+                    var argument = $"Source{gap[0][1..]}{trivia[0]}{gap[1]}";
+
+                    yield return [member[0].Replace("ARGUMENT", argument), trivia[1], $"{trivia[2]} between {gap[2]} in an attribute argument of a {member[1]}"];
+                }
+            }
         }
     }
 
