@@ -10,16 +10,48 @@ namespace Reihitsu.Core;
 
 /// <summary>
 /// Shared helpers for line endings: the one predicate for what terminates a line, which every component that scans text
-/// for line breaks uses, the detection of the predominant end-of-line sequence of a syntax node, and the one rewrite of a
-/// node's line breaks to a line ending, which the formatter's line-ending phase and the mixed-line-ending code fix share
+/// for line breaks uses, the one definition of the trivia and tokens that carry a line break in a syntax tree, the
+/// detection of the predominant end-of-line sequence of a syntax node, and the one rewrite of a node's line breaks to a
+/// line ending, which the formatter's line-ending phase and the mixed-line-ending code fix share
 /// </summary>
 public static class LineEndingUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Detects the predominant end-of-line sequence in the syntax node.
-    /// Falls back to <see cref="Environment.NewLine"/> if no end-of-line trivia is found
+    /// Gets every trivia of a node that carries a line break: the end-of-line trivia between tokens, including the trivia
+    /// that ends a directive and the trivia inside structured trivia such as documentation comments. Together with
+    /// <see cref="GetLineBreakTokens"/>, this is the one definition of the line breaks the line-ending detection, the
+    /// mixed-line-ending analyzer, and the line-ending normalization count, report, and rewrite; line breaks inside
+    /// literals, comments that are not documentation comments, and disabled text are not carried by either
+    /// </summary>
+    /// <param name="node">The syntax node to inspect</param>
+    /// <returns>The end-of-line trivia of the node, in document order</returns>
+    public static IEnumerable<SyntaxTrivia> GetLineBreakTrivia(SyntaxNode node)
+    {
+        return node.DescendantTrivia(descendIntoTrivia: true)
+                   .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Gets every token of a node that carries a line break: the newline tokens of documentation comment XML, in its
+    /// text, CDATA sections, XML comments, and attribute values. Together with <see cref="GetLineBreakTrivia"/>, this is
+    /// the one definition of the line breaks the line-ending detection, the mixed-line-ending analyzer, and the
+    /// line-ending normalization count, report, and rewrite
+    /// </summary>
+    /// <param name="node">The syntax node to inspect</param>
+    /// <returns>The documentation newline tokens of the node, in document order</returns>
+    public static IEnumerable<SyntaxToken> GetLineBreakTokens(SyntaxNode node)
+    {
+        return node.DescendantTokens(descendIntoTrivia: true)
+                   .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken));
+    }
+
+    /// <summary>
+    /// Detects the predominant end-of-line sequence in the syntax node, counting the line breaks of
+    /// <see cref="GetLineBreakTrivia"/> and <see cref="GetLineBreakTokens"/>: a carriage return followed by a line feed
+    /// counts for "\r\n", every single-character terminator for "\n", and a tie goes to "\r\n".
+    /// Falls back to <see cref="Environment.NewLine"/> if the node carries no line break
     /// </summary>
     /// <param name="node">The syntax node to analyze</param>
     /// <returns>The detected end-of-line sequence</returns>
@@ -28,14 +60,9 @@ public static class LineEndingUtilities
         var carriageReturnLineFeedCount = 0;
         var lineFeedCount = 0;
 
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in GetLineBreakTrivia(node))
         {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                continue;
-            }
-
-            // End-of-line trivia is either "\r\n" (length 2) or a single "\n"/"\r" (length 1),
+            // End-of-line trivia is either "\r\n" (length 2) or a single-character terminator (length 1),
             // two counters are enough to determine the predominant sequence without materializing strings.
             if (trivia.Span.Length >= 2)
             {
@@ -47,13 +74,8 @@ public static class LineEndingUtilities
             }
         }
 
-        foreach (var token in node.DescendantTokens(descendIntoTrivia: true))
+        foreach (var token in GetLineBreakTokens(node))
         {
-            if (token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken) == false)
-            {
-                continue;
-            }
-
             if (token.Text.Length >= 2)
             {
                 carriageReturnLineFeedCount++;
@@ -76,19 +98,18 @@ public static class LineEndingUtilities
 
     /// <summary>
     /// Rewrites every line break of a node that differs from the given line ending to that line ending: documentation XML
-    /// newline tokens first, then end-of-line trivia, including the trivia that ends a directive. Line breaks inside
-    /// literals, other comments, and disabled text are not trivia or tokens of these kinds and keep their characters. The
-    /// method applies no other check, so it rewrites every node it is given. Without a line break to rewrite, the input
-    /// node itself is returned
+    /// newline tokens (<see cref="GetLineBreakTokens"/>) first, then end-of-line trivia (<see cref="GetLineBreakTrivia"/>),
+    /// including the trivia that ends a directive. Line breaks inside literals, other comments, and disabled text are not
+    /// trivia or tokens of these kinds and keep their characters. The method applies no other check, so it rewrites every
+    /// node it is given. Without a line break to rewrite, the input node itself is returned
     /// </summary>
     /// <param name="node">The syntax node to normalize</param>
     /// <param name="endOfLine">The line ending every line break should have (<see cref="DetectEndOfLine"/>)</param>
     /// <returns>The node with every line break rewritten to <paramref name="endOfLine"/>, or <paramref name="node"/> itself when none differs</returns>
     public static SyntaxNode NormalizeLineEndings(SyntaxNode node, string endOfLine)
     {
-        var documentationEndOfLinesToReplace = node.DescendantTokens(descendIntoTrivia: true)
-                                                   .Where(token => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken) && token.Text != endOfLine)
-                                                   .ToArray();
+        var documentationEndOfLinesToReplace = GetLineBreakTokens(node).Where(token => token.Text != endOfLine)
+                                                                       .ToArray();
         var normalizedNode = documentationEndOfLinesToReplace.Length == 0
                                  ? node
                                  : node.ReplaceTokens(documentationEndOfLinesToReplace,
@@ -96,9 +117,8 @@ public static class LineEndingUtilities
                                                                                                                                endOfLine,
                                                                                                                                original.ValueText,
                                                                                                                                original.TrailingTrivia)));
-        var endOfLinesToReplace = normalizedNode.DescendantTrivia(descendIntoTrivia: true)
-                                                .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != endOfLine)
-                                                .ToArray();
+        var endOfLinesToReplace = GetLineBreakTrivia(normalizedNode).Where(trivia => trivia.ToString() != endOfLine)
+                                                                    .ToArray();
 
         if (endOfLinesToReplace.Length == 0)
         {
