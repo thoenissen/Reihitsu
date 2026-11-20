@@ -47,4 +47,5 @@ _None_ (the analyzer-path candidate was covered by the fix, decision 9).
 - Done: test implementer (02-test-implementer.md, reproduced, 10 red / 4 green, commit 78fc63a).
 - Done: implementer (03-implementer.md, tests pass, commit 2f9aa25). Lane check: confirmed bug-fix.
 - Done: cleaner (04-cleaner.md, clean, a788291).
-- Next: spec checker.
+- Done: spec checker (05-spec-checker.md, consistent, a65032b).
+- Next: auditor.
