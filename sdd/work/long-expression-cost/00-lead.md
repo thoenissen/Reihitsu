@@ -20,6 +20,7 @@ None yet.
 | 2 | Skeptic | Scope of defect B (per-token previous/next-token navigation across five phases) | Fix defect A (nested conditional in `TernaryLineBreakRewriter`) and every implicated site of defect B, since fixing only the largest sites leaves the growth quadratic. It is the issue's own fix, so not escalation 9; a site that cannot be made linear with a cheap change is left as is and its remaining cost recorded per phase with the reason | Issue asks for linear cost where a cheap change allows; FC-016 | Output unchanged | — |
 | 3 | Skeptic | Form of the reproduction | Scaling-ratio tests (time at N versus 2N, or an operation count), never an absolute wall-clock budget | CI contention would make a budget flaky | Tests only | — |
 | 4 | Test implementer | FMT-BREAK-018 is silent on whether a parenthesized nested conditional counts as a nested conditional in a branch; `ParenthesizedChainOnOneLineStaysOnOneLine` pins today's output | No action in this run: the run keeps output byte-identical, and the characterization pins today's behavior; not a follow-up (no output in question, no defect) | 02-test-implementer.md | Output unchanged | 5304634 |
+| 5 | Implementer | Scope growth: new public type `SyntaxTokenNavigationUtilities` in `Reihitsu.Core`, 47 production files, including Core helpers the analyzers share | Keep: it is the issue's own fix (not escalation 9 per `squad/README.md` item 9), every default-form navigation call on the formatter path must change or the growth stays quadratic (FC-016), and the shared Core helpers are on the formatter's path; their results are unchanged and the analyzer suite passes | 03-implementer.md | Output unchanged (6019-file before/after diff empty) | 3e94566 |
 
 ## Follow-up candidates
 
@@ -27,5 +28,5 @@ None yet.
 
 ## Open worklist / next step
 
-- Last step: test implementer (02-test-implementer.md, reproduced: 11 of 12 cost tests fail; layout tests pass). Tests in 5304634.
-- Next: implementer (03-implementer.md).
+- Last step: implementer (03-implementer.md, tests pass), 3e94566.
+- Next: cleaner (04-cleaner.md), then spec checker, auditor, validator.
