@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-014 (changed: names the bracketed argument list of a conditional element access's element binding among the lists it joins, and divides the gaps with FMT-BREAK-040), RH5307-001 (changed: the list of a conditional element access is reported; the exclusion and its example are removed), RH5307-003 (changed: where the diagnostic of that list is), RH5307-004 (changed: the fix joins that list; its explanation of the `c?[0][…]` example no longer relies on the exclusion) |
 | Depends on | [An element access or a null-forgiving operator written below its element joins the element's line](attached-part-below-element.md) |
@@ -201,13 +201,21 @@ The formatter's join and RH5307's report and fix change together, in one change 
 
 FMT-BREAK-014 owns the gaps from the `[` of the element binding's list to its `]`; FMT-BREAK-040 keeps the gap in front of the `?` and the gap between the `?` and the `[`. RH5307 likewise judges only the list, and RH5115 the gaps in front of it, so a comment in front of the `?` or between the `?` and the `[` does not keep RH5307 from reporting the list, as a comment in front of an element access's `[` does not today.
 
-### Output questions
+### Join the list in the formatter (maintainer, question 1A)
 
-Whether the formatter joins the list (thoenissen/Reihitsu#1877, option A against leaving it and narrowing FMT-BREAK-014) and where RH5307's diagnostic is located are the maintainer's; the answers are recorded here once given.
+The maintainer answered question 1 with A ("As recommended"): the formatter joins the wrapped argument list of a conditional element access (`c?[1,⏎2]` becomes `c?[1, 2]`), and every code fix that formats a node holding such a list joins it too (visible output changes 1 and 2). The existing regression expectation `a?[b[1, 2],⏎3]` becomes `a?[b[1, 2], 3]`.
+
+### Report the list on its brackets (maintainer, question 2A)
+
+The maintainer answered question 2 with A ("As recommended"): RH5307 reports the list of a conditional element access on its brackets, from the `[` through the `]` (RH5307-003), and the fix joins it (`c?[1,⏎2]` becomes `c?[1, 2]`); `e?[0,⏎1][1,⏎2]` gets two diagnostics and becomes `e?[0, 1][1, 2]` (visible output changes 3 and 4). The rule page drops the sentence that excludes `target?[...]` (visible output change 5).
+
+### Which lists hold an index is stated once
+
+RH5307-001 refers to FMT-BREAK-014's definition of a bracketed argument list that holds an index (its three parent kinds) instead of restating it, so the specs state the rule in one place.
 
 ## Alternatives considered
 
-- **Narrow FMT-BREAK-014 to exclude the element binding's list, and keep RH5307 silent on it** — rejected: contradicts the maintainer's direction that `?` and `!` in front of the brackets must not change the layout, and keeps the RH5307 rule page's exclusion.
+- **Narrow FMT-BREAK-014 to exclude the element binding's list, and keep RH5307 silent on it** — rejected by the maintainer (questions 1 and 2): contradicts the maintainer's direction that `?` and `!` in front of the brackets must not change the layout, and keeps the RH5307 rule page's exclusion.
 - **Report `c?[…]` in RH5307 without the formatter's join** — rejected: the fix would produce nothing the formatter keeps, and SHARED-DIAG-010 forbids reporting a shape the formatter keeps.
-- **Locate the diagnostic on the whole conditional access expression** — not chosen as the recommendation: the conditional access also holds everything behind the brackets (`c?[1,⏎2].ToString()`), and the element accesses inside a conditional access are already located from the token behind the `?` (`c?{|RH5307:[0][1,⏎2]|}`). Kept as option B of the output question.
+- **Locate the diagnostic on the whole conditional access expression** — rejected by the maintainer (question 2): the conditional access also holds everything behind the brackets (`c?[1,⏎2].ToString()`), and the element accesses inside a conditional access are already located from the token behind the `?` (`c?{|RH5307:[0][1,⏎2]|}`).
 - **Join the size list of a fixed-size buffer too** — not part of this change: it is no index, no issue asks for it, and no rule reports it.
