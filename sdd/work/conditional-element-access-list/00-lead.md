@@ -27,6 +27,7 @@
 | 6 | Implementer | Two RH5307 tests use `VerifyCodeFixWithEndOfLine` whose single-application assertion contradicts RH5307-004/SHARED-FIX-006 on multi-diagnostic sources | Test is wrong; test implementer switches them to the multi-diagnostic verify form, final text unchanged | Unchanged requirements decide it | Expected fixed text unchanged | — |
 | 7 | Implementer | `VerifyFixAndIndexAccessFixConvergeInEitherOrder` expects RH5115 on `[`; RH5115 reports on `?` (existing, untouched behavior) | Test is wrong; marker moves to the `?` | Unchanged RH5115 behavior on `main` decides it | RH5115 output unchanged by the run | — |
 | 8 | Implementer | New public `SyntaxNodeUtilities.IsIndexArgumentList` has no direct Core test | Test implementer adds a small Core.Test test (four parent kinds incl. fixed buffer = false) | Core tests cover the shared utility assembly directly | Internal | — |
+| 9 | Repair 1 | Cleaner after the spec-author repair | Skipped: the repair changed one sentence of the change doc, no code or test | Nothing to format or build | Text only | b24dd885 |
 | 4 | Skeptic | #1877's P11 "RH5307 stays silent" rationale is stale | Drop it; PR states the difference | Superseded by #1878 | Rationale only | — |
 
 ## Follow-up candidates
@@ -44,4 +45,5 @@
 - Test implementer 06 (10dce053): decisions 6, 7, 8 done; RH5307 84 passed, Core 5 passed.
 - Cleaner 07 (9155c6cb): clean, Release 0 warnings.
 - Spec checker 08 (d7f0d6e2): one finding (change doc line ~142 still calls the location question open) → repair round 1, owner spec author.
-- Now: spec author (09) repair; then spec checker (10), auditor (11), validator.
+- Spec author 09 (b24dd885): finding repaired.
+- Now: spec checker (10); then auditor (11), validator.
