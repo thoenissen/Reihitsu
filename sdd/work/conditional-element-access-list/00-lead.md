@@ -42,4 +42,5 @@
 - Test implementer 04 (44d72441): 18 formatter + 34 analyzer rows fail as expected.
 - Implementer 05 (938ad38c code, 6f877378 handover): formatter green; 6 analyzer rows disputed (decisions 6, 7); decision 1 done.
 - Test implementer 06 (10dce053): decisions 6, 7, 8 done; RH5307 84 passed, Core 5 passed.
-- Now: cleaner (07). Then spec checker (08), auditor (09), validator.
+- Cleaner 07 (9155c6cb): clean, Release 0 warnings.
+- Now: spec checker (08). Then auditor (09), validator.
