@@ -51,6 +51,7 @@
 - Round 2: spec author done (12-spec-author.md, 2b019eb).
 - Round 2: test implementer done (13-test-implementer.md, 668497b), 12 expected failures.
 - Audit 2 (16-auditor.md, 1b9e517, on 84a0f1e): #1, #2 closed. New #3 (FC-015, RH5419/RH5401 one-line-span check duplicated -> one shared method; implementer) and #4 (RH5419-004 cause list omits bare line break the formatter keeps in front of `[`, e.g. `public\n int this[...]`; spec author words it, test implementer adds a withheld test LF/CRLF). #3 is a different decision from #2 (formatter join vs. RH5401 span), so not a repeated class.
+- Round 3: spec author done (17, 647eeba); implementer done (18, 37635a0/f2dde25): shared StandsOnOneLineKeepingBlankLines, tests green, format clean.
 - Repair round 3 of 3 (last): spec author (17) || implementer (18) -> test implementer (19) -> spec checker (20) -> auditor (21, repair only) -> validator (22).
 - Round 2: spec checker consistent (15-spec-checker.md, 65c91ea). Auditor (16) spawned.
 - Round 2: implementer done (14-implementer.md, 381f12c/689e2e0): tests pass, full analyzer 11371/11371, Release 0 warnings, format.sh no change. Cleaner skipped (decision 8). Next: spec checker (15), auditor (16, repair only), validator (17).
