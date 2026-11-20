@@ -12,7 +12,9 @@
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (formatter, wrapped list of `c?[...]`): **A** — join it (`c?[1, 2]`); code fixes formatting such a node join it too; the existing regression test's expected output becomes `a?[b[1, 2], 3]`.
+- Q2 (RH5307 on `c?[...]`): **A** — reported on the brackets (from `[` to `]`), fixed to `c?[1, 2]`; `e?[0,⏎1][1,⏎2]` gets two diagnostics and fixes to `e?[0, 1][1, 2]`; rule page drops the exclusion sentence.
+- Maintainer's words: "As recommended" (to both).
 
 ## Decisions taken
 
@@ -31,4 +33,5 @@
 
 - Last step: spec author 01 (commit 196829de, change doc Draft; both premises reproduce; output questions 1 and 2 drafted, spec written on 1A/2A). Lane check confirmed.
 - Skeptic 02 (7f8e64fa): both premises real, agrees with 1A/2A, no new output questions, no follow-ups.
-- Now: output questions 1 and 2 posted to the maintainer, waiting. Then: spec author follow-up (answers, Status Accepted, decision 2), then test implementer.
+- Output questions answered 1A, 2A (spec already written on 1A/2A).
+- Now: spec author follow-up (record answers in change doc Decisions, Status Accepted, decision 2). Then test implementer.
