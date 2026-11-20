@@ -31,6 +31,16 @@ public sealed class RulesetTests
 
     #endregion // Constants
 
+    #region Fields
+
+    /// <summary>
+    /// Shipped rules that deliberately have no entry in the Release ruleset, so the analyzer's own default applies to
+    /// them: RH7305A is the alternative to RH7305, which the Release ruleset enables, and stays off as it is by default
+    /// </summary>
+    private static readonly string[] _rulesWithoutReleaseEntry = ["RH7305A"];
+
+    #endregion // Fields
+
     #region Tests
 
     /// <summary>
@@ -44,11 +54,7 @@ public sealed class RulesetTests
     public void EveryReihitsuEntryNamesAShippedRule(string rulesetName)
     {
         // Arrange
-        var shippedRuleIds = AnalyzerCatalog.DiscoverAnalyzerTypes()
-                                            .Select(type => (DiagnosticAnalyzer)Activator.CreateInstance(type))
-                                            .SelectMany(analyzer => analyzer.SupportedDiagnostics)
-                                            .Select(descriptor => descriptor.Id)
-                                            .ToHashSet(StringComparer.Ordinal);
+        var shippedRuleIds = GetShippedRuleIds();
 
         // Act
         var unknownRuleIds = LoadReihitsuEntries(rulesetName).Keys
@@ -62,14 +68,72 @@ public sealed class RulesetTests
     }
 
     /// <summary>
-    /// Verifies that the Release ruleset turns the line-count rules RH2008 and RH2111 on as errors, like every other
-    /// rule it enables
+    /// Verifies that the Release ruleset lists every rule the analyzer assembly ships, except the rules that
+    /// deliberately stay out of it, so the action of every shipped rule in the repository's own Release build is
+    /// written out explicitly and does not depend on the default severity or on warnings being treated as errors
+    /// </summary>
+    [TestMethod]
+    public void ReleaseRulesetListsEveryShippedRule()
+    {
+        // Arrange
+        var shippedRuleIds = GetShippedRuleIds();
+        var entries = LoadReihitsuEntries(ReleaseRuleset);
+
+        // Act
+        var missingRuleIds = shippedRuleIds.Where(ruleId => entries.ContainsKey(ruleId) == false)
+                                           .Where(ruleId => _rulesWithoutReleaseEntry.Contains(ruleId, StringComparer.Ordinal) == false)
+                                           .Order(StringComparer.Ordinal)
+                                           .ToList();
+
+        // Assert
+        Assert.IsGreaterThan(0, shippedRuleIds.Count, "No shipped rule was found.");
+        Assert.IsEmpty(missingRuleIds, $"{ReleaseRuleset} has no entry for these shipped rules: {string.Join(", ", missingRuleIds)}");
+    }
+
+    /// <summary>
+    /// Verifies that every rule exempted from the Release ruleset is a shipped rule the Release ruleset indeed does not
+    /// list, so the exemption list cannot go stale
+    /// </summary>
+    [TestMethod]
+    public void ReleaseRulesetExemptionsNameShippedRulesWithoutEntry()
+    {
+        // Arrange
+        var shippedRuleIds = GetShippedRuleIds();
+        var entries = LoadReihitsuEntries(ReleaseRuleset);
+
+        // Act
+        var staleRuleIds = _rulesWithoutReleaseEntry.Where(ruleId => shippedRuleIds.Contains(ruleId) == false
+                                                                     || entries.ContainsKey(ruleId))
+                                                    .Order(StringComparer.Ordinal)
+                                                    .ToList();
+
+        // Assert
+        Assert.IsEmpty(staleRuleIds, $"These exemptions are not shipped rules without an entry in {ReleaseRuleset}: {string.Join(", ", staleRuleIds)}");
+    }
+
+    /// <summary>
+    /// Verifies that the Release ruleset sets the action of the line-count rules RH2008 and RH2111 and of the
+    /// shipped rules it once had no entry for to error, like every other rule it enables
     /// </summary>
     /// <param name="ruleId">Rule ID</param>
     [TestMethod]
     [DataRow("RH2008")]
     [DataRow("RH2111")]
-    public void ReleaseRulesetReportsLineCountRuleAsError(string ruleId)
+    [DataRow("RH5113")]
+    [DataRow("RH5308")]
+    [DataRow("RH5417")]
+    [DataRow("RH6023")]
+    [DataRow("RH6024")]
+    [DataRow("RH7110")]
+    [DataRow("RH7308")]
+    [DataRow("RH7309")]
+    [DataRow("RH7310")]
+    [DataRow("RH7311")]
+    [DataRow("RH7409")]
+    [DataRow("RH7410")]
+    [DataRow("RH7411")]
+    [DataRow("RH7412")]
+    public void ReleaseRulesetReportsRuleAsError(string ruleId)
     {
         // Act
         var entries = LoadReihitsuEntries(ReleaseRuleset);
@@ -114,6 +178,19 @@ public sealed class RulesetTests
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Gets the IDs of every rule the analyzer assembly ships
+    /// </summary>
+    /// <returns>The shipped rule IDs</returns>
+    private static HashSet<string> GetShippedRuleIds()
+    {
+        return AnalyzerCatalog.DiscoverAnalyzerTypes()
+                              .Select(type => (DiagnosticAnalyzer)Activator.CreateInstance(type))
+                              .SelectMany(analyzer => analyzer.SupportedDiagnostics)
+                              .Select(descriptor => descriptor.Id)
+                              .ToHashSet(StringComparer.Ordinal);
+    }
 
     /// <summary>
     /// Loads the entries a ruleset at the repository root lists for the Reihitsu analyzer
