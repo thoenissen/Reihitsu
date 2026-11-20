@@ -15,12 +15,15 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Change doc although no requirement changes? | Keep it | Diagnostic and code-fix text are visible output; the change doc records the decision | Internal: process artifact | 2523a56 |
+| 2 | Skeptic | Issue goal "update localized resources" | Drop | No localized resources exist | Nothing to change | — |
+| 3 | Skeptic | Rename `...FirstCall...` types? | Keep names | Provider type name is the equivalence key; no benefit | Type names are internal | — |
 
 ## Follow-up candidates
 
-(none yet)
+- RH5201 ("Method chains should be aligned.", fix "Align method chain") reports call-less chains too; same wording problem. Carry the output question; skeptic recommends "Member-access chains should be aligned." / "Align member-access chain". Source: 02-skeptic.md
 
 ## State
 
-- Last step: claim, lane, prepare.
-- Next: spawn spec author.
+- Last step: spec author (2523a56), skeptic (ad95a49, proceed). Lane check confirmed.
+- Next: output-question batch 1 (title/message RH5112, RH5048; RH5112 fix title; rule-page body text; RH5048 "Why" wording) — waiting for maintainer. Then route answers to spec author, then test implementer.
