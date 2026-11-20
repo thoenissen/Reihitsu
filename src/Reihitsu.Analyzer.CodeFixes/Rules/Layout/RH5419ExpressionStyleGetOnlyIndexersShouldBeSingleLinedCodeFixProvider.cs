@@ -61,52 +61,30 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedCodeFixProvi
 
     /// <summary>
     /// Puts the parameter list of an indexer on one line (RH5419-003): every gap between two tokens from its <c>[</c> through
-    /// its <c>]</c> that holds a line break loses its line breaks together with the whitespace around them, and keeps only the
-    /// minimal separator a join of the formatter writes (FMT-BREAK-031). Such a gap holds nothing but whitespace and
-    /// line breaks, because the fix is withheld for a parameter list on several lines that holds a comment, a directive, or
-    /// disabled text (<see cref="HoldsCommentDirectiveOrDisabledTextInWrappedParameterList"/>). The formatter spaces the
-    /// joined tokens afterwards
+    /// its <c>]</c> that holds a line break is joined by the formatter's shared gap join, which removes the line breaks and
+    /// the whitespace around them and writes only the minimal separator (FMT-BREAK-031). Such a gap holds nothing but
+    /// whitespace and line breaks, because the fix is withheld for a parameter list on several lines that holds a comment,
+    /// a directive, or disabled text (<see cref="HoldsCommentDirectiveOrDisabledTextInWrappedParameterList"/>). The
+    /// formatter spaces the joined tokens afterwards
     /// </summary>
     /// <param name="indexerDeclaration">Indexer declaration</param>
     /// <returns>The indexer declaration with its parameter list on one line</returns>
     private static IndexerDeclarationSyntax JoinParameterList(IndexerDeclarationSyntax indexerDeclaration)
     {
-        var openBracket = indexerDeclaration.ParameterList.OpenBracketToken;
         var closeBracket = indexerDeclaration.ParameterList.CloseBracketToken;
-        var joinedGaps = new HashSet<SyntaxToken>();
+        var gaps = new List<(SyntaxToken PreviousToken, SyntaxToken Token)>();
 
-        // Each joined gap is recorded by the token in front of it
-        for (var token = openBracket; token != closeBracket; token = token.GetNextToken())
+        for (var token = indexerDeclaration.ParameterList.OpenBracketToken; token != closeBracket; token = token.GetNextToken())
         {
             var nextToken = token.GetNextToken();
 
-            if (token.TrailingTrivia.Concat(nextToken.LeadingTrivia).Any(obj => obj.IsKind(SyntaxKind.EndOfLineTrivia)))
+            if (TokenGapAnalysis.Between(token, nextToken).HasLineBreak)
             {
-                joinedGaps.Add(token);
+                gaps.Add((token, nextToken));
             }
         }
 
-        if (joinedGaps.Count == 0)
-        {
-            return indexerDeclaration;
-        }
-
-        var tokens = joinedGaps.Concat(joinedGaps.Select(obj => obj.GetNextToken())).Distinct();
-
-        return indexerDeclaration.ReplaceTokens(tokens,
-                                                (original, rewritten) =>
-                                                {
-                                                    if (joinedGaps.Contains(original))
-                                                    {
-                                                        rewritten = rewritten.WithTrailingTrivia();
-                                                    }
-
-                                                    var previousToken = original.GetPreviousToken();
-
-                                                    return joinedGaps.Contains(previousToken)
-                                                               ? rewritten.WithLeadingTrivia(LineBreakTriviaUtilities.CreateJoinSeparator(previousToken, original))
-                                                               : rewritten;
-                                                });
+        return LineBreakTriviaUtilities.JoinGaps(indexerDeclaration, gaps);
     }
 
     /// <summary>
@@ -140,9 +118,11 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedCodeFixProvi
 
     /// <summary>
     /// Determines whether formatting the indexer with its parameter list joined completes the fix (RH5419-003, RH5419-004):
-    /// the formatter puts the indexer's code from the <c>[</c> of its parameter list through its <c>;</c> on one line, and it
-    /// neither inserts nor removes a blank line in the gap behind each attribute list as written. The code in front of the
-    /// <c>[</c>, such as a comment between <c>this</c> and the <c>[</c>, does not count
+    /// the formatter puts the indexer's code from the first token behind its attribute lists through its <c>;</c> on one
+    /// line, and it neither inserts nor removes a blank line in the gap behind each attribute list as written. A comment, a
+    /// directive, or disabled text in front of the <c>[</c> that keeps a line break, such as a line comment behind
+    /// <c>this</c>, therefore withholds the fix; the leading trivia of that first token and the attribute lists are not
+    /// measured
     /// </summary>
     /// <param name="root">Syntax root of the document that contains the indexer</param>
     /// <param name="indexerDeclaration">Indexer declaration</param>
@@ -159,12 +139,16 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedCodeFixProvi
             return false;
         }
 
+        var firstToken = formatted.AttributeLists.Count > 0
+                             ? formatted.AttributeLists.Last().GetLastToken().GetNextToken()
+                             : formatted.GetFirstToken();
         var text = formatted.ToFullString();
-        var start = formatted.ParameterList.OpenBracketToken.SpanStart - formatted.FullSpan.Start;
+        var start = firstToken.SpanStart - formatted.FullSpan.Start;
         var end = formatted.SemicolonToken.Span.End - formatted.FullSpan.Start;
 
-        // A literal that spans lines inside the parameter list, or an expression the formatter keeps on several lines, leaves
-        // the indexer on several lines, so the fix cannot put it on one line and is not offered
+        // A literal that spans lines inside the parameter list, an expression the formatter keeps on several lines, or a
+        // comment, a directive, or disabled text in front of the [ that keeps a line break leaves the indexer on several
+        // lines, so the fix cannot put it on one line and is not offered
         if (text.IndexOf('\n', start, end - start) >= 0)
         {
             return false;
