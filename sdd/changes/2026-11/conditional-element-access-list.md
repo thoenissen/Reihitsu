@@ -139,7 +139,7 @@ class C
 
 Before: `c?[1,⏎2]` and the list behind `c?` in `j` are not reported; `e?[0][1,⏎2]` is reported on `[0][1,⏎2]` and fixed to `e?[0][1, 2]`.
 
-After (location per the open output question in the run's handover; recommended: the element binding, which is the bracketed list):
+After (reported on the element binding, from `[` through `]`, as decided under *Report the list on its brackets*):
 
 ```csharp
 class C
