@@ -48,5 +48,6 @@
 - Spec checker re-run consistent (10-spec-checker.md, 55e4af0). Build green. Auditor spawned on head 55e4af0, main 31d2931 (11-auditor.md).
 - Auditor (11-auditor.md, 861011f) audited 57a8dea: findings. #1 fix offered with comment/directive between `this` and `[` leaves two lines -> rare class, refuse (withhold fix): spec author amends RH5419-004, test implementer flips 2 tests + adds directive/one-line-list cases, implementer measures one-line check from first token after attribute lists. #2 FC-015 JoinParameterList copies LineBreakTriviaUtilities.JoinGaps / TokenGapAnalysis.HasLineBreak -> implementer reuses them. README Formatter ✔ kept (decision 7).
 - Round 2: spec author done (12-spec-author.md, 2b019eb).
+- Round 2: test implementer done (13-test-implementer.md, 668497b), 12 expected failures.
 - Repair round 2 of 3: spec author (12) -> test implementer (13) -> implementer (14) -> cleaner (15) -> spec checker (16) -> auditor (17, repair only) -> validator.
 - Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
