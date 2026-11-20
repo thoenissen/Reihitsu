@@ -7,7 +7,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5112: Wrapped fluent calls should keep the first call on the original line
+/// RH5112: Wrapped chains should keep the first member access on the original line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer : FluentChainAnalyzerBase
