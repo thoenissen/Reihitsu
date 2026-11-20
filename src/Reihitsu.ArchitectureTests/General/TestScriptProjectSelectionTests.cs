@@ -224,10 +224,11 @@ public sealed class TestScriptProjectSelectionTests
 
         Assert.IsTrue(loop.Success, "Could not locate the SonarCloud test loop.");
 
-        return loop.Groups["names"].Value
-                   .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                   .Select(name => $"src/{name}/{name}.csproj")
-                   .ToArray();
+        var names = loop.Groups["names"].Value;
+
+        return names.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(name => $"src/{name}/{name}.csproj")
+                    .ToArray();
     }
 
     /// <summary>

@@ -38,8 +38,9 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
     /// <returns>The trivia that ends that line, or a trivia of kind <see cref="SyntaxKind.None"/> when no line break outside a comment stands in the gap</returns>
     private static SyntaxTrivia FindLineEndingTrivia(BreakStatementSyntax breakStatement, SyntaxToken nextToken)
     {
-        return breakStatement.SemicolonToken.TrailingTrivia
-                             .Concat(nextToken.LeadingTrivia)
+        var trailingTrivia = breakStatement.SemicolonToken.TrailingTrivia;
+
+        return trailingTrivia.Concat(nextToken.LeadingTrivia)
                              .FirstOrDefault(SyntaxTriviaUtilities.EndsLine);
     }
 

@@ -1553,6 +1553,40 @@ class C
 }
 ```
 
+and a chain whose first wrapped link continues a prefix of property reads aligns to the last of them, with or without a later call:
+
+```csharp
+class C
+{
+    int[] Items = new int[0];
+
+    object M(dynamic order)
+    {
+        var s = this.Items.Length
+            .ToString();
+
+        return order.Customer.Address
+            .City;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int[] Items = new int[0];
+
+    object M(dynamic order)
+    {
+        var s = this.Items.Length
+                          .ToString();
+
+        return order.Customer.Address
+                             .City;
+    }
+}
+```
+
 ### FMT-INDENT-030 — Anchors are measured at their final column
 
 Every alignment above MUST be computed from the column its anchor token has after this phase, not from the column it had in the input: when the line of an anchor moves, everything aligned to it MUST move with it, through any number of nested constructs. This holds also when the anchor's line is a line that a multi-line raw string literal moves — its closing line, or a line inside one of its interpolation holes: the anchor is measured after the literal moved (FMT-RAW-001, FMT-RAW-007), which happens in this phase.
