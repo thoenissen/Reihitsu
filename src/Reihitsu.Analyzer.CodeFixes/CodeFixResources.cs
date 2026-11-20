@@ -1178,6 +1178,16 @@ internal static class CodeFixResources
     /// </summary>
     internal static string RH5114Title => GetString(nameof(RH5114Title));
 
+    /// <summary>
+    /// Localized string for RH5115Title
+    /// </summary>
+    internal static string RH5115Title => GetString(nameof(RH5115Title));
+
+    /// <summary>
+    /// Localized string for RH5116Title
+    /// </summary>
+    internal static string RH5116Title => GetString(nameof(RH5116Title));
+
     #endregion // Properties
 
     #region Methods

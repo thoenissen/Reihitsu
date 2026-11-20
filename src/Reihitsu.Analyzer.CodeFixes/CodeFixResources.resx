@@ -813,4 +813,10 @@
   <data name="RH5114Title" xml:space="preserve">
     <value>Move using directive to a new line</value>
   </data>
+  <data name="RH5115Title" xml:space="preserve">
+    <value>Move index access onto the line of its expression</value>
+  </data>
+  <data name="RH5116Title" xml:space="preserve">
+    <value>Move null-forgiving operator onto the line of its expression</value>
+  </data>
 </root>

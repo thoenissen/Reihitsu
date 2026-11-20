@@ -7,13 +7,13 @@
 | Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | Uses | FMT-PIPE-002, FMT-PIPE-017, SHARED-BLANK-008, SHARED-COMMENT-012, SHARED-FIX-006, SHARED-FIX-007 |
 
-This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112 and RH5201 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
+This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112, RH5201, RH5115, and RH5116 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 
 ## Non-goals
 
 - Deciding when a chain is too long. Neither surface wraps a chain the author wrote on one line.
 - Comments between later links of a wrapped chain — only a comment in front of the first link has a rule.
-- How the formatter rejoins a member name split from its dot or an attached part split from its element — that is formatter-only layout, specified in FMT-BREAK.
+- How the formatter rejoins a member name split from its dot or an attached part split from its element — specified in FMT-BREAK; RH5115 reports an element access or a conditional element access split from its element, and RH5116 a null-forgiving operator.
 
 ## Requirements
 
