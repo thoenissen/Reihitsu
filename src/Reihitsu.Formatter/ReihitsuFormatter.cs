@@ -254,9 +254,10 @@ public static class ReihitsuFormatter
     }
 
     /// <summary>
-    /// Formats a target node using a containing node for positional context, then rewrites only the
-    /// target node back into the document. This is useful when the formatter phases need the code of the
-    /// context around the target to lay the target out
+    /// Formats a target node inside a containing node, then rewrites only the target node back into the document. The
+    /// formatter phases format the containing node, so the target is laid out in the code around it, which is useful when
+    /// the phases need that code to lay the target out; the containing node decides no column of the target's first
+    /// token, which keeps its line and its column in the document (FMT-PIPE-017, FMT-PIPE-018)
     /// </summary>
     /// <param name="document">The Roslyn Document containing both nodes</param>
     /// <param name="targetNode">The syntax node whose formatted result should be applied</param>

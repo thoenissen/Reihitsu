@@ -65,7 +65,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
     }
 
     /// <summary>
-    /// Gets the containing node whose tokens provide positional context while formatting. An assignment behind a
+    /// Gets the containing node handed to the formatter as the code around the formatting node. An assignment behind a
     /// conditional access's <c>?</c> continues the chain that starts at the root in front of the <c>?</c>, so the
     /// column of its wrapped links and whether its first link joins the root are decided by the whole chain, and the
     /// chain's outermost node is its context (RH5111-006); any other assignment is its own context
