@@ -25,5 +25,5 @@
 
 ## State
 
-- Last step: claim, draft PR #1897, prepare.sh green.
-- Next: spec author (01).
+- Last step: spec author 01 (commit 196829de, change doc Draft; both premises reproduce; output questions 1 and 2 drafted, spec written on 1A/2A). Lane check confirmed.
+- Next: skeptic (02), then output-question batch to the maintainer before the test implementer.
