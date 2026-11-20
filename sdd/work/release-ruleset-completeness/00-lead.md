@@ -19,6 +19,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Test implementer | Is RH7305A exempt from the completeness test, or listed in `Release.ruleset` as `None`? | Keep it on the commented exemption list | RH7305A is the alternative to RH7305, which Release enables; the exemption list is what the issue asked for, and the exemption test keeps it from going stale | Repository build configuration and tests only; no shipped surface changes | 403719dd |
+| 2 | Test implementer | Merge the 14 new error checks into the existing per-rule error test (renamed `ReleaseRulesetReportsRuleAsError`) | Accept | S4144 forbids two identical methods; nothing else uses the old name | Test structure only | 403719dd |
 
 ## Follow-up candidates
 
@@ -27,5 +29,5 @@
 ## State
 
 - Audited SHA: —
-- Last step finished: claim, draft PR #1899, prepare.sh green (SDK 11.0.100 installed).
-- Next step: spawn the test implementer.
+- Last step finished: test implementer — reproduced (01-test-implementer.md): the 14 rules of the triage list are missing; RH5115/RH5116 present.
+- Next step: implementer.
