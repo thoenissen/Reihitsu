@@ -25,7 +25,7 @@ None yet.
 
 ## Follow-up candidates
 
-- (01-skeptic.md) CLI: a very deep spine (6400-link chain, 16 000 concatenation terms) overflows the stack in `LayoutComputer.ComputeBlockIndentation`, killing the CLI process (exit 134, later files unprocessed, no summary), while a deeper input (32 000 terms) is reported per file with exit 2. Visible CLI behavior, outside the run's issue: file as a follow-up carrying the output question in 01-skeptic.md (recommended there: report the file as an error and continue).
+- (01-skeptic.md) CLI: a very deep spine (6400-link chain, 16 000 concatenation terms) overflows the stack in `LayoutComputer.ComputeBlockIndentation`, killing the CLI process (exit 134, later files unprocessed, no summary), while a deeper input (32 000 terms) is reported per file with exit 2. Visible CLI behavior, outside the run's issue: file as a follow-up carrying the output question in 01-skeptic.md (recommended there: report the file as an error and continue). Filed as thoenissen/Reihitsu#1887 (12-issue-manager.md).
 
 ## Open worklist / next step
 
