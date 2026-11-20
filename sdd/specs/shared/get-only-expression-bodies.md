@@ -13,7 +13,7 @@ This spec covers what the rules share that report a get-only member whose access
 
 - Which kind of member a rule reports — the rule's own spec: RH3209 for properties, RH3210 for indexers.
 - Block-bodied accessors in an accessor list that holds more than a getter, which the formatter converts to expression-bodied accessors (FMT-STRUCT-009). No rule reports them.
-- Expression-bodied properties and indexers. They already have the form the rules ask for and stay expression-bodied (FMT-STRUCT-008); where their arrow wraps is RH5401's.
+- Expression-bodied properties and indexers. They already have the form the rules ask for and stay expression-bodied (FMT-STRUCT-008); where their arrow wraps is RH5401's for properties and RH5419's for indexers.
 - Expression-bodied methods, constructors, operators, conversion operators, finalizers, and local functions — SHARED-BODY.
 - How the formatter converts a get-only member in a document — FMT-STRUCT-014 and FMT-STRUCT-015.
 
