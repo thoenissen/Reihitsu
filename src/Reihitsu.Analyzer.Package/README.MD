@@ -157,7 +157,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5045](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5045.md)| Comments must not be placed inside a conditional expression.| ✔| ❌| ❌|
 | [RH5046](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5046.md)| Comments must not be placed inside a type parameter, type argument or tuple list.| ✔| ❌| ❌|
 | [RH5047](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5047.md)| Comments must not be placed inside an auto-property accessor list.| ✔| ❌| ❌|
-| [RH5048](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5048.md)| Comments must not be placed before the first call of a wrapped chain.| ✔| ❌| ❌|
+| [RH5048](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5048.md)| Comments must not be placed before the first member access of a wrapped chain.| ✔| ❌| ❌|
 | [RH5049](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5049.md)| Comments must not be placed after a binary operator.| ✔| ❌| ❌|
 | [RH5101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5101.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
 | [RH5102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5102.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
@@ -170,7 +170,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5109.md)| Parameters must be on same line or separate lines.| ✔| ✔| ✔|
 | [RH5110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5110.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
 | [RH5111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5111.md)| Assignments must have proper line breaks.| ✔| ✔| ✔|
-| [RH5112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5112.md)| Wrapped fluent calls should keep the first call on the original line.| ✔| ✔| ✔|
+| [RH5112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5112.md)| Wrapped chains should keep the first member access on the original line.| ✔| ✔| ✔|
 | [RH5113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5113.md)| Declaration semicolon must stay on the declaration line.| ✔| ✔| ✔|
 | [RH5114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5114.md)| Using directives must be placed on separate lines.| ✔| ✔| ✔|
 | [RH5115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5115.md)| Index access must stay on the line of its expression.| ✔| ✔| ✔|

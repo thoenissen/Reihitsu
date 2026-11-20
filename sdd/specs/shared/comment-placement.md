@@ -14,7 +14,7 @@ It also states, for the rules that list them under `Uses`, which comments are or
 ## Non-goals
 
 - Which positions or regions a rule checks, and its own exceptions — each rule's spec.
-- A comment before the first call of a wrapped fluent chain — RH5048 and SHARED-CHAIN.
+- A comment before the first member access of a wrapped chain — RH5048 and SHARED-CHAIN.
 - Comments next to a token the parser inserted for a syntax error.
 - Moving a comment. The rules that report a comment in a position have no code fix; only the author can decide what a comment refers to.
 
