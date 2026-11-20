@@ -78,17 +78,17 @@ public class RuleDocumentationExampleTests
         var resultsByDiagnosticId = _results.ToDictionary(result => result.Example.DiagnosticId, StringComparer.Ordinal);
 
         var nowPassing = RuleDocumentationExampleOptOuts.Reasons.Keys
-                                                        .Where(diagnosticId => resultsByDiagnosticId.TryGetValue(diagnosticId, out var result)
-                                                                               && result.Outcome == RuleDocumentationExampleOutcome.Passed)
-                                                        .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
-                                                        .ToArray();
+                                                                .Where(diagnosticId => resultsByDiagnosticId.TryGetValue(diagnosticId, out var result)
+                                                                                       && result.Outcome == RuleDocumentationExampleOutcome.Passed)
+                                                                .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
+                                                                .ToArray();
 
         Assert.IsEmpty(nowPassing, $"The following rule documents are opted out but now pass verification; remove them from {nameof(RuleDocumentationExampleOptOuts)}.{nameof(RuleDocumentationExampleOptOuts.Reasons)}:{Environment.NewLine}{string.Join(Environment.NewLine, nowPassing)}");
 
         var unknownOptOuts = RuleDocumentationExampleOptOuts.Reasons.Keys
-                                                            .Where(diagnosticId => resultsByDiagnosticId.ContainsKey(diagnosticId) == false)
-                                                            .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
-                                                            .ToArray();
+                                                                    .Where(diagnosticId => resultsByDiagnosticId.ContainsKey(diagnosticId) == false)
+                                                                    .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
+                                                                    .ToArray();
 
         Assert.IsEmpty(unknownOptOuts, $"The following opt-out entries do not match any discovered rule document:{Environment.NewLine}{string.Join(Environment.NewLine, unknownOptOuts)}");
     }

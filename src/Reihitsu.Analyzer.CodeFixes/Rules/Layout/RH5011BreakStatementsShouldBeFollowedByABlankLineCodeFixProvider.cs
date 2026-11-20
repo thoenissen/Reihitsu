@@ -39,8 +39,8 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
     private static SyntaxTrivia FindLineEndingTrivia(BreakStatementSyntax breakStatement, SyntaxToken nextToken)
     {
         return breakStatement.SemicolonToken.TrailingTrivia
-                             .Concat(nextToken.LeadingTrivia)
-                             .FirstOrDefault(SyntaxTriviaUtilities.EndsLine);
+                                            .Concat(nextToken.LeadingTrivia)
+                                            .FirstOrDefault(SyntaxTriviaUtilities.EndsLine);
     }
 
     /// <summary>

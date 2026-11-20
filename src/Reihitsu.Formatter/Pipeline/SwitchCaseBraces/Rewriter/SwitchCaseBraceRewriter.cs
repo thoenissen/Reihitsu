@@ -353,8 +353,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         return statement switch
                {
                    LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Declaration.Variables
-                                                                                       .Select(variable => variable.Identifier.ValueText)
-                                                                                       .Concat(GetDesignatedNames(localDeclaration.Declaration)),
+                                                                                                   .Select(variable => variable.Identifier.ValueText)
+                                                                                                   .Concat(GetDesignatedNames(localDeclaration.Declaration)),
                    LocalFunctionStatementSyntax localFunction => [localFunction.Identifier.ValueText],
                    ExpressionStatementSyntax expressionStatement => GetDesignatedNames(expressionStatement.Expression),
                    ReturnStatementSyntax { Expression: not null } returnStatement => GetDesignatedNames(returnStatement.Expression),
