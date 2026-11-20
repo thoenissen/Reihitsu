@@ -32,5 +32,6 @@ Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
 - Last step finished: claim, toolchain prepared.
 - Last step finished: skeptic (proceed), handover 02-skeptic.md.
 - Batch 1 answered. Spec amendment done (03-spec-author.md, change doc Accepted).
-- Next: test implementer.
+- Test implementer done (04-test-implementer.md, ce21c7d).
+- Next: implementer.
 - Next (was: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
