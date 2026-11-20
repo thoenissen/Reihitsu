@@ -1621,7 +1621,7 @@ The accessor bodies of `R` become expression bodies by FMT-STRUCT-009.
 
 The `=>` of an expression-bodied property or indexer and the start of its expression MUST be on the line of the declaration. The phase joins them with the separator of FMT-BREAK-031 and writes no other whitespace around the arrow, also where it joins nothing; the arrow is spaced by FMT-SPACE-017.
 
-Why: An expression-bodied property is a one-line declaration by intent (FMT-STRUCT-014 creates them from get-only properties); a wrapped arrow makes it look like a statement. RH5401 reports the same shape. The arrow of a property is spaced like every other arrow, so its spacing is not this phase's.
+Why: An expression-bodied property is a one-line declaration by intent (FMT-STRUCT-014 creates them from get-only properties); a wrapped arrow makes it look like a statement. RH5401 reports the same shape for properties, RH5419 for indexers. The arrow of a property is spaced like every other arrow, so its spacing is not this phase's.
 
 Example:
 
