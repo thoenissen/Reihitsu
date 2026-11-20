@@ -51,4 +51,5 @@
 - Spec checker 10 (c8ab4a15): consistent. main 725ea151, branch up to date; build.sh green.
 - main moved to 423c1a44 (ruleset only), merged; build green.
 - Auditor 11 (a18edee7): pass, text cleanup; **audited SHA 82d818ae6ce4bd7ab01f45ea09e307ae2973363b**.
-- Now: spec author (12) text repair (decision 10); verify-text-only vs 82d818ae; spec checker (13); then validator, issue manager, publish.
+- Spec author 12 (75d9ebda) text repair; verify-text-only PASS vs 82d818ae (no second audit); spec checker 13 (370dacdd) consistent.
+- Now: validator (14); then issue manager (1 follow-up candidate), note, publish.
