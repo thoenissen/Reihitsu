@@ -10,6 +10,8 @@
 
 ## Maintainer answers
 
+- Batch 2, Q1 (block comment inside a one-line parameter list, `int this[short a /* c */]\n    => a;`): **A** — fix offered, gives `int this[short a /* c */] => a;`. Spec and change doc already written on A; nothing to route.
+
 - Batch 1, Q1 (rule as specified: reports, fix-withheld cases, title, rule page example): **A**.
 - Batch 1, Q2 (wrapped parameter list): neither A nor B — maintainer says the parameter list should not be wrapped, the indexer should be single line. Unclear which cases (does the rule report a wrapped parameter list when the arrow is already on the `]` line? does the formatter change?) — asked back (Q2 follow-up, options 2C/2D).
 - Batch 1, Q2 follow-up: **D**. The rule also reports an expression-bodied indexer whose parameter list spans several lines, also when the arrow already stands on the `]` line (`int this[byte a,\n byte b] => a;` is reported). The fix joins the whole declaration onto one line (`int this[byte a, byte b] => a;`), and is withheld when a comment or directive sits inside the parameter list. The maintainer added: the formatter may be changed in this run if the fix needs it; otherwise the formatter joining indexer parameter lists is a follow-up.
@@ -18,6 +20,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 5 | Repair round 1 | Re-run cleaner after the ruleset-only repair? | Skipped | The repair touched only `Release.ruleset` (XML, no C#); nothing for the formatter or the Release build to clean beyond what the implementer's build showed | Internal process step | 90e48de |
 | 4 | Implementer | Shared `AttributeListCodeFixUtilities` used by RH5401 and RH5419 | Accepted | Moves RH5401's guard instead of copying it (avoids FC-015 two owners); ~89 of ~120 lines moved; part of the issue's own fix, not escalation 9 | RH5401 behavior unchanged, its tests pass | b3265ac |
 | 3 | Spec author follow-up | Change the formatter in this run? | No; the fix joins the parameter list itself, formatter join stays a follow-up | Maintainer allowed a formatter change only if the fix needs it; it does not (formatter keeps a one-line list, FMT-BREAK-012) | Maintainer answer covers it | 65f3e42 |
 | 2 | Skeptic | Skeptic's two follow-up candidates (`this`/`[` split; comment/#if in indexer parameter list) | Dropped | Rare input classes; the first is decided unreported by RH5108's non-goal | Not filed; formatter output unchanged | — |
@@ -39,5 +42,5 @@
 - Cleaner clean (07-cleaner.md, 0579d84).
 - Spec checker (08-spec-checker.md, 3fca7b3): findings — (1) Release.ruleset lacks RH5419 entry -> implementer repair (09-implementer.md); (2) change-doc item 5 awaits batch-2 answer.
 - Ruleset repaired (09-implementer.md, 90e48de). Repair round 1 of 3 (spec checker findings).
-- Batch 2 output question posted (block comment in one-line parameter list). WAITING.
+- Batch 2 output question posted (block comment in one-line parameter list). Answered 1A.
 - Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
