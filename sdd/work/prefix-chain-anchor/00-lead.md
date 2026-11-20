@@ -10,7 +10,10 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), answer "as recommended" = 1A, 2A, 3A:
+- 1A: a wrapped link after a prefix of property reads aligns under the last link in front of the first wrapped link (`x.Items.Length` ⏎ `.ToString()` under `.Length`); also later prefix wraps and conditional links (`d`, `g` examples); RH5201 reports/fixes accordingly, RH5112/RH5111 fixes write those columns, rule page updated.
+- 2A: a chain without any call follows the same rule (`order.Customer.Address` ⏎ `.City` under `.Address`).
+- 3A: code reading of "starts a line" — a line break inside the text of a delimited comment does not count; `x.Next /* c` ⏎ `*/ .Next` ⏎ `.Self()` puts `.Self()` under the `.` of the `.Next` behind `*/`.
 
 ## Decisions taken
 
@@ -27,4 +30,5 @@
 
 - Last step finished: claim, toolchain prepared.
 - Last step finished: skeptic (proceed), handover 02-skeptic.md.
-- Next: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
+- Batch 1 answered.
+- Next (was: output-question batch 1 sent to maintainer (Q1 prefix call, Q2 call-less chain, Q3 `*/` reading); wait; then spec author amendment (RH5112-003, RH5201-002 Why, Q3 wording, Status Accepted), then test implementer.
