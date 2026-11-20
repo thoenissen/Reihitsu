@@ -20,6 +20,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 8 | Repair round 2 | Run the cleaner after the implementer's repair? | Skipped | The implementer's handover shows `scripts/format.sh` changed nothing on the provider and the Release build has 0 warnings — the cleaner's two checks | Internal process step | 381f12c |
 | 7 | Audit 1 | Package README Formatter column ✔ for RH5419 although the formatter keeps a wrapped parameter list | Keep ✔ | Same convention as RH5111, which also carries an SHARED-DIAG-010 exception and ✔; the formatter clears the arrow part | README column is not a rule page or diagnostic; convention unchanged | — |
 | 6 | Audit 1 | Fix offered when a comment/directive between `this` and `[` keeps the `[` on its own line | Refuse the class: withhold the fix | Rare input class (comment between `this` and `[`), AGENTS.md Code-fix coverage; the maintainer's D asked for one line, which the fix cannot give here | Withholding for a rare class puts nothing in question | (round 2) |
 | 5 | Repair round 1 | Re-run cleaner after the ruleset-only repair? | Skipped | The repair touched only `Release.ruleset` (XML, no C#); nothing for the formatter or the Release build to clean beyond what the implementer's build showed | Internal process step | 90e48de |
@@ -49,5 +50,6 @@
 - Auditor (11-auditor.md, 861011f) audited 57a8dea: findings. #1 fix offered with comment/directive between `this` and `[` leaves two lines -> rare class, refuse (withhold fix): spec author amends RH5419-004, test implementer flips 2 tests + adds directive/one-line-list cases, implementer measures one-line check from first token after attribute lists. #2 FC-015 JoinParameterList copies LineBreakTriviaUtilities.JoinGaps / TokenGapAnalysis.HasLineBreak -> implementer reuses them. README Formatter ✔ kept (decision 7).
 - Round 2: spec author done (12-spec-author.md, 2b019eb).
 - Round 2: test implementer done (13-test-implementer.md, 668497b), 12 expected failures.
+- Round 2: implementer done (14-implementer.md, 381f12c/689e2e0): tests pass, full analyzer 11371/11371, Release 0 warnings, format.sh no change. Cleaner skipped (decision 8). Next: spec checker (15), auditor (16, repair only), validator (17).
 - Repair round 2 of 3: spec author (12) -> test implementer (13) -> implementer (14) -> cleaner (15) -> spec checker (16) -> auditor (17, repair only) -> validator.
 - Next (old): spec checker (08), batch-2 output question, auditor, validator. Next: route answers to spec author (status Accepted), then test implementer.
