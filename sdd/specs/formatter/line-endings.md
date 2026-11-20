@@ -7,7 +7,7 @@
 | Code owners | `LineEndingNormalizationPhase` |
 | Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-007, FMT-PIPE-019 |
 
-This spec covers `LineEndingNormalizationPhase`, the LineEndings sub-phase that the preparation phase runs after TabReplacement and before every other phase (FMT-PIPE-001): it rewrites every line break that is not the file's detected line ending (FMT-PIPE-007) — in code, in directives, and in documentation comments — and leaves the line breaks inside literals alone.
+This spec covers `LineEndingNormalizationPhase`, the LineEndings sub-phase that the preparation phase runs after TabReplacement and before every other phase (FMT-PIPE-001): it rewrites every line break that is not the file's detected line ending (FMT-PIPE-007) — in code, in directives, and in documentation comments — and leaves the line breaks inside literals alone. The rewrite itself is `LineEndingUtilities`, which the RH5604 code fix runs too, so the formatter and the fix rewrite the same line breaks; that type is a code owner of the pipeline spec, because it also detects the line ending (FMT-PIPE-007), and a type is a code owner of one spec only.
 
 ## Non-goals
 
