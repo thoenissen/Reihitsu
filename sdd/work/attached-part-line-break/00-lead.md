@@ -23,6 +23,8 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 | 2 | Skeptic (02) | Issue goal "use `FluentChain.AttachedParts`" and the stale formatter-owner reference | Replace with the moved predicate; the fix decides chain layout vs. plain join by `FluentChain.Create(...).Links.Count > 0` | `FluentChain` folds the `!` of `x!?[0]` differently from the join | Internal | — |
 | 3 | Spec author (03) | Keep the RH5116 page sentence that a `!` directly in front of `.` or `?.` is not reported? | Keep | It states the rule's scope, as RH5105's page states what is outside its rule; it is not a list of corner cases or withheld fixes | Scope decided by answers 1A/4A; the sentence describes it | d24a646 |
 | 4 | Implementer (05) | New shared type `AttachedPartLineBreakCodeFixProviderBase` beyond the specs' four types | Accept | It is the issue's own fix shared by two thin providers; without it the two providers would copy the same logic. Not a structural change under escalation 9 | Internal structure | d86230e |
+| 5 | Auditor (08) | Hints: share RH5115's `StartsLaterLine` with RH5116; add a test for a multi-line `/* */` in the gap | Not taken | Not findings; both match the specs, and a compiled change after a passing audit would need a re-audit for no defect | Internal | — |
+| 6 | Auditor (08) | RH5116 rule page example and `!.` sentence not shown verbatim to the maintainer | Name the RH5116 page under the PR's review notes | Follows from answers 4A (two rules) and 5A; reviewer can check it | Covered by answers | — |
 
 ## Follow-up candidates
 
@@ -39,5 +41,6 @@ An agent comment on the issue (2026-11-18) reports that, since the formatter cha
 - Cleaner 06 done (75b26fc): clean, Release build 0 warnings.
 - Spec checker 07 done (eb95cdc): consistent.
 - Before auditor: main 9a89c85 already merged, no open output questions, Release build green.
-- Next: auditor (08) on head eb95cdc + this note, main 9a89c85.
+- Auditor 08 pass (5c5f5b4) on audited SHA 8a333426dd61460dd10428a7d59b7a2401db6082, main 9a89c85.
+- Next: validator (09), then publish.
 - Next after answers: spec author (fresh) — apply answers, Q5 sentence in RH5115-004, set change doc Accepted; also the decided move of the predicate to Core goes to the implementer (spec author updates code owners if needed). Then test implementer.
