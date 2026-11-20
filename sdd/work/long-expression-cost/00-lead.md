@@ -31,4 +31,4 @@ None yet.
 
 - Audited SHA (audit 1): 5ca3c53 — verdict findings (2 medium, 1 low), handover 06-auditor.md.
 - Last step: auditor.
-- Open worklist (repair round 1): test implementer for findings 1 and 2 (07-test-implementer.md); cleaner for finding 3 (08-cleaner.md); then spec checker, auditor on the repair, validator.
+- Repair round 1: test implementer done (07, d7834e8/c85a543), cleaner done (08, 01d8b13). Next: spec checker (09), auditor on the repair (10), validator (11).
