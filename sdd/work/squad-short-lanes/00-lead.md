@@ -51,12 +51,13 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 | 23 | Auditor (round 1) | F2 widening row restates the lane rules and is wrong for a wording diff with a C# comment edit | Architecture finding: remove the restatement; `squad/lead.md` §4 row and the change doc point to `scripts/lane-check.sh` for the lane to widen to (one statement in `scripts/README.md`) | Narrow fix would keep a second statement of the rule | Process only | 0736a75 |
 | 24 | Auditor (round 1) | F1 fixture names a squad note; F3 spec-author wording proof source | Repair round 1: F1 to test implementer, F3 (+F2) to spec author | PR-introduced | Process/test only | 1ffb220, 0736a75 |
 | 25 | Auditor (repair audit) | F4 derived sentence after rule 5 overstates the proof (repeats class of F2) | Architecture finding: refuse by cause — delete the derived sentence from `scripts/README.md` and the change doc; rules 1–5 alone decide; no restatement or derivation elsewhere. Text cleanup, proven by `verify-text-only.sh --base 4982c76`; no new repair round | Any derived restatement can drift again; deleting it removes the class | Process only | a244cc1 |
+| 26 | Validator | RH2008 in `LaneCheckCommand.cs:178` (65 > 60 lines), self-hosting line-count row | Repair round 2: implementer; then cleaner, spec checker, auditor (repair only), validator. Strengthens follow-up candidate 2 (it was a production file) | PR-introduced | Tooling only | pending |
 | 17 | Skeptic | Accept change doc | Accept after the amendment; the amending spec author sets `Status: Accepted` | Skeptic ran; amendment follows | Process only | 75f9cbd |
 
 ## Follow-up candidates
 
 1. 21 test files quote a diagnostic message as a literal instead of `MessageFormat`; each pushes a wording change out of the wording lane. Cleanup, no visible change. (01-spec-author)
-2. The line-count self-hosting rows also apply to production files; widening the validator's trigger to any C# under `src/` would be a process question for the maintainer. (01-spec-author)
+2. The line-count self-hosting rows also apply to production files; widening the validator's trigger to any C# under `src/` would be a process question for the maintainer. (01-spec-author) Evidence: this run's own validator caught RH2008 in `src/Reihitsu.Tooling/LaneCheckCommand.cs` only because test files also changed (17-validator).
 
 ## State
 
@@ -67,5 +68,6 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 - Repair round 1 of 3: test implementer (F1) + spec author (F2, F3) in parallel; then cleaner, spec checker, auditor (repair only), validator.
 - Repair audit 3c2e24c: pass, text cleanup (audited SHA 4982c76).
 - Text cleanup a244cc1; TEXT-ONLY PROOF: PASS vs audited 4982c76, no second audit.
-- Next: validator, then note, publish.
+- Validator 3632402: FAIL, RH2008 on LaneCheckCommand.cs:178 (self-hosting line-count row).
+- Next: repair round 2 of 3.
 - PR must name decisions 11 and 16.
