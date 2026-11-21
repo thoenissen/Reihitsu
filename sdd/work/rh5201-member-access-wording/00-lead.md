@@ -30,5 +30,5 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## State
 
-- Last step: spec author done (8aed075, change doc Draft). Open output question for batch before test implementer: RH5201 rule page body wording (spec author's handover, recommended A).
-- Next: skeptic, then output-question batch.
+- Last step: skeptic proceed (7f40b46, 02-skeptic.md); change doc accepted by the lead (spec author sets Status: Accepted in its next follow-up). Output-question batch asked: Q1 RH5201 rule page body wording (A recommended).
+- Next: on the answer, spec author applies it and sets Accepted; then test implementer.
