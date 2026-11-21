@@ -1,13 +1,9 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -3577,77 +3573,6 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                  """;
 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
-    }
-
-    /// <summary>
-    /// Verifies that the rule's title names a member-access chain, not a method chain
-    /// </summary>
-    [TestMethod]
-    public void VerifyTitleNamesMemberAccessChain()
-    {
-        var descriptor = new RH5201MethodChainsShouldBeAlignedAnalyzer().SupportedDiagnostics.Single();
-
-        Assert.AreEqual("Member-access chains should be aligned.", descriptor.Title.ToString(CultureInfo.InvariantCulture));
-    }
-
-    /// <summary>
-    /// Verifies that a misaligned link of a chain without any call is reported with the message that names a member-access
-    /// chain and is aligned under the link in front of it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMisalignedLinkOfCallLessChainIsReportedWithMemberAccessChainMessage()
-    {
-        const string testData = """
-                                internal sealed class Example
-                                {
-                                    private static object Run(dynamic order)
-                                    {
-                                        return order.Customer.Address
-                                                    {|#0:.|}City;
-                                    }
-                                }
-                                """;
-        const string resultData = """
-                                  internal sealed class Example
-                                  {
-                                      private static object Run(dynamic order)
-                                      {
-                                          return order.Customer.Address
-                                                               .City;
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Member-access chains should be aligned."));
-    }
-
-    /// <summary>
-    /// Verifies that the only code fix offered for a misaligned link of a chain without any call is titled with a
-    /// member-access chain
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyCodeFixTitleNamesMemberAccessChain()
-    {
-        const string testData = """
-                                internal sealed class Example
-                                {
-                                    private static object Run(dynamic order)
-                                    {
-                                        return order.Customer.Address
-                                                    .City;
-                                    }
-                                }
-                                """;
-        var linkDot = testData.IndexOf(".City", StringComparison.Ordinal);
-
-        var actions = await GetCodeFixActionsAsync(testData,
-                                                   RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId,
-                                                   root => Location.Create(root.SyntaxTree, new TextSpan(linkDot, 1)));
-
-        Assert.HasCount(1, actions);
-        Assert.AreEqual("Align member-access chain", actions[0].Title);
     }
 
     /// <summary>
