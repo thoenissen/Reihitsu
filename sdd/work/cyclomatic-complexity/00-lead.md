@@ -1,7 +1,7 @@
 # Lead — cyclomatic-complexity
 
 - Issue: thoenissen/Reihitsu#352 — `agent-filed` (goals are proposals; the maintainer's clarifications below override the issue text)
-- Slug: `cyclomatic-complexity`
+- Slug: `cyclomatic-complexity` (kept as the run's slug although the metric is cognitive complexity, see Maintainer answers 1)
 - Branch: `claude/affectionate-allen-njaq9m` (session-designated); draft PR thoenissen/Reihitsu#1909
 - Lane: **behavior change / new rule** — the issue requests a new analyzer rule (new diagnostic, new rule page, new configuration settings).
 - Roles: spec author → skeptic → (concept presented to the maintainer, see below) → test implementer → implementer → cleaner → spec checker → auditor → validator. None skipped.
@@ -16,7 +16,7 @@
 
 ## Maintainer answers
 
-(none yet)
+1. Correction of clarification 2: the rule computes **cognitive complexity**, as the issue proposes — not cyclomatic. Default limit 15, configurability, the no-nesting exception, and the self-hosting handling stay as stated above.
 
 ## Decisions taken
 
