@@ -21,12 +21,12 @@ public sealed class LaneCheckCommandTests
                                           + "M\tsrc/Reihitsu.Analyzer.Package/README.MD\n";
 
     /// <summary>
-    /// Name-status lines of a wording diff with its change doc, spec, run note, and a comment edit in the analyzer
+    /// Name-status lines of a wording diff with its change doc, spec, a squad notes edit, and a comment edit in the analyzer
     /// </summary>
     private const string WordingChangesWithChangeDoc = WordingChanges
                                                        + "A\tsdd/changes/2026-11/rh5201-member-access-wording.md\n"
                                                        + "M\tsdd/specs/analyzer/RH5201.md\n"
-                                                       + "A\tsquad/notes/2026-11-21-rh5201-member-access-wording.md\n"
+                                                       + "M\tsquad/notes/README.md\n"
                                                        + "M\tsrc/Reihitsu.Analyzer/Rules/Layout/RH5201MethodChainsShouldBeAlignedAnalyzer.cs\n";
 
     #endregion // Constants
