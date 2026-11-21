@@ -115,6 +115,43 @@ public sealed class FluentChain
     public bool IsFirstLinkBlocked => Links.Count > 0
                                       && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(RootLastToken, FirstLink.OperatorToken);
 
+    /// <summary>
+    /// Whether the line the root ends on does not reach the first invoked link, which must then start its own line
+    /// (SHARED-CHAIN-005). This is the one statement of the rule for the formatter and RH5201. The root's line falls short
+    /// when a link between the chain's first link and the first invoked link starts a line or holds a line break between
+    /// its operator tokens that no comment, preprocessor directive or disabled text keeps there, or when a comment, a
+    /// preprocessor directive or disabled text keeps the chain's first link on its own line. A line break in front of the
+    /// first link that nothing keeps there, and one between the first link's own operator tokens, are joined, so they do
+    /// not count. <see langword="false"/> for a chain whose first link is its first invoked link or that has no invoked link
+    /// </summary>
+    public bool IsRootLineShortOfFirstInvokedLink
+    {
+        get
+        {
+            if (FirstInvokedLinkIndex <= 0)
+            {
+                return false;
+            }
+
+            if (FirstLink.StartsLine
+                && IsFirstLinkBlocked)
+            {
+                return true;
+            }
+
+            for (var linkIndex = 1; linkIndex < FirstInvokedLinkIndex; linkIndex++)
+            {
+                if (Links[linkIndex].StartsLine
+                    || Links[linkIndex].HasInnerLineBreak(true))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     #endregion // Properties
 
     #region Methods
