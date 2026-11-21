@@ -252,6 +252,30 @@ public class CliHiddenCodeEndToEndTests
     private const string LinkOperatorSameLineCommentSource = "#nullable enable\n\nclass C\n{\n    object? M(string? s, string? t, string? u)\n    {\n        var a = s? /* c1 */ .Length;\n        var b = t! /* c2 */ .Length;\n        var c = u! /* c3 */ ?.Length;\n        var d = u!? /* c4 */ .Length;\n\n        return a ?? b + c + d;\n    }\n}\n";
 
     /// <summary>
+    /// The file of the FMT-UNSUP-016 change's example of a line comment between the <c>.</c> of a link and its member name, which
+    /// starts in line 5, column 24
+    /// </summary>
+    private const string LinkDotNameLineCommentSource = "class C\n{\n    object M(dynamic a)\n    {\n        var r = a.B(). // c\n            C();\n\n        return r;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-016 change's example of a conditional group between a <c>.</c> and its member name, whose
+    /// <c>#if</c> starts in line 8, column 1
+    /// </summary>
+    private const string LinkDotNameConditionalGroupSource = "#nullable enable\n\nclass C\n{\n    string M(string s)\n    {\n        return s.\n#if DEBUG\n            Trim();\n#else\n            ToUpper();\n#endif\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-016 change's example of an own-line comment between a <c>.</c> and its member name in a wrapped
+    /// chain, which starts in line 7, column 18
+    /// </summary>
+    private const string LinkDotNameWrappedChainSource = "class C\n{\n    object M(dynamic a)\n    {\n        var r = a.B()\n                 .C().\n                 // c\n                 D()\n                 .E();\n\n        return r;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-016 change's example of block comments between a <c>.</c> and its member name on one line, whose
+    /// first comment starts in line 7, column 21
+    /// </summary>
+    private const string LinkDotNameSameLineCommentSource = "#nullable enable\n\nclass C\n{\n    int? M(string? s, string t)\n    {\n        var a = s?. /* c1 */ Length;\n        var b = t. /* c2 */ Length;\n\n        return a + b;\n    }\n}\n";
+
+    /// <summary>
     /// A formatted file
     /// </summary>
     private const string FormattedSource = "class B\n{\n    void M()\n    {\n    }\n}";
@@ -654,6 +678,36 @@ public class CliHiddenCodeEndToEndTests
 
             Assert.AreEqual(ExitCodes.Error, exitCode);
             Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive inside a ?. or !. operator. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output examples of FMT-UNSUP-016: files with a comment, a directive, or a conditional group between the
+    /// <c>.</c> of a link and its member name — behind the dot, in every build, on a line of its own in a wrapped chain, and on one
+    /// line — are each left unchanged, reported with the reason and the first comment's or directive's line and column, and the
+    /// run exits with code 2
+    /// </summary>
+    /// <param name="source">The file's text</param>
+    /// <param name="line">The reported line</param>
+    /// <param name="column">The reported column</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-016")]
+    [DataRow(LinkDotNameLineCommentSource, 5, 24, DisplayName = "Line comment behind the dot")]
+    [DataRow(LinkDotNameConditionalGroupSource, 8, 1, DisplayName = "Conditional group between the dot and the name")]
+    [DataRow(LinkDotNameWrappedChainSource, 7, 18, DisplayName = "Comment line between the dot and the name in a wrapped chain")]
+    [DataRow(LinkDotNameSameLineCommentSource, 7, 21, DisplayName = "Block comments between the dot and the name on one line")]
+    public async Task CommentOrDirectiveBetweenADotAndItsMemberNameIsReportedAsUnsupported(string source, int line, int column)
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("a.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive between a . and its member name. The file was left unchanged." }, Lines(error));
             Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }

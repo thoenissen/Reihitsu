@@ -1588,21 +1588,13 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the initializer-adjacent anchor correction does not mix columns from two
-    /// different source lines when the chain's first collected dot sits on an initializer's closing
-    /// brace line but the anchor link itself wraps onto a later line; the correction must only apply
-    /// when the anchor shares the first collected dot's own line, or a second formatter pass changes
-    /// the result.
-    /// <para>
-    /// A comment between the dot and its member name is what keeps the two on separate lines here:
-    /// it blocks the rejoin that <see cref="TrailingDotAfterInitializerCloseBraceRejoinsItsMemberName"/>
-    /// performs, which is the only remaining way to reach the correction's unequal-line branch. The
-    /// blank line and the comment's own indentation in the expected output are pre-existing behavior
-    /// of the surrounding phases and are not what this test guards
-    /// </para>
+    /// Verifies that a comment between the dot behind an initializer's closing brace and the member name refuses the input
+    /// as unsupported, so the chain-anchor correction behind an initializer never meets an anchor that a comment keeps on a
+    /// later line than that dot
     /// </summary>
     [TestMethod]
-    public void ConditionalAccessAnchorOnLaterLineThanInitializerCloseBraceStaysIdempotent()
+    [Requirement("FMT-UNSUP-016")]
+    public void CommentBetweenDotBehindInitializerCloseBraceAndMemberNameIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1624,22 +1616,48 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                              }
                              """;
 
+        // Act & Assert
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "// keep");
+    }
+
+    /// <summary>
+    /// Verifies that the initializer-adjacent anchor correction does not mix columns from two different source lines when
+    /// the chain's first collected dot sits on an initializer's closing brace line but the anchor link stands on a later
+    /// line, because an element access in front of it holds a verbatim string over two lines: the correction applies only
+    /// when the anchor shares the first dot's line, so a wrapped link behind the anchor aligns to the anchor's own column,
+    /// and a second pass leaves the result unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-029")]
+    public void AnchorBehindMultiLineIndexAfterInitializerCloseBraceKeepsItsOwnColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(Dictionary<string, string> d)
+                                 {
+                                             var x = new Holder
+                                                     {
+                                                         Map = d
+                                                     }.Map[@"a
+                             b"].Trim()
+                                .ToString();
+                                 }
+                             }
+                             """;
+
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    void M(Dictionary<string, string> d)
                                     {
-                                        var x = new Request
+                                        var x = new Holder
                                                 {
-                                                    Choices = data
-                                                }.
-
-                                        // keep
-                                        Choices?.Select(item => new Wrapper
-                                                                {
-                                                                    Value = item
-                                                                })
-                                               .ToList();
+                                                    Map = d
+                                                }.Map[@"a
+                                b"].Trim()
+                                   .ToString();
                                     }
                                 }
                                 """;

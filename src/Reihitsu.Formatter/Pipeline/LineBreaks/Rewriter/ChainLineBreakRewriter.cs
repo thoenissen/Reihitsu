@@ -43,9 +43,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </item>
 /// </list>
 /// <para>
-/// A gap in front of a link operator or between its dot and the member name that holds a comment, a preprocessor
-/// directive or disabled text is never closed, so trivia is neither moved nor absorbed. A gap between two tokens of a link
-/// operator never holds such trivia: the precheck refuses an input that holds it (FMT-UNSUP-015)
+/// A gap in front of a link operator that holds a comment, a preprocessor directive or disabled text is never closed,
+/// so trivia is neither moved nor absorbed. A gap between two tokens of a link operator or between a link's dot and its
+/// member name never holds such trivia: the precheck refuses an input that holds it (FMT-UNSUP-015, FMT-UNSUP-016)
 /// </para>
 /// </summary>
 internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
@@ -265,12 +265,18 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         var gaps = new List<(SyntaxToken PreviousToken, SyntaxToken Token)>();
         var lineBreakEdits = new Dictionary<SyntaxToken, SyntaxToken>();
 
-        // A member name split from its dot is rejoined. The gap is no wrap, so a line break that blocking trivia keeps
-        // there does not affect the chain's layout. The gaps in front of and inside an attached part are
-        // AttachedPartLineStartRewriter's, which has joined them before this rewriter runs.
+        // A member name split from its dot is rejoined (FMT-BREAK-020). The gap holds nothing but whitespace, because the
+        // precheck refuses an input with a comment, a preprocessor directive or disabled text between a link's dot and its
+        // member name (FMT-UNSUP-016). The gaps in front of and inside an attached part are AttachedPartLineStartRewriter's,
+        // which has joined them before this rewriter runs.
         foreach (var link in chain.Links)
         {
-            CloseGap(link.DotToken, link.Name.GetFirstToken(), gaps);
+            var nameToken = link.Name.GetFirstToken();
+
+            if (HasLineBreak(link.DotToken, nameToken))
+            {
+                gaps.Add((link.DotToken, nameToken));
+            }
         }
 
         // Link operators are never split. A line break in front of or inside an operator is the user's wrap.

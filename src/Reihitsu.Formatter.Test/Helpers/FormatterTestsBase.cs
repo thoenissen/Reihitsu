@@ -61,6 +61,12 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string LinkOperatorCommentReason = "a comment or directive inside a ?. or !. operator";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between the <c>.</c> of a member access or a member binding and
+    /// its member name (FMT-UNSUP-016)
+    /// </summary>
+    protected const string LinkDotNameCommentReason = "a comment or directive between a . and its member name";
+
     #endregion // Constants
 
     #region Fields
