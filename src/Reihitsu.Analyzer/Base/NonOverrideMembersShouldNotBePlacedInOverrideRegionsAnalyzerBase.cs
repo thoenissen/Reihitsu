@@ -100,6 +100,25 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
     }
 
     /// <summary>
+    /// Determines whether the member is reported on this declaration. A partial member is one member and is reported once,
+    /// on the first part in an override region (SHARED-DIAG-012); every other member is reported on its declaration
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration in an override region</param>
+    /// <param name="symbol">Symbol the declaration declares</param>
+    /// <param name="overrideRegionNames">Names of the override regions of the type</param>
+    /// <param name="context">Context</param>
+    /// <returns><see langword="true"/> when the member is reported on this declaration</returns>
+    private static bool IsReportedPart(MemberDeclarationSyntax memberDeclaration, ISymbol symbol, HashSet<string> overrideRegionNames, SyntaxNodeAnalysisContext context)
+    {
+        return memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false
+               || PartialMemberUtilities.GetReportedPart(memberDeclaration,
+                                                         symbol,
+                                                         part => LiesInOverrideRegion(part, overrideRegionNames),
+                                                         context.SemanticModel.Compilation,
+                                                         context.CancellationToken) == memberDeclaration;
+    }
+
+    /// <summary>
     /// Analyzes the type declaration
     /// </summary>
     /// <param name="context">Context</param>
@@ -136,18 +155,8 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
             // Each declarator of a field-like event is judged on its own (SHARED-REGGROUP-005)
             foreach (var (symbol, location) in PartialMemberUtilities.GetDeclaredSymbols(memberDeclaration, context.SemanticModel, context.CancellationToken))
             {
-                if (IsRelevantNonOverrideMember(memberDeclaration, symbol) == false)
-                {
-                    continue;
-                }
-
-                // A partial member is one member and is reported once, on the first part in an override region (SHARED-DIAG-012)
-                if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-                    && PartialMemberUtilities.GetReportedPart(memberDeclaration,
-                                                              symbol,
-                                                              part => LiesInOverrideRegion(part, overrideRegionNames),
-                                                              context.SemanticModel.Compilation,
-                                                              context.CancellationToken) != memberDeclaration)
+                if (IsRelevantNonOverrideMember(memberDeclaration, symbol) == false
+                    || IsReportedPart(memberDeclaration, symbol, overrideRegionNames, context) == false)
                 {
                     continue;
                 }
