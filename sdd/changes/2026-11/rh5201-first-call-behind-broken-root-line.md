@@ -148,7 +148,7 @@ var a = c.Opt
 
 The same holds for a first link that a comment keeps below the root in the wrong column (`c // keep` ⏎ `    .Next.Self()`: before one diagnostic on `.Next`, after also one on `.Self`), and for a prefix link behind the closing `*/` of a comment that starts its own line in a column other than the anchor's (SHARED-CHAIN-005, example `r`).
 
-**6. A link behind the closing `*/` of a comment that starts its own line, with the `*/` in the anchor column, is reported and fixed.** This holds for a later call, for a link of a chain without a call, and for a prefix link; behind a prefix link, the first call is reported as well (RH5201-006). It holds as well when a second comment stands between the `*/` and the link (`f`).
+**6. A link behind the closing `*/` of a comment that starts its own line, with the `*/` in the anchor column, is reported and fixed.** This holds for a later call, for a link of a chain without a call, and for a prefix link; behind a prefix link, the first call is reported as well (RH5201-006). It holds as well when a second comment stands between the `*/` and the link (`f`), and when the comment starts behind another comment on its first line (`g`).
 
 ```csharp
 // input
@@ -171,6 +171,11 @@ var f = c.Self()
 
          /* x
          */ /* y */ .Self();
+var g = c.Self()
+         .Self()
+
+         /* w */ /* x
+         */ .Self();
 ```
 
 ```csharp
@@ -203,6 +208,12 @@ var f = c.Self()
          /* x
          */ /* y */
          .Self();
+var g = c.Self()
+         .Self()
+
+         /* w */ /* x
+         */
+         .Self();
 ```
 
 **7. Not reported, before and after** — a line break in front of the first link that nothing holds (RH5112 reports the first link, and the formatter joins the whole chain onto one line), a first call that already starts its own line, a chain without a call, and a prefix link whose operator a comment holds split (the CLI refuses that file as unsupported, and the RH5201 fix is withheld on it):
@@ -233,7 +244,7 @@ The maintainer accepted the visible output changes as recommended (answers 1A, 2
 - **A line break that a comment, a directive, or disabled text keeps inside a prefix link's operator does not count** (change 7, `g`): it is counted as RH5201-003 counts it, as if it were not there, so the first call behind it is not reported. The same holds for such a line break inside the first link's operator. The formatter refuses every input that holds one (FMT-UNSUP-015), so its output is not involved.
 - **The rule page** gains the bullet and the *How to fix it* words of change 8.
 
-In a second batch, the maintainer answered A for a second comment between the closing `*/` of an own-line comment and the link (change 6, `f`): the link is reported, and the fix gives `*/ /* y */` ⏎ `.Self();`, which is the formatter's output for the same input. The comment between does not give the link a line of its own, so it is judged as the link directly behind the `*/`.
+In a second batch, the maintainer answered A for a second comment between the closing `*/` of an own-line comment and the link (change 6, `f`): the link is reported, and the fix gives `*/ /* y */` ⏎ `.Self();`, which is the formatter's output for the same input. The comment between does not give the link a line of its own, so it is judged as the link directly behind the `*/`. For a multi-line comment that starts behind another comment on its own line (change 6, `g`: `/* w */ /* x` ⏎ `*/ .Self()`), the maintainer answered A as well: the link is reported, and the fix gives `*/` ⏎ `.Self();`, the formatter's output for the same input. What counts is that a line break stands between the token in front of the link and the comment, not that the comment starts its line.
 
 ### Report a link behind an own-line `*/` in the anchor column
 
