@@ -7,7 +7,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5201: Method chains should be aligned
+/// RH5201: Member-access chains should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
