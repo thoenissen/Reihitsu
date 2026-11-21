@@ -318,6 +318,46 @@ public class RH7101DoNotCombineFieldsCommentAndDirectiveTests : BatchCodeFixTest
     }
 
     /// <summary>
+    /// Verifies the change example: a comment between the <c>.</c> of a member access and its name in a declarator's value
+    /// withholds the fix, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ChangeExampleCommentBetweenTheDotAndTheMemberNameWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private static string Source = "";
+
+                                  private int _a = Source. // one
+                                                   Length, {|RH7101:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the <c>.</c> of a member access or a member binding and its name elsewhere in the type
+    /// withholds the fix
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(string s)\n    {\n        return s. /* c */ Length;\n    }\n}", DisplayName = "Behind the dot of a member access")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int? M(string s)\n    {\n        return s?.\n            // c\n            Length;\n    }\n}", DisplayName = "In front of the name of a member binding")]
+    public async Task CommentBetweenTheDotAndTheMemberNameElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies that a comment in front of a binary operator elsewhere in the type does not withhold the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>

@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-INDENT-013, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -1058,7 +1058,7 @@ The operator's tokens are decided by the syntax tree alone:
 
 The conditions, each with both sides:
 
-- **Between the operator's own tokens.** Only the gaps between the tokens of one operator count. A comment, a directive, or disabled text in front of the operator's first token — the gap in front of a link, which SHARED-CHAIN-004 decides for the first link and the chain layout for every other (`s /* c */ ?.Length`, `items // c⏎.Where(…)`, `s // c⏎!.Length`) — does not refuse the input, and neither does one between the operator's `.` and the member name (`s?. /* c */ Length`), one inside the link's argument list (`a?.B(/* c */ 1)`), or one behind the link (`a?.B() // c`).
+- **Between the operator's own tokens.** Only the gaps between the tokens of one operator count. A comment, a directive, or disabled text in front of the operator's first token — the gap in front of a link, which SHARED-CHAIN-004 decides for the first link and the chain layout for every other (`s /* c */ ?.Length`, `items // c⏎.Where(…)`, `s // c⏎!.Length`) — does not refuse the input, and neither does one between the operator's `.` and the member name, which FMT-UNSUP-016 decides (`s?. /* c */ Length`), one inside the link's argument list (`a?.B(/* c */ 1)`), or one behind the link (`a?.B() // c`).
 - **Link operators only.** A token pair that is not two tokens of a link operator is not this shape: a plain `.` is one token and has no gap of its own; the `?` and the `[` of a conditional element access, and the `!` and the `?` of `!?[`, are the tokens a part starts with, which FMT-UNSUP-014 decides (`n? /* c */ [0]`, `x! /* c */ ?[0]`); a conditional expression's `?` is no operator of a link (`c ? /* c */ .5 : 1`, FMT-UNSUP-008); and neither are the `!` of a logical negation, the `..` of a range, the `->` of a pointer member access, or the `::` of an alias-qualified name.
 - **On any line.** Whether the gap holds a line break does not matter: `s? /* c */ .Length` on one line is refused like `s? // c⏎.Length` and like a comment on a line of its own between `?` and `.`.
 - **Every link.** Each link operator is checked with its own tokens, whatever stands around it — the only link of an expression or one link of a wrapped chain, an invoked link or a member read, inside a list element, an interpolation hole, a lambda, or any other construct. A token in disabled text is no token of the input: a link operator inside disabled text is not checked.
@@ -1144,6 +1144,101 @@ class C
     C? N(int value)
     {
         return value > 0 ? this : null;
+    }
+}
+```
+
+### FMT-UNSUP-016 — Comments and directives between a link's dot and its member name are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the `.` of a link (SHARED-CHAIN-001) and its member name: in the trailing trivia of the `.`, or in the leading trivia of the name's first token.
+
+The `.` and the name are decided by the syntax tree alone:
+
+- a simple member access (`SimpleMemberAccessExpression`) — its operator token and the first token of its name: `a.B(). // c⏎C()`, `t. /* c */ Length`, `this. /* c */ _x = 1`, also behind a null-forgiving operator (`t!. /* c */ Length`);
+- a member binding (`MemberBindingExpressionSyntax`) — its operator token and the first token of its name: `s?. /* c */ Length`, `a?. // c⏎B()`, also behind a null-forgiving operator (`u!?. /* c */ Length`).
+
+The conditions, each with both sides:
+
+- **Between the dot and the name.** Only the gap between the `.` and the first token of the member name counts. A comment, a directive, or disabled text in front of the link operator — the gap in front of a link, which SHARED-CHAIN-004 decides for the first link and the chain layout for every other (`items // c⏎.Where(…)`) — does not refuse the input under this requirement, and neither does one between the tokens of a link operator, which FMT-UNSUP-015 decides (`s? /* c */ .Length`), one inside the name (`a.B</* c */ int>()`), one in front of the attached part behind the name, which FMT-UNSUP-014 decides (`a.B /* c */ (1)`), one inside the link's argument list (`a.B(/* c */ 1)`), or one behind the link (`a.B() // c`).
+- **Member accesses and member bindings only.** A `.` that is not the operator token of a simple member access or a member binding is not this shape: the `.` of a qualified name (`class B : System. // c⏎IDisposable`, whose layout FMT-INDENT-013 states; `using System. /* c */ Text;`), the `::` of an alias-qualified name, the `->` of a pointer member access, a `.` in a documentation comment's `cref`, and the `..` of a range.
+- **On any line.** Whether the gap holds a line break does not matter: `t. /* c */ Length` on one line is refused like `t. // c⏎Length` and like a comment on a line of its own between the `.` and `Length`.
+- **Every link.** Each simple member access and member binding is checked with its own gap, whatever stands around it — the only link of an expression or one link of a wrapped chain, an invoked member or a member read, an assignment's target, inside a list element, an interpolation hole, a lambda, or any other construct. A token in disabled text is no token of the input: a member access inside disabled text is not checked.
+
+The `.` and the name belong to one node — the member access or the member binding — so a node-level input holds the shape only when it holds that node: an input that holds the name but not the `.` in front of it, such as the name itself, does not hold the shape (FMT-UNSUP-003).
+
+Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or disabled text, both shapes start at it, and FMT-UNSUP-001's first shape in the text does not decide; the reason and the location are then FMT-UNSUP-004's or FMT-UNSUP-010's. FMT-UNSUP-004 excepts the inside of an initializer value, and a member access of a value is always inside it, so the two meet only outside a value, such as in an attribute argument of a declaration: `[Obsolete(nameof(C. /* c */ M))] private int _e;` gives FMT-UNSUP-004's reason, while `int c = t. /* c */ Length;` gives this requirement's. FMT-UNSUP-010 excepts no initializer value: a directive or disabled text between a `.` and its member name anywhere in a field declaration with several declarators, also inside a value, gives FMT-UNSUP-010's reason. In a field with one declarator, the same directive gives this requirement's.
+
+The reason the formatter gives for this shape is `a comment or directive between a . and its member name`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: The line-break phase joins a member name split from its dot back onto the dot (FMT-BREAK-020). A comment, a directive, or disabled text in the gap kept the name off the dot's line, so the phase refused the join (FMT-BREAK-001), and the name started a line that no requirement places: at statement level it took the column of the enclosing statement, where it read as a new statement; in a wrapped chain the `.` was left on a line of its own and a blank line was inserted inside the statement in front of an own-line comment; and the branches of a conditional group between the dot and the name got different columns. Placing the name below its dot would need a column rule of its own in the indentation phase and would keep the join refusal. A comment between a `.` and its member name is rare, and a comment that explains a link belongs behind the line or above the statement, where the phases carry it as they do for every statement; a conditional group that chooses between two member names is rare as well, and the same choice written around the whole statement is formatted. Directives and disabled text are part of the shape because the join refusal tests them alike: with comments alone, it would have to stay. The shape is the same on one line, as for the operators of FMT-UNSUP-008, FMT-UNSUP-011, and FMT-UNSUP-015: the boundary is a place in the syntax tree, not a question of line breaks. With the shape refused, the gap between a link's dot and its name never keeps a line break, so the join needs no refusal there. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): the join carries only whitespace into it, and no transform creates a member access or a member binding or moves trivia between a dot and a name. The `.` of a qualified name is no link (SHARED-CHAIN-001): the chain layout never joins its name onto it, and FMT-INDENT-013 states where its continuation goes in a base list.
+
+Example — the gap behind each link's `.` is refused, and the input that holds it is returned unchanged:
+
+```csharp
+#nullable enable
+
+class C
+{
+    object M(dynamic a, string? s, string? t, string? u)
+    {
+        var p = a.B(). // c1
+            C();
+        var q = s?. /* c2 */ Length;
+        var r = t!.
+            // c3
+            Length;
+        var v = u?.Trim(). /* c4 */ Length;
+
+        return (p, q, r, v);
+    }
+}
+```
+
+The location is the span of `// c1`, which starts in line 7, column 24.
+
+Example — a directive and disabled text between a `.` and its member name refuse the input in every build: where `DEBUG` is defined, `#if DEBUG` stands between the `.` and `Trim`; where it is not, `#if DEBUG`, the disabled text, and `#else` stand between the `.` and `ToUpper`:
+
+```csharp
+#nullable enable
+
+class C
+{
+    string M(string s)
+    {
+        return s.
+#if DEBUG
+            Trim();
+#else
+            ToUpper();
+#endif
+    }
+}
+```
+
+The location is the span of `#if DEBUG`, which starts in line 8, column 1.
+
+Example — the other side: none of these comments refuses the input under this requirement, and the input is formatted:
+
+```csharp
+#nullable enable
+
+class C : System. // c1
+          IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    int? M(string? s, string t)
+    {
+        // c2
+        var p = s // c3
+                ?.Length;
+        var q = t.Substring(/* c4 */1) // c5
+                 .Length;
+        var r = t.Trim(); // c6
+
+        return p + q + r.Length; // c7
     }
 }
 ```

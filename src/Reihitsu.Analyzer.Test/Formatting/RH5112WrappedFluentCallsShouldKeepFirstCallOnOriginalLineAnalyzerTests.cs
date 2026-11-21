@@ -1761,6 +1761,36 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
+    /// Verifies the change example: a comment between the <c>.</c> of a link and its member name withholds the fix, because the
+    /// formatter refuses the statement the fix formats, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-016")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBetweenTheDotAndTheMemberName(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    object M(dynamic a)
+                                    {
+                                        var r = a
+                                            {|RH5112:.|}B(). // note
+                                            C();
+
+                                        return r;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that the rule's title names the first member access of a wrapped chain, not a call
     /// </summary>
     [TestMethod]

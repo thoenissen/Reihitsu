@@ -344,11 +344,12 @@ public class ChainGapJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line comment between a dot and its member name keeps its line, so the name is not joined
+    /// Verifies that a single-line comment between a dot and its member name refuses the input, so the join of the name onto its
+    /// dot never meets it
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void SingleLineCommentBetweenDotAndMemberNameKeepsItsLine()
+    [Requirement("FMT-UNSUP-016")]
+    public void SingleLineCommentBetweenDotAndMemberNameIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -362,21 +363,9 @@ public class ChainGapJoinTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(dynamic a)
-                                    {
-                                        var x = a.B()
-                                                 . // c
-                                        C()
-                                                 .D();
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "// c");
     }
 
     /// <summary>
@@ -484,11 +473,12 @@ public class ChainGapJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive between a dot and its member name keeps its line, so the name is not joined
+    /// Verifies that a directive between a dot and its member name refuses the input, so the join of the name onto its dot never
+    /// meets it
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void DirectiveBetweenDotAndMemberNameKeepsItsLine()
+    [Requirement("FMT-UNSUP-016")]
+    public void DirectiveBetweenDotAndMemberNameIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -504,23 +494,9 @@ public class ChainGapJoinTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(dynamic a)
-                                    {
-                                        var x = a.B()
-                                                 .
-                                #if X
-                                #endif
-                                        C()
-                                                 .D();
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "#if X");
     }
 
     /// <summary>

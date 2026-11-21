@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -229,12 +230,12 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment between the dot and its member name keeps the split: rejoining across
-    /// it would absorb the name into the comment
+    /// Verifies that a line comment behind the dot refuses the input, so the join of the name onto its dot never meets the
+    /// comment in the dot's trailing trivia
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void CommentBetweenDotAndMemberNameKeepsSplit()
+    [Requirement("FMT-UNSUP-016")]
+    public void CommentBetweenDotAndMemberNameIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -249,17 +250,16 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "// keep");
     }
 
     /// <summary>
-    /// Verifies that a block comment ending the dot's own line also keeps the split. Together with
-    /// <see cref="CommentBetweenDotAndMemberNameKeepsSplit"/> this covers the refusal predicate's
-    /// first disjunct, which inspects the <b>dot's trailing</b> trivia
+    /// Verifies that a block comment ending the dot's own line also refuses the input. Together with
+    /// <see cref="CommentBetweenDotAndMemberNameIsUnsupported"/> this covers a comment in the <b>dot's trailing</b> trivia
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void BlockCommentBetweenDotAndMemberNameKeepsSplit()
+    [Requirement("FMT-UNSUP-016")]
+    public void BlockCommentBetweenDotAndMemberNameIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -274,19 +274,16 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "/* keep */");
     }
 
     /// <summary>
-    /// Verifies that a comment on its own line before the member name keeps the split. This covers
-    /// the refusal predicate's <b>second</b> disjunct, which inspects the <b>name token's leading</b>
-    /// trivia — the only one a directive or an own-line comment can reach, and the one the two
-    /// trailing-trivia fixtures above never exercise. The blank line in the expected output is
-    /// pre-existing behavior of the surrounding phases and is not what this test guards
+    /// Verifies that a comment on its own line before the member name refuses the input. This covers a comment in the
+    /// <b>name token's leading</b> trivia, which the two trailing-trivia fixtures above never exercise
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void OwnLineCommentBeforeMemberNameKeepsSplit()
+    [Requirement("FMT-UNSUP-016")]
+    public void OwnLineCommentBeforeMemberNameIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -301,34 +298,21 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var a1 = a.
-
-                                        // keep
-                                        Prop.Call();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "// keep");
     }
 
     /// <summary>
-    /// Verifies that a preprocessor directive between the dot and its member name keeps the split:
-    /// removing the end-of-line that terminates the directive's line would invalidate it. The
-    /// directive reaches the same name-token leading-trivia disjunct as
-    /// <see cref="OwnLineCommentBeforeMemberNameKeepsSplit"/>, with a trivia kind a comment-only
-    /// guard would miss. The indentation of the inactive branch is pre-existing behavior of the
-    /// surrounding phases and is not what this test guards
+    /// Verifies that a preprocessor directive between the dot and its member name refuses the input in every build. The
+    /// directive reaches the same name-token leading trivia as <see cref="OwnLineCommentBeforeMemberNameIsUnsupported"/>, with a
+    /// trivia kind a comment-only check would miss
     /// </summary>
+    /// <param name="defineDebug">Whether <c>DEBUG</c> is defined</param>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void DirectiveBetweenDotAndMemberNameKeepsSplit()
+    [Requirement("FMT-UNSUP-016")]
+    [DataRow(false, DisplayName = "DEBUG not defined")]
+    [DataRow(true, DisplayName = "DEBUG defined")]
+    public void DirectiveBetweenDotAndMemberNameIsUnsupported(bool defineDebug)
     {
         // Arrange
         const string input = """
@@ -345,18 +329,60 @@ public class ChainSplitMemberNameRejoinTests : FormatterTestsBase
                                  }
                              }
                              """;
+        var parseOptions = defineDebug ? CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG") : CSharpParseOptions.Default;
+
+        // Act & Assert
+        AssertUnsupportedFor(LinkDotNameCommentReason, input, "#if DEBUG", parseOptions: parseOptions);
+    }
+
+    /// <summary>
+    /// Verifies that a member name split from its dot by a line break alone is joined back onto the dot in every enclosing
+    /// construct, also outside a wrapped chain — an assignment target, a <c>nameof</c> argument, an interpolation hole, and a local
+    /// initializer — so no member name of a link starts a line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-020")]
+    public void SplitMemberNameRejoinsInEveryEnclosingConstruct()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private int _x;
+
+                                 void A()
+                                 {
+                                     this.
+                                         _x = 1;
+                                 }
+
+                                 void M(string t)
+                                 {
+                                     var n = nameof(C.
+                                                    M);
+                                     var s = $"{t.
+                                                 Length}";
+                                     var q = t.
+                                         Length;
+                                 }
+                             }
+                             """;
 
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    private int _x;
+
+                                    void A()
                                     {
-                                        var a1 = a.
-                                #if DEBUG
-                                            Prop.Call();
-                                #else
-                                        Other.Call();
-                                #endif
+                                        this._x = 1;
+                                    }
+
+                                    void M(string t)
+                                    {
+                                        var n = nameof(C.M);
+                                        var s = $"{t.Length}";
+                                        var q = t.Length;
                                     }
                                 }
                                 """;

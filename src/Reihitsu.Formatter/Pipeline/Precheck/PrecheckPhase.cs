@@ -70,6 +70,12 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// </summary>
     internal const string LinkOperatorCommentReason = "a comment or directive inside a ?. or !. operator";
 
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between the <c>.</c> of a simple member access or a member
+    /// binding and its member name (FMT-UNSUP-016)
+    /// </summary>
+    internal const string LinkDotNameCommentReason = "a comment or directive between a . and its member name";
+
     #endregion // Constants
 
     #region Methods
@@ -89,6 +95,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
         SyntaxTrivia? firstArrowTrivia = null;
         SyntaxTrivia? firstArrowLeadingTrivia = null;
         SyntaxTrivia? firstLinkOperatorTrivia = null;
+        SyntaxTrivia? firstLinkDotNameTrivia = null;
 
         foreach (var descendant in node.DescendantNodesAndSelf())
         {
@@ -128,6 +135,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
                 case ExpressionSyntax link when link is MemberAccessExpressionSyntax or MemberBindingExpressionSyntax:
                     {
                         firstLinkOperatorTrivia = SelectFirst(firstLinkOperatorTrivia, FindTriviaInsideLinkOperator(node, link));
+                        firstLinkDotNameTrivia = SelectFirst(firstLinkDotNameTrivia, FindTriviaBetweenLinkDotAndName(link));
                     }
                     break;
             }
@@ -144,8 +152,9 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // last, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive behind a binary operator, and
         // FMT-UNSUP-010 keeps its reason for a directive on either side of the arrow of an expression body, that they refuse as well.
         // FMT-UNSUP-014 is listed after them, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive in
-        // the gap of an attached part that they refuse as well. FMT-UNSUP-015 is listed last, so FMT-UNSUP-010 keeps its reason
-        // for a directive inside a link operator that it refuses as well
+        // the gap of an attached part that they refuse as well. FMT-UNSUP-015 and FMT-UNSUP-016 are listed last, so FMT-UNSUP-004
+        // and FMT-UNSUP-010 keep their reason for a comment or directive inside a link operator or between a link's dot and its
+        // member name that they refuse as well
         var candidates = CreateDeclarationCandidates(isDeclaratorComma, firstComment, firstSeparatorTrivia, firstFieldDirective);
 
         candidates.AddRange([
@@ -154,7 +163,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
                                 (firstArrowTrivia, ExpressionBodyArrowCommentReason),
                                 (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason),
                                 (firstAttachedPartTrivia, AttachedPartCommentReason),
-                                (firstLinkOperatorTrivia, LinkOperatorCommentReason)
+                                (firstLinkOperatorTrivia, LinkOperatorCommentReason),
+                                (firstLinkDotNameTrivia, LinkDotNameCommentReason)
                             ]);
 
         return CreateFirstUnsupportedSyntax(node, candidates);
@@ -459,6 +469,32 @@ internal sealed class PrecheckPhase : IFormattingPhase
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between the <c>.</c> of a simple member access or a member binding
+    /// and its member name (FMT-UNSUP-016): in the trailing trivia of the <c>.</c>, or in the leading trivia of the name's first
+    /// token. The <c>.</c> and the name belong to the link's own node, so an input that holds the link holds the whole gap, and
+    /// one that holds only the name holds none of it (FMT-UNSUP-003). The <c>-&gt;</c> of a pointer member access is no link
+    /// </summary>
+    /// <param name="link">The member access or member binding</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaBetweenLinkDotAndName(ExpressionSyntax link)
+    {
+        var (dotToken, name) = link switch
+                               {
+                                   MemberAccessExpressionSyntax memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression) => (memberAccess.OperatorToken, memberAccess.Name),
+                                   MemberBindingExpressionSyntax memberBinding => (memberBinding.OperatorToken, memberBinding.Name),
+                                   _ => (default, null)
+                               };
+
+        if (name == null)
+        {
+            return null;
+        }
+
+        return FindFirstUnsupportedOperatorTrivia(dotToken.TrailingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(name.GetFirstToken().LeadingTrivia);
     }
 
     /// <summary>

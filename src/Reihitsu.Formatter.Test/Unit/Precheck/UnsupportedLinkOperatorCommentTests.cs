@@ -458,8 +458,8 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the first condition's other side: a comment, a directive, or a documentation comment in front of a link operator's
-    /// first token, between the operator's <c>.</c> and the member name, inside the link's argument list, behind the link, behind
-    /// and above the statement, and in front of the token in front of the operator does not refuse the input
+    /// first token, inside the link's argument list, behind the link, behind and above the statement, and in front of the token in
+    /// front of the operator does not refuse the input
     /// </summary>
     /// <param name="statement">The statement that holds the comment</param>
     [TestMethod]
@@ -474,9 +474,6 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
     [DataRow("        Use(list.Where(z => z != null)\n#pragma warning disable CS0001\n            .FirstOrDefault()?.Trim());", DisplayName = "Directive in front of a later link")]
     [DataRow("        Use(c.N(1) /// d\n            ?.N(2));", DisplayName = "Single-line documentation comment in front of ?.")]
     [DataRow("        Use(c.N(1) /** d */\n            ?.N(2));", DisplayName = "Delimited documentation comment in front of ?.")]
-    [DataRow("        Use(s?. /* c */ Length);", DisplayName = "Between the dot of ?. and the member name")]
-    [DataRow("        Use(t!. /* c */ Length);", DisplayName = "Between the dot of !. and the member name")]
-    [DataRow("        Use(u!?. /* c */ Length);", DisplayName = "Between the dot of !?. and the member name")]
     [DataRow("        Use(c?.N(/* c */ 1));", DisplayName = "Inside the link's argument list")]
     [DataRow("        Use(c?.N(1) /* c */);", DisplayName = "Behind the link")]
     [DataRow("        Use(s?.Length); // c", DisplayName = "Behind the statement")]
@@ -489,14 +486,13 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the second condition's other side: a comment next to a token pair that is no link operator does not refuse the
-    /// input under this requirement — a plain <c>.</c>, the <c>!</c> of a logical negation, the <c>..</c> of a range, the
+    /// input under this requirement — in front of a plain <c>.</c>, the <c>!</c> of a logical negation, the <c>..</c> of a range, the
     /// <c>-&gt;</c> of a pointer member access, and the <c>::</c> of an alias-qualified name
     /// </summary>
     /// <param name="statement">The statement that holds the comment</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-015")]
     [DataRow("        Use(c /* c */ .Name);", DisplayName = "In front of a plain dot")]
-    [DataRow("        Use(c. /* c */ Name);", DisplayName = "Behind a plain dot")]
     [DataRow("        Use(! /* c */ b);", DisplayName = "Behind a logical negation")]
     [DataRow("        Use(1 /* c */ ..2);", DisplayName = "In front of a range")]
     [DataRow("        Use(1.. /* c */ 2);", DisplayName = "Behind a range")]
@@ -506,6 +502,25 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
     public void CommentNextToATokenThatIsNoLinkOperatorIsSupported(string statement)
     {
         AssertSupported(WrapInMethod(statement));
+    }
+
+    /// <summary>
+    /// Verifies the first condition's other side for the gap behind the operator: a comment between the <c>.</c> of a
+    /// <c>?.</c>, a <c>!.</c>, a <c>!?.</c>, or a plain <c>.</c> and the member name is no comment inside the operator, and the
+    /// input is refused with the reason of FMT-UNSUP-016
+    /// </summary>
+    /// <param name="statement">The statement that holds the comment</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-015")]
+    [Requirement("FMT-UNSUP-016")]
+    [DataRow("        Use(s?. /* c */ Length);", DisplayName = "Between the dot of ?. and the member name")]
+    [DataRow("        Use(t!. /* c */ Length);", DisplayName = "Between the dot of !. and the member name")]
+    [DataRow("        Use(u!?. /* c */ Length);", DisplayName = "Between the dot of !?. and the member name")]
+    [DataRow("        Use(c. /* c */ Name);", DisplayName = "Behind a plain dot")]
+    [DataRow("        Use(s?\n            . // c\n            Length);", DisplayName = "Behind the dot of a split ?.")]
+    public void CommentBetweenTheDotAndTheMemberNameGivesTheReasonOfTheDotToNameGap(string statement)
+    {
+        AssertUnsupportedFor(LinkDotNameCommentReason, WrapInMethod(statement), statement.Contains("// c") ? "// c" : "/* c */");
     }
 
     /// <summary>
@@ -852,7 +867,7 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the formatter never writes the shape: link operators split by whitespace alone, which the line-break phase
-    /// joins, next to comments in front of the operator, behind its <c>.</c>, inside and behind the link, and above the statement,
+    /// joins, next to comments in front of the operator, inside and behind the link, and above the statement,
     /// in every documentation mode, are formatted, and their output, formatted again, is neither refused nor changed
     /// </summary>
     /// <param name="statement">The statement that holds the link operator</param>
@@ -866,7 +881,6 @@ public class UnsupportedLinkOperatorCommentTests : FormatterTestsBase
     [DataRow("        Use(s // c\n            ?\n            .Length);", DocumentationMode.Parse, DisplayName = "Comment in front of a joined ?.")]
     [DataRow("        Use(t /* c */\n            !\n            .Length);", DocumentationMode.Parse, DisplayName = "Comment in front of a joined !.")]
     [DataRow("        Use(u // c\n            !\n            ?\n            .Length);", DocumentationMode.Parse, DisplayName = "Comment in front of a joined !?.")]
-    [DataRow("        Use(s?\n            . // c\n            Length);", DocumentationMode.Parse, DisplayName = "Comment behind the dot of a joined ?.")]
     [DataRow("        Use(c?\n            .N( // c\n                1));", DocumentationMode.Parse, DisplayName = "Comment inside the argument list of a joined link")]
     [DataRow("        Use(list.Where(z => z != null)\n            .FirstOrDefault()?\n            .Trim() // c\n            .Length);", DocumentationMode.Parse, DisplayName = "Comment behind a joined later link")]
     [DataRow("        /// <summary>x</summary>\n        Use(s?\n            .Length);", DocumentationMode.Parse, DisplayName = "Documentation comment above a statement with a joined ?.")]

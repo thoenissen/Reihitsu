@@ -718,6 +718,55 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
+    /// Verifies the specification example: a comment between the <c>.</c> of a member access and its name in the initializer's
+    /// value withholds the fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBetweenTheDotAndTheMemberNameOfTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static string Source = "";
+
+                                    private int {|RH2001:Value|} { get; set; } = Source. /* three */ Length;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the change example: a line comment between the <c>.</c> of a member access and its name in the initializer's value
+    /// withholds the fix, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForALineCommentBetweenTheDotAndTheMemberNameOfTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static string Source = "";
+
+                                    private int {|RH2001:Value|} { get; set; } = Source. // three
+                                                                      Length;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that a comment in front of a <c>?.</c> in the initializer's value, which stands inside no link operator, does not
     /// withhold the fix
     /// </summary>
