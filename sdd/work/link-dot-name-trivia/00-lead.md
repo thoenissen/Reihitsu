@@ -14,6 +14,8 @@
 ## Maintainer answers
 
 - (pre-run) Declare the dot-to-name shape unsupported, in a change of its own — see above.
+- Batch 1, Q1 (reason text): **A** — `a comment or directive between a . and its member name`.
+- Batch 1, Q2 (one-line form, e.g. `t. /* c */ Length`): **A** — refused too; the shape is a place on any line, declared in this change.
 
 ## Decisions taken
 
@@ -26,7 +28,7 @@
 
 - Qualified name split at its `.` loses its column (with or without a comment): `using static System.`/`Math;` to column 1; `typeof`, `new`, member-type continuations to statement/member column; with comments also using aliases, namespaces, attribute names, `default`, casts. No phase joins a `QualifiedNameSyntax` at its dot. Outside #1888. Carries an open question with options: A join the name back onto its dot, B indent the continuation one level, C leave as written. Sources: 01-spec-author.md, 02-skeptic.md (wider class).
 
-## Open output questions (batch 1)
+## Answered output questions (batch 1)
 
 - Reason text for FMT-UNSUP-016 (01-spec-author.md): A `a comment or directive between a . and its member name` (rec.), B `a comment or directive between a member access's . and its name`.
 - One-line form `t. /* c */ Length` refused (02-skeptic.md) — asked as a neighbour to confirm the earlier answer covers it.
@@ -34,5 +36,5 @@
 ## State
 
 - Audited SHA: —
-- Last step: skeptic done (3449c887), verdict proceed. Batch 1 output questions posted to maintainer.
-- Next step: wait for answers; then spec author status/amendment, then test implementer.
+- Last step: batch 1 answered (1A, 2A).
+- Next step: spec author records answers in change doc Decisions + Status Accepted (03); then test implementer (04).
