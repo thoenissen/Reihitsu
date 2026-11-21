@@ -153,31 +153,48 @@ internal static class AttributeListShapeUtilities
 
             for (var index = 0; index <= lastIndex; index++)
             {
-                var attribute = listToSplit.Attributes[index];
-
-                if (index > 0
-                    || target == null)
-                {
-                    attribute = attribute.WithLeadingTrivia(SyntaxFactory.TriviaList());
-                }
-
-                if (index < lastIndex)
-                {
-                    attribute = attribute.WithTrailingTrivia(SyntaxFactory.TriviaList());
-                }
-
-                var openBracket = index == 0
-                                      ? listToSplit.OpenBracketToken.WithTrailingTrivia(SyntaxFactory.TriviaList())
-                                      : SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.OpenBracketToken, SyntaxFactory.TriviaList());
-                var closeBracket = index == lastIndex
-                                       ? listToSplit.CloseBracketToken
-                                       : SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CloseBracketToken, SyntaxFactory.TriviaList());
-
-                updatedLists.Add(SyntaxFactory.AttributeList(openBracket, target, SyntaxFactory.SingletonSeparatedList(attribute), closeBracket));
+                updatedLists.Add(CreateSplitAttributeList(listToSplit, target, index));
             }
         }
 
         return updatedLists;
+    }
+
+    /// <summary>
+    /// Creates the single-attribute list that holds one attribute of a split list, with the trivia
+    /// <see cref="BuildSplitAttributeLists"/> describes: the first created list keeps the original opening bracket with its
+    /// leading trivia, the last one the original closing bracket with its trivia, the attribute keeps its leading trivia
+    /// only as the first attribute behind no specifier and its trailing trivia only as the last attribute, and the brackets
+    /// the split creates carry no trivia
+    /// </summary>
+    /// <param name="listToSplit">The multi-attribute list to split</param>
+    /// <param name="target">The list's specifier without its leading trivia, or <see langword="null"/> when it has none</param>
+    /// <param name="index">The index of the attribute in the list to split</param>
+    /// <returns>The created attribute list</returns>
+    private static AttributeListSyntax CreateSplitAttributeList(AttributeListSyntax listToSplit, AttributeTargetSpecifierSyntax target, int index)
+    {
+        var lastIndex = listToSplit.Attributes.Count - 1;
+        var attribute = listToSplit.Attributes[index];
+
+        if (index > 0
+            || target == null)
+        {
+            attribute = attribute.WithLeadingTrivia(SyntaxFactory.TriviaList());
+        }
+
+        if (index < lastIndex)
+        {
+            attribute = attribute.WithTrailingTrivia(SyntaxFactory.TriviaList());
+        }
+
+        var openBracket = index == 0
+                              ? listToSplit.OpenBracketToken.WithTrailingTrivia(SyntaxFactory.TriviaList())
+                              : SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.OpenBracketToken, SyntaxFactory.TriviaList());
+        var closeBracket = index == lastIndex
+                               ? listToSplit.CloseBracketToken
+                               : SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CloseBracketToken, SyntaxFactory.TriviaList());
+
+        return SyntaxFactory.AttributeList(openBracket, target, SyntaxFactory.SingletonSeparatedList(attribute), closeBracket);
     }
 
     #endregion // Methods
