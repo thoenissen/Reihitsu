@@ -23,6 +23,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Member selection and location restated from RH2008 (architecture finding, FC-015) | Change the structure in this run: one shared owner in code for member → (body, expression body, name token), used by RH2008 and RH2009; the RH2009 spec references RH2008-002/004/005 instead of restating them | A second copy is exactly the drift the finding names; the move is small (a few dozen lines), within RH2008, its counterpart | RH2008 behavior unchanged; same members and location as the spec already states | – |
+| 2 | Skeptic | Default-on-invalid stated twice (RH2009-001 vs SHARED-LINES-002) | Widen the shared statement to cover configured limits generally and reference it from RH2009; share the configuration-reading code instead of copying it | One statement of the rule | Wording only; behavior identical | – |
+| 3 | Skeptic | Internal wording points (`when` clauses count `&&`/`||`; `not` breaks a run like `!`; query clauses do not nest; rule page/change doc wording on `!(a && b) && c`; exception sentence aligned with Q2's answer) | Take all, route to spec author with the maintainer's answers | Removes two-reading ambiguity without changing any score | No score changes; rule page wording follows the answers | – |
 
 ## Follow-up candidates
 
@@ -30,4 +33,4 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author.
+- Concept + output questions 1–8 and escalation 6 (self-hosting mechanism, question 9) sent to the maintainer; waiting for answers. Then: route answers + decisions 1–3 to the spec author (fresh), spec author sets change doc Accepted, then test implementer.
