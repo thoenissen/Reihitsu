@@ -16,12 +16,17 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | RH5202-007 third bullet is false: the RH5202 fix keeps tabs in a nested raw literal aligned in characters behind tabs (skeptic n01), which FMT-RAW-010 would then rewrite (SHARED-FIX-007). Option A: fix rewrites nested literal too; B: withhold the outer fix when a nested raw literal's closing whitespace holds a tab | B — withhold the fix for that class; spec author amends RH5202-007's third bullet and records the gap in `sdd/specs/analyzer/RH5202.md` | Nested raw literal in a hole of a tab-indented interpolated raw literal is a rare class; cheap check in the existing nested-literal loop; *Special cases do not grow the source* | Withholding a fix for a rare input class puts nothing in question (README, *What reaches the maintainer*) | pending |
+| 2 | skeptic | One owner for the stripped-indentation rewrite (FC-015) | The rewrite is stated once, in a shared helper used by both the formatter and the RH5202 fix (the skeptic names `RawStringLiteralUtilities`); implementer picks the exact place | Avoid two statements of one rule (architecture finding otherwise) | Internal structure | pending |
+| 3 | skeptic | RH5601-002 `Why:` cites FMT-TAB-003 keeping raw-string tabs, stale under FMT-RAW-010 | Spec author amends the `Why:` wording only; requirement unchanged | Keep the spec consistent; SHARED-DIAG-003 still keeps code rules out of literal text | Spec wording only | pending |
+| 4 | spec author | AGENTS.md IndentationPhase row should name the rewrite | Spec author adds it in the amendment round (text only) | Phase-ownership table must name what the phase owns | Text only | pending |
 
 ## Follow-up candidates
 
-(none yet)
+- RH5202 does not report a multi-line raw literal aligned in characters behind tabs (P11 gap in RH5202 itself; behavior change of RH5202, output question in `02-skeptic.md`, skeptic recommends reporting it). Source: `02-skeptic.md`.
 
 ## State
 
-- Last step finished: spec author (01-spec-author.md, commit 8c2ce8b): change doc Draft, 4 output questions; lane check confirmed behavior-change.
-- Next: skeptic (02-skeptic.md), then output-question batch before the test implementer.
+- Last step finished: skeptic (02-skeptic.md, 93d38d6): proceed; two spec amendments, one follow-up.
+- Open: output questions 1-4 of `01-spec-author.md` posted to the maintainer (batch before test implementer). Waiting.
+- Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
