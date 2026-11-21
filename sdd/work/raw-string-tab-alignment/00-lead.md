@@ -16,10 +16,10 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | skeptic | RH5202-007 third bullet is false: the RH5202 fix keeps tabs in a nested raw literal aligned in characters behind tabs (skeptic n01), which FMT-RAW-010 would then rewrite (SHARED-FIX-007). Option A: fix rewrites nested literal too; B: withhold the outer fix when a nested raw literal's closing whitespace holds a tab | B — withhold the fix for that class; spec author amends RH5202-007's third bullet and records the gap in `sdd/specs/analyzer/RH5202.md` | Nested raw literal in a hole of a tab-indented interpolated raw literal is a rare class; cheap check in the existing nested-literal loop; *Special cases do not grow the source* | Withholding a fix for a rare input class puts nothing in question (README, *What reaches the maintainer*) | pending |
+| 1 | skeptic | RH5202-007 third bullet is false: the RH5202 fix keeps tabs in a nested raw literal aligned in characters behind tabs (skeptic n01), which FMT-RAW-010 would then rewrite (SHARED-FIX-007). Option A: fix rewrites nested literal too; B: withhold the outer fix when a nested raw literal's closing whitespace holds a tab | B — withhold the fix for that class; spec author amends RH5202-007's third bullet and records the gap in `sdd/specs/analyzer/RH5202.md` | Nested raw literal in a hole of a tab-indented interpolated raw literal is a rare class; cheap check in the existing nested-literal loop; *Special cases do not grow the source* | Withholding a fix for a rare input class puts nothing in question (README, *What reaches the maintainer*) | 422eebc |
 | 2 | skeptic | One owner for the stripped-indentation rewrite (FC-015) | The rewrite is stated once, in a shared helper used by both the formatter and the RH5202 fix (the skeptic names `RawStringLiteralUtilities`); implementer picks the exact place | Avoid two statements of one rule (architecture finding otherwise) | Internal structure | pending |
-| 3 | skeptic | RH5601-002 `Why:` cites FMT-TAB-003 keeping raw-string tabs, stale under FMT-RAW-010 | Spec author amends the `Why:` wording only; requirement unchanged | Keep the spec consistent; SHARED-DIAG-003 still keeps code rules out of literal text | Spec wording only | pending |
-| 4 | spec author | AGENTS.md IndentationPhase row should name the rewrite | Spec author adds it in the amendment round (text only) | Phase-ownership table must name what the phase owns | Text only | pending |
+| 3 | skeptic | RH5601-002 `Why:` cites FMT-TAB-003 keeping raw-string tabs, stale under FMT-RAW-010 | Spec author amends the `Why:` wording only; requirement unchanged | Keep the spec consistent; SHARED-DIAG-003 still keeps code rules out of literal text | Spec wording only | 422eebc |
+| 4 | spec author | AGENTS.md IndentationPhase row should name the rewrite | Spec author adds it in the amendment round (text only) | Phase-ownership table must name what the phase owns | Text only | 422eebc |
 
 ## Follow-up candidates
 
@@ -29,5 +29,6 @@
 
 - Last step finished: skeptic (02-skeptic.md, 93d38d6): proceed; two spec amendments, one follow-up.
 - Batch 1 answered: 1A, 2A, 3A, 4A.
-- Now: fresh spec author round (03-spec-author.md).
+- Spec author round done (03-spec-author.md, 422eebc): change doc Accepted; RH5202-008 (withhold, rare nested-tab class, also when the nested literal is reported); RH5601-002 Why; AGENTS.md row.
+- Next: test implementer (04-test-implementer.md).
 - Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
