@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH0001-007, SHARED-LINES-002; new specs: RH2009 (RH2009-001 to RH2009-006), SHARED-LIMIT (SHARED-LIMIT-001, SHARED-LIMIT-002) |
 
