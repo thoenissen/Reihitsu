@@ -37,6 +37,20 @@ Batch 1c answers (final):
 
 Consolidated final answers: Q1 -> replaced by 1b A (join), 1c A (pattern chain rewrite), 1d A (unsupported), 1e A (parenthesized-pattern content four columns right of `(`). Q2 A (expression body joins across a blank line). Q3 A (query clauses under `from`). Q4 -> 4b A (comment inside an omitted type-argument list declared unsupported in this run; the FMT-INDENT-015 exception is deleted). Q5 -> covered by 1b A (`return` value joined). Q6 A (declarator behind `#endif` gets the continuation indent). Q7 -> 1b A for the joinable rows; lines that cannot be joined (a `;` behind `#endif` or a stray `///`, the hole of a verbatim interpolated string) keep the continuation indent of FMT-INDENT-034 (stated in batch 1b, not objected to — confirm in a later batch if an output there is in doubt).
 
+Batch 2 answers (final; question numbers as in the lead's batch-2 message, which maps 04-spec-author Q1-Q7 and 05-skeptic's three as follows: lead 1 = 04 Q1 plus 05's extra rows; lead 2 = 05 modifier-without-type; lead 3 = 05 directive confirmation; lead 4 = 05 `is` type test; lead 5 = 04 Q2; lead 6 = 04 Q3; lead 7 = 04 Q4; lead 8 = 04 Q5; lead 9 = 04 Q6; lead 10 = 04 Q7):
+- 1 B for every row (the maintainer noted the example was incomplete but chose B): join `private static⏎readonly`, `public⏎event`, `foreach (… in⏎…)`, `await⏎foreach`/`await⏎using`, cast `(int)⏎x`, `new⏎[]`/`new⏎()`, `this⏎int x`, a switch arm's `when`, anonymous member `A =⏎1`, `o is not⏎null`, `let y =⏎v` and `let y⏎= v`, `yield return⏎x`; a comment or directive in each of these gaps is declared unsupported in this run, like 1d A.
+- 2 B: a modifier at a line end with no type after it (type declarations, constructors, conversion operators, delegates) joins: `public class N { }`.
+- 3 A: directives in every declared gap are refused, including conditional accessibility (`#if … public #else internal #endif class Foo`) and `return⏎#if …`; the CLI leaves such a file unchanged and reports it.
+- 4 B: a type test `o is⏎string` joins to `o is string`.
+- 5 B: once a pattern chain wraps, every combinator starts its own line under `is` (`x is 1 or 2 or⏎3` gives `x is 1` / `or 2` / `or 3`).
+- 6 B: a comment or directive between a pattern combinator and its right pattern is declared unsupported in this run.
+- 7 A: a directive inside a list of omitted type arguments is refused like a comment (FMT-UNSUP-018 covers both).
+- 8: neither A nor B — the maintainer answered "unsupported": the shape that leaves a continuation line inside a switch arm or an anonymous-object member (example `A = x += // c⏎3`) is declared unsupported in this run instead of choosing a column.
+- 9 A: one reason text per refused gap.
+- 10 A: `is` followed by a multi-line parenthesized pattern keeps `(` on its own line below `is`; only the content moves (1e).
+
+Standing instruction (maintainer, after batch 2): the maintainer cannot answer further questions for the next hours. Later output questions are decided by the lead following the scheme of the answers so far (join where nothing stands in the gap; declare a comment or directive in a joined gap unsupported; continuation indent only where a line cannot be joined and is not refused), recorded under Decisions taken, and named in the PR's Review notes.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -68,5 +82,5 @@ Consolidated final answers: Q1 -> replaced by 1b A (join), 1c A (pattern chain r
 - Batch 1b (clarification of the join principle, comment-kept lines, Q4 declaration, parenthesized pattern) sent. Waiting.
 - Spec author amendment done (be4ccf4, 04-spec-author.md): change docs Accepted; 7 new output questions; AGENTS.md phase table needs the new shapes/joins (route to spec author with the next amendment).
 - Skeptic 05 done (3b2af6d): spec amendments (findings 2, 7, 8, 9, AGENTS.md table) pending for the spec author; 3 new output questions.
-- Batch 2 sent (questions 1-10: 04's 1-7 with 05's additions, plus 05's 3 new). Waiting.
+- Batch 2 answered (see Maintainer answers).
 - Next: one fresh spec author for the answers AND the 05 amendments (06); then test implementer (note 05's list of existing tests that change).
