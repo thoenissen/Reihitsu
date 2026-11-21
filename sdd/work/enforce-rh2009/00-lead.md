@@ -32,6 +32,9 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 | 1 | Claim | Lane: issue says tooling | behavior-change | Production refactors next to ruleset/tooling paths need a change doc | Lane choice is internal | f1a9c2b |
 | 2 | 01 | Root `reihitsu.json` complexity limit | None set | Spec author's recommendation; repository uses the default | Repository config, not shipped | 2645615 |
 | 3 | 01 | `Debug.ruleset` RH2009 entry | No entry (like RH2008/RH2111), pinned by a test | Consistent with precedent; deliberate absence meets the goal | Repository build config only | 2645615 |
+| 5 | 02 | Ask output question 1 (default 15/20/10)? | Not asked; default stays 15 | Maintainer's triage comment asks only if the default is poorly chosen; scan: 0.73 % of production members over 15, p99 = 14, matches RH2008 roll-out share; skeptic re-ran and confirmed 27 members | RH2009-001 unchanged, no output changes | (change-doc amendment) |
+| 6 | 02 | Who restructures the 8 test helpers | Test implementer (results unchanged); implementer takes the 19 production members | Test code is the test implementer's | Internal | |
+| 7 | 02 | Test names | Fold RH2009 into `ReleaseRulesetReportsRuleAsError`, delete `ReleaseRulesetSwitchesOffComplexityRule`; add a separate `DebugRulesetHasNoEntryForComplexityRule` instead of renaming the line-count test, so `scripts/README.md` stays valid | Avoids doc churn | Internal | |
 | 4 | 01 | Remove empty `_ignoredDiagnosticIds` and its test | Remove | Dead code once RH2009 leaves it | Test utility, internal | 2645615 |
 
 ## Follow-up candidates
@@ -41,4 +44,5 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 ## Worklist / next step
 
 - Done: 01 spec author (change doc Draft; output question 1 on default limit, recommended A=15).
-- Next: 02 skeptic, then output-question batch before test implementer.
+- Done: 02 skeptic (proceed; no output question, no architecture finding, no follow-up).
+- Next: 03 spec author (record decision 5, Status Accepted) in parallel with 04 test implementer; then implementer.
