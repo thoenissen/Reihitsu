@@ -45,5 +45,6 @@
 
 ## Open worklist / next step
 
+- Sonar comparison done (03-skeptic.md). Sent to maintainer as chat questions 11–15 = skeptic 03 Q1 (#if), Q2 (recursion re-ask), Q3 (& | ^), Q4 (anonymous methods), Q5 (parenthesized chained ?:). Waiting.
 - Answers 3–7 received. Remaining questions sent: chained `?:`, `or` in switch arms, initializer lambdas, lambda nesting depth in the score, self-hosting mechanism.
 - Earlier: concept + output questions 1–8 and escalation 6 (self-hosting mechanism, question 9) sent to the maintainer; waiting for answers. Then: route answers + decisions 1–3 to the spec author (fresh), spec author sets change doc Accepted, then test implementer.
