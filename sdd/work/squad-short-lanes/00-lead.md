@@ -45,8 +45,9 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 | 16 | Skeptic | Unsubscribe when remaining CI failures also exist on `main` | Keep; name it in the PR | A failure on `main` is decided by the lead anyway; waiting would never end | Process only | 75f9cbd |
 | 18 | Spec author | Spec author's ownership of resource texts | Only changed texts of existing entries; a new rule's entries stay with the implementer; *Internal* follow-up variant keeps its lane list | Narrow ownership; wording changes user-visible text | Process only | 75f9cbd |
 | 19 | Test implementer | Untested tooling (`--exclude`, shell query of wording paths, usage strings) | Accept; implementer demonstrates by runs listed in 04, auditor checks | No harness for the scripts outside the solution | Tooling only | a0c2957 |
-| 20 | Implementer | Interface for decision 14 | Accept `LaneCheckCommand --wording-paths`; spec author names it in `scripts/README.md`; test implementer adds its test | One statement of the classification; every option tested | Tooling only | pending |
-| 21 | Implementer | Renamed file under `--exclude` | Excluded only when both old and new paths are excluded; spec author states it | Safe default: a rename into a wording path cannot hide C# changes | Tooling only | pending |
+| 20 | Implementer | Interface for decision 14 | Accept `LaneCheckCommand --wording-paths`; spec author names it in `scripts/README.md`; test implementer adds its test | One statement of the classification; every option tested | Tooling only | 120ef1d, 7099932 |
+| 21 | Implementer | Renamed file under `--exclude` | Excluded only when both old and new paths are excluded; spec author states it | Safe default: a rename into a wording path cannot hide C# changes | Tooling only | 120ef1d, 7099932 |
+| 22 | Test implementer | Deleted wording resource file | No rule; dropped | Nobody deletes the analyzer's resource file in a wording run | Tooling only | - |
 | 17 | Skeptic | Accept change doc | Accept after the amendment; the amending spec author sets `Status: Accepted` | Skeptic ran; amendment follows | Process only | 75f9cbd |
 
 ## Follow-up candidates
@@ -58,4 +59,5 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 
 - Last step: test implementer done (a0c2957); tests need `Lane.Wording`/`PathCategory.Wording`; verify-text-only `--exclude` and the shell's wording-path query have no test harness, the implementer shows them by run.
 - Implementer done (a125a33, ae09f26), 195 tooling tests pass.
-- Next: test implementer (test for `--wording-paths`) and spec author (README names the option and the rename rule), in parallel; then cleaner.
+- Follow-ups done: 120ef1d (README), 7099932 (tests, 204 pass).
+- Next: cleaner, then spec checker, auditor, validator.
