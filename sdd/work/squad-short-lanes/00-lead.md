@@ -69,5 +69,6 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 - Repair audit 3c2e24c: pass, text cleanup (audited SHA 4982c76).
 - Text cleanup a244cc1; TEXT-ONLY PROOF: PASS vs audited 4982c76, no second audit.
 - Validator 3632402: FAIL, RH2008 on LaneCheckCommand.cs:178 (self-hosting line-count row).
-- Next: repair round 2 of 3.
+- Repair round 2: 76d936f; cleaner 1ecf3cf clean; spec checker fe965f7 consistent; auditor b530805 PASS. Audited SHA: fe965f7.
+- Next: validator on final tree, issue manager (2 candidates), note, publish.
 - PR must name decisions 11 and 16.
