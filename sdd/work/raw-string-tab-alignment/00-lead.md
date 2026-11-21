@@ -20,6 +20,7 @@
 | 2 | skeptic | One owner for the stripped-indentation rewrite (FC-015) | The rewrite is stated once, in a shared helper used by both the formatter and the RH5202 fix (the skeptic names `RawStringLiteralUtilities`); implementer picks the exact place | Avoid two statements of one rule (architecture finding otherwise) | Internal structure | pending |
 | 3 | skeptic | RH5601-002 `Why:` cites FMT-TAB-003 keeping raw-string tabs, stale under FMT-RAW-010 | Spec author amends the `Why:` wording only; requirement unchanged | Keep the spec consistent; SHARED-DIAG-003 still keeps code rules out of literal text | Spec wording only | 422eebc |
 | 4 | spec author | AGENTS.md IndentationPhase row should name the rewrite | Spec author adds it in the amendment round (text only) | Phase-ownership table must name what the phase owns | Text only | 422eebc |
+| 5 | test implementer | A comment in `RH5202…HoleTests.GetFixAllScenario` says a raw literal can never nest in another (false for interpolated raw strings) | Adjacent fix: cleaner corrects the comment wording | Comment-only, in a file the run changes | Test comment only | pending |
 
 ## Follow-up candidates
 
@@ -30,5 +31,6 @@
 - Last step finished: skeptic (02-skeptic.md, 93d38d6): proceed; two spec amendments, one follow-up.
 - Batch 1 answered: 1A, 2A, 3A, 4A.
 - Spec author round done (03-spec-author.md, 422eebc): change doc Accepted; RH5202-008 (withhold, rare nested-tab class, also when the nested literal is reported); RH5601-002 Why; AGENTS.md row.
-- Next: test implementer (04-test-implementer.md).
+- Test implementer done (04-test-implementer.md, 1111881): 26 formatter + 19 analyzer tests red, all this run's; architecture green. Note: no RH5202 fix test for `$$` (markup limitation; formatter tests cover it).
+- Next: implementer (05-implementer.md); cleaner must also do decision 5.
 - Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
