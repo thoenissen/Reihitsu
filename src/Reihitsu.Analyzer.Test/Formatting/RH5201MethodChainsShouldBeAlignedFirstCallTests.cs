@@ -472,6 +472,59 @@ public class RH5201MethodChainsShouldBeAlignedFirstCallTests : BatchCodeFixTests
     }
 
     /// <summary>
+    /// Verifies that the chain's first link behind the closing <c>*/</c> of a comment that starts its own line below the
+    /// root, with the <c>*/</c> in the root's column, is not reported, because the rule leaves the first link to the rules
+    /// that govern it; only the first call behind it is reported, and the fix starts that call on its own line and keeps the
+    /// first link behind the <c>*/</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5201-006")]
+    [Requirement("RH5201-005")]
+    [Requirement("SHARED-CHAIN-004")]
+    [Requirement("SHARED-CHAIN-005")]
+    public async Task VerifyFirstLinkBehindOwnLineCommentTailInRootColumnIsNotReported(string endOfLine)
+    {
+        const string body = """
+                                    var a = c
+                                            /* x
+                                            */ .Next{|#0:.|}Self();
+                            """;
+        const string fixedBody = """
+                                         var a = c
+                                                 /* x
+                                                 */ .Next
+                                                 .Self();
+                                 """;
+
+        await VerifyFix(InChainClass(body, endOfLine), InChainClass(fixedBody, endOfLine), 1, 1);
+    }
+
+    /// <summary>
+    /// Verifies that the first call behind a first link that a block comment blocks on the root's line, with no line break
+    /// in front of the first link, is not reported: the comment does not keep the first link on a line of its own, so the
+    /// root's line still reaches the first call
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5201-006")]
+    public async Task VerifyFirstCallBehindFirstLinkBlockedByBlockCommentOnRootLineIsNotReported(string endOfLine)
+    {
+        const string body = """
+                                    var a = c /* x */.Next.Self()
+                                                          .Self();
+                            """;
+
+        await Verify(InChainClass(body, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that the first call behind a prefix link that starts a line is reported also when a plain line break in
     /// front of the first link, which does not count by itself, stands in the same chain; the fix joins the first link to
     /// the root and starts the first call on its own line
