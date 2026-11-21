@@ -68,7 +68,7 @@
 
 ## Open worklist / next step
 
-- Implementer done (08, 2fae9e7/b41ee07). Answer 26 received. Next: spec author (decision 5 + answer 26, 09) → test implementer (test for answer 26, 10) → cleaner → spec checker → auditor → validator.
+- Implementer done (08). Answer 26 applied (09 spec, 10 tests, 5de85a9). Next: cleaner (11) → spec checker → auditor → validator.
 - Answers 23–24 applied (05-spec-author.md, 5fbfd58). On approval: status-only follow-up (spec author sets Accepted), then test implementer.
 - Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
 - Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
