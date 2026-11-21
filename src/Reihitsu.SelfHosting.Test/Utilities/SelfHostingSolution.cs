@@ -23,8 +23,7 @@ internal sealed class SelfHostingSolution
     #region Constants
 
     /// <summary>
-    /// File name of the repository's root configuration file, which the scan passes to the analyzers of every project; the build does not pass it until
-    /// <c>binaries/</c> is rebuilt
+    /// File name of the repository's root configuration file, which the scan passes to the analyzers of every project, as the build does
     /// </summary>
     private const string ConfigurationFileName = "reihitsu.json";
 
@@ -86,8 +85,7 @@ internal sealed class SelfHostingSolution
     /// <summary>
     /// Gets the analyzer options the scan gives a scanned project: <c>build_property.IsTestProject</c> and
     /// <c>build_property.IsTestingPlatformApplication</c>, which the package's build file makes visible to the analyzers,
-    /// which the build gives it too, and the repository's root <c>reihitsu.json</c> as additional file, which the build does not
-    /// pass
+    /// which the build gives it too, and the repository's root <c>reihitsu.json</c> as additional file, which the build passes too
     /// </summary>
     /// <param name="assemblyName">Assembly name of a scanned project</param>
     /// <returns>The analyzer options of the project</returns>
