@@ -45,7 +45,7 @@ class C
     public int M()
     {
         return 1    /// stray
-        ;
+            ;
     }
 }
 ```

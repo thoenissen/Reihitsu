@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DOC-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -255,9 +255,9 @@ class C
 
 ### FMT-STRUCT-006 — The converted body keeps the expression's trivia
 
-When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states. A comment, a directive, or disabled text between the token in front of the arrow and the arrow, or between the arrow and the expression, is a shape the formatter refuses as a whole (FMT-UNSUP-013, FMT-UNSUP-012), so the conversion never meets one: the arrow it removes carries whitespace and line breaks at most.
+When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on a later line than the arrow MUST join the created `return` keyword, also when blank lines stand between the arrow and the expression, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states. A comment, a directive, or disabled text between the token in front of the arrow and the arrow, or between the arrow and the expression, is a shape the formatter refuses as a whole (FMT-UNSUP-013, FMT-UNSUP-012), so the conversion never meets one: the arrow it removes carries whitespace and line breaks at most.
 
-Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment in front of the arrow or behind it had no single owner: the new opening brace, the line in front of the created statement, and the place behind `return` each needed a case of their own, and a comment on the arrow's line ended up directly in front of the brace, so the formatter refuses both places instead (FMT-UNSUP-012, FMT-UNSUP-013). A comment that describes the body belongs above the member.
+Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement, and a blank line there separates nothing, so the join does not depend on it, as it does not for a body converted to an expression statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment in front of the arrow or behind it had no single owner: the new opening brace, the line in front of the created statement, and the place behind `return` each needed a case of their own, and a comment on the arrow's line ended up directly in front of the brace, so the formatter refuses both places instead (FMT-UNSUP-012, FMT-UNSUP-013). A comment that describes the body belongs above the member.
 
 Example:
 
@@ -268,6 +268,10 @@ class C
 
     int Other() =>
         Compute(1, 2);
+
+    int Third() =>
+
+        3;
 }
 ```
 
@@ -282,6 +286,11 @@ class C
     int Other()
     {
         return Compute(1, 2);
+    }
+
+    int Third()
+    {
+        return 3;
     }
 }
 ```
@@ -314,7 +323,7 @@ class C
 #if DEBUG
         + 1
 #endif
-        ;
+            ;
     }
 }
 ```
@@ -1018,7 +1027,7 @@ class C
 }
 ```
 
-Example — line breaks inside and behind the head are repeated in every field, behind the type and between two modifiers; a line break behind a `,` is not. The same output holds under CRLF line endings and for the RH7101 code fix (FMT-PIPE-029); the column of a line that starts with a declarator or a modifier is the indentation phase's, shown here as today's output:
+Example — line breaks inside and behind the head are repeated in every field, behind the type and between two modifiers; a line break behind a `,` is not. The same output holds under CRLF line endings and for the RH7101 code fix (FMT-PIPE-029); a line that starts with a declarator or a modifier is a continuation line of its field, one level deeper than the field's first line (FMT-INDENT-034):
 
 ```csharp
 using System;
@@ -1045,14 +1054,14 @@ using System.Collections.Generic;
 class C
 {
     private Dictionary<string, List<int>>
-    _map1;
+        _map1;
     private Dictionary<string, List<int>>
-    _map2 = new();
+        _map2 = new();
 
     private static
-    readonly int _g = 1;
+        readonly int _g = 1;
     private static
-    readonly int _h;
+        readonly int _h;
 
     [NonSerialized]
     private int _x;

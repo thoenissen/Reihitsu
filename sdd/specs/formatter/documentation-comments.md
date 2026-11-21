@@ -5,7 +5,7 @@
 | ID prefix | FMT-DOC |
 | Status | Active |
 | Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
-| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-018, FMT-PIPE-032, SHARED-DOC-017 |
+| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-INDENT-034, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-018, FMT-PIPE-032, SHARED-DOC-017 |
 
 This spec covers what the documentation-comment phase decides about documentation comments: moving a single-line (`///`) or delimited (`/** … */`) documentation comment written behind code onto a new line, and, for single-line comments only, the separator after each `///` exterior and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows. The code fixes of RH8305 and RH8307 lay out the one element they fix through `ReihitsuFormatter.FormatDocumentationElementInDocumentAsync`, which gives that element the text this phase gives it and changes nothing else (FMT-PIPE-032), so the element layout of FMT-DOC-008 to FMT-DOC-011 is also their output.
 
@@ -138,7 +138,7 @@ class C
 
 ### FMT-DOC-003 — Stranded documentation stays as it was written
 
-The formatter MUST NOT move a documentation comment, single-line or delimited, written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it. The line that starts behind the comment is not part of it and is placed like any other line (FMT-INDENT-002).
+The formatter MUST NOT move a documentation comment, single-line or delimited, written behind code when the token that follows it does not open the syntax node it belongs to — such as a `;`, `)`, `]`, or `}`, a binary operator such as `+`, or the `.` of a member access — and MUST leave the text of every line of that comment as written: FMT-DOC-005 to FMT-DOC-011 do not apply to it. The line that starts behind the comment is not part of it and is placed like any other line (FMT-INDENT-002, FMT-INDENT-034).
 
 Why: Such a comment documents nothing; the compiler reports CS1587 wherever it stands and does not read it as documentation, so it is an ordinary comment whose text the formatter keeps (FMT-PIPE-002). Moving it would change the author's layout without giving the comment a meaning, and laying out its elements would rewrite text that documents nothing, so the formatter keeps it as it is and leaves the decision to the author.
 
@@ -166,7 +166,7 @@ class C
 }
 ```
 
-are left unchanged. A comment before a `;` stays where it is, and the `;` behind it takes its declaration's column:
+are left unchanged. A comment before a `;` stays where it is, and the `;` behind it is a continuation line of its declaration (FMT-INDENT-034), so
 
 ```csharp
 class C
@@ -176,13 +176,7 @@ class C
 }
 ```
 
-```csharp
-class C
-{
-    int A => 1 /// stray
-    ;
-}
-```
+is left unchanged.
 
 A comment before the `.` of a chain link stays behind code, and the links behind it are aligned (FMT-INDENT-029):
 
