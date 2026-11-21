@@ -18,6 +18,8 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 1. #1900 output question (RH5201 title/message/fix title), answered in the issue's triage comment of 2026-11-20 by the maintainer: **option A**. Title and message become "Member-access chains should be aligned." and the code-fix title becomes "Align member-access chain". The rule page heading and every place the title test pins follow. No reporting condition, location, or fix output changes. (The maintainer also notes the run for #893 starts after this one merges; both edit RH5201's files — not part of this run.)
 
+2. Output question 1 of the batch before the test implementer (RH5201 rule page body wording): **A**. "method chain" becomes "member-access chain" in the Description's first sentence and in the Why sentence, and "chain of calls" becomes "chain of member accesses"; the "first call" bullets, "How to fix it", and the examples stay unchanged.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -31,4 +33,4 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 ## State
 
 - Last step: skeptic proceed (7f40b46, 02-skeptic.md); change doc accepted by the lead (spec author sets Status: Accepted in its next follow-up). Output-question batch asked: Q1 RH5201 rule page body wording (A recommended).
-- Next: on the answer, spec author applies it and sets Accepted; then test implementer.
+- Answer received (A). Next: fresh spec author applies it and sets Status: Accepted; then test implementer.
