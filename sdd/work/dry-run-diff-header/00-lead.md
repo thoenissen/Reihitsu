@@ -27,6 +27,8 @@ Batch 1 (before test implementer), answered "as recommended":
 | 4 | skeptic | Lane / issue goals "Squad lane: bug fix", "remove open-question non-goal" | Dropped as outdated (agent-filed); lane behavior-change; the non-goal no longer exists on main | Spec pins today's header; nothing to remove | Internal | - |
 | 5 | implementer | Keep new internal type `PathComparison` | Keep | One owner of the CLI's case rule for CLI-006 and CLI-024 instead of a second copy; part of the issue's own fix, small, so not escalation 9 | Internal type; CLI-006 behavior unchanged | dea4dbd |
 | 6 | implementer | Keep `DiffGenerator.GenerateWithNames` | Keep | Lets the dry-run header carry its own names while `Generate` and the trace header stay unchanged | Internal API | dea4dbd |
+| 7 | repair 1 | List `IDiffGenerator` among code owners | No — the spec lists default implementations, not interfaces (as with `DefaultFileSystem`) | Follows the spec's existing convention | Spec metadata | 272a474 |
+| 8 | repair 1 | Cleaner after a spec-only repair | Skipped: the repair touches only two markdown files, no source | Nothing to format or build | Internal process | 272a474 |
 
 ## Follow-up candidates
 
@@ -36,4 +38,4 @@ Batch 1 (before test implementer), answered "as recommended":
 
 - Last step finished: spec author (8d5f2cc, pushed): change doc Draft, CLI-013 + new CLI-024. Open output question: Windows full path outside cwd, `\` (A, recommended) vs `/` (B). Visible changes 1-3 covered by #933 Q1 answer.
 - Skeptic done (813177e): verdict output question; premise confirmed (patch -p1 / git apply accept the new header).
-- Change doc Accepted (c45a33a). Test implementer done (557151c): 14 E2E tests, 13 red on the header lines (reproduced), 1 Windows-only skipped. Implementer done (dea4dbd, abdf403): 13 pass, 1 Windows-only skipped; CLI 438 pass. Cleaner clean (fc3905c). Spec checker (ba95700): 1 finding — Code owners of reihitsu-format.md and sdd/specs/README.md row miss `PathComparison` and `DefaultDiffGenerator`. Repair round 1: spec author (fresh), then spec checker, then auditor.
+- Change doc Accepted (c45a33a). Test implementer done (557151c): 14 E2E tests, 13 red on the header lines (reproduced), 1 Windows-only skipped. Implementer done (dea4dbd, abdf403): 13 pass, 1 Windows-only skipped; CLI 438 pass. Cleaner clean (fc3905c). Spec checker (ba95700): 1 finding — Code owners of reihitsu-format.md and sdd/specs/README.md row miss `PathComparison` and `DefaultDiffGenerator`. Repair round 1: spec author repaired (272a474). Next: spec checker (fresh), then auditor.
