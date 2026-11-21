@@ -31,12 +31,19 @@ Batch 1 (questions 1-7), first reply, summarized: the maintainer doubts #953 is 
 
 Batch 1b answers: 1b A (join every listed row where no comment/directive sits in the gap: return value, `is` pattern, switch arm `=>`, base list `:`, modifier/type, catch `when`, for header, lambda body, `with`, throw/await/new). 1c: neither option — the pattern chain must be rewritten so that `or` stands under `is` (asked back for the exact layout, batch 1c). 1d: declare comment-kept lines in those gaps unsupported (scope asked back, batch 1c). 1e A (parenthesized-pattern content four columns right of `(`). 4b A: declare a comment inside an omitted type-argument list unsupported, in this run. Earlier: 2A, 3A, 6A.
 
+Batch 1c answers (final):
+- 1c A: a pattern chain is rewritten so that each combinator starts its line, aligned under `is`: `var k = x is⏎1 or⏎2 or⏎3;` becomes `var k = x is 1` / `or 2` / `or 3;` with each `or` in the column of `is`. Applies to `and` as well, to `case` labels (`case 1 or⏎2:` becomes `case 1` / `or 2:` with `or` under the first pattern), and to switch arms.
+- 1d A: comments AND directives in every gap that 1b joins are declared unsupported in this run: between `return`/`throw`/`await`/`new` and what follows; between `is` and its pattern; between a switch arm's pattern and its `=>`; between a type and its base list's `:`; between a modifier and the type; in front of `catch … when`; inside a `for` header behind a `;`; behind a lambda's `=>`; in front of `with`; between an anonymous-object member name and its `=`. The CLI leaves such a file unchanged and reports it; code fixes formatting such code are withheld. The declarator behind `#endif` (6A) is not in this list and keeps the continuation indent.
+
+Consolidated final answers: Q1 -> replaced by 1b A (join), 1c A (pattern chain rewrite), 1d A (unsupported), 1e A (parenthesized-pattern content four columns right of `(`). Q2 A (expression body joins across a blank line). Q3 A (query clauses under `from`). Q4 -> 4b A (comment inside an omitted type-argument list declared unsupported in this run; the FMT-INDENT-015 exception is deleted). Q5 -> covered by 1b A (`return` value joined). Q6 A (declarator behind `#endif` gets the continuation indent). Q7 -> 1b A for the joinable rows; lines that cannot be joined (a `;` behind `#endif` or a stray `///`, the hole of a verbatim interpolated string) keep the continuation indent of FMT-INDENT-034 (stated in batch 1b, not objected to — confirm in a later batch if an output there is in doubt).
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | skeptic | FC-028: code fixes measure the FMT-INDENT-034 column from a node starting mid-line; how to make fix and CLI agree | Add a document fact (column where the node's first line starts) to FMT-PIPE-024 and use it in FMT-INDENT-034; test RH5302/RH5308 against the CLI | RH5302/RH5308 already require "as the formatter formats it in place"; the fact is part of the issue's own fix, not a rare-class special case | Unchanged requirements already demand CLI-equal output | (spec amendment) |
 | 2 | skeptic | SHARED-ATTR-022 example moved to the new column | Revert; drop RH5514 from the change doc | RH5514 does not call the formatter; SHARED-ATTR-017 unchanged | Reverting to today's output | (spec amendment) |
+| 4 | answers | The maintainer's answers widen the run to line-break joins, a pattern-chain rewrite and new unsupported shapes; does the skeptic run again? | Fresh spec author amends; then a fresh skeptic checks the amended spec diff before the test implementer | The amendment adds new mechanisms (line-break phase, precheck) the first skeptic never saw | Process only | — |
 | 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
 ## Follow-up candidates
@@ -55,6 +62,6 @@ Batch 1b answers: 1b A (join every listed row where no comment/directive sits in
 - Skeptic done (5f6af8f): all four reproduce; 5 amendments routed to a fresh spec author.
 - Spec-author amendment done (5fe7f28), 03-spec-author.md supersedes 01 for output questions.
 - Output-question batch 1 sent to the maintainer (questions 1-7: reference line, blank-line join, query clauses, omitted type args, return value, #endif declarator, other applications). Waiting for the answer.
-- Batch 1c (exact pattern-chain layout; scope of the 1d declaration) sent. Waiting.
+- Batch 1c answered (1c A, 1d A).
 - Batch 1b (clarification of the join principle, comment-kept lines, Q4 declaration, parenthesized pattern) sent. Waiting.
-- Next: route the answers to the spec author (status Accepted), then the test implementer.
+- Next: fresh spec author amends specs and change docs per the consolidated answers (04-spec-author.md); then fresh skeptic (05); then accept change docs and the test implementer.
