@@ -56,6 +56,8 @@
 | 1 | Skeptic | Member selection and location restated from RH2008 (architecture finding, FC-015) | Change the structure in this run: one shared owner in code for member → (body, expression body, name token), used by RH2008 and RH2009; the RH2009 spec references RH2008-002/004/005 instead of restating them | A second copy is exactly the drift the finding names; the move is small (a few dozen lines), within RH2008, its counterpart | RH2008 behavior unchanged; same members and location as the spec already states | – |
 | 2 | Skeptic | Default-on-invalid stated twice (RH2009-001 vs SHARED-LINES-002) | Widen the shared statement to cover configured limits generally and reference it from RH2009; share the configuration-reading code instead of copying it | One statement of the rule | Wording only; behavior identical | – |
 | 4 | Lead | Release.ruleset action for RH2009 while it is on the self-hosting ignore list | `Action="None"` until the follow-up (RulesetTests requires an entry; `Error` would break the next `/bump-version` build on the repo's own violations) | Carries out answer 11: violations ignored for now | Repository build configuration only; the shipped rule's default severity stays Warning | – |
+| 5 | Implementer | Rule page examples fail `RuleDocumentationExampleTests` (bare methods, CS0106) | Spec author wraps the Violation and Correction examples in a class; no opt-out | The example stays verified; scores unchanged (16 vs 15 / below) | The page's content and scores are unchanged; only a surrounding `class` is added | – |
+| 6 | Implementer | Default values of lambda parameters are scored where the lambda stands, not in its body | Keep; no spec text, no test | A `?:` in a constant parameter default is a rare input class nobody writes; dropped, not a follow-up | Rare class (AGENTS.md, Code-fix coverage / Supported inputs) | – |
 | 3 | Skeptic | Internal wording points (`when` clauses count `&&`/`||`; `not` breaks a run like `!`; query clauses do not nest; rule page/change doc wording on `!(a && b) && c`; exception sentence aligned with Q2's answer) | Take all, route to spec author with the maintainer's answers | Removes two-reading ambiguity without changing any score | No score changes; rule page wording follows the answers | – |
 
 ## Follow-up candidates
@@ -65,7 +67,7 @@
 
 ## Open worklist / next step
 
-- Tests written (07, 21f80d1). Next: implementer (08).
+- Implementer done (08, 2fae9e7/b41ee07). Asked maintainer output question 21: does `other.M(…)` (same method on another instance) count as recursion? Waiting. Then: spec author (decision 5 + answer) → cleaner → spec checker → auditor → validator.
 - Answers 23–24 applied (05-spec-author.md, 5fbfd58). On approval: status-only follow-up (spec author sets Accepted), then test implementer.
 - Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
 - Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
