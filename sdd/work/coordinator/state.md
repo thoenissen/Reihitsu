@@ -14,13 +14,25 @@ Carried over: `/squad #1880` (waited for the v1.5.0 tag; the tag exists).
 
 Runs in progress: none.
 
-Start now / after merges: being derived (planning agent writes `inventory/plan-1.6.0.md`).
+Dependency graph: `inventory/plan-1.6.0.md` (roadmap runs split by lane; the blanket "formatter waits on #953" narrowed to the runs that share `indentation.md`/`line-breaks.md`/`structural-transforms.md` or a logical link).
+
+Start now: `#953 #1852 #1896 #1818` · `#1880` · `#975` · `#1432` · `#1566` · `#1472` · `#1912` · `#1240 #1591` · `#1836` · `#970 #1668` · `#971 #1072 #1451 #1434` · `#1086` · `#1089` · `#1090`.
+
+After merges:
+- after #953 → `#1633 #1634 #1647 #1685 #1542`
+- after #953 and #1240 #1591 → `#1275 #1837`
+- after #953 and #1912 → `#1607`
+- after the list/pattern run (and #1566) → `#1568 #1698 #1567` → `#1399` → `#1400` (serial on `indentation.md`)
+- after #1432 → `#1722`; after #1086 → `#1085`; after the casing run → `#1771` (escalation 9 first)
+- after #1090 and the #1088 question: camelCase → `#1087 #1088`; PascalCase → `#1087 #1088` alone at the end (renames ~870 test files)
+- after #953, #1836, #1275 #1837, #970 #1668 → `#1589` alone (or 1.7.0)
 
 ## Status
 
+Status 2026-11-21 (f): start-now set given. Asked: #1088 casing of local constants — A camelCase (no churn), B PascalCase (issue's starting point, RH4110/.NET, renames ~870 test files, run alone); recommended A.
 Status 2026-11-21 (e): started 1.6.0; main merged into `coordinator`; dependency graph delegated.
 Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, bump #1919 merged, release v1.5.0 published; no inventory left; roadmap has no 1.5.0 section, #1880 already in 1.6.0). Milestone 7 (1.5.0) still open on GitHub with 0 open issues: the maintainer closes it.
 
 ## Next
 
-`/coordinator start 1.6.0` (resumes: reads `inventory/plan-1.6.0.md` if present, else re-derives it, and answers with the start-now set).
+Maintainer starts the start-now runs and answers the #1088 question; the answer is commented on #1088 and recorded in Decisions. After merges: `/coordinator batch`.
