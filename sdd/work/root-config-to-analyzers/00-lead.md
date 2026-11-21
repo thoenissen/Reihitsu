@@ -23,5 +23,5 @@
 
 ## State
 
-- Last step finished: cleaner (03, c9d0bb1): clean.
-- Next: spec checker.
+- Last step finished: spec checker (04, 4f1bebe): consistent.
+- Next: auditor.
