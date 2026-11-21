@@ -22,5 +22,5 @@
 
 ## State
 
-- Last step finished: claim, lane claimed, prepare.sh green.
-- Next: test implementer.
+- Last step finished: test implementer (01, bf32d4e): test written, fails as expected; premise confirmed (1.5.0 binaries accept `design`).
+- Next: implementer.
