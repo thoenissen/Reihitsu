@@ -2333,6 +2333,279 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyHoleTests : BatchC
         await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a raw string nested in a hole stands aligned in characters behind nine spaces and two tabs, so it is not reported, and no code fix is offered for the reported outer literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsWithheldWhenUnreportedRawStringNestedInHoleIsIndentedWithTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:$"""
+                                    Outer {"""
+                                         →→inner
+                                         →→"""}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(ExpandWhitespaceMarkers(testData));
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a raw string nested in a hole stands behind two tabs and is reported; no code fix is offered for the outer literal, the nested literal's fix moves its lines nine columns to the right and writes their indentation as spaces, and the outer literal's fix is then offered and moves every line 13 columns to the right
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsWithheldWhenReportedRawStringNestedInHoleIsIndentedWithTabsAndOfferedAfterTheNestedFix()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:$"""
+                                    Outer {{|#1:"""
+                                →→inner
+                                →→"""|}}
+                                    """|};
+                                    }
+                                }
+                                """";
+        const string intermediateData = """"
+                                        class C
+                                        {
+                                            void M()
+                                            {
+                                                var a = {|#0:$"""
+                                            Outer {"""
+                                                   inner
+                                                   """}
+                                            """|};
+                                            }
+                                        }
+                                        """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Outer {"""
+                                                          inner
+                                                          """}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var source = ConvertEndOfLine(ExpandWhitespaceMarkers(testData), endOfLine);
+            var intermediate = ConvertEndOfLine(intermediateData, endOfLine);
+            var result = ConvertEndOfLine(resultData, endOfLine);
+
+            await VerifyOuterLiteralFixIsWithheldAndNestedLiteralFixIsOffered(source, 2);
+
+            TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+            TestFileMarkupParser.GetSpans(intermediate, out var plainIntermediate, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+            var nestedFixed = await TryApplyCodeFixAtAsync(plainSource, RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, root => GetRawStringLiterals(root).Last().GetLocation());
+
+            Assert.AreEqual(plainIntermediate, nestedFixed, "The nested literal's fix must write its indentation as spaces.");
+
+            await Verify(intermediate, result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the incremental and the Fix All application of the code fix both end at the formatter's layout when the outer literal's fix is withheld until the fix of a tab-indented raw string nested in its hole has run
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyEveryFixApplicationConvergesWhenRawStringNestedInHoleIsIndentedWithTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:$"""
+                                    Outer {{|#1:"""
+                                →→inner
+                                →→"""|}}
+                                    """|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Outer {"""
+                                                          inner
+                                                          """}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for the outer literal when a raw string nested in a hole of an interpolated literal nested in its hole, two levels deep, is indented with tabs, while neither nested literal is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsWithheldWhenRawStringNestedTwoLevelsDeepIsIndentedWithTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:$"""
+                                    Outer {$"""
+                                            Mid {"""
+                                               →→inner
+                                               →→"""}
+                                            """}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for the outer literal when an interpolated raw string nested in its hole is indented with tabs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsWithheldWhenInterpolatedRawStringNestedInHoleIsIndentedWithTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:$"""
+                                    Outer {$"""
+                                          →→{1}
+                                          →→"""}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for the outer literal when a UTF-8 raw string nested in its hole is indented with tabs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsWithheldWhenUtf8RawStringNestedInHoleIsIndentedWithTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:$"""
+                                    Outer {"""
+                                         →→x
+                                         →→"""u8.Length}
+                                    """|};
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered for an outer literal that would move to the left when a raw string nested in its hole is indented with tabs
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsWithheldWhenShiftingLeftAndRawStringNestedInHoleIsIndentedWithTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:$"""
+                                                      Outer {"""
+                                                           →→inner
+                                                           →→"""}
+                                                      """|};
+                                    }
+                                }
+                                """";
+
+        await VerifyNoCodeFixIsOffered(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix is offered and shifts the lines of a raw string nested in a hole when the whitespace in front of its closing quotes holds no tab, and that the tab behind that width on its content line stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-007")]
+    [Requirement("RH5202-008")]
+    public async Task VerifyFixIsOfferedAndKeepsTheTabOfRawStringNestedInHoleWithoutATabInFrontOfItsClosingQuotes()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:$"""
+                                    Outer {"""
+                                           →inner
+                                           """}
+                                    """|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = $"""
+                                                   Outer {"""
+                                                          →inner
+                                                          """}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyCodeFixWithEndOfLine(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), "\n");
+        await VerifyCodeFixWithEndOfLine(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), "\r\n");
+    }
+
     #endregion // Tests
 
     #region Methods
