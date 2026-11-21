@@ -219,7 +219,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                       {
                                           return 0
                                   #pragma warning disable CS0618
-                                          ;
+                                              ;
                                       }
                                   }
                                   """;
@@ -255,6 +255,41 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a conversion operator whose expression stands behind a blank line below the arrow joins the expression to the
+    /// created <c>return</c> keyword and drops the blank line, as the formatter does, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    [Requirement("SHARED-BODY-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyExpressionBehindABlankLineIsFixedToSingleSpacedReturn(string endOfLine)
+    {
+        const string testData = """
+                                internal class RH3206
+                                {
+                                    public static implicit operator int(RH3206 instance) {|#0:=>
+
+                                        0|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3206
+                                  {
+                                      public static implicit operator int(RH3206 instance)
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(resultData, endOfLine), Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

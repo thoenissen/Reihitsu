@@ -693,6 +693,51 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the change example: the fix lays out a collection expression one element per line, and a lambda element whose
+    /// body stood on the next line gets the body behind its arrow
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-041")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixJoinsTheBodyOfALambdaElementBehindItsArrow(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int>[] f = [() =>
+                                            1, () => 2];
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          Func<int>[] f = [
+                                                              () => 1,
+                                                              () => 2
+                                                          ];
+                                      }
+                                  }
+                                  """;
+
+        var actual = await ApplyCodeFixAsync(ConvertEndOfLine(testData, endOfLine));
+
+        Assert.AreEqual(ConvertEndOfLine(resultData, endOfLine), actual);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -144,7 +144,8 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment between the expression and the semicolon stays in front of the created statement's
-    /// semicolon, and that an expression written on the line after the arrow joins the created <c>return</c> keyword
+    /// semicolon, and that an expression written on a later line than the arrow joins the created <c>return</c> keyword, also
+    /// across a blank line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-006")]
@@ -158,6 +159,10 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
 
                                  int Other() =>
                                      Compute(1, 2);
+
+                                 int Third() =>
+
+                                     3;
                              }
                              """;
         const string expected = """
@@ -171,6 +176,11 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
                                     int Other()
                                     {
                                         return Compute(1, 2);
+                                    }
+
+                                    int Third()
+                                    {
+                                        return 3;
                                     }
                                 }
                                 """;

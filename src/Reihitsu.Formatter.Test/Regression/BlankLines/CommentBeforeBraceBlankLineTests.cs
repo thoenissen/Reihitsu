@@ -313,8 +313,8 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
 
                                                                 if (o is C
 
-                                                                // e
-                                                                { })
+                                                                    // e
+                                                                    { })
                                                                 {
                                                                 }
 
@@ -1205,8 +1205,8 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                     {
                                         if (o is C
 
-                                        // c
-                                        { })
+                                            // c
+                                            { })
                                         {
                                         }
                                     }

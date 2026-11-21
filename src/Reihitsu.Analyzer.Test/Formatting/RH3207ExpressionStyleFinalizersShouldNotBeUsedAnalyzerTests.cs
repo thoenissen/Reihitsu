@@ -174,7 +174,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                       {
                                           System.GC.KeepAlive(this)
                                   #pragma warning disable CS0618
-                                          ;
+                                              ;
                                       }
                                   }
                                   """;

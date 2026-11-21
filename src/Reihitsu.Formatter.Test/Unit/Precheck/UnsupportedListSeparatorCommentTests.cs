@@ -307,7 +307,6 @@ public class UnsupportedListSeparatorCommentTests : FormatterTestsBase
     [DataRow("        Foo(1\n            , 2);", DisplayName = "Comma-first argument list without a comment")]
     [DataRow("        Foo(1\n            ,\n            // c\n            2);", DisplayName = "Comment line behind a comma alone on its line")]
     [DataRow("        Foo(1, /* a\n            b */ 2);", DisplayName = "Multi-line comment behind a comma")]
-    [DataRow("        var t = typeof(Dictionary<, // c\n>);", DisplayName = "Comment behind the comma of an omitted type argument")]
     [DataRow("        var t = typeof(Dictionary<\n,>);", DisplayName = "Omitted type argument without a comment")]
     [DataRow("        int[] a = { 1,\n#if X\n            2,\n#endif\n            3 };", DisplayName = "Comma at the end of its line in front of a directive")]
     [DataRow("        Foo(a, // c\n            b);", DisplayName = "Line comment behind a comma")]
@@ -315,6 +314,18 @@ public class UnsupportedListSeparatorCommentTests : FormatterTestsBase
     {
         AssertSupported(WrapInMethod(statement));
         AssertSupported(WrapInMethod(statement), CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the comma of an omitted type argument is not this shape: the input is refused under the
+    /// shape of a comment inside a list of omitted type arguments, with that shape's reason
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-009")]
+    [Requirement("FMT-UNSUP-018")]
+    public void CommentBehindTheCommaOfAnOmittedTypeArgumentGivesTheReasonOfTheOmittedTypeArgumentList()
+    {
+        AssertUnsupportedFor(OmittedTypeArgumentCommentReason, WrapInMethod("        var t = typeof(Dictionary<, // c\n>);"), "// c");
     }
 
     /// <summary>

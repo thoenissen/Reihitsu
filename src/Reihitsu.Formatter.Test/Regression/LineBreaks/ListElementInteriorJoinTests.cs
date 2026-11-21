@@ -1150,12 +1150,12 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a parameter wrapped after a modifier that a line comment holds keeps the wrap and is aligned with the modifier
+    /// Verifies that a line comment behind a parameter's modifier, which kept the parameter's interior wrap, refuses the input as
+    /// unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    [Requirement("FMT-BREAK-015")]
-    public void ParameterInteriorWrapHeldByLineCommentIsNotJoined()
+    [Requirement("FMT-UNSUP-017")]
+    public void ParameterInteriorWrapHeldByLineCommentBehindAModifierIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1170,20 +1170,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M(ref // keep
-                                                    int value)
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ModifierCommentReason, input, "// keep");
     }
 
     /// <summary>

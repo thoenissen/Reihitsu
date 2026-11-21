@@ -1107,6 +1107,54 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
         await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the fix formats the conditional as a root of its own that starts behind
+    /// <c>var s = </c>, and the continuation of the compound assignment, whose construct starts on the root's first line, is
+    /// indented four columns right of where the document begins that line, as whole-document formatting indents it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-034")]
+    [Requirement("FMT-PIPE-024")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIndentsAContinuationOnTheRootsFirstLineFromTheDocumentsLineStart(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        var s = (x += // c
+                                        3) > 0 ? 1 :
+                                        2;
+
+                                        return s;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      int M(int x)
+                                      {
+                                          var s = (x += // c
+                                              3) > 0
+                                                      ? 1
+                                                      : 2;
+
+                                          return s;
+                                      }
+                                  }
+                                  """;
+
+        var actual = await ApplyCodeFixAsync(ConvertEndOfLine(testData, endOfLine));
+
+        Assert.AreEqual(ConvertEndOfLine(resultData, endOfLine), actual);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

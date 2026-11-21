@@ -222,19 +222,36 @@ public class UnsupportedFieldDeclarationDirectiveTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a field declaration with one declarator is not refused, also with a directive among its modifiers or in front
-    /// of its equals sign, in both builds of <c>X</c>
+    /// Verifies that a field declaration with one declarator is not refused under this requirement: a directive in front of its
+    /// equals sign is formatted in both builds of <c>X</c>
     /// </summary>
-    /// <param name="member">The declaration, indented by four spaces</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-010")]
-    [DataRow("    [Obsolete]\n#if X\n    public\n#endif\n    int _a;", DisplayName = "Conditional modifier")]
-    [DataRow("    private\n#nullable disable\n    static int _a;", DisplayName = "Nullable directive between two modifiers")]
-    [DataRow("    private int _a\n#pragma warning disable CS0414\n        = 1;", DisplayName = "Pragma directive in front of the equals sign")]
-    public void DirectiveInsideAFieldWithOneDeclaratorIsSupported(string member)
+    public void DirectiveInsideAFieldWithOneDeclaratorIsSupported()
     {
+        var member = "    private int _a\n#pragma warning disable CS0414\n        = 1;";
+
         AssertSupported(WrapInClass(member));
         AssertSupported(WrapInClass(member), CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
+    }
+
+    /// <summary>
+    /// Verifies that a directive behind a modifier of a field with one declarator is not this shape but the shape of a gap the
+    /// line-break phase joins: a directive between two modifiers refuses the input in both builds, and a conditional modifier
+    /// refuses it only in the build that compiles the modifier, where its <c>#endif</c> stands behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-017")]
+    public void DirectiveBehindAModifierOfAFieldWithOneDeclaratorGivesTheReasonOfTheModifier()
+    {
+        var between = WrapInClass("    private\n#nullable disable\n    static int _a;");
+        var conditional = WrapInClass("    [Obsolete]\n#if X\n    public\n#endif\n    int _a;");
+
+        AssertUnsupportedFor(ModifierCommentReason, between, "#nullable disable");
+        AssertUnsupportedFor(ModifierCommentReason, between, "#nullable disable", parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
+        AssertSupported(conditional);
+        AssertUnsupportedFor(ModifierCommentReason, conditional, "#endif", parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
     }
 
     /// <summary>

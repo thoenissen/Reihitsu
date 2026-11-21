@@ -160,7 +160,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                       {
                                           _value = 1
                                   #pragma warning disable CS0168
-                                          ;
+                                              ;
                                       }
                                   }
                                   """;
@@ -287,7 +287,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                   #if DEBUG
                                           + 1
                                   #endif
-                                          ;
+                                              ;
                                       }
                                   }
                                   """;

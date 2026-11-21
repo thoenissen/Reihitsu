@@ -1291,7 +1291,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
                                     public int Value
                                     {
                                         get => _value // c
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -1685,8 +1685,8 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
                                     {
                                         get => _value
 
-                                        // Explains the value
-                                        ;
+                                            // Explains the value
+                                            ;
                                     }
                                 }
                                 """;
@@ -1725,7 +1725,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
                                     {
                                         get => _value
                                 #pragma warning disable CS0618
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;

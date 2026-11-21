@@ -164,22 +164,38 @@ public class UnsupportedBinaryOperatorCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the <c>is</c> of a pattern match and the operators inside a pattern are no binary operators: a comment behind
-    /// them does not refuse the input
+    /// Verifies that a relational operator inside a pattern is no binary operator, and a comment in front of a combinator stands
+    /// outside every refused gap: neither refuses the input
     /// </summary>
     /// <param name="expression">The pattern match</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-011")]
-    [DataRow("o is /* c */ 5", DisplayName = "Constant pattern")]
-    [DataRow("o is /* c */ null", DisplayName = "Null pattern")]
-    [DataRow("o is /* c */ not null", DisplayName = "Negated pattern")]
-    [DataRow("o is /* c */ string t", DisplayName = "Declaration pattern")]
-    [DataRow("o is /* c */ { }", DisplayName = "Property pattern")]
-    [DataRow("i is > /* c */ 1 or /* d */ 3", DisplayName = "Relational pattern and or combinator")]
-    [DataRow("i is > 1 and /* c */ < 3", DisplayName = "And combinator")]
+    [DataRow("i is > /* c */ 1", DisplayName = "Relational pattern")]
+    [DataRow("i is > 1 /* c */ and < 3", DisplayName = "In front of a combinator")]
     public void CommentBehindAPatternOperatorIsSupported(string expression)
     {
         AssertSupported(WrapInMethod($"        var r = {expression};"));
+    }
+
+    /// <summary>
+    /// Verifies that the <c>is</c> of a pattern match and the pattern combinators are no binary operators: a comment behind them is
+    /// not this shape, and the input is refused with the reason of the gap the line-break phase joins
+    /// </summary>
+    /// <param name="reason">The reason that is reported</param>
+    /// <param name="expression">The pattern match</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-011")]
+    [Requirement("FMT-UNSUP-017")]
+    [DataRow(IsPatternCommentReason, "o is /* c */ 5", DisplayName = "Constant pattern")]
+    [DataRow(IsPatternCommentReason, "o is /* c */ null", DisplayName = "Null pattern")]
+    [DataRow(IsPatternCommentReason, "o is /* c */ not null", DisplayName = "Negated pattern")]
+    [DataRow(IsPatternCommentReason, "o is /* c */ string t", DisplayName = "Declaration pattern")]
+    [DataRow(IsPatternCommentReason, "o is /* c */ { }", DisplayName = "Property pattern")]
+    [DataRow(PatternCombinatorCommentReason, "i is > 1 or /* c */ 3", DisplayName = "Or combinator")]
+    [DataRow(PatternCombinatorCommentReason, "i is > 1 and /* c */ < 3", DisplayName = "And combinator")]
+    public void CommentBehindIsOfAPatternMatchOrACombinatorGivesTheReasonOfTheJoinedGap(string reason, string expression)
+    {
+        AssertUnsupportedFor(reason, WrapInMethod($"        var r = {expression};"), "/* c */");
     }
 
     /// <summary>
@@ -354,8 +370,8 @@ public class UnsupportedBinaryOperatorCommentTests : FormatterTestsBase
                                      var y = a /* c2 */ && b;
                                      var z = n + M2(1) // c3
                                              + 2;
-                                     var w = n is > /* c4 */ 1 or /* c5 */ 3;
-                                     var u = M3() is /* c7 */ 5;
+                                     var w = n is > /* c4 */ 1 or 3;
+                                     var u = M3() /* c7 */ is 5;
                                      n += /* c6 */ 1;
 
                                      return x && y && z > 0 && w && u;

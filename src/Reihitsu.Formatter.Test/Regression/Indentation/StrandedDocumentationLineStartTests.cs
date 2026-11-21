@@ -388,7 +388,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                                     int M()
                                     {
                                         return 1 /// x
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -650,7 +650,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
     /// the column it gets behind a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-002")]
+    [Requirement("FMT-INDENT-034")]
     public void WrappedLambdaArrowBehindStrayDocumentationCommentIsPlacedAsBehindSingleLineComment()
     {
         // Arrange
@@ -670,7 +670,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         System.Func<int, int> f = x /// x
-                                        => x;
+                                            => x;
                                     }
                                 }
                                 """;
@@ -684,7 +684,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
     /// gets the column it gets behind a single-line comment
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-002")]
+    [Requirement("FMT-INDENT-034")]
     public void WrappedAssignmentOperatorBehindStrayDocumentationCommentIsPlacedAsBehindSingleLineComment()
     {
         // Arrange
@@ -708,7 +708,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         _x /// x
-                                        = 1;
+                                            = 1;
                                     }
                                 }
                                 """;
@@ -1032,7 +1032,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                                         return 1 /// x
                                 #if DEBUG
                                 #endif
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -1072,7 +1072,7 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                                 #if NEVER
                                         + 2
                                 #endif
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -1107,8 +1107,8 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                                     int M()
                                     {
                                         return 1 /// x
-                                        // own
-                                        ;
+                                            // own
+                                            ;
                                     }
                                 }
                                 """;

@@ -230,12 +230,11 @@ public class ParenthesizedLambdaLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line in front of a lambda that starts its line behind <c>return</c> is kept
+    /// Verifies that a lambda behind <c>return</c> and a blank line joins the <c>return</c>, and the blank line goes with the join
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-011")]
-    [Requirement("FMT-BREAK-030")]
-    public void BlankLineInFrontOfLambdaBehindReturnIsKept()
+    [Requirement("FMT-BREAK-041")]
+    public void BlankLineInFrontOfLambdaBehindReturnGoesWithTheJoin()
     {
         // Arrange
         const string input = """
@@ -251,19 +250,28 @@ public class ParenthesizedLambdaLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    Func<int, int> M()
+                                    {
+                                        return (x) => x;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertBlankLinesAbove(input, ("(x) => x;", true));
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that a lambda that starts its line behind <c>return</c> without a blank line above it keeps that line
-    /// break, as any other expression does
+    /// Verifies that a lambda that starts its line behind <c>return</c> joins the <c>return</c>
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-011")]
-    [Requirement("FMT-BREAK-030")]
-    public void LambdaBehindReturnWithoutBlankLineKeepsItsLineBreak()
+    [Requirement("FMT-BREAK-041")]
+    public void LambdaBehindReturnJoinsTheReturn()
     {
         // Arrange
         const string input = """
@@ -278,9 +286,20 @@ public class ParenthesizedLambdaLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    Func<int, int> M()
+                                    {
+                                        return (x) => x;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertBlankLinesAbove(input, ("(x) => x;", false));
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

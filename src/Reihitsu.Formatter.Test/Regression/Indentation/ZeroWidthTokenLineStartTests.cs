@@ -7,8 +7,8 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 /// <summary>
 /// Full-pipeline tests for lines around tokens without text: an omitted type argument, an omitted array size, and the
 /// end of the file. Such a token never starts a line, so the line starts at the next token or trivia with text, which is
-/// placed once at the column its own requirement gives it. A wrapped list of omitted type arguments is joined unless a
-/// comment or a directive keeps it wrapped
+/// placed once at the column its own requirement gives it. A wrapped list of omitted type arguments is joined, and a comment
+/// or a directive inside it refuses the input
 /// </summary>
 [TestClass]
 public class ZeroWidthTokenLineStartTests : FormatterTestsBase
@@ -16,13 +16,13 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the specification example: behind the omitted type argument of a list that a comment keeps wrapped, the
-    /// closing angle bracket starts its line and takes the block column
+    /// Verifies the specification example: behind the omitted array size of a rank specifier that a comment keeps wrapped, the
+    /// closing bracket starts its line and is a continuation line of the statement
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-008")]
-    [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketBehindOmittedTypeArgumentAndCommentTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void ClosingBracketBehindOmittedArraySizeAndCommentIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -30,8 +30,8 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                              {
                                  void M()
                                  {
-                                     var type = typeof(System.Collections.Generic.Dictionary<, // c
-                             >);
+                                     var type = typeof(int[, // c
+                             ]);
                                  }
                              }
                              """;
@@ -40,8 +40,8 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var type = typeof(System.Collections.Generic.Dictionary<, // c
-                                        >);
+                                        var type = typeof(int[, // c
+                                            ]);
                                     }
                                 }
                                 """;
@@ -88,12 +88,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example: a closing angle bracket that the author aligned under the list, behind the
-    /// omitted type argument of a list that a comment keeps wrapped, takes the block column
+    /// Verifies that a comment behind the comma of a list of omitted type arguments, with the closing angle bracket aligned
+    /// under the list, refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void AlignedClosingAngleBracketBehindOmittedTypeArgumentAndCommentTakesBlockColumn()
+    [Requirement("FMT-UNSUP-018")]
+    public void AlignedClosingAngleBracketBehindOmittedTypeArgumentAndCommentIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -106,28 +106,18 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var type = typeof(System.Collections.Generic.Dictionary<, // c
-                                        >);
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(OmittedTypeArgumentCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that the closing angle bracket behind an omitted type argument of a list that a directive keeps wrapped
-    /// takes the block column
+    /// Verifies that a directive in front of the closing angle bracket of a list of omitted type arguments refuses the input as
+    /// unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketBehindOmittedTypeArgumentAndDirectiveTakesBlockColumn()
+    [Requirement("FMT-UNSUP-018")]
+    public void ClosingAngleBracketBehindOmittedTypeArgumentAndDirectiveIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -145,24 +135,9 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                using System;
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var type = typeof(Dictionary<,
-                                #if X
-                                #endif
-                                        >);
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(OmittedTypeArgumentCommentReason, input, "#if X");
     }
 
     /// <summary>
@@ -816,12 +791,11 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the closing angle bracket behind an omitted type argument whose line ends with a comment takes the
-    /// block column
+    /// Verifies that a comment behind the comma of a list of omitted type arguments refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void ClosingAngleBracketBehindOmittedTypeArgumentAndTrailingCommentTakesBlockColumn()
+    [Requirement("FMT-UNSUP-018")]
+    public void ClosingAngleBracketBehindOmittedTypeArgumentAndTrailingCommentIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -837,31 +811,18 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                using System;
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var type = typeof(Dictionary<, // c
-                                        >);
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(OmittedTypeArgumentCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that an own-line comment and the closing angle bracket behind an omitted type argument take the block
-    /// column, and that no line is left holding only whitespace
+    /// Verifies that a comment on a line of its own in front of the closing angle bracket of a list of omitted type arguments
+    /// refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void OwnLineCommentAndClosingAngleBracketBehindOmittedTypeArgumentTakeBlockColumn()
+    [Requirement("FMT-UNSUP-018")]
+    public void OwnLineCommentInFrontOfClosingAngleBracketBehindOmittedTypeArgumentIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -878,33 +839,19 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                using System;
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var type = typeof(Dictionary<,
-
-                                        // c
-                                        >);
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(OmittedTypeArgumentCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that the closing bracket of an array rank specifier behind an omitted array size takes the block column,
-    /// as it does behind an array size with text
+    /// Verifies that the closing bracket of an array rank specifier behind an omitted array size is a continuation line,
+    /// as it is behind an array size with text
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-008")]
-    public void ClosingBracketBehindOmittedArraySizeTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void ClosingBracketBehindOmittedArraySizeIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -929,7 +876,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         int[,
-                                        ] a = null;
+                                            ] a = null;
                                     }
                                 }
                                 """;
@@ -939,11 +886,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a separator of an array rank specifier behind an omitted array size takes the block column
+    /// Verifies that a separator of an array rank specifier behind an omitted array size is a continuation line
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-008")]
-    public void SeparatorBehindOmittedArraySizeTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void SeparatorBehindOmittedArraySizeIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -968,7 +916,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         int[
-                                        ,] a = null;
+                                            ,] a = null;
                                     }
                                 }
                                 """;
@@ -978,12 +926,13 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the closing bracket of an array creation's rank specifier behind an omitted array size takes the
-    /// block column
+    /// Verifies that the closing bracket of an array creation's rank specifier behind an omitted array size is a
+    /// continuation line
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-008")]
-    public void ClosingBracketOfArrayCreationBehindOmittedArraySizeTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void ClosingBracketOfArrayCreationBehindOmittedArraySizeIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -1008,7 +957,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         var a = new int[,
-                                        ] { { 1 } };
+                                            ] { { 1 } };
                                     }
                                 }
                                 """;
@@ -1019,11 +968,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the closing bracket of the second rank specifier of a jagged array type behind an omitted array size
-    /// takes the block column
+    /// is a continuation line
     /// </summary>
     [TestMethod]
     [Requirement("SHARED-BLANK-008")]
-    public void ClosingBracketOfSecondRankBehindOmittedArraySizeTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void ClosingBracketOfSecondRankBehindOmittedArraySizeIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -1048,7 +998,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         int[][,
-                                        ] a = null;
+                                            ] a = null;
                                     }
                                 }
                                 """;
@@ -1058,11 +1008,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the control of the omitted array size: an array size with text that starts its line takes the block
-    /// column
+    /// Verifies the control of the omitted array size: an array size with text that starts its line is a
+    /// continuation line
     /// </summary>
     [TestMethod]
-    public void ArraySizeWithTextOnWrappedLineTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void ArraySizeWithTextOnWrappedLineIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -1087,7 +1038,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         var a = new int[2,
-                                        3];
+                                            3];
                                     }
                                 }
                                 """;
@@ -1097,11 +1048,12 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the control of the omitted array size: the closing bracket behind an array size with text takes the block
-    /// column
+    /// Verifies the control of the omitted array size: the closing bracket behind an array size with text is a
+    /// continuation line
     /// </summary>
     [TestMethod]
-    public void ClosingBracketBehindArraySizeWithTextTakesBlockColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void ClosingBracketBehindArraySizeWithTextIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -1126,7 +1078,7 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                     void M()
                                     {
                                         var a = new int[2
-                                        ];
+                                            ];
                                     }
                                 }
                                 """;

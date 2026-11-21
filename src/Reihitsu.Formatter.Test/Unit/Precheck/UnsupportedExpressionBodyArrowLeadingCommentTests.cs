@@ -168,7 +168,7 @@ public class UnsupportedExpressionBodyArrowLeadingCommentTests : FormatterTestsB
                                      Func<int> f = () /* c5 */ => 1;
                                      var s = n switch
                                      {
-                                         1 /* c6 */ => "one",
+                                         1 => "one", // c6
                                          _ => "other",
                                      };
                                  }
@@ -221,8 +221,7 @@ public class UnsupportedExpressionBodyArrowLeadingCommentTests : FormatterTestsB
     }
 
     /// <summary>
-    /// Verifies that the arrow of a lambda and of a switch-expression arm belongs to no expression body: a comment in front of it
-    /// does not refuse the input
+    /// Verifies that the arrow of a lambda belongs to no expression body: a comment in front of it does not refuse the input
     /// </summary>
     /// <param name="statement">The statement that holds the arrow</param>
     [TestMethod]
@@ -232,10 +231,21 @@ public class UnsupportedExpressionBodyArrowLeadingCommentTests : FormatterTestsB
     [DataRow("        Func<int, int> f = x // c\n            => x;", DisplayName = "Line comment in front of the arrow of a simple lambda")]
     [DataRow("        Func<Task> f = async () /* c */ => await Task.Yield();", DisplayName = "Async lambda")]
     [DataRow("        Func<int> f = static () /* c */ => 1;", DisplayName = "Static lambda")]
-    [DataRow("        var s = _v switch\n        {\n            1 /* c */ => \"one\",\n            _ => \"other\",\n        };", DisplayName = "Switch-expression arm")]
-    public void CommentInFrontOfTheArrowOfALambdaOrASwitchArmIsSupported(string statement)
+    public void CommentInFrontOfTheArrowOfALambdaIsSupported(string statement)
     {
         AssertSupported(WrapInClass($"    void M()\n    {{\n{statement}\n    }}"));
+    }
+
+    /// <summary>
+    /// Verifies that the arrow of a switch-expression arm belongs to no expression body: a comment in front of it is not this
+    /// shape, and the input is refused with the reason of the gap in front of an arm's arrow
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-013")]
+    [Requirement("FMT-UNSUP-017")]
+    public void CommentInFrontOfTheArrowOfASwitchArmGivesTheReasonOfTheArm()
+    {
+        AssertUnsupportedFor(SwitchArmArrowCommentReason, WrapInClass("    void M()\n    {\n        var s = _v switch\n        {\n            1 /* c */ => \"one\",\n            _ => \"other\",\n        };\n    }"), "/* c */");
     }
 
     /// <summary>

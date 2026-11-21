@@ -311,7 +311,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                       {
                                           return 1
                                   #pragma warning disable CS0618
-                                          ;
+                                              ;
                                       }
                                   }
                                   """;
@@ -381,6 +381,41 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a method whose expression stands behind a blank line below the arrow joins the expression to the
+    /// created <c>return</c> keyword and drops the blank line, as the formatter does, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    [Requirement("SHARED-BODY-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyExpressionBehindABlankLineIsFixedToSingleSpacedReturn(string endOfLine)
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    public int GetValue() {|#0:=>
+
+                                        42|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          return 42;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(resultData, endOfLine), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

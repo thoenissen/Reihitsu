@@ -309,10 +309,12 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a parameter type after a modifier and a line comment stays aligned, without any attribute list
+    /// Verifies that a line comment behind a parameter's modifier refuses the input as unsupported, because the gap behind a
+    /// modifier is one the line-break phase joins
     /// </summary>
     [TestMethod]
-    public void TypeAfterModifierAndLineCommentStaysAligned()
+    [Requirement("FMT-UNSUP-017")]
+    public void LineCommentBehindAParameterModifierIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -328,7 +330,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(ModifierCommentReason, input, "// keep");
     }
 
     /// <summary>

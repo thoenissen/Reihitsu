@@ -2507,6 +2507,54 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
         await VerifyNoCodeFixIsOffered(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comment in a gap the line-break phase joins in the initializer's value withholds the
+    /// fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindNewInTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class Counter;
+
+                                class C
+                                {
+                                    private Counter {|RH2001:Value|} { get; set; } = new /* three */ Counter();
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind an assignment operator inside an anonymous-object member of the
+    /// initializer's value withholds the fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindAnAssignmentInsideAnAnonymousObjectMember(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static int s_count;
+
+                                    private object {|RH2001:Value|} { get; set; } = new { A = s_count += /* three */ 3 };
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

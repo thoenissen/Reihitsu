@@ -161,7 +161,7 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
 
                                  void M(int n)
                                  {
-                                     Func<int> f = () => /* c5 */ 1;
+                                     Func<int> f = () => (/* c5 */ 1);
                                      var s = n switch
                                      {
                                          1 => /* c6 */ "one",
@@ -213,20 +213,31 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the arrow of a lambda and of a switch-expression arm belongs to no expression body: a comment behind it does
-    /// not refuse the input
+    /// Verifies that the arrow of a switch-expression arm belongs to no expression body: a comment behind it does not refuse the
+    /// input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-012")]
+    public void CommentBehindTheArrowOfASwitchArmIsSupported()
+    {
+        AssertSupported(WrapInClass("    void M()\n    {\n        var s = _v switch\n        {\n            1 => /* c */ \"one\",\n            _ => \"other\",\n        };\n    }"));
+    }
+
+    /// <summary>
+    /// Verifies that the arrow of a lambda belongs to no expression body: a comment behind it is not this shape, and the input is
+    /// refused with the reason of the gap behind a lambda's arrow
     /// </summary>
     /// <param name="statement">The statement that holds the arrow</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-012")]
+    [Requirement("FMT-UNSUP-017")]
     [DataRow("        Func<int, int> f = x => /* c */ x;", DisplayName = "Simple lambda")]
     [DataRow("        Func<int, int, int> f = (x, y) => /* c */ x + y;", DisplayName = "Parenthesized lambda")]
     [DataRow("        Func<Task> f = async () => /* c */ await Task.Yield();", DisplayName = "Async lambda")]
     [DataRow("        Func<int> f = static () => /* c */ 1;", DisplayName = "Static lambda")]
-    [DataRow("        var s = _v switch\n        {\n            1 => /* c */ \"one\",\n            _ => \"other\",\n        };", DisplayName = "Switch-expression arm")]
-    public void CommentBehindTheArrowOfALambdaOrASwitchArmIsSupported(string statement)
+    public void CommentBehindTheArrowOfALambdaGivesTheReasonOfTheLambda(string statement)
     {
-        AssertSupported(WrapInClass($"    void M()\n    {{\n{statement}\n    }}"));
+        AssertUnsupportedFor(LambdaArrowCommentReason, WrapInClass($"    void M()\n    {{\n{statement}\n    }}"), "/* c */");
     }
 
     /// <summary>
@@ -598,8 +609,6 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     [DataRow("    int D { /* c */ get => _v; }", DocumentationMode.Parse, DisplayName = "Comment in front of the get keyword")]
     [DataRow("    int E { get { /* c */ return _v; } }", DocumentationMode.Parse, DisplayName = "Comment in front of the return of a getter block")]
     [DataRow("    int F { get { return _v; /* c */ } }", DocumentationMode.Parse, DisplayName = "Comment behind the return of a getter block")]
-    [DataRow("    int G { get { return /* c */ _v; } }", DocumentationMode.Parse, DisplayName = "Comment behind the return keyword of a getter block")]
-    [DataRow("    int H { get { return // c\n                _v; } }", DocumentationMode.Parse, DisplayName = "Line comment behind the return keyword of a getter block")]
     [DataRow("    int S { set { /* c */ _v = value; } }", DocumentationMode.Parse, DisplayName = "Comment in front of the statement of a setter block")]
     [DataRow("    int A =>\n\n        1;", DocumentationMode.Parse, DisplayName = "Blank line behind a property's arrow")]
     [DataRow("    int M() =>\n\n        1;", DocumentationMode.Parse, DisplayName = "Blank line behind a method's arrow")]

@@ -343,8 +343,9 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example: a line break behind the type and a line break between two modifiers are
-    /// repeated in every field the split creates, and a line break behind a <c>,</c> stands in no field
+    /// Verifies the specification example: a line break behind the type is repeated in every field the split creates and the
+    /// line behind it is a continuation line of its field, a line break between two modifiers is joined in every field, and a
+    /// line break behind a <c>,</c> stands in no field
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-021")]
@@ -375,14 +376,12 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 class C
                                 {
                                     private Dictionary<string, List<int>>
-                                    _map1;
+                                        _map1;
                                     private Dictionary<string, List<int>>
-                                    _map2 = new();
+                                        _map2 = new();
 
-                                    private static
-                                    readonly int _g = 1;
-                                    private static
-                                    readonly int _h;
+                                    private static readonly int _g = 1;
+                                    private static readonly int _h;
 
                                     [NonSerialized]
                                     private int _x;
@@ -488,11 +487,12 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line break between two modifiers is repeated in every field the split creates
+    /// Verifies that a line break between two modifiers is joined in every field the split creates
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-021")]
-    public void LineBreakBetweenTwoModifiersIsRepeatedInEveryField()
+    [Requirement("FMT-BREAK-041")]
+    public void LineBreakBetweenTwoModifiersIsJoinedInEveryField()
     {
         // Arrange
         const string input = """
@@ -505,10 +505,8 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
         const string expected = """
                                 internal class TestClass
                                 {
-                                    private static
-                                    readonly int _g = 1;
-                                    private static
-                                    readonly int _h;
+                                    private static readonly int _g = 1;
+                                    private static readonly int _h;
                                 }
                                 """;
 
@@ -517,11 +515,12 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line break between the last modifier and the type is repeated in every field the split creates
+    /// Verifies that a line break between the last modifier and the type is joined in every field the split creates
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-021")]
-    public void LineBreakBetweenTheLastModifierAndTheTypeIsRepeatedInEveryField()
+    [Requirement("FMT-BREAK-041")]
+    public void LineBreakBetweenTheLastModifierAndTheTypeIsJoinedInEveryField()
     {
         // Arrange
         const string input = """
@@ -534,10 +533,8 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
         const string expected = """
                                 internal class TestClass
                                 {
-                                    private static readonly
-                                    int _g;
-                                    private static readonly
-                                    int _h;
+                                    private static readonly int _g;
+                                    private static readonly int _h;
                                 }
                                 """;
 

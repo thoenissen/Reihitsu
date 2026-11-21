@@ -256,7 +256,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
                              class C
                              {
                                  int P => 1 // c
-                                 ;
+                                     ;
                              }
                              """;
 
@@ -282,7 +282,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
                                  event Action E
                              #if X
                              #endif
-                                 ;
+                                     ;
                              }
                              """;
 

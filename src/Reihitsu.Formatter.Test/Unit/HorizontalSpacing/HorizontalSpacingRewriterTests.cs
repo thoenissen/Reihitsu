@@ -669,7 +669,7 @@ public class HorizontalSpacingRewriterTests
                                  int M()
                                  {
                                      return 1 /// stray
-                                     ;
+                                         ;
                                  }
                              }
                              """;

@@ -265,8 +265,7 @@ public class JoinSeparatorTests : FormatterTestsBase
                                                 + ++a;
                                         var d = o
                                                 as string;
-                                        var e = o
-                                                is int;
+                                        var e = o is int;
                                     }
                                 }
                                 """;

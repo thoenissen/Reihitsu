@@ -491,10 +491,12 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region inside an anonymous function expression is preserved and formatted
+    /// Verifies that a region between the arrow of a lambda and its expression refuses the input as unsupported: the input is
+    /// returned unchanged, and its <c>#region</c> is reported
     /// </summary>
     [TestMethod]
-    public void RegionInsideAnonymousFunctionIsPreservedAndFormatted()
+    [Requirement("FMT-UNSUP-017")]
+    public void RegionBehindTheArrowOfALambdaIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -512,28 +514,9 @@ public class RegionFormattingFullPipelineTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                internal class T
-                                {
-                                    public int M()
-                                    {
-                                        System.Func<int> value = () =>
-
-                                        #region Inner
-
-                                        1
-
-                                        #endregion // Inner
-
-                                        ;
-
-                                        return value();
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LambdaArrowCommentReason, input, "#region inner");
     }
 
     /// <summary>

@@ -89,7 +89,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
                                     {
                                         return 42
                                 #pragma warning disable CS0168
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -126,7 +126,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
                                 #if DEBUG
                                                       + 2
                                 #endif
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -154,7 +154,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
 
                                  #endregion // R
 
-                                 ;
+                                     ;
 
                                  public int B()
                                  {

@@ -237,12 +237,12 @@ public class WithExpressionSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment the left operand carries keeps its place, and <c>with</c> follows it after one space
+    /// Verifies that a comment between the copied expression and <c>with</c> refuses the input as unsupported, because the
+    /// line-break phase joins that gap
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-025")]
-    [Requirement("FMT-SPACE-013")]
-    public void CommentInFrontOfWithKeepsItsPlace()
+    [Requirement("FMT-UNSUP-017")]
+    public void CommentInFrontOfWithIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -254,30 +254,18 @@ public class WithExpressionSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(P p)
-                                    {
-                                        var a = p/* a */ with
-                                                         {
-                                                         };
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(WithCommentReason, input, "/* a */");
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment <c>with</c> carries keeps the whitespace in front of it, and <c>with</c>
-    /// follows it after one space
+    /// Verifies that a delimited documentation comment between the copied expression and <c>with</c> refuses the input as
+    /// unsupported, because the line-break phase joins that gap
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-025")]
-    [Requirement("FMT-SPACE-014")]
-    public void DocumentationCommentInFrontOfWithKeepsItsPlace()
+    [Requirement("FMT-UNSUP-017")]
+    public void DocumentationCommentInFrontOfWithIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -289,20 +277,9 @@ public class WithExpressionSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M(P p)
-                                    {
-                                        var a = p /** a */ with
-                                                           {
-                                                           };
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(WithCommentReason, input, "/** a */");
     }
 
     #endregion // Tests
