@@ -455,16 +455,7 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
             {
                 var previousLine = sourceText.Lines.GetLineFromPosition(previousToken.Span.End).LineNumber;
                 var line = sourceText.Lines.GetLineFromPosition(token.SpanStart).LineNumber;
-                var blankLines = 0;
-
-                for (var lineNumber = previousLine + 1; lineNumber < line; lineNumber++)
-                {
-                    if (string.IsNullOrWhiteSpace(sourceText.Lines[lineNumber].ToString()))
-                    {
-                        blankLines++;
-                    }
-                }
-
+                var blankLines = CountBlankLinesBetween(sourceText, previousLine, line);
                 var relation = line == previousLine ? "same line" : "new line";
 
                 shape.Add(countBlankLines ? $"{token.Text} ({relation}, {blankLines} blank)" : $"{token.Text} ({relation})");
@@ -478,6 +469,28 @@ public class PhaseLineBreakOwnershipTests : FormatterTestsBase
         }
 
         return shape;
+    }
+
+    /// <summary>
+    /// Counts the blank lines between two lines of a text
+    /// </summary>
+    /// <param name="sourceText">The source text</param>
+    /// <param name="firstLine">The zero-based number of the line in front of the counted lines</param>
+    /// <param name="lastLine">The zero-based number of the line behind the counted lines</param>
+    /// <returns>The number of blank lines strictly between both lines</returns>
+    private static int CountBlankLinesBetween(SourceText sourceText, int firstLine, int lastLine)
+    {
+        var blankLines = 0;
+
+        for (var lineNumber = firstLine + 1; lineNumber < lastLine; lineNumber++)
+        {
+            if (string.IsNullOrWhiteSpace(sourceText.Lines[lineNumber].ToString()))
+            {
+                blankLines++;
+            }
+        }
+
+        return blankLines;
     }
 
     /// <summary>
