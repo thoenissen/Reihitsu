@@ -47,6 +47,7 @@
 23. 04-spec-author Q1–Q4: **all A** — `&`/`|` on `bool?` count like on `bool`; `&=`/`|=`/`^=` score nothing; only an invocation `M(…)` of the member itself counts as recursion; a `?:` in a switch `when` clause is nested in the switch.
 24. No reference to the SonarSource PDF / white paper anywhere in the repository (it was only looked at for comparison): no link, no citation, no "departures from the paper" framing in the guide, rule page, spec, or change doc. The rules are described on their own terms.
 25. **Concept approved** (spec, change doc, rule page, scoring guide at 5fbfd58). Implementation may start.
+26. Recursion on another instance: **A** — every invocation that binds to the member's own symbol counts, on any receiver (`Left.Depth(…)` counts like `Depth(…)`).
 12. The maintainer asks to cross-check all decisions against the published definition (SonarSource white paper, https://www.sonarsource.com/docs/CognitiveComplexity.pdf; local copy in the session scratchpad). Comparison requested from a fresh skeptic; results go back to the maintainer before the test implementer.
 
 ## Decisions taken
@@ -67,7 +68,7 @@
 
 ## Open worklist / next step
 
-- Implementer done (08, 2fae9e7/b41ee07). Asked maintainer output question 21: does `other.M(…)` (same method on another instance) count as recursion? Waiting. Then: spec author (decision 5 + answer) → cleaner → spec checker → auditor → validator.
+- Implementer done (08, 2fae9e7/b41ee07). Answer 26 received. Next: spec author (decision 5 + answer 26, 09) → test implementer (test for answer 26, 10) → cleaner → spec checker → auditor → validator.
 - Answers 23–24 applied (05-spec-author.md, 5fbfd58). On approval: status-only follow-up (spec author sets Accepted), then test implementer.
 - Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
 - Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
