@@ -62,7 +62,8 @@
 
 ## Open worklist / next step
 
-- Next: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
+- Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
+- Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
 - Sonar comparison done (03-skeptic.md). Sent to maintainer as chat questions 11–15 = skeptic 03 Q1 (#if), Q2 (recursion re-ask), Q3 (& | ^), Q4 (anonymous methods), Q5 (parenthesized chained ?:). Waiting.
 - Answers 3–7 received. Remaining questions sent: chained `?:`, `or` in switch arms, initializer lambdas, lambda nesting depth in the score, self-hosting mechanism.
 - Earlier: concept + output questions 1–8 and escalation 6 (self-hosting mechanism, question 9) sent to the maintainer; waiting for answers. Then: route answers + decisions 1–3 to the spec author (fresh), spec author sets change doc Accepted, then test implementer.
