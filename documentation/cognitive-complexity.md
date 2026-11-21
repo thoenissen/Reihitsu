@@ -320,7 +320,7 @@ class LocalFunctions
 
 ## Recursion
 
-A method or local function that calls itself adds 1, once, however many calls of itself it holds. Only a call written as a call of the method itself — `M(…)`, `this.M(…)`, or `C.M(…)` — counts. A call of another overload, a call through a method group or a delegate, and a cycle through several methods (`A` calls `B`, `B` calls `A`) add nothing, and so do a constructor that creates an instance of its own type with `new`, an accessor that uses its own property or indexer, and an operator that uses itself.
+A method or local function that calls itself adds 1, once, however many calls of itself it holds. Every call of the method itself counts, on any instance: `M(…)`, `this.M(…)`, `C.M(…)`, and a call on another object of the same type, such as `Left.Depth()` in a tree node. A call of another overload, a call through a method group or a delegate, and a cycle through several methods (`A` calls `B`, `B` calls `A`) add nothing, and so do a constructor that creates an instance of its own type with `new`, an accessor that uses its own property or indexer, and an operator that uses itself.
 
 ```csharp
 class Recursion
@@ -337,6 +337,23 @@ class Recursion
 
     bool IsEven(int n) => n == 0 || IsOdd(n - 1);   // +1 for ||; total 1
     bool IsOdd(int n) => n != 0 && IsEven(n - 1);   // +1 for &&; total 1
+}
+
+class Node
+{
+    public Node Left;
+
+    public Node Right;
+
+    int Depth()
+    {
+        if (Left == null || Right == null)                   // +1, +1 for ||
+        {
+            return 1;
+        }
+
+        return 1 + System.Math.Max(Left.Depth(), Right.Depth());   // +1, once for both calls
+    }                                                        // total 3
 }
 ```
 

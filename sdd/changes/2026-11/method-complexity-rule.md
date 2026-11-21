@@ -298,6 +298,7 @@ The maintainer decided each of these scoring points:
 - **`&=`, `|=`, and `^=` score nothing**, also on `bool`: a compound assignment accumulates a result and is read as one statement, not as a condition.
 - A member that calls itself scores 1 once, however many calls it holds; recursion through several members scores nothing.
 - **Only an invocation `M(…)` of the member itself counts as recursion**: a constructor that creates its own type with `new`, an accessor that uses its own property, and an operator that uses itself score nothing. The invocation is the form a reader recognizes as recursion.
+- **A call of the member on any receiver counts as recursion**: an invocation that binds to the member's own symbol counts whether it is written `M(…)`, `this.M(…)`, `C.M(…)`, or on another instance, such as `Left.Depth(…)` in a tree node (maintainer decision). A tree walk that calls itself on a child is read as recursion like a call on `this`.
 - **A `?:` in a switch `when` clause is nested in the switch**: the case label and its `when` clause are read inside the switch, as part of the decision the switch opened.
 - A `?:` in the false branch of another `?:`, also in parentheses, scores 1 without a nesting increment, like `else if`.
 - `and` and `or` in an `is` pattern count like `&&` and `||`; in a case label or switch arm they score nothing, because a switch is charged once however many cases it lists.
