@@ -30,7 +30,12 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## Follow-up candidates
 
-(none yet)
+1. Process change (squad), requested by the maintainer after this run (00-lead.md, maintainer answer 3 and the follow-up discussion). Source: lead, from this run's history (02-skeptic.md test list, 10-ci.md CI failure). One issue with four proposals:
+   - **Wording lane**: a run whose diff only changes diagnostic titles/messages, code-fix titles, or rule-page text runs a short lane (spec author for text, spec checker, validator); no skeptic, test implementer, implementer split, or auditor unless a new test is needed. Evidence: this run and the RH5112/RH5048 wording run (#897, PR #1898) found nothing in the large-tier skeptic/auditor; the lane check classifies `.resx` as production, forcing the behavior-change lane.
+   - **Coverage first**: skeptic and test implementer check whether existing tests already pin a value (e.g. `AnalyzerPackageMetadataTests` pins title vs rule-page heading/README row and message vs title) before requesting or writing a test; "no new test" is a valid outcome. Evidence: this run added three tests, two duplicating existing coverage, later removed at the maintainer's request.
+   - **Cheap self-hosting check**: the default local run excludes `Reihitsu.SelfHosting.Test` (`scripts/README.md`, default test run); when a run adds lines to a test file, the validator runs the RH2111 self-hosting row (`scripts/test.sh --project selfhosting --filter ...`). Evidence: CI failed on RH2111 (test class at 3015 > 3000 lines), caught only in CI, costing a full repair round.
+   - **Fewer pushes/notifications**: the lead pushes handover commits less often (stage boundaries only), since every pushed `[skip ci]` commit fires check-suite events on the PR.
+   The squad never tunes itself (squad/notes/README.md); the issue proposes, the maintainer decides.
 
 ## State
 
