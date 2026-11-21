@@ -32,5 +32,5 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## State
 
-- Last step: skeptic proceed (7f40b46, 02-skeptic.md); change doc accepted by the lead (spec author sets Status: Accepted in its next follow-up). Output-question batch asked: Q1 RH5201 rule page body wording (A recommended).
-- Answer received (A). Next: fresh spec author applies it and sets Status: Accepted; then test implementer.
+- Audited SHA: b427430 (auditor pass, 9909b38; main d175797).
+- Next: validator, lane check, run note, delete sdd/work, CI trigger, PR.
