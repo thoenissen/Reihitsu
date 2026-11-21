@@ -487,14 +487,14 @@ exit code 2. The same holds for `-1`, `+2`, ` 2`, `two`, `1.5`, and `99999999999
 
 ### CLI-024 — The `--dry-run` diff header names the file relative to the current directory
 
-The `---` and `+++` lines of the diff that `--dry-run` prints (CLI-013) MUST name the file by where its full path, as the CLI selects it (CLI-006), lies relative to the current directory, the working directory the CLI runs in:
+The `---` and `+++` lines of the diff that `--dry-run` prints (CLI-013) MUST name the file by where its full path, as the CLI selects it (CLI-006), lies relative to the current directory — the working directory the CLI process reports, which on Linux and macOS is the physical directory, not the shell's `$PWD` when that reaches it through a symbolic link:
 
 - A file inside the current directory — that directory is one of the directories its full path passes through — MUST be named `--- a/<relative path>` and `+++ b/<relative path>`, where `<relative path>` is the file's full path relative to the current directory, with every directory separator written as `/`, also on Windows.
-- Any other file MUST be named `--- <path>` and `+++ <path>`, with the full path the `Would format:` line prints and without the `a/` and `b/` prefixes.
+- Any other file MUST be named `--- <path>` and `+++ <path>`, with the full path exactly as the `Would format:` line prints it — on Windows with `\` as the directory separator — and without the `a/` and `b/` prefixes.
 
-Directory names are compared with the platform's path case sensitivity, as CLI-006 compares them, and symbolic links are not resolved. The header depends on where the file is, not on how its path was given. The `Would format:` line MUST keep the full path.
+Directory names are compared case-insensitively on Windows and case-sensitively on every other platform, as CLI-006 compares paths. The two paths are compared as written: symbolic links are not resolved, so a full path that reaches the file through a link names it outside the current directory even when the link leads into it. The header is the same whether the file is given by its full path, by a path relative to the current directory, or through a directory. The `Would format:` line MUST keep the full path.
 
-Why: The `a/` and `b/` prefixes are the git convention for a path relative to the root of the tree a patch applies to: `git apply` and `patch -p1` strip the first segment and look for the rest below the directory they run in, and they expect `/` on every platform. A full path behind the prefix names no file they can find. A file outside the current directory has no such path; its full path still tells the reader which file the diff is about, and without the prefix the header promises no use it cannot serve.
+Why: The `a/` and `b/` prefixes are the git convention for a path relative to the root of the tree a patch applies to, written with `/`: `patch -p1`, and `git apply` run at the top of a work tree, strip the first segment and look for the rest below the directory they run in. A full path behind the prefix names no file they can find. A file outside the current directory has no such path; its full path still tells the reader which file the diff is about, and without the prefix the header promises no use it cannot serve.
 
 Example — run in `/work`, with `src/A.cs` unformatted:
 
@@ -526,4 +526,20 @@ Would format: /work/other/B.cs
 …
 ```
 
-Run in `/work`, `/work-old/A.cs` is outside the current directory, because `/work` is not one of the directories its path passes through, and gets `--- /work-old/A.cs`. On Linux, run in `/Work`, the file `/work/src/A.cs` is outside it.
+Run in `/work`, `/work-old/A.cs` is outside the current directory, because `/work` is not one of the directories its path passes through, and gets `--- /work-old/A.cs`. On Linux, run in `/Work`, the file `/work/src/A.cs` is outside it. On Windows, run in `C:\work` with `D:\other\B.cs` unformatted, `reihitsu-format --dry-run D:\other\B.cs` writes `--- D:\other\B.cs` and `+++ D:\other\B.cs`, the path of its `Would format:` line.
+
+Example — `/home/me/proj` is a symbolic link to `/data/proj`, and the CLI runs in `/data/proj`, reached by `cd /home/me/proj`, with `src/A.cs` unformatted:
+
+```shell
+reihitsu-format --dry-run /home/me/proj/src/A.cs
+```
+
+```text
+Would format: /home/me/proj/src/A.cs
+--- /home/me/proj/src/A.cs
++++ /home/me/proj/src/A.cs
+@@ -1,4 +1,4 @@
+…
+```
+
+`reihitsu-format --dry-run src/A.cs` in the same directory writes `--- a/src/A.cs` and `+++ b/src/A.cs`.
