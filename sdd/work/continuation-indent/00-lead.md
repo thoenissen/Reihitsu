@@ -29,6 +29,8 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 
 Batch 1 (questions 1-7), first reply, summarized: the maintainer doubts #953 is still current. Q1: asks whether the anonymous-object case (`A // c` then `= 1`) is not unsupported anyway; a parenthesized pattern's content should be one indent inside `(`; `is` followed by `1` on the next line should be joined; a switch arm's `=> 2` on the next line should be joined. Q2: A. Q3: A. Q4: declare unsupported. Q5: the `return` value should be joined onto the `return` line. Q6: A. Q7: these lines should be joined too. Several points are ambiguous -> asked back (batch 1b).
 
+Batch 1b answers: 1b A (join every listed row where no comment/directive sits in the gap: return value, `is` pattern, switch arm `=>`, base list `:`, modifier/type, catch `when`, for header, lambda body, `with`, throw/await/new). 1c: neither option — the pattern chain must be rewritten so that `or` stands under `is` (asked back for the exact layout, batch 1c). 1d: declare comment-kept lines in those gaps unsupported (scope asked back, batch 1c). 1e A (parenthesized-pattern content four columns right of `(`). 4b A: declare a comment inside an omitted type-argument list unsupported, in this run. Earlier: 2A, 3A, 6A.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -53,5 +55,6 @@ Batch 1 (questions 1-7), first reply, summarized: the maintainer doubts #953 is 
 - Skeptic done (5f6af8f): all four reproduce; 5 amendments routed to a fresh spec author.
 - Spec-author amendment done (5fe7f28), 03-spec-author.md supersedes 01 for output questions.
 - Output-question batch 1 sent to the maintainer (questions 1-7: reference line, blank-line join, query clauses, omitted type args, return value, #endif declarator, other applications). Waiting for the answer.
+- Batch 1c (exact pattern-chain layout; scope of the 1d declaration) sent. Waiting.
 - Batch 1b (clarification of the join principle, comment-kept lines, Q4 declaration, parenthesized pattern) sent. Waiting.
 - Next: route the answers to the spec author (status Accepted), then the test implementer.
