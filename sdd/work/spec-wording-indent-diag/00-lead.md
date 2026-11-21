@@ -16,6 +16,8 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Issue goal 1 asks FMT-INDENT-012 to name every bracketed argument list | Name the three parents and exempt the indexer-initializer key (FMT-INDENT-014) | The issue's general wording would contradict FMT-INDENT-014; the code sends that case to `AlignDictionaryKey` | Spec text only; behavior unchanged | bc47ce6 |
+| 2 | Spec author | Tag existing tests with FMT-INDENT-012 for the new example | Not in this run | Requirement is not new; tagging changes test files outside the docs lane | No output involved | bc47ce6 |
 
 ## Follow-up candidates
 
@@ -23,4 +25,5 @@ None yet.
 
 ## Worklist / next step
 
-- Next: spawn spec author (handover 01).
+- Done: spec author (01, bc47ce6, lane check confirmed docs).
+- Next: spec checker (02).
