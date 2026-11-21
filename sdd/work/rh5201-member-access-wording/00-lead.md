@@ -22,6 +22,7 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | Spec title, type names, other rules' "method chain" wording | Accept the spec author's choices: spec title follows the rule title; type names stay (code-fix equivalence key); other rules' pages and FMT-INDENT-029 untouched | Internal or outside #1900's scope | Spec title and type names are internal; other pages unchanged | 8aed075 |
 
 ## Follow-up candidates
 
@@ -29,5 +30,5 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## State
 
-- Last step: claim, draft PR #1902, prepare.sh green, 00-lead.md written.
-- Next: spec author.
+- Last step: spec author done (8aed075, change doc Draft). Open output question for batch before test implementer: RH5201 rule page body wording (spec author's handover, recommended A).
+- Next: skeptic, then output-question batch.
