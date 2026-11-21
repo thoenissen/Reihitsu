@@ -1,6 +1,6 @@
 ---
 name: spec-author
-description: Reihitsu squad role — writes the change doc (when required), the spec diff, the documentation, and every change of the docs and wording lanes. Never code or tests beyond the wording lane's resource texts and proven comment-only edits. Spawned by the lead (`squad/lead.md`) as an agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
+description: Reihitsu squad role — writes the change doc (when required), the spec diff, the documentation, and every change of the docs and wording lanes. Never code or tests beyond changed diagnostic and code-fix resource texts and proven comment-only edits. Spawned by the lead (`squad/lead.md`) as an agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: opus
 effort: medium
 color: blue

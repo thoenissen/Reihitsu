@@ -9,7 +9,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 | Role | Job | Must not |
 |---|---|---|
 | [Lead](lead.md) | Talks to the maintainer, claims the lane, spawns roles, routes findings, decides internal questions, asks output questions, manages the pull request and watches its CI | Write specs, tests, or production code, or write issues |
-| [Spec author](roles/spec-author.md) | Writes the change doc (when required), the spec diff, and the documentation; writes every change of the docs and wording lanes; lists the open questions it finds | Touch code or tests, beyond the resource texts and comment-only edits of the docs and wording lanes |
+| [Spec author](roles/spec-author.md) | Writes the change doc (when required), the spec diff, and the documentation; writes every change of the docs and wording lanes and, in every lane, each changed diagnostic or code-fix text; lists the open questions it finds | Touch code or tests, beyond the changed resource texts of existing entries (in every lane) and the comment-only edits of the docs and wording lanes |
 | [Skeptic](roles/skeptic.md) | Challenges the premise: is the issue real, is the spec wrong instead, does it conflict with other specs or `shared/`, which input breaks it, what refusing the input class would cost | Review code |
 | [Test implementer](roles/test-implementer.md) | Derives tests from the spec examples and the failure-class catalog; for a bug, the first test is the reproduction | Touch production code |
 | [Implementer](roles/implementer.md) | Makes the tests pass; builds in Debug | Change test assertions |
@@ -39,13 +39,13 @@ Order: spec author → skeptic → test implementer → implementer → cleaner 
 The lane check sorts every changed path into a category — change doc, text, wording, test, production, or tooling — by the table in [`scripts/README.md`](../scripts/README.md#the-lane-check), the one statement of which path belongs where and of the rules that turn the categories into a lane. In short:
 
 - **Docs** — text alone.
-- **Wording** — the resource files that hold the diagnostic titles and messages and the code-fix titles, besides text and a change doc, and no test path: a run that only changes what a diagnostic or a code fix says, and the rule pages and specs that repeat it. The spec author writes every path of the diff. When the run turns out to need a test — a new one, or an existing test that quotes a text the run changes — the diff needs a wider lane, which the lane check names, and the lead widens.
+- **Wording** — the resource files that hold the diagnostic titles and messages and the code-fix titles, besides text and a change doc, and no test path: a run that only changes what a diagnostic or a code fix says, and the rule pages and specs that repeat it. The spec author writes every path of the diff. When the run turns out to need a test — a new one, or an existing test that quotes a text the run changes — the diff needs a wider lane, which the lane check names, and the lead widens; the spec author has written the texts by then, and the test implementer updates or writes the tests.
 - **Tests** — test paths, besides text and, without a change doc, wording. This is also the lane of a run that writes the spec of an existing rule: the spec's requirements need their covering tests in the same PR (`sdd/README.md`).
 - **Bug fix** — production paths without a change doc.
 - **Behavior change** — production paths with a change doc; a change doc without production or tooling paths, unless the lane check admits it to the wording lane; and a change doc next to wording and a test or tooling path. A claim of this lane without a change doc fails.
 - **Tooling** — tooling paths, besides text, tests, and a change doc.
 
-A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or production or wording next to tooling without a change doc). Lanes widen along two orders: docs → wording → tests → bug fix → behavior change, and docs → tests → tooling → behavior change. A docs-lane diff cannot add a requirement to an enforced spec, because the requirement needs a covering test; that run widens to tests.
+A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A `tests` or `bug-fix` claim also covers a wording diff, and since a wording diff may carry a change doc, such a claim can pass a diff that holds one; a change doc without a wording path still needs `behavior-change`. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or production or wording next to tooling without a change doc). Lanes widen along two orders: docs → wording → tests → bug fix → behavior change, and docs → tests → tooling → behavior change. A docs-lane diff cannot add a requirement to an enforced spec, because the requirement needs a covering test; that run widens to tests.
 
 ## Handovers are files
 
@@ -61,7 +61,7 @@ A handover starts with three lines — `Role`, `Commit` (the commit the role's s
 
 A run of several issues splits every handover by issue ([below](#several-issues-in-one-run)).
 
-`sdd/work/` is committed to the branch, so a run can continue in a later session, and it is deleted before the PR is published.
+`sdd/work/` is committed to the branch, so a run can continue in a later session from its last push ([`lead.md`](lead.md#pushes)), and it is deleted before the PR is published.
 
 ## Issues are hypotheses
 

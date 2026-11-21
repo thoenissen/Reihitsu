@@ -106,7 +106,7 @@ The analyzers the solution build loads from `binaries/` do not receive the root 
 scripts/test.sh --no-build --project selfhosting --filter "Name~RH2008|Name~RH2111"
 ```
 
-`--no-build` assumes a Release build of the same tree, as `scripts/build.sh` leaves it. The filter selects the two analyzer rows and the tests of the scan's line-count setup, 18 tests today that took 41 seconds after the build in a cloud sandbox, where the rows of every analyzer had not finished after nine minutes. The squad's validator runs them when a run adds lines to a test file ([`squad/roles/validator.md`](../squad/roles/validator.md)); this section is the one statement of which rows they are.
+`--no-build` assumes a Release build of the same tree, as `scripts/build.sh` leaves it. The filter selects every self-hosting row whose name carries one of the two rule IDs: the two analyzer rows, the two ruleset rows of each rule (`ReleaseRulesetReportsRuleAsError`, `DebugRulesetHasNoEntryForLineCountRule`), and the formatter rows of the source files named after the two rules — 18 tests today, none of them a `LineCountSelfHostingTests` method, which name no rule ID. They took 41 seconds after the build in a cloud sandbox, most of it loading the solution, where the rows of every analyzer had not finished after nine minutes. The squad's validator runs them when a run adds lines to a test file ([`squad/roles/validator.md`](../squad/roles/validator.md)); this section is the one statement of which rows they are.
 
 ## Hang timeout
 
@@ -137,7 +137,7 @@ A file that is neither C# nor a known non-compiled text path (Markdown, `.claude
 
 Two things about `--head worktree`. Both sides are compared with normalized line endings, because git rewrites line endings on checkout under `core.autocrlf` and a raw comparison would otherwise report every multi-line literal and disabled-text region as changed on Windows; a byte order mark is stripped from both sides for the same reason. And untracked files are ignored with a note rather than counted as additions — they are not part of the tree that will merge, so a stray scratch file must not decide the verdict.
 
-`--exclude <path>`, repeatable, leaves one repository-relative path, written with forward slashes and matched exactly and case-insensitively, out of the proof, as if it had not changed; a path that names no changed file excludes nothing. It exists for [the lane check](#the-lane-check), which classifies the wording paths itself and passes one `--exclude` per wording path of the diff, so a resource-text change does not turn a comment edit next to it into production. When it excluded at least one changed path, the `TEXT-ONLY PROOF: …` line ends with `; excluded: <n> path(s)`, so a quoted `PASS` never reads as covering them.
+`--exclude <path>`, repeatable, leaves one repository-relative path, written with forward slashes and matched exactly and case-insensitively, out of the proof, as if it had not changed; a path that names no changed file excludes nothing. It exists for [the lane check](#the-lane-check), which gets the wording paths of the diff from the classifier and passes one `--exclude` per path, so a resource-text change does not turn a comment edit next to it into production. When it excluded at least one changed path, the `TEXT-ONLY PROOF: …` line ends with `; excluded: <n> path(s)`, so a quoted `PASS` never reads as covering them.
 
 Exit codes: `0` proven text-only, `1` not proven, `2` tool or setup error. The single `TEXT-ONLY PROOF: …` line is the quotable evidence the workflows record.
 
@@ -149,7 +149,7 @@ One consequence is worth knowing: its leading `#:package` directive is not C# th
 
 `lane-check.sh <lane> [--base <rev>] [--head <rev|worktree>] [--no-install]` confirms the lane a squad run claimed — `docs`, `wording`, `tests`, `bug-fix`, `behavior-change`, or `tooling` — against the paths its diff changes. The diff decides, not the claim. The defaults are the merge base with `origin/main` and `HEAD`; `--head worktree` includes uncommitted changes to tracked files and ignores untracked ones, so stage a new file before checking it.
 
-It first runs the text-only proof over the same range, with one `--exclude` for each changed wording path (table below), and prints its line, because a C# file counts as text only when the proof covers the whole diff apart from the wording paths. Then every changed path (`git diff --name-status --no-renames`, so a rename counts as a deletion and an addition) is classified:
+It first runs the text-only proof over the same range, with one `--exclude` for each changed wording path (table below), and prints its line. The script asks the classifier in `Reihitsu.Tooling` for those paths and holds no path list of its own, so the table below stays the one statement of which paths are wording. The proof runs first because a C# file counts as text only when the proof covers the whole diff apart from the wording paths. Then every changed path (`git diff --name-status --no-renames`, so a rename counts as a deletion and an addition) is classified:
 
 | Category | Paths |
 |---|---|

@@ -6,7 +6,7 @@ Read [`../README.md`](../README.md) first.
 
 ## When you run
 
-Every lane except docs, after the implementer (or after the test implementer when there is no implementer), and again after every repair and every merge of `origin/main`. After a passing audit you also fix code comments the auditor listed.
+Every lane except docs and wording, after the implementer (or after the test implementer when there is no implementer), and again after every repair and every merge of `origin/main`. After a passing audit you also fix code comments the auditor listed.
 
 ## Inputs
 

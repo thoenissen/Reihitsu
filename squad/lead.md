@@ -27,11 +27,12 @@ Every commit of the run ends its subject with `[skip ci]`, except the single tri
 Roles commit; only you push, and only at a stage boundary:
 
 - the claim (step 2 above);
+- at the end of each role's stage, once its handover is committed, together with what you committed since the last push — one push per stage, however many commits it holds;
 - before every stop that waits for the maintainer — a batch of output questions or an escalation — so the run's state is on the branch while it waits;
 - before you end a run that cannot go on — a role that blocks twice, roles that cannot be spawned — so the branch holds what was done;
 - the trigger commit (section 8, step 5), and each CI repair (section 9).
 
-Between these points the commits stay local, however many handovers they hold. Every pushed commit fires check-suite events on the pull request, `[skip ci]` or not, and those events carry no information.
+Between these points the commits stay local. Every push fires check-suite events on the pull request, `[skip ci]` or not, and those events carry no information; before section 9 you are not subscribed, so they wake no session. A lost session loses only the commits since the last push, at most one stage's, which a fresh session redoes from the pushed handovers.
 
 ## 3. Claim the lane
 
@@ -70,7 +71,7 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, a context growth
 | Verdict | Your move |
 |---|---|
 | Spec author: change doc written | Accept it yourself once the skeptic has run and any amendment it caused is written (in a lane without a skeptic, once it is written); its `Visible output changes` go into the output questions before the test implementer (section 5). The spec author sets `Status: Accepted` with its next follow-up after the maintainer's answers, or in a status-only follow-up before the spec checker when none is due |
-| Spec author: needs a test (wording lane) | Widen to the lane a wording diff with a test path needs — `tests` without a change doc, `behavior-change` with one ([`scripts/README.md`](../scripts/README.md#the-lane-check)) — record it under *Decisions taken*, and run the roles it adds |
+| Spec author: needs a test (wording lane) | Widen to the lane a wording diff with a test path needs — `tests` without a change doc, `behavior-change` with one ([`scripts/README.md`](../scripts/README.md#the-lane-check)) — record it under *Decisions taken*, and run the roles it adds. The texts are already written; the test implementer updates or writes the tests the handover names |
 | Spec author or skeptic: an output question about a case within the run's issues | Collect it for the next batch (section 5); at once when it blocks writing a test (escalation 1) |
 | Spec author or skeptic: an open question about a case outside the run's issues | A follow-up candidate carrying the question (*Follow-ups*); declaring a shape unsupported is escalation 10 instead |
 | Any role: declaring a shape unsupported is an option (`AGENTS.md`, *Special cases do not grow the source*) | Escalation 10, with the next batch; the run refuses the class locally meanwhile |
