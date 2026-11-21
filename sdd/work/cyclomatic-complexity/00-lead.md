@@ -17,6 +17,7 @@
 ## Maintainer answers
 
 1. Correction of clarification 2: the rule computes **cognitive complexity**, as the issue proposes — not cyclomatic. Default limit 15, configurability, the no-nesting exception, and the self-hosting handling stay as stated above.
+2. Deeper nesting costs more points: a construct's increment grows with its nesting depth (the cognitive-complexity nesting increment).
 
 ## Decisions taken
 
