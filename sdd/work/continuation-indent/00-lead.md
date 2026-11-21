@@ -58,6 +58,12 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 | 1 | skeptic | FC-028: code fixes measure the FMT-INDENT-034 column from a node starting mid-line; how to make fix and CLI agree | Add a document fact (column where the node's first line starts) to FMT-PIPE-024 and use it in FMT-INDENT-034; test RH5302/RH5308 against the CLI | RH5302/RH5308 already require "as the formatter formats it in place"; the fact is part of the issue's own fix, not a rare-class special case | Unchanged requirements already demand CLI-equal output | (spec amendment) |
 | 2 | skeptic | SHARED-ATTR-022 example moved to the new column | Revert; drop RH5514 from the change doc | RH5514 does not call the formatter; SHARED-ATTR-017 unchanged | Reverting to today's output | (spec amendment) |
 | 4 | answers | The maintainer's answers widen the run to line-break joins, a pattern-chain rewrite and new unsupported shapes; does the skeptic run again? | Fresh spec author amends; then a fresh skeptic checks the amended spec diff before the test implementer | The amendment adds new mechanisms (line-break phase, precheck) the first skeptic never saw | Process only | — |
+| 5 | 06 spec author | Q1: modifiers of accessors, lambdas, anonymous methods | Join, refuse comments/directives there (spec as written) | Standing instruction: same scheme as every other modifier gap (batch 2, answers 1B/2B) | Decided under the maintainer's standing instruction; named in PR Review notes | 11ac457 |
+| 6 | 06 spec author | Q2: FMT-UNSUP-019 scope | Switch arm and anonymous-object member only; refused on any line; a statement in a lambda block inside an arm is not refused (spec as written) | Matches answer 8's example; a collection element elsewhere keeps the continuation indent | As row 5 | 11ac457 |
+| 7 | 06 spec author | Q3: verbatim interpolated-string hole inside an arm/member | Continuation indent measured from the arm's line (spec as written) | Cannot be joined (literal) and is not a declared shape; scheme: continuation indent | As row 5 | 11ac457 |
+| 8 | 06 spec author | Q4: chain whose only break sits next to a multi-line `{…}` | Treat the whole chain as wrapped (spec as written) | Only idempotent reading under answer 5B | As row 5 | 11ac457 |
+| 9 | 06 spec author | FMT-UNSUP-019 deletes no special case (AGENTS.md: such a shape is not declared) | Keep the declaration; name it in PR Review notes | Maintainer's explicit answer 8 chose it | Maintainer answer 8 | 11ac457 |
+| 10 | process | Third skeptic pass after 06? | Skip; spec checker and auditor review the final specs | 06 carries out answers and 05's own findings, no new mechanism beyond answer 8 | Process only | — |
 | 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
 ## Follow-up candidates
@@ -65,6 +71,7 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Comment on open issues #1633, #1634, #1905, #1542: their "Before" output changes under FMT-INDENT-034; an alignment chosen there later takes precedence (01-spec-author.md).
 - ~~Whether a wrapped `for` header should align under the token after `(`~~ — dropped: `for` headers are now joined (04-spec-author.md).
 - #1633: its case no longer exists because the base list `:` joins the type's line (04-spec-author.md).
+- Neighbouring gaps no answer named stay continuation lines: in front of `foreach … in`, `from x in⏎arr`, `on x⏎equals`, `>⏎1`, unary prefix operators, `;` of `return⏎;` (06-spec-author.md).
 - `case (⏎…⏎):` puts `case` alone on its line on `main` — looks wrong, outside the run (04-spec-author.md).
 
 ## Audited SHA
@@ -83,4 +90,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Spec author amendment done (be4ccf4, 04-spec-author.md): change docs Accepted; 7 new output questions; AGENTS.md phase table needs the new shapes/joins (route to spec author with the next amendment).
 - Skeptic 05 done (3b2af6d): spec amendments (findings 2, 7, 8, 9, AGENTS.md table) pending for the spec author; 3 new output questions.
 - Batch 2 answered (see Maintainer answers).
-- Next: one fresh spec author for the answers AND the 05 amendments (06); then test implementer (note 05's list of existing tests that change).
+- Spec author 06 done (11ac457); its 4 output questions decided (rows 5-8).
+- Next: test implementer (07), reading 06 (supersedes 04) and 05/02 for test matrices.
