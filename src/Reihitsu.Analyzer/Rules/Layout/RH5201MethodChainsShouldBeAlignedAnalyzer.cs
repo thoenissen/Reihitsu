@@ -72,9 +72,11 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     }
 
     /// <summary>
-    /// Determines whether a link is misplaced in a wrapped chain: a link of the chain part after its first link that
-    /// does not start a line, a link whose line does not start in the anchor column, or a link whose operator holds a line
-    /// break between its own tokens
+    /// Determines whether a link is misplaced in a wrapped chain: a link of the chain part after its first invoked link
+    /// that does not start a line, a first invoked link that does not start a line although the root's line does not
+    /// reach it, a link behind the first that starts a line behind the closing line of a multi-line comment standing
+    /// below the token in front of the link, a link whose line does not start in the anchor column, or a link whose
+    /// operator holds a line break between its own tokens
     /// </summary>
     /// <param name="chain">The chain</param>
     /// <param name="linkIndex">The index of the link</param>
@@ -91,7 +93,13 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
 
         if (link.StartsLine)
         {
-            return GetLineStartColumn(link.OperatorToken) != anchorColumn;
+            return (linkIndex > 0 && SyntaxTokenPositionUtilities.IsBehindMultiLineCommentTail(link.OperatorToken))
+                   || GetLineStartColumn(link.OperatorToken) != anchorColumn;
+        }
+
+        if (linkIndex == chain.FirstInvokedLinkIndex)
+        {
+            return chain.IsRootLineShortOfFirstInvokedLink;
         }
 
         return chain.IsCallLess == false

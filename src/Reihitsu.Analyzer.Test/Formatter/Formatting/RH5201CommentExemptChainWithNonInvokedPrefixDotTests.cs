@@ -81,12 +81,13 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
 
     /// <summary>
     /// Verifies the full round trip: the raw, as-typed source reports <c>RH5201</c> on the two
-    /// wrapped links that are not in the chain root's column and on the link that shares a line with
-    /// a later call, the formatter's fixed output clears the diagnostics by starting every link on its
+    /// wrapped links that are not in the chain root's column, on the link that shares a line with
+    /// a later call, and on the first call, which the root's line does not reach, the formatter's fixed output clears the diagnostics by starting every link on its
     /// own line in the chain root's column, and a second formatter pass is a no-op under both LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-006")]
     public async Task VerifyFormatterFixesCommentExemptChainWithNonInvokedPrefixAndStaysIdempotent()
     {
         const string source = """
@@ -113,7 +114,7 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
                                   {
                                       var x = a
                                           // keep wrapped
-                                          {|#0:.|}Prop.Foo()
+                                          {|#0:.|}Prop{|#3:.|}Foo()
                                           {|#1:.|}Bar(){|#2:.|}Baz();
 
                                       return x;
@@ -156,7 +157,7 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Member-access chains should be aligned.", 3));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Member-access chains should be aligned.", 4));
     }
 
     #endregion // Tests

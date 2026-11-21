@@ -1283,7 +1283,7 @@ class C
 
 ### FMT-BREAK-019 — Chains follow the shared chain layout
 
-The formatter MUST lay out member-access chains as the shared chain policy specifies: it never starts a wrap (SHARED-CHAIN-002), joins the first link to the root's line (SHARED-CHAIN-003) unless a comment, directive, or disabled text is in the way (SHARED-CHAIN-004), starts every later call of a wrapped chain on its own line (SHARED-CHAIN-005), and moves a line break out of a link operator (SHARED-CHAIN-006).
+The formatter MUST lay out member-access chains as the shared chain policy specifies: it never starts a wrap (SHARED-CHAIN-002), joins the first link to the root's line (SHARED-CHAIN-003) unless a comment, directive, or disabled text is in the way (SHARED-CHAIN-004), starts every later call of a wrapped chain on its own line, and the first call when the line the root ends on does not reach it (SHARED-CHAIN-005), and moves a line break out of a link operator (SHARED-CHAIN-006).
 
 A link whose operator stands behind the closing `*/` of a comment that spans several lines does not start its line (SHARED-COMMENT-012). In a wrapped chain, the formatter MUST break the line in front of its operator as SHARED-CHAIN-005 asks, whatever column the comment's last line starts in — for a later link, and, by the exception SHARED-CHAIN-005 states, for a prefix link and for the first invoked link too.
 

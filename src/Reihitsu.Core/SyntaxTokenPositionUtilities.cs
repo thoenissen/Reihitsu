@@ -82,5 +82,33 @@ public static class SyntaxTokenPositionUtilities
         return TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, token.LeadingTrivia.Count);
     }
 
+    /// <summary>
+    /// Determines whether a token stands behind the closing line of a delimited comment that spans several lines and lies
+    /// in the token's leading trivia, on the line that comment ends on (SHARED-COMMENT-012). Such a comment belongs to the
+    /// line it starts on, so the token does not start its line even though a line break precedes it in the gap
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token stands behind a multi-line comment's closing line; otherwise, <see langword="false"/></returns>
+    public static bool IsBehindMultiLineCommentTail(SyntaxToken token)
+    {
+        for (var triviaIndex = token.LeadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = token.LeadingTrivia[triviaIndex];
+
+            if (SyntaxTriviaUtilities.EndsLine(trivia))
+            {
+                return false;
+            }
+
+            if ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                && LineEndingUtilities.ContainsLineTerminator(trivia.ToFullString()))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     #endregion // Methods
 }

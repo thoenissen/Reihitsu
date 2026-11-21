@@ -95,37 +95,10 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a token stands behind the closing line of a delimited comment that spans several lines, on the
-    /// line that comment ends on. Such a comment belongs to the line it starts on, so the token does not start its line
-    /// even though a line break precedes it in the gap
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token stands behind a multi-line comment's closing line; otherwise, <see langword="false"/></returns>
-    private static bool IsBehindMultiLineCommentTail(SyntaxToken token)
-    {
-        for (var triviaIndex = token.LeadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            var trivia = token.LeadingTrivia[triviaIndex];
-
-            if (SyntaxTriviaUtilities.EndsLine(trivia))
-            {
-                return false;
-            }
-
-            if ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                && LineEndingUtilities.ContainsLineTerminator(trivia.ToFullString()))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Decides, per link of a chain, whether the layout of a wrapped chain breaks the line in front of it: the first link
     /// joins the root line, later prefix links keep the user's layout, the first invoked link stays on the root line only
-    /// while that line is intact, and every later link starts its own line. A chain the user did not wrap gets no line break
+    /// while that line reaches it (<see cref="FluentChain.IsRootLineShortOfFirstInvokedLink"/>), and every later link
+    /// starts its own line. A chain the user did not wrap gets no line break
     /// </summary>
     /// <param name="chain">The chain</param>
     /// <returns>Per link, whether a line break is ensured in front of its operator</returns>
@@ -143,35 +116,22 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return lineBreaks;
         }
 
-        var isRootLineIntact = true;
-
-        for (var linkIndex = 0; linkIndex < chain.Links.Count; linkIndex++)
+        for (var linkIndex = 1; linkIndex < chain.Links.Count; linkIndex++)
         {
             var link = chain.Links[linkIndex];
             var isWrappedByUser = link.StartsLine || link.HasInnerLineBreak(false);
 
-            if (linkIndex == 0)
-            {
-                // A gap that holds a comment, a directive or disabled text is not closed, so the root line is broken.
-                isRootLineIntact = HasLineBreak(SyntaxTokenNavigationUtilities.GetPreviousToken(link.OperatorToken), link.OperatorToken) == false
-                                   || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(SyntaxTokenNavigationUtilities.GetPreviousToken(link.OperatorToken), link.OperatorToken) == false;
-            }
-            else if (chain.IsPrefixLink(linkIndex))
+            if (chain.IsPrefixLink(linkIndex))
             {
                 lineBreaks[linkIndex] = isWrappedByUser;
             }
             else if (linkIndex == chain.FirstInvokedLinkIndex)
             {
-                lineBreaks[linkIndex] = isWrappedByUser || isRootLineIntact == false;
+                lineBreaks[linkIndex] = isWrappedByUser || chain.IsRootLineShortOfFirstInvokedLink;
             }
             else
             {
                 lineBreaks[linkIndex] = true;
-            }
-
-            if (lineBreaks[linkIndex])
-            {
-                isRootLineIntact = false;
             }
         }
 
@@ -235,7 +195,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     {
         if (HasLineBreak(previousToken, nextToken))
         {
-            if (IsBehindMultiLineCommentTail(nextToken))
+            if (SyntaxTokenPositionUtilities.IsBehindMultiLineCommentTail(nextToken))
             {
                 var leadingTrivia = LineBreakTriviaUtilities.RemoveTrailingWhitespace(nextToken.LeadingTrivia);
 

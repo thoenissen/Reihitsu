@@ -2797,5 +2797,50 @@ public class ChainLinkLayoutTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies the example of SHARED-CHAIN-005 for the first call: a wrapped prefix link and a comment that holds the first
+    /// link below the root leave the root's line short of the first call, which starts its own line; a line break in front of
+    /// the first link that nothing holds is removed, and the chain is no longer wrapped
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CHAIN-005")]
+    [Requirement("FMT-BREAK-019")]
+    public void FirstCallTheRootLineDoesNotReachStartsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = settings.Items
+                                                     .Values.Where(x => x.A);
+                                     var b = items // c
+                                             .Values.Where(x => x.A);
+                                     var c = settings
+                                         .Items.Where(x => x.A);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = settings.Items
+                                                        .Values
+                                                        .Where(x => x.A);
+                                        var b = items // c
+                                                .Values
+                                                .Where(x => x.A);
+                                        var c = settings.Items.Where(x => x.A);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

@@ -441,5 +441,266 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                               ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 18, 8, 19, MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the first call behind a wrapped prefix link, the reported shape, is reported, and that the formatter
+    /// starts it on its own line, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-006")]
+    public async Task VerifyFormatterBreaksFirstCallBehindWrappedPrefixLink()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             internal sealed class Variable
+                             {
+                                 internal string Identifier { get; set; }
+                             }
+
+                             internal sealed class Declaration
+                             {
+                                 internal List<Variable> Variables { get; set; }
+                             }
+
+                             internal sealed class Statement
+                             {
+                                 internal Declaration Declaration { get; set; }
+                             }
+
+                             internal static class Example
+                             {
+                                 internal static IEnumerable<string> Run(Statement declaration)
+                                 {
+                                     var names = declaration.Declaration
+                                                            .Variables{|#0:.|}Select(v => v.Identifier);
+
+                                     return names;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 internal sealed class Variable
+                                 {
+                                     internal string Identifier { get; set; }
+                                 }
+
+                                 internal sealed class Declaration
+                                 {
+                                     internal List<Variable> Variables { get; set; }
+                                 }
+
+                                 internal sealed class Statement
+                                 {
+                                     internal Declaration Declaration { get; set; }
+                                 }
+
+                                 internal static class Example
+                                 {
+                                     internal static IEnumerable<string> Run(Statement declaration)
+                                     {
+                                         var names = declaration.Declaration
+                                                                .Variables
+                                                                .Select(v => v.Identifier);
+
+                                         return names;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the first call behind a first link that a comment holds below the root is reported, and that the
+    /// formatter starts it on its own line, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-006")]
+    public async Task VerifyFormatterBreaksFirstCallBehindCommentHeldFirstLink()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal Example Next { get; set; }
+
+                                 internal Example Self()
+                                 {
+                                     return this;
+                                 }
+
+                                 internal static Example Run(Example c)
+                                 {
+                                     var b = c // keep
+                                             .Next{|#0:.|}Self();
+
+                                     return b;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal Example Next { get; set; }
+
+                                     internal Example Self()
+                                     {
+                                         return this;
+                                     }
+
+                                     internal static Example Run(Example c)
+                                     {
+                                         var b = c // keep
+                                                 .Next
+                                                 .Self();
+
+                                         return b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a link behind the closing <c>*/</c> of a comment that starts its own line is reported although the
+    /// <c>*/</c> stands in the anchor column, and that the formatter breaks the line in front of the link, so its output is
+    /// clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyFormatterBreaksLinkBehindOwnLineCommentTailInAnchorColumn()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /* x
+                                              */ {|#0:.|}D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B()
+                                                  .C()
+
+                                                  /* x
+                                                  */
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a link behind a second comment behind the closing <c>*/</c> of a comment that starts its own line is
+    /// reported although the <c>*/</c> stands in the anchor column, and that the formatter breaks the line in front of the
+    /// link, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyFormatterBreaksLinkBehindSecondCommentBehindOwnLineCommentTailInAnchorColumn()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /* x
+                                              */ /* y */ {|#0:.|}D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B()
+                                                  .C()
+
+                                                  /* x
+                                                  */ /* y */
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a link behind the closing <c>*/</c> of a comment that starts behind another comment on its own line is
+    /// reported although the <c>*/</c> stands in the anchor column, and that the formatter breaks the line in front of the
+    /// link, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyFormatterBreaksLinkBehindTailOfCommentStartingBehindOwnLineCommentInAnchorColumn()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /* w */ /* x
+                                              */ {|#0:.|}D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B()
+                                                  .C()
+
+                                                  /* w */ /* x
+                                                  */
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
     #endregion // Tests
 }
