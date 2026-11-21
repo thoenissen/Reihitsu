@@ -15,6 +15,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | implementer | Keep the validator's line-count-row step in `squad/roles/validator.md` now that the Release build enforces the limits? | Keep it unchanged | The rows still catch a change to RH2008/RH2111 before the next `binaries/` rebuild; tuning the squad process from a run is the maintainer's, not the run's (`squad/README.md`, *Notes*) | Process file only; no user-facing surface | — |
 
 ## Follow-up candidates
 
@@ -22,5 +23,5 @@
 
 ## State
 
-- Last step finished: test implementer (01, bf32d4e): test written, fails as expected; premise confirmed (1.5.0 binaries accept `design`).
-- Next: implementer.
+- Last step finished: implementer (02, a691cc8): tests pass, Release build clean.
+- Next: cleaner.
