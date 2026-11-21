@@ -9,6 +9,23 @@ internal sealed class DefaultDiffGenerator : IDiffGenerator
     #region Methods
 
     /// <summary>
+    /// Reads the process's current directory. A current directory that cannot be read, such as one that has been deleted or
+    /// whose parent cannot be searched, contains no file the CLI can name, so it is reported as absent
+    /// </summary>
+    /// <returns>The full path of the current directory; <see langword="null"/> when it cannot be read</returns>
+    private static string TryGetCurrentDirectory()
+    {
+        try
+        {
+            return Directory.GetCurrentDirectory();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Determines the file's path relative to the directory when the directory is one of the directories the file's full path
     /// passes through. The two paths are compared as written, without resolving symbolic links, with the CLI's path comparer
     /// </summary>
@@ -43,7 +60,11 @@ internal sealed class DefaultDiffGenerator : IDiffGenerator
     /// <inheritdoc/>
     public string Generate(string filePath, string originalContent, string formattedContent)
     {
-        if (TryGetPathInside(Directory.GetCurrentDirectory(), filePath, out var relativePath))
+        var currentDirectory = TryGetCurrentDirectory();
+
+        // Without a readable current directory, no file is inside it, and every file is named by its full path.
+        if (currentDirectory != null
+            && TryGetPathInside(currentDirectory, filePath, out var relativePath))
         {
             return DiffGenerator.Generate(relativePath, originalContent, formattedContent);
         }
