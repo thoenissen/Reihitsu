@@ -112,18 +112,18 @@ The read-only release check of the active milestone, started only by the maintai
 
 1. When the milestone still has open issues or runs in progress, list them and ask whether to check anyway; a check while a run that changes shipped behavior is open is usually wasted.
 2. Delegate the check to one `general-purpose` agent. It works on a detached worktree of `origin/main`, changes and pushes nothing, and writes `inventory/release-check-<milestone>.md`:
-   - **Scope** — what the release ships to a user: the milestone's closed issues and `git log <previous tag>..origin/main`, reduced to user-visible changes (rules, code fixes, formatter output, unsupported shapes, CLI behavior, performance).
+   - **Scope** — what the release ships to a user, collected and sorted by `/generate-release-notes` sections 1 and 2 with the range `<previous tag>..origin/main`; no own definition. The check writes this sorted list, not release notes.
    - **Probes** — small inputs per shipped feature through the built CLI and `scripts/apply-fix.sh`, against the specs: what must be reported, fixed, refused, or left alone, and what ordinary code must not be.
    - **Corpus** — a differential run of the built CLI and the previous release's CLI over shallow clones of real-world C# repositories: refusals, output differences, and idempotency (`--check` after a write run).
    - **Verdict** per feature: good, gap, or blocker; plus release-note lines (a new refusal and its remedy, a changed default).
 3. Ask the maintainer about every finding in one numbered message: `A` enters this release (a new issue on the milestone, labeled `agent-filed`, a run in `Plan`), `B` goes to the roadmap milestone of its theme, `C` dropped. Only findings of the check may still enter the release.
-4. When findings entered, `Next` is `/coordinator batch`, and `check` is run again after they merge, limited to what they changed. When none did, `Next` names the release steps, which the maintainer runs: `/bump-version <milestone>` (which also tags the merged bump), `/generate-release-notes v<milestone> <previous tag>` (with the check's release-note lines), publishing the GitHub release, then `/coordinator cleanup`.
+4. When findings entered, `Next` is `/coordinator batch`, and `check` is run again after they merge, limited to what they changed. When none did, `Next` names the release steps, which the maintainer runs: `/bump-version <milestone>`; after its merge `/generate-release-notes <milestone> <previous tag>`, which reads the check's release-note lines; publishing the GitHub release with the new tag `v<milestone>` on the merged bump commit, which creates the tag; then `/coordinator cleanup`.
 
 ## 6. `cleanup`
 
 Close out the released milestone, so the branch carries only what the next milestone needs.
 
-1. Confirm the release: the tag `v<milestone>` exists. When it does not, stop and name the missing release step.
+1. Confirm the release: the tag `v<milestone>` exists, which publishing the GitHub release created. When it does not, stop and name the missing release step.
 2. When the milestone still has open issues, propose for each the roadmap milestone of its theme and ask; move them on the answer.
 3. Ask the maintainer to close the milestone on GitHub; the MCP tools cannot.
 4. Delete `sdd/work/coordinator/inventory/`; the inventories of a released milestone are not read again.

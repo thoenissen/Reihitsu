@@ -1,6 +1,6 @@
 # Bump Version
 
-Raise the version of Reihitsu, refresh the analyzer binaries the repository builds itself with, prove the solution still builds under them, publish the bump as a pull request, and tag the merged commit on `main`. **$ARGUMENTS** is the new version: `1.4.0`, or a prerelease `1.4.0-beta2` / `1.4.0-rc1`. A leading `v` is dropped. If the argument is missing or does not match `X.Y.Z`, `X.Y.Z-betaN`, or `X.Y.Z-rcN`, ask for it and stop.
+Raise the version of Reihitsu, refresh the analyzer binaries the repository builds itself with, prove the solution still builds under them, and publish the bump as a pull request. It sets no tag: the tag `v<version>` is created when the maintainer publishes the GitHub release on the merged bump commit. **$ARGUMENTS** is the new version: `1.4.0`, or a prerelease `1.4.0-beta2` / `1.4.0-rc1`. A leading `v` is dropped. If the argument is missing or does not match `X.Y.Z`, `X.Y.Z-betaN`, or `X.Y.Z-rcN`, ask for it and stop.
 
 The bump changes nothing but the version properties and the four files under `binaries/`. It fixes no finding, formats nothing, and touches no other file.
 
@@ -63,27 +63,12 @@ The Release build treats warnings as errors, so every finding the new analyzer r
 
 1. Commit exactly the five files with the subject `Bump version to <version>`.
 2. Push the branch and open a pull request against `main` titled `Bump version to <version>`. Fill the headings of `.github/PULL_REQUEST_TEMPLATE.md`: the *Summary* names the new version and that the binaries the solution analyzes itself with were rebuilt from the current `main`; *Why* is the release; *Linked issues* says none; drop *Review notes* and *Follow-up work* unless there is something to say.
-3. Subscribe to the pull request's activity and end the turn. CI and the maintainer's merge arrive as events; do not poll.
+3. Subscribe to the pull request's activity and end the turn. CI arrives as events; do not poll. When the CI of the final commit is decided, unsubscribe and report the result.
 
-## 7. Tag the merged commit
+## 7. Hand over the release
 
-When the pull request is merged:
+Report the pull request and its CI result, and end with the maintainer's release steps:
 
-1. Fetch `main` and find the commit the merge put on it — the squash commit whose subject is `Bump version to <version> (#<N>)`, or the merge commit:
-
-   ```shell
-   git fetch origin main
-   git log origin/main --format='%H %s' -5
-   ```
-
-2. Check that this commit's `Directory.Build.props` carries the new version (`git show <sha>:Directory.Build.props`).
-3. Create the tag as a lightweight tag, like the earlier release tags, on exactly that commit and push only the tag:
-
-   ```shell
-   git tag v<version> <sha>
-   git push origin v<version>
-   ```
-
-4. Unsubscribe from the pull request and report the tag and its commit. Creating the GitHub release from the tag is the maintainer's step; mention that `/generate-release-notes v<version> <previous tag>` writes its notes.
-
-If the pull request is closed without merging, unsubscribe, create no tag, and report.
+1. Merge the pull request.
+2. `/generate-release-notes <version> <previous tag>` writes the notes; the range ends at the merged bump commit.
+3. Publish the GitHub release with the new tag `v<version>`, targeting the merged bump commit (`Bump version to <version> (#<N>)`), not a later commit of `main`. Publishing creates the tag.
