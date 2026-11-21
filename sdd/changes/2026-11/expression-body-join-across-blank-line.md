@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-STRUCT-006 |
-| Depends on | [continuation-indent.md](continuation-indent.md) |
+| Depends on | [continuation-join.md](continuation-join.md) |
 
 ## What
 
@@ -55,14 +55,12 @@ class C
 
 The code fixes that convert an expression body into a block with a `return` statement — RH3202 (methods), RH3205 (operators), RH3206 (conversion operators), and RH3208 (local functions) — give the same result: the RH3202 fix of `Get` above writes `return⏎        2;` on `main` and `return 2;` after the change.
 
-Under the other reading — the blank line keeps the line break — the output would be `return` on its own line and `2;` one level deeper (FMT-INDENT-034).
-
 ## Decisions
 
-### A blank line does not stop the join
+### A blank line does not stop the join (maintainer, answer 2A)
 
-Open for the maintainer (output question of thoenissen/Reihitsu#1852). The spec is written on the recommended reading: the join does not depend on the blank line.
+The maintainer chose the join. The line-break phase joins every `return` and its value across line breaks and blank lines (FMT-BREAK-041, [continuation-join.md](continuation-join.md)), so the converted body gives the same result as a `return` written by hand.
 
 ## Alternatives considered
 
-- **Keep the line break behind a blank line** — rejected as the recommendation: the result would depend on whether the converted body creates a `return` or an expression statement, and on a blank line that carries no meaning.
+- **Keep the line break behind a blank line** — rejected by the maintainer: the result would depend on whether the converted body creates a `return` or an expression statement, and on a blank line that carries no meaning.

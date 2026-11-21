@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -1207,9 +1207,11 @@ class C
 
 ### FMT-BREAK-017 — Binary operators start the continuation line
 
-When a binary expression is wrapped at its operator, the operator MUST start the continuation line instead of ending the previous one. A pattern combinator (`and`, `or`) MUST start its own line when an operand next to it is a property, list, or parenthesized pattern that spans several lines; otherwise it keeps the author's layout. The formatter never wraps a binary expression the author wrote on one line.
+When a binary expression is wrapped at its operator, the operator MUST start the continuation line instead of ending the previous one. When a binary pattern is wrapped at its combinator (`and`, `or`), the combinator MUST start the continuation line in the same way, and its right pattern MUST join it — in an `is` expression, a `case` label, a switch-expression arm, and every other place a pattern stands. A pattern combinator MUST also start its own line when an operand next to it is a property, list, or parenthesized pattern that spans several lines. The formatter never wraps a binary expression or a binary pattern the author wrote on one line: a combinator that stands inside a line keeps its place, and only one at the end of a line moves.
 
-Why: An operator at the start of a line shows at a glance how the line continues the expression, and lines up the operands of a long condition. RH5302 reports the same shape for logical expressions. The join of the right operand onto its operator's line never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one there (FMT-UNSUP-011), so FMT-BREAK-001 never has to refuse this join.
+A comment, a directive, or disabled text behind a combinator keeps the right pattern off the combinator's line, and the combinator then stays at the end of its line (FMT-BREAK-001); the line the right pattern starts is a continuation line (FMT-INDENT-034).
+
+Why: An operator at the start of a line shows at a glance how the line continues the expression, and lines up the operands of a long condition. RH5302 reports the same shape for logical expressions. A pattern chain reads the same way: with each combinator at the start of its line, the combinators line up under the `is` or under the first pattern (FMT-INDENT-019), and every line shows how it continues the pattern, as the maintainer decided. The join of the right operand onto its operator's line never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one there (FMT-UNSUP-011), so FMT-BREAK-001 never has to refuse this join.
 
 Example:
 
@@ -1235,6 +1237,61 @@ class C
                 && b;
         var z = a + b
                 + c * d;
+    }
+}
+```
+
+Example — every combinator at the end of a line moves to the start of the next one; the pattern behind `is` joins the `is` (FMT-BREAK-041), and the combinators align under the `is` or under the first pattern of a `case` label or an arm (FMT-INDENT-019):
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        var k = x is
+        1 or
+        2 or
+        3;
+
+        switch (x)
+        {
+            case 1 or
+            2:
+                break;
+        }
+
+        return x switch
+               {
+                   1 or
+                   3 => 4,
+                   _ => 0,
+               };
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        var k = x is 1
+                  or 2
+                  or 3;
+
+        switch (x)
+        {
+            case 1
+                 or 2:
+                break;
+        }
+
+        return x switch
+               {
+                   1
+                   or 3 => 4,
+                   _ => 0,
+               };
     }
 }
 ```
@@ -1442,7 +1499,7 @@ class C
 
 ### FMT-BREAK-022 — Wrapped collection expressions and patterns get one element per line
 
-A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line. A comma that starts a line in one of them is FMT-BREAK-038's.
+A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line. The opening parenthesis of a wrapped parenthesized pattern MUST start its own line. A comma that starts a line in one of them is FMT-BREAK-038's.
 
 A `with(…)` element of a collection expression (`[with(comparer), "a"]`) is an element like any other: in a wrapped collection expression it starts its own line, the first line after the `[`.
 
@@ -3366,6 +3423,214 @@ class C
         var f = new int[3];
         Span<int> g = stackalloc [] { 1, 2 };
         Span<int> h = stackalloc int[3];
+    }
+}
+```
+
+### FMT-BREAK-041 — A continuation behind a keyword, a pattern's `is`, an arm, a base list, a modifier, a filter, a loop header, a lambda, `with`, or a member name joins its line
+
+The formatter MUST remove the line breaks, and the blank lines with them, from each of these gaps, so that the token behind the gap stands on the line of the token in front of it:
+
+- between the `return` of a return statement, the `throw` of a throw statement or a throw expression, the `await` of an await expression, or the `new` of an object or array creation and the first token of what follows it;
+- between the `is` of an `is` pattern expression and the first token of its pattern;
+- between the last token of a switch-expression arm's pattern, or of its `when` clause, and the arm's `=>`;
+- between the token in front of a base list's `:` and the `:`;
+- between the last modifier of a member declaration, a local function, or a local declaration and the first token of the type behind it;
+- between the token in front of the `when` of a catch filter clause and the `when`;
+- between each `;` of a `for` statement's header and the token behind it;
+- between the `=>` of a lambda with an expression body and the first token of that expression;
+- between the last token of the expression a `with` expression copies and the `with`;
+- between the name of an anonymous-object member declarator and the `=` behind it.
+
+The gaps are exactly those FMT-UNSUP-017 names, with the same conditions on both sides: a gap next to the same tokens but outside this list — such as the gap behind a switch arm's `=>`, behind a base list's `:`, between two modifiers, behind the `(` of a `for` header, behind the `=>` of a lambda with a block body, behind `with`, or behind an anonymous-object member's `=` — is not joined by this requirement and keeps its line breaks unless another requirement joins it. A line that starts behind such a gap is a continuation line (FMT-INDENT-034).
+
+The pattern behind `is` is not joined where FMT-BREAK-022 starts its first token on a line of its own: the opening brace of a property pattern without a type that spans several lines, and the opening parenthesis of a parenthesized pattern that spans several lines, keep their own line below the `is`.
+
+The join writes the minimal separator (FMT-BREAK-031). It never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one in these gaps (FMT-UNSUP-017), so FMT-BREAK-001 never has to refuse this join. The join applies wherever the gap stands, also inside a list element (FMT-BREAK-015), and in a node-level root as in a whole document.
+
+Why: The token behind each of these gaps belongs to the token in front of it: a `return` and its value, a pattern and its `is`, an arm and its arrow, a type and its base list, a modifier and the type it modifies, a catch clause and its filter, the three parts of a `for` header, a lambda and its body, an expression and the `with` that copies it, a member name and its `=`. A line break there carries no meaning, and the line it leaves reads as a new statement or needs a column of its own; joining it makes the construct read as one, as the maintainer decided. A blank line there separates nothing, so it goes with the join, as for every join of this phase (FMT-BREAK-030). The opening delimiter of a multi-line property or parenthesized pattern starts its own line so that its content reads as a block below the `is` (FMT-INDENT-026); joining it onto the `is` would undo that layout.
+
+Example:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class B;
+
+class D
+: B
+{
+    private
+    int _f;
+
+    async Task<int> M(int x, object o, Task<int> t, int[] a)
+    {
+        var p = o is
+        not null;
+        var r = x switch
+                {
+                    1
+        => 2,
+                    _ => 0,
+                };
+
+        try
+        {
+        }
+        catch (Exception e)
+        when (e != null)
+        {
+        }
+
+        for (var i = 0;
+        i < 3;
+        i++)
+        {
+        }
+
+        Func<int> u = () =>
+        a.Length;
+        var n = new
+        List<int>();
+        var q = await
+        t;
+        var w = new
+                {
+                    A
+        = 1
+                };
+
+        if (x > 0)
+        {
+            throw
+            new Exception();
+        }
+
+        return
+        x;
+    }
+}
+
+record R
+{
+    void M(R r)
+    {
+        var w = r
+        with
+        {
+        };
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class B;
+
+class D : B
+{
+    private int _f;
+
+    async Task<int> M(int x, object o, Task<int> t, int[] a)
+    {
+        var p = o is not null;
+        var r = x switch
+                {
+                    1 => 2,
+                    _ => 0,
+                };
+
+        try
+        {
+        }
+        catch (Exception e) when (e != null)
+        {
+        }
+
+        for (var i = 0; i < 3; i++)
+        {
+        }
+
+        Func<int> u = () => a.Length;
+        var n = new List<int>();
+        var q = await t;
+        var w = new
+                {
+                    A = 1
+                };
+
+        if (x > 0)
+        {
+            throw new Exception();
+        }
+
+        return x;
+    }
+}
+
+record R
+{
+    void M(R r)
+    {
+        var w = r with
+                  {
+                  };
+    }
+}
+```
+
+Example — a blank line in the gap goes with the join:
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        return
+
+            x;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        return x;
+    }
+}
+```
+
+Example — the opening parenthesis of a parenthesized pattern that spans several lines keeps its own line below the `is`, and its content is indented as FMT-INDENT-026 states:
+
+```csharp
+class C
+{
+    bool M(object o)
+    {
+        return o is (
+            int or long
+        );
+    }
+}
+```
+
+```csharp
+class C
+{
+    bool M(object o)
+    {
+        return o is
+                 (
+                     int or long
+                 );
     }
 }
 ```
