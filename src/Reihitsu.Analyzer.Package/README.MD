@@ -175,7 +175,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5114.md)| Using directives must be placed on separate lines.| ✔| ✔| ✔|
 | [RH5115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5115.md)| Index access must stay on the line of its expression.| ✔| ✔| ✔|
 | [RH5116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5116.md)| Null-forgiving operator must stay on the line of its expression.| ✔| ✔| ✔|
-| [RH5201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5201.md)| Method chains should be aligned.| ✔| ✔| ✔|
+| [RH5201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5201.md)| Member-access chains should be aligned.| ✔| ✔| ✔|
 | [RH5202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5202.md)| Raw string literals should be formatted correctly.| ✔| ✔| ✔|
 | [RH5203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5203.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|
 | [RH5204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5204.md)| Indentation must use 4 spaces per scope level.| ✔| ✔| ✔|
