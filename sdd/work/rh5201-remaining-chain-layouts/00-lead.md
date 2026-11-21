@@ -36,6 +36,8 @@ Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
 - Spec author done (064eb20, lane check confirmed behavior-change). Skeptic running → 02-skeptic.md.
 - Skeptic done (9fc40a5): output question on comment inside a prefix link operator; architecture finding (decision 3); adjacent fix (decision 4).
 - Batch 1 answered (see Maintainer answers).
-- NOW: spec author follow-up running.
+- Spec author follow-up done (1986bc0, Status Accepted, lane confirmed). It changed RH5201-001's MUST NOT to carry out decision 4 → change doc item 6 is a visible change not covered by an answer.
+- WAITING: output question Q6 (change doc item 6: link behind own-line `*/` in anchor column) posted; blocks tests for it.
+- Then: test implementer.
 - Then: spec author follow-up (answers, decisions 4–5, Status Accepted), lane check, test implementer.
 - Old next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
