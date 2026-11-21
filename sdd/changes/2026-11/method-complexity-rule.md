@@ -8,13 +8,13 @@
 
 ## What
 
-A new Design rule, **RH2009 — Methods should not exceed the complexity limit** (Design, Warning, enabled, no fix), reports a member whose body has a cognitive complexity above its limit (thoenissen/Reihitsu#352). The score follows G. Ann Campbell, *Cognitive Complexity — a new way of measuring understandability* (SonarSource, version 1.7), with the departures listed under *Alternatives considered*. A new user page, `documentation/cognitive-complexity.md`, explains the scoring of every construct with worked examples; the rule page stays short and links to it.
+A new Design rule, **RH2009 — Methods should not exceed the complexity limit** (Design, Warning, enabled, no fix), reports a member whose body has a cognitive complexity above its limit (thoenissen/Reihitsu#352). A new user page, `documentation/cognitive-complexity.md`, explains the scoring of every construct with worked examples; the rule page stays short and links to it.
 
 - **Members judged** — the ones RH2008 judges for their length (RH2008-002, RH2008-004), each by its block body or the expression of its expression body (RH2009-002).
 - **Cognitive complexity** (RH2009-003), starting from 0:
   - `if`, `?:`, `switch` statement and `switch` expression (once for the whole switch), `for`, `foreach`, `while`, `do`, and `catch` add 1 **plus their nesting level**: the same `if` scores 1 at nesting level 0, 2 at level 1, 3 at level 2;
   - `else if`, `else`, and a `?:` that is the false branch of another `?:` (also in parentheses) add 1, without a nesting increment;
-  - each sequence of like binary logical operators adds 1 — `&&`, `||`, and `&`, `|`, `^` on `bool` or `bool?` — with a new sequence at each change of operator and after a `!`; the `and` and `or` combinators of an `is` pattern count the same way, those of a case label or switch arm score nothing; each `goto` adds 1; a method or local function that calls itself adds 1 once;
+  - each sequence of like binary logical operators adds 1 — `&&`, `||`, and `&`, `|`, `^` on `bool` or `bool?` — with a new sequence at each change of operator and after a `!`; a compound assignment (`&=`, `|=`, `^=`) adds nothing; the `and` and `or` combinators of an `is` pattern count the same way, those of a case label or switch arm score nothing; each `goto` adds 1; a method or local function that invokes itself adds 1 once;
   - the nesting level is raised by the branches of an `if` chain and of a `?:` chain, a switch's sections or arms, a loop body, a `catch` block, and the body of a lambda or anonymous method; `try`, `finally`, `using`, `lock`, plain blocks, query clauses, `??`, `?.`, `return`, `throw`, `break`, `continue`, case labels, and conditional directives add nothing and do not nest.
 - **No-nesting exception** (RH2009-004) — a member in which no structure lies in the nested part of another structure is never reported, whatever its complexity. Nesting that comes only from a lambda or an anonymous method does not count for the exception, though it counts for the score.
 - **Lambdas and local functions** (RH2009-005) — the body of a lambda or anonymous method counts toward the member that holds it, one level deeper; a lambda is never judged on its own. A local function is judged only on its own and adds nothing to its holder.
@@ -285,13 +285,27 @@ The maintainer decided the metric (cognitive, as the issue proposes, after first
 
 The maintainer decided that a method that never nests one structure inside another is not reported, whatever its complexity, and that a structure's increment grows with its nesting depth. RH2009-004 states the exception by the nested parts of RH2009-003, so the exception and the score share one notion of nesting — except for lambdas and anonymous methods, whose nesting counts for the score but not for the exception (maintainer: "lambdas are ok").
 
-### Stay close to the published definition
+### Lambdas count; local functions stand alone
 
-The maintainer prefers the published definition where no C# reason departs from it: lambdas and anonymous methods count toward their holder and raise the nesting level, and `&`, `|`, `^` on `bool` count like `&&` and `||`. The departures the maintainer kept are listed under *Alternatives considered*, each as the paper's rule rejected.
+The maintainer decided that the body of a lambda or anonymous method counts toward the member that holds it and raises the nesting level by one, since it is read as part of that member, while nesting that comes only from a lambda does not lift the no-nesting exception ("lambdas are ok"). A lambda in a field, property, or event initializer is not judged in this change. A local function is judged only on its own and adds nothing to its holder: it has a name and a signature and is read as a method of its own.
+
+### What scores, and how
+
+The maintainer decided each of these scoring points:
+
+- `&`, `|`, and `^` on `bool` count like `&&` and `||`, as sequences of binary logical operators.
+- **`&`, `|`, and `^` on `bool?` count like on `bool`**: it is the same logical operator on the same conditions; only the null case differs.
+- **`&=`, `|=`, and `^=` score nothing**, also on `bool`: a compound assignment accumulates a result and is read as one statement, not as a condition.
+- A member that calls itself scores 1 once, however many calls it holds; recursion through several members scores nothing.
+- **Only an invocation `M(…)` of the member itself counts as recursion**: a constructor that creates its own type with `new`, an accessor that uses its own property, and an operator that uses itself score nothing. The invocation is the form a reader recognizes as recursion.
+- **A `?:` in a switch `when` clause is nested in the switch**: the case label and its `when` clause are read inside the switch, as part of the decision the switch opened.
+- A `?:` in the false branch of another `?:`, also in parentheses, scores 1 without a nesting increment, like `else if`.
+- `and` and `or` in an `is` pattern count like `&&` and `||`; in a case label or switch arm they score nothing, because a switch is charged once however many cases it lists.
+- Only active code is scored; conditional directives score nothing.
 
 ### Scoring guide on its own page
 
-The maintainer decided that the full scoring — every construct, the departures, worked examples with per-line points — lives on `documentation/cognitive-complexity.md`, and the rule page stays short and links to it.
+The maintainer decided that the full scoring — every construct, with worked examples and per-line points — lives on `documentation/cognitive-complexity.md`, and the rule page stays short and links to it.
 
 ### This repository's own violations are a follow-up
 
@@ -303,23 +317,21 @@ When a setting without a valid value keeps its default, and that a measure equal
 
 ## Alternatives considered
 
-Departures from the published definition (G. Ann Campbell, *Cognitive Complexity*, SonarSource, version 1.7):
-
-- **Every `?:` nests** (the paper: a ternary is a structure with a nesting increment that raises the nesting level) — rejected for a `?:` in another's false branch, also in parentheses: a chained conditional is the expression form of an `if … else if` chain, which scores flat, so the same dispatch should not score more, or be reported, only because it is written as an expression.
-- **Nested functions count toward the outer method** (the paper: nested methods raise the nesting level of the outer method's score) — rejected for local functions: a local function has a name and a signature and is read as a method of its own; it is judged on its own, and extracting a nested block into one makes its holder simpler. Kept for lambdas and anonymous methods.
-- **Every method in a recursion cycle scores 1, direct or indirect** (the paper) — rejected for indirect cycles: finding them needs a call graph over the whole compilation, and a member's score would change when another member, perhaps in another file, changes. A member that calls itself scores 1 once, however many calls it holds; a call of another overload or through a method group scores nothing.
-- **`#if` scores like `if` and nests** (the paper's text, though not its Appendix B) — rejected: a build reads one branch, which is how every Reihitsu rule treats conditional code (SHARED-DIAG-008); only active code is scored.
-- **Pattern combinators** — not in the paper. `and` and `or` in an `is` pattern count like `&&` and `||`, since `x is 1 or 2` is the same condition as `x == 1 || x == 2`; in a case label or switch arm they score nothing, because the paper charges a switch once however many cases it lists. Rejected: counting them in arms and labels too, and counting them nowhere.
-- **Query expressions** — not in the paper. Their clauses neither score nor nest; the operators and structures inside count at the query's level. Rejected: nesting them like the lambdas they compile to, which would make `where` and `select` clauses cost more than the statement they stand in.
-- **No threshold and no exception** (the paper defines a score only) — the rule adds the limit and the no-nesting exception, as the maintainer decided.
-- **Totals per class and application** (the paper sums scores) — rejected: the rule judges members.
-
-Other alternatives:
-
 - **Cyclomatic complexity** — rejected by the maintainer: it counts paths and charges nesting nothing, so a deeply nested body scores like a flat one.
 - **An `.editorconfig` key** (`dotnet_diagnostic.RH2009.<option>`), as the issue proposed — rejected: no Reihitsu rule reads one, a mistyped key is silently ignored, and the line limits already live in `reihitsu.json`, where RH0001 validates them.
 - **A separate limit for test code** (`maximumTestMethodComplexity`, as RH2008 has) — rejected by the maintainer: a test is not more complex than production code by nature.
+- **Every `?:` nests, also one that continues a chain** — rejected: a chained conditional is the expression form of an `if … else if` chain, which scores flat, so the same dispatch should not score more, or be reported, only because it is written as an expression.
+- **Local functions counting toward the member that holds them** — rejected: a local function is read as a method of its own; extracting a nested block into one should make its holder simpler.
 - **Lambdas judged on their own**, as the issue proposed — rejected: a lambda has no name to report on and is read as part of the member. A lambda in a field, property, or event initializer, which no member holds, is not judged in this change; judging it is a follow-up.
-- **Lambdas left out of the score** — an earlier answer, superseded: the maintainer chose to follow the paper.
-- **`&`, `|`, `^` on `bool` scoring nothing** — an earlier answer, superseded: the maintainer chose to follow the paper.
-- **Counting `??`, `?.`, and `try`** — rejected: they do not make the reader track a decision, and the paper does not count them.
+- **Lambdas left out of the score** — an earlier answer, superseded: the maintainer decided that a lambda's body is read as part of the member and counts.
+- **`&`, `|`, `^` on `bool` scoring nothing** — an earlier answer, superseded: the maintainer decided that a logical operator on conditions is read like `&&` and `||`, whether it short-circuits or not.
+- **Only `bool` operands counting for `&`, `|`, `^`** — rejected by the maintainer: `bool?` operands combine the same conditions.
+- **`&=`, `|=`, `^=` counting as a sequence of their own** — rejected by the maintainer: a compound assignment is an assignment, not a condition.
+- **Recursion through several members** (`A` calls `B`, `B` calls `A`) — rejected: finding it needs a call graph over the whole compilation, and a member's score would change when another member, perhaps in another file, changes.
+- **Every use of the member itself counting as recursion** (`new` of its own type in a constructor, its own property in an accessor, its own operator in an operator) — rejected by the maintainer: a property or operator that uses itself is nearly always endless recursion, and a recursive constructor is rare.
+- **A `when` clause not nesting**, like a condition — rejected by the maintainer: the clause is read inside the switch.
+- **`#if` scoring like `if`** — rejected: a build reads one branch, which is how every Reihitsu rule treats conditional code (SHARED-DIAG-008).
+- **Pattern combinators counting also in case labels and switch arms, or nowhere** — rejected: `x is 1 or 2` is the same condition as `x == 1 || x == 2`, while the cases of a switch are one decision.
+- **Query clauses nesting like the lambdas they compile to** — rejected: `where` and `select` clauses would cost more than the statements they stand in for.
+- **Totals per type, file, or project** — rejected: the rule judges members.
+- **Counting `??`, `?.`, and `try`** — rejected: they do not make the reader track a decision.

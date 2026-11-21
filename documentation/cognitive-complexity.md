@@ -2,11 +2,9 @@
 
 Rule [RH2009](rules/RH2009.md) reports a method whose body is harder to follow than its limit allows. It measures how hard a body is to follow as its *cognitive complexity*: a score that adds points for every break in the straight flow of the code, and more points the deeper that break is nested. This page explains how the score is computed, construct by construct, with examples.
 
-The score follows the published definition, G. Ann Campbell, [*Cognitive Complexity — a new way of measuring understandability*](https://www.sonarsource.com/docs/CognitiveComplexity.pdf) (SonarSource), adapted to C#. Where Reihitsu scores differently, the [departures](#departures-from-the-published-definition) are listed at the end.
-
 ## What is scored
 
-Every method is scored on its own, and so are constructors, finalizers, operators, conversion operators, local functions, the accessors of properties, indexers, and events, and properties and indexers written with `=>`. The score of a property with `get` and `set` accessors is not a sum: each accessor is scored and reported on its own.
+Every method is scored on its own, and so are constructors, finalizers, operators, conversion operators, local functions, the accessors of properties, indexers, and events, and properties and indexers written with `=>`. The score of a property with `get` and `set` accessors is not a sum: each accessor is scored and reported on its own. Scores are not added up per type, file, or project.
 
 The score starts at 0 for every body. The declaration itself — its name, parameters, attributes, and a constructor's `: base(…)` or `: this(…)` call — adds nothing.
 
@@ -69,7 +67,7 @@ class Nesting
 | `switch` statement, `switch` expression | 1 for the whole switch | yes | its sections or arms, with their case labels, patterns, and `when` clauses |
 | `for`, `foreach`, `await foreach`, `while`, `do` | 1 | yes | its body |
 | `catch` | 1 | yes | its block, not its `when` filter |
-| a sequence of logical operators: `&&`, `\|\|`, and `&`, `\|`, `^` on `bool` | 1 per sequence | no | — |
+| a sequence of logical operators: `&&`, `\|\|`, and `&`, `\|`, `^` on `bool` or `bool?` | 1 per sequence | no | — |
 | a sequence of `and` / `or` in an `is` pattern | 1 per sequence | no | — |
 | `goto`, `goto case`, `goto default` | 1 | no | — |
 | a method that calls itself | 1, once | no | — |
@@ -82,6 +80,7 @@ class Nesting
 | `and` / `or` in a case label or a switch arm | 0 | — | — |
 | `not`, and a pattern without `and` or `or` | 0 | — | — |
 | `&`, `\|`, `^` on numbers and enums | 0 | — | — |
+| `&=`, `\|=`, `^=` | 0 | — | — |
 | query clauses (`from`, `where`, `select`, …) | 0 | — | nothing |
 | `#if`, `#elif`, `#else`, `#endif` | 0 | — | nothing |
 
@@ -185,7 +184,7 @@ class Conditionals
 
 ## `switch`
 
-A `switch` statement and a `switch` expression add 1 plus their nesting level, once for the whole switch, however many cases it has. Everything in its sections or arms lies one level deeper, also a `when` clause. `and` and `or` in a case label or an arm add nothing, because the switch already counts as one decision; `&&` and `||` in a `when` clause count.
+A `switch` statement and a `switch` expression add 1 plus their nesting level, once for the whole switch, however many cases it has. Everything in its sections or arms lies one level deeper, also a `when` clause: a `?:` in a `when` clause adds its nesting points like one in the section's statements. `and` and `or` in a case label or an arm add nothing, because the switch already counts as one decision; `&&` and `||` in a `when` clause count.
 
 ```csharp
 class Switches
@@ -321,7 +320,7 @@ class LocalFunctions
 
 ## Recursion
 
-A method or local function that calls itself adds 1, once, however many calls of itself it holds. A call of another overload, a call through a method group or a delegate, and a cycle through several methods (`A` calls `B`, `B` calls `A`) add nothing.
+A method or local function that calls itself adds 1, once, however many calls of itself it holds. Only a call written as a call of the method itself — `M(…)`, `this.M(…)`, or `C.M(…)` — counts. A call of another overload, a call through a method group or a delegate, and a cycle through several methods (`A` calls `B`, `B` calls `A`) add nothing, and so do a constructor that creates an instance of its own type with `new`, an accessor that uses its own property or indexer, and an operator that uses itself.
 
 ```csharp
 class Recursion
@@ -433,19 +432,6 @@ class Reporting
     }                                                             // total 3; compared with the limit
 }
 ```
-
-## Departures from the published definition
-
-Reihitsu scores C# as the published definition describes, except for these points:
-
-- **Chained `?:`** — a `?:` that is the false branch of another `?:`, also in parentheses, adds 1 without nesting points, like `else if`. The published definition gives every `?:` nesting points, so a chain of conditionals scores as if each were nested in the one before.
-- **Local functions** — a local function is scored on its own and adds nothing to the method that declares it. The published definition counts a nested function toward the outer method, one level deeper.
-- **Recursion** — a method that calls itself adds 1 once. The published definition adds 1 for every method in a recursion cycle, also a cycle through several methods.
-- **Conditional compilation** — `#if` adds nothing and does not nest; only the compiled code is scored. The published definition scores `#if` like `if` in its text, though not in its summary list.
-- **Patterns** — `and` and `or` in an `is` pattern count like `&&` and `||`; in a case label or a switch arm they add nothing. The published definition has no patterns.
-- **Query expressions** — query clauses add nothing and do not nest. The published definition does not cover them; the same query written with lambdas scores the nesting of its lambdas.
-- **The limit and the exception** — the published definition only computes a score. Reihitsu reports a method above a limit, and never one in which nothing is nested; nesting that comes only from a lambda does not count for that.
-- **Members only** — Reihitsu scores each member on its own and does not add scores up per type or project.
 
 ## Worked examples
 
