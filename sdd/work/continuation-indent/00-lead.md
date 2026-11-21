@@ -49,7 +49,9 @@ Consolidated final answers: Q1 -> replaced by 1b A (join), 1c A (pattern chain r
 ## Follow-up candidates
 
 - Comment on open issues #1633, #1634, #1905, #1542: their "Before" output changes under FMT-INDENT-034; an alignment chosen there later takes precedence (01-spec-author.md).
-- Whether a wrapped `for` header should align under the token after `(` instead of FMT-INDENT-034's column (02-skeptic.md).
+- ~~Whether a wrapped `for` header should align under the token after `(`~~ — dropped: `for` headers are now joined (04-spec-author.md).
+- #1633: its case no longer exists because the base list `:` joins the type's line (04-spec-author.md).
+- `case (⏎…⏎):` puts `case` alone on its line on `main` — looks wrong, outside the run (04-spec-author.md).
 
 ## Audited SHA
 
@@ -64,4 +66,5 @@ Consolidated final answers: Q1 -> replaced by 1b A (join), 1c A (pattern chain r
 - Output-question batch 1 sent to the maintainer (questions 1-7: reference line, blank-line join, query clauses, omitted type args, return value, #endif declarator, other applications). Waiting for the answer.
 - Batch 1c answered (1c A, 1d A).
 - Batch 1b (clarification of the join principle, comment-kept lines, Q4 declaration, parenthesized pattern) sent. Waiting.
-- Next: fresh spec author amends specs and change docs per the consolidated answers (04-spec-author.md); then fresh skeptic (05); then accept change docs and the test implementer.
+- Spec author amendment done (be4ccf4, 04-spec-author.md): change docs Accepted; 7 new output questions; AGENTS.md phase table needs the new shapes/joins (route to spec author with the next amendment).
+- Next: fresh skeptic (05) on the amended spec diff; then batch 2 of output questions (04's 7 + skeptic's); then the test implementer.
