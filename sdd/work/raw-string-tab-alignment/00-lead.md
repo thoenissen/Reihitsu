@@ -10,7 +10,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (before test implementer), questions 1-4 of `01-spec-author.md`: maintainer chose the recommended option for all — 1A (stripped indentation written as spaces), 2A (also rewrite literals already aligned in characters behind tabs), 3A (RH5202 fix writes spaces too; withheld for the rare nested-tab-literal class, decision 1), 4A (partial whitespace-only line: one space per character after the move).
 
 ## Decisions taken
 
@@ -28,5 +28,6 @@
 ## State
 
 - Last step finished: skeptic (02-skeptic.md, 93d38d6): proceed; two spec amendments, one follow-up.
-- Open: output questions 1-4 of `01-spec-author.md` posted to the maintainer (batch before test implementer). Waiting.
+- Batch 1 answered: 1A, 2A, 3A, 4A.
+- Now: fresh spec author round (03-spec-author.md).
 - Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
