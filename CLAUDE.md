@@ -20,7 +20,7 @@ The roles are defined as subagents under `.claude/agents/`, one thin wrapper per
 
 The lead manages the pull request; the `issue-manager` agent manages issues, so in a squad run only it writes to the issue tracker, once before the PR is published.
 
-When the lead watches the published pull request's CI, it subscribes to the PR's activity instead of polling, and handles each CI event as `squad/lead.md` describes.
+The lead subscribes to the published pull request's activity, instead of polling, only until the CI of its final commit is decided, and then unsubscribes, as `squad/lead.md` section 9 describes; later review comments, the merge, and closed issues no longer reach the session, and the maintainer sends further changes in the chat.
 
 ## Compact instructions
 

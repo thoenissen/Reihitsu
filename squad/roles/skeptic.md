@@ -63,7 +63,7 @@ Verdict: proceed | proceed narrower | do not make the change | output question
 <bug: the mechanism sentence, the dispatch type, every candidate; otherwise _N/A._>
 
 ## Breaking inputs
-<the failure classes (FC-###), each defect's class matrix with every member and whether it fails, and the candidate inputs the test implementer must cover>
+<the failure classes (FC-###), each defect's class matrix with every member and whether it fails, and the candidate inputs the test implementer must cover, each with the existing test that already pins it or "none found" (`README.md`, *Coverage first*)>
 
 ## Surfaces
 | Surface | Must change / must stay / not involved |

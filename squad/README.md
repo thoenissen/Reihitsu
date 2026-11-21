@@ -9,7 +9,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 | Role | Job | Must not |
 |---|---|---|
 | [Lead](lead.md) | Talks to the maintainer, claims the lane, spawns roles, routes findings, decides internal questions, asks output questions, manages the pull request and watches its CI | Write specs, tests, or production code, or write issues |
-| [Spec author](roles/spec-author.md) | Writes the change doc (when required), the spec diff, and the documentation; writes every text change of the docs lane; lists the open questions it finds | Touch code or tests, beyond comment-only edits in the docs lane |
+| [Spec author](roles/spec-author.md) | Writes the change doc (when required), the spec diff, and the documentation; writes every change of the docs and wording lanes; lists the open questions it finds | Touch code or tests, beyond the resource texts and comment-only edits of the docs and wording lanes |
 | [Skeptic](roles/skeptic.md) | Challenges the premise: is the issue real, is the spec wrong instead, does it conflict with other specs or `shared/`, which input breaks it, what refusing the input class would cost | Review code |
 | [Test implementer](roles/test-implementer.md) | Derives tests from the spec examples and the failure-class catalog; for a bug, the first test is the reproduction | Touch production code |
 | [Implementer](roles/implementer.md) | Makes the tests pass; builds in Debug | Change test assertions |
@@ -28,6 +28,7 @@ The lead claims a lane at the start. The diff's paths decide whether the claim h
 | Lane | Spec author | Skeptic | Test impl. | Implementer | Cleaner | Spec checker | Auditor | Validator |
 |---|---|---|---|---|---|---|---|---|
 | Docs / text only (proven) | ✓ writes the text | – | – | – | – | ✓ | – | only if a compiled file changed |
+| Wording | ✓ writes the texts | – | – | – | – | ✓ | – | ✓ |
 | Specs and tests for existing behavior | ✓ writes the spec, when the run adds one | ✓ spec against the code | ✓ | – | ✓ | ✓ | – | ✓ |
 | Bug fix | only for a clarification | ✓ premise check | ✓ reproduction | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Behavior change / new rule | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -35,15 +36,16 @@ The lead claims a lane at the start. The diff's paths decide whether the claim h
 
 Order: spec author → skeptic → test implementer → implementer → cleaner → spec checker → auditor → validator. In every lane, the issue manager runs once before the PR is published, when the run has follow-up candidates ([`lead.md`](lead.md), *Follow-ups*).
 
-The lane check sorts every changed path into a category — change doc, text, test, production, or tooling — by the table in [`scripts/README.md`](../scripts/README.md#the-lane-check), the one statement of which path belongs where. The categories decide the lane:
+The lane check sorts every changed path into a category — change doc, text, wording, test, production, or tooling — by the table in [`scripts/README.md`](../scripts/README.md#the-lane-check), the one statement of which path belongs where and of the rules that turn the categories into a lane. In short:
 
 - **Docs** — text alone.
-- **Tests** — test paths, besides text. This is also the lane of a run that writes the spec of an existing rule: the spec's requirements need their covering tests in the same PR (`sdd/README.md`).
+- **Wording** — the resource files that hold the diagnostic titles and messages and the code-fix titles, besides text and a change doc, and no test path: a run that only changes what a diagnostic or a code fix says, and the rule pages and specs that repeat it. The spec author writes every path of the diff. When the run turns out to need a test — a new one, or an existing test that quotes a text the run changes — the diff needs a wider lane, which the lane check names, and the lead widens.
+- **Tests** — test paths, besides text and, without a change doc, wording. This is also the lane of a run that writes the spec of an existing rule: the spec's requirements need their covering tests in the same PR (`sdd/README.md`).
 - **Bug fix** — production paths without a change doc.
-- **Behavior change** — production paths with a change doc, or a change doc without production or tooling paths. A claim of this lane without a change doc fails.
+- **Behavior change** — production paths with a change doc; a change doc without production or tooling paths, unless the lane check admits it to the wording lane; and a change doc next to wording and a test or tooling path. A claim of this lane without a change doc fails.
 - **Tooling** — tooling paths, besides text, tests, and a change doc.
 
-A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or production next to tooling without a change doc). Lanes widen along two orders: docs → tests → bug fix → behavior change, and docs → tests → tooling → behavior change. A docs-lane diff cannot add a requirement to an enforced spec, because the requirement needs a covering test; that run widens to tests.
+A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or production or wording next to tooling without a change doc). Lanes widen along two orders: docs → wording → tests → bug fix → behavior change, and docs → tests → tooling → behavior change. A docs-lane diff cannot add a requirement to an enforced spec, because the requirement needs a covering test; that run widens to tests.
 
 ## Handovers are files
 
@@ -90,7 +92,7 @@ A visible output is **in question** when its change is not decided yet: no uncha
 - a dropped or changed goal of an issue that would change visible output, and any departure from the goals of an issue without the `agent-filed` label;
 - declaring a shape unsupported, also for a rare shape: the formatter then refuses and reports every file that holds it (`AGENTS.md`, *Special cases do not grow the source*); it is asked as escalation 10 ([below](#escalations)).
 
-Each of these is an **output question**, asked in the form `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions) describes. Output questions are batched: the lead asks every open one in one message at two points of the run — **before the test implementer starts**, after the spec author, the skeptic, and any amendment the skeptic caused, because tests lock outputs in; and **before the auditor**, for the questions found later. A question that blocks writing a test is asked at once. A case outside the run's issues is not asked: it becomes an `agent-filed` follow-up issue that carries the question in the same form — except declaring a shape unsupported, which is escalation 10 for any shape.
+Each of these is an **output question**, asked in the form `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions) describes. Output questions are batched: the lead asks every open one in one message at two points of the run — **before the test implementer starts**, after the spec author, the skeptic, and any amendment the skeptic caused, because tests lock outputs in; and **before the auditor**, for the questions found later. In a lane without a test implementer or an auditor — docs and wording — the one batch is asked after the spec author, before the spec checker; in the wording lane, the new texts are an output question unless a maintainer answer already covers them. A question that blocks writing a test is asked at once. A case outside the run's issues is not asked: it becomes an `agent-filed` follow-up issue that carries the question in the same form — except declaring a shape unsupported, which is escalation 10 for any shape.
 
 The auditor checks that nothing visible slipped through (*Visible output is decided*, [`roles/auditor.md`](roles/auditor.md)): every changed expected value in a test of a visible surface is demanded by an unchanged requirement or covered by a maintainer answer.
 
@@ -134,6 +136,10 @@ The run implements the issues the prompt names, but its scope is not frozen. The
 - the lane check still admits the diff.
 
 Every other find becomes a follow-up, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*); such a find is dropped. Code that only serves a rare input class is never scope the run takes in: that class is refused (`AGENTS.md`, *Code-fix coverage*). Whether a new unsupported shape is declared in the run, in a change of its own, or not at all is the maintainer's answer to escalation 10; a shape to be declared in a change of its own becomes a follow-up that carries the answer. A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
+
+## Coverage first
+
+Before a role asks for a test or writes one, it checks whether an existing test already pins the value: it searches the test projects for the rule ID, the construct, and the value itself, the shared checks included. `AnalyzerPackageMetadataTests` pins each rule's title resource against its rule-page heading, its package README row against that heading, and its message against its title when the message has no placeholders; `AnalyzerResourcesTests` and `CodeFixResourcesTests` check the resources; the self-hosting scan checks the repository's own files. A value an existing test pins gets no new test; when the run changes that value, the existing test is updated instead. "No new test" is a valid outcome, and the handover names the test that already pins the value. This section is the one statement of the rule; the skeptic applies it to the inputs it asks to cover, the test implementer to every test of its matrix.
 
 ## Notes
 
@@ -188,7 +194,7 @@ A run implements the issues the maintainer names in the prompt — usually one, 
 
 ## Rules for every role
 
-- Commit your own files and your handover with a subject ending in `[skip ci]`; stage only the files you wrote, never `git add -A`. Only the lead pushes and manages the pull request; only the issue manager writes issues.
+- Commit your own files and your handover with a subject ending in `[skip ci]`; stage only the files you wrote, never `git add -A`. Only the lead pushes, at the points [`lead.md`](lead.md#pushes) names, and manages the pull request; only the issue manager writes issues.
 - Use the repository scripts (`scripts/README.md`), not hand-written `dotnet` commands; use focused `--filter` runs while working.
 - Never silence, skip, or `[Ignore]` a test, and never change `TargetFramework` or add a `global.json`.
 - Edit nothing outside the run's scope; an out-of-scope find goes into your handover as a follow-up candidate, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*).

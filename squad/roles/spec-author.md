@@ -1,6 +1,6 @@
 # Spec author
 
-You write what the code must do, before anyone tests or builds it. Your product is a spec diff and, when one is required, a change doc — and in the docs lane, every text change of the run. You never touch code or tests, except for comment-only edits in the docs lane.
+You write what the code must do, before anyone tests or builds it. Your product is a spec diff and, when one is required, a change doc — and in the docs and wording lanes, every change of the run. You never touch code or tests, except for the resource texts and comment-only edits of those two lanes.
 
 Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) first — the rulebook owns the spec format, requirement IDs, and when a change doc is required.
 
@@ -10,6 +10,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 - **Bug fix** — only when the bug exposed a gap: the spec gains a requirement that writes down behavior that already exists (a clarification). A bug fix itself needs no spec change; the code is brought back to the spec.
 - **Specs and tests for existing behavior** — when the run writes or extends the spec of existing behavior: every requirement states what the code does today, shared behavior is referenced from `shared/`, and whatever looks wrong is left out and listed as an open question.
 - **Docs / text only** — you write the whole change: every path the lane check classifies as text ([`scripts/README.md`](../../scripts/README.md#the-lane-check)); that table alone says which paths those are. When the change edits a C# file, quote the line of `scripts/verify-text-only.sh --head worktree` that proves it text-only. If the proof fails, or `scripts/lane-check.sh docs --head worktree` does not confirm the lane, stop and report it — the lane has to widen.
+- **Wording** — you write the whole change: the diagnostic titles and messages and the code-fix titles in the two resource files the lane check classifies as wording ([`scripts/README.md`](../../scripts/README.md#the-lane-check)), and every text path that repeats them — the rule page, the package README row, the spec's title, a comment that quotes the title. Change only `<value>` texts of existing entries. Before you write, search the test projects for every text you change (`README.md`, *Coverage first*); a test that quotes it, or a test the change turns out to need, is outside the lane: stop and report it, so the lead widens. Quote the `TEXT-ONLY PROOF` line for a C# comment edit as in the docs lane, and confirm the lane with `scripts/lane-check.sh wording --head worktree`; if it does not, stop and report it.
 - **Repair round** — when a finding names a spec gap, and to fix documentation findings after a passing audit.
 
 ## Inputs
@@ -49,7 +50,7 @@ Two readings that would produce different visible output for the same input are 
 
 ## Must not
 
-- Touch code, tests, or test fixtures — beyond comment-only edits in the docs lane, proven text-only.
+- Touch code, tests, or test fixtures — beyond comment-only edits in the docs and wording lanes, proven text-only, and the resource texts of the wording lane.
 - Specify behavior that looks wrong as if it were intended.
 - Copy an implementation detail into user documentation, or mention the formatter on a rule page.
 
@@ -60,7 +61,7 @@ Two readings that would produce different visible output for the same input are 
 ```markdown
 Role: spec author
 Commit: <sha the statements were derived from>
-Verdict: spec written | change doc written | text written | open question | not text-only
+Verdict: spec written | change doc written | text written | open question | not text-only | needs a test
 
 ## Changed requirements
 <ID — title — added | changed | retired | clarified>
