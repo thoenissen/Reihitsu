@@ -15,7 +15,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 /// its opening quotes and its closing marker; a literal nested in an interpolation hole adds its own distance to the
 /// lines inside it, measured after the literals around it moved its opening quotes and its closing marker; and a line
 /// that starts inside the text of a nested literal other than a raw string, or inside a nested <c>/* */</c> or
-/// <c>/** */</c> comment, never moves. The indentation phase measures every anchor after these moves and applies them
+/// <c>/** */</c> comment, never moves. When the whitespace in front of a literal's closing marker holds a tab, the move
+/// also writes, on every line that starts in that literal's own text, the leading whitespace within the width the closing
+/// marker's whitespace has after the move as spaces, one for each character, so no column changes (FMT-RAW-010). The indentation phase measures every anchor after these moves and applies them
 /// itself, so a line that is aligned to a token or a comment that takes a token's column ends up where that token
 /// ends up, and the move is computed once
 /// </summary>
@@ -110,7 +112,9 @@ internal sealed class RawStringLineShifts
     /// (FMT-PIPE-022). A content line that starts with a hole's opening brace has its moved indentation written as text of
     /// the literal, as the parser reads it (FMT-PIPE-021): appended to the text token in front of the hole, or, on the
     /// first content line, where only the start token stands in front of it, as a new text element in front of the hole.
-    /// Placing lines changes no line break, so the line numbers of the indented tree are those the shifts were computed for
+    /// Placing lines changes no line break, so the line numbers of the indented tree are those the shifts were computed for.
+    /// A line that starts in the own text of a literal whose closing marker stands behind a tab is written even when it
+    /// does not move, so the stripped indentation of an aligned literal is written as spaces too (FMT-RAW-006, FMT-RAW-010)
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="getColumnAfterMove">Gets the column a line has after the move from its 0-based number and the column its text starts at in the indented tree</param>
@@ -118,8 +122,9 @@ internal sealed class RawStringLineShifts
     /// <returns>The syntax root with the lines of its raw string literals moved</returns>
     public static SyntaxNode MoveLines(SyntaxNode root, Func<int, int, int> getColumnAfterMove, CancellationToken cancellationToken)
     {
-        var edits = new Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>>();
+        var edits = new Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength, int SpacesWidth)>>();
         var leadingTexts = new Dictionary<InterpolatedStringExpressionSyntax, int>();
+        var spacesWidths = new Dictionary<SyntaxNode, int>();
         SourceText text = null;
 
         foreach (var node in root.DescendantNodesAndSelf())
@@ -134,7 +139,7 @@ internal sealed class RawStringLineShifts
 
             text ??= root.SyntaxTree.GetText(cancellationToken);
 
-            CollectEdits(root, node, text, getColumnAfterMove, edits, leadingTexts);
+            CollectEdits(root, node, text, getColumnAfterMove, edits, leadingTexts, spacesWidths);
         }
 
         if (edits.Count == 0
@@ -181,7 +186,10 @@ internal sealed class RawStringLineShifts
     /// starts with a hole's opening brace has no text in front of the brace, and the parser reads indentation there as
     /// text of the literal: its edit belongs to the text token that ends at the line's start, or, when the start token
     /// stands in front of the hole, it becomes a new text element of the literal. A line the move does not write, an empty
-    /// line or one that starts inside nested text, gets no edit (<see cref="RawStringLineUtilities.MovesLine"/>)
+    /// line or one that starts inside nested text, gets no edit (<see cref="RawStringLineUtilities.MovesLine"/>), and
+    /// neither does a line that keeps its column and has no leading whitespace to write as spaces
+    /// (<see cref="GetSpacesWidth"/>). Each edit carries the number of leading characters the line writes as spaces after
+    /// the move
     /// </summary>
     /// <param name="root">The indented syntax root</param>
     /// <param name="node">The literal expression or interpolated string expression</param>
@@ -189,7 +197,8 @@ internal sealed class RawStringLineShifts
     /// <param name="getColumnAfterMove">Gets the column a line has after the move from its 0-based number and the column its text starts at in the indented tree</param>
     /// <param name="edits">Receives the edits, by the token they change</param>
     /// <param name="leadingTexts">Receives the number of spaces of the text element to insert in front of the first hole, by the literal that receives it</param>
-    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int, int> getColumnAfterMove, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength)>> edits, Dictionary<InterpolatedStringExpressionSyntax, int> leadingTexts)
+    /// <param name="spacesWidths">The number of leading characters written as spaces on the lines of each literal's own text, by the literal, filled as the literals are met</param>
+    private static void CollectEdits(SyntaxNode root, SyntaxNode node, SourceText text, Func<int, int, int> getColumnAfterMove, Dictionary<SyntaxToken, List<(int LineStart, int OldLength, int NewLength, int SpacesWidth)>> edits, Dictionary<InterpolatedStringExpressionSyntax, int> leadingTexts, Dictionary<SyntaxNode, int> spacesWidths)
     {
         var openingLineNumber = text.Lines.GetLineFromPosition(node.SpanStart).LineNumber;
         var closingLineNumber = text.Lines.GetLineFromPosition(node.Span.End).LineNumber;
@@ -205,13 +214,14 @@ internal sealed class RawStringLineShifts
 
             var indentation = GetIndentationLength(root, line);
             var newSpaces = getColumnAfterMove(lineNumber, indentation);
+            var token = root.FindToken(line.Start);
+            var spacesWidth = GetSpacesWidth(token, line.Start, text, getColumnAfterMove, spacesWidths);
 
-            if (newSpaces == indentation)
+            if (newSpaces == indentation
+                && spacesWidth == 0)
             {
                 continue;
             }
-
-            var token = root.FindToken(line.Start);
 
             if (IsHoleOpeningLine(token, line.Start, out var interpolation))
             {
@@ -233,7 +243,7 @@ internal sealed class RawStringLineShifts
                 edits[token] = tokenEdits;
             }
 
-            tokenEdits.Add((line.Start, indentation, newSpaces));
+            tokenEdits.Add((line.Start, indentation, newSpaces, spacesWidth));
         }
     }
 
@@ -295,7 +305,7 @@ internal sealed class RawStringLineShifts
     /// <param name="token">The token of the indented tree</param>
     /// <param name="tokenEdits">The edits of the token</param>
     /// <returns>The token with its lines moved</returns>
-    private static SyntaxToken ApplyEdits(SyntaxToken token, List<(int LineStart, int OldLength, int NewLength)> tokenEdits)
+    private static SyntaxToken ApplyEdits(SyntaxToken token, List<(int LineStart, int OldLength, int NewLength, int SpacesWidth)> tokenEdits)
     {
         var tokenText = token.Text;
         var leadingTrivia = token.LeadingTrivia.ToList();
@@ -333,7 +343,7 @@ internal sealed class RawStringLineShifts
     /// <param name="leadingTrivia">The token's leading trivia, with the later edits already applied</param>
     /// <param name="triviaStarts">The start positions of the token's leading trivia in the indented tree</param>
     /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
-    private static void ApplyLeadingTriviaEdit(SyntaxToken token, List<SyntaxTrivia> leadingTrivia, List<int> triviaStarts, (int LineStart, int OldLength, int NewLength) edit)
+    private static void ApplyLeadingTriviaEdit(SyntaxToken token, List<SyntaxTrivia> leadingTrivia, List<int> triviaStarts, (int LineStart, int OldLength, int NewLength, int SpacesWidth) edit)
     {
         var triviaIndex = triviaStarts.FindIndex(triviaStart => triviaStart >= edit.LineStart);
 
@@ -389,7 +399,7 @@ internal sealed class RawStringLineShifts
     /// <param name="offset">The offset of the line's start in the trivia's text</param>
     /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
     /// <returns>The trivia with the line moved</returns>
-    private static SyntaxTrivia MoveLineInsideTrivia(SyntaxTrivia trivia, int offset, (int LineStart, int OldLength, int NewLength) edit)
+    private static SyntaxTrivia MoveLineInsideTrivia(SyntaxTrivia trivia, int offset, (int LineStart, int OldLength, int NewLength, int SpacesWidth) edit)
     {
         var movedText = ReplaceIndentation(trivia.ToFullString(), offset, edit);
 
@@ -408,21 +418,68 @@ internal sealed class RawStringLineShifts
 
     /// <summary>
     /// Moves a line inside a text from the column its indentation gives it to the column an edit gives it (FMT-RAW-002),
-    /// by the shift rule the RH5202 code fix also applies (<see cref="RawStringLiteralUtilities.GetLineShiftEdit"/>): a
-    /// move to the right adds spaces in front of the line, and a move to the left removes that many characters from the
-    /// start of its indentation, whatever whitespace they are, at most the whole indentation. The whitespace characters
-    /// the move does not remove stay as written
+    /// by the shift rule the RH5202 code fix also applies (<see cref="RawStringLiteralUtilities.GetShiftedIndentation"/>):
+    /// a move to the right adds spaces in front of the line, and a move to the left removes that many characters from the
+    /// start of its indentation, whatever whitespace they are, at most the whole indentation. Then the edit's number of
+    /// leading characters is written as spaces (FMT-RAW-010); every other whitespace character stays as written
     /// </summary>
     /// <param name="text">The text</param>
     /// <param name="offset">The offset of the line's start in the text</param>
-    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, the column it has after the move, and the number of leading characters to write as spaces after it</param>
     /// <returns>The text with the line moved</returns>
-    private static string ReplaceIndentation(string text, int offset, (int LineStart, int OldLength, int NewLength) edit)
+    private static string ReplaceIndentation(string text, int offset, (int LineStart, int OldLength, int NewLength, int SpacesWidth) edit)
     {
-        var (removedLength, insertedSpaces) = RawStringLiteralUtilities.GetLineShiftEdit(edit.OldLength, edit.NewLength - edit.OldLength);
+        var shiftedIndentation = RawStringLiteralUtilities.GetShiftedIndentation(text.Substring(offset, edit.OldLength), edit.NewLength - edit.OldLength, edit.SpacesWidth);
 
-        return text.Remove(offset, removedLength)
-                   .Insert(offset, new string(' ', insertedSpaces));
+        return text.Remove(offset, edit.OldLength)
+                   .Insert(offset, shiftedIndentation);
+    }
+
+    /// <summary>
+    /// Gets the number of leading whitespace characters that moving a line writes as spaces (FMT-RAW-010): on a line that
+    /// starts in the own text of a multi-line raw string literal, the width the whitespace in front of that literal's
+    /// closing marker has after the move, when that whitespace holds a tab
+    /// (<see cref="RawStringLiteralUtilities.GetStrippedIndentationSpacesWidth"/>). A line that starts in an interpolation
+    /// hole starts with whitespace trivia, which holds no tab, and gets 0, as does a line that starts with a hole's opening
+    /// brace, whose indentation the move writes as spaces only. The literal whose text a line starts in is the one that
+    /// owns the token holding the line's start, so a line of a raw string nested in a hole is decided by the nested
+    /// literal's own closing marker
+    /// </summary>
+    /// <param name="token">The token that holds the line's start</param>
+    /// <param name="lineStart">The position at which the line starts</param>
+    /// <param name="text">The text of the indented syntax tree</param>
+    /// <param name="getColumnAfterMove">Gets the column a line has after the move from its 0-based number and the column its text starts at in the indented tree</param>
+    /// <param name="spacesWidths">The widths already computed, by the literal they belong to</param>
+    /// <returns>The number of leading whitespace characters to write as spaces after the move</returns>
+    private static int GetSpacesWidth(SyntaxToken token, int lineStart, SourceText text, Func<int, int, int> getColumnAfterMove, Dictionary<SyntaxNode, int> spacesWidths)
+    {
+        if (HoldsRawStringText(token) == false
+            || token.SpanStart > lineStart)
+        {
+            return 0;
+        }
+
+        var literal = token.IsKind(SyntaxKind.InterpolatedStringTextToken)
+                          ? token.Parent?.Parent
+                          : token.Parent;
+
+        if (literal == null
+            || RawStringLineUtilities.IsMultiLineRawStringLiteral(literal) == false)
+        {
+            return 0;
+        }
+
+        if (spacesWidths.TryGetValue(literal, out var spacesWidth) == false)
+        {
+            var closingLine = text.Lines.GetLineFromPosition(literal.Span.End);
+            var closingLineText = closingLine.ToString();
+            var closingWhitespaceLength = RawStringLiteralUtilities.GetLeadingWhitespaceLength(closingLineText);
+
+            spacesWidth = RawStringLiteralUtilities.GetStrippedIndentationSpacesWidth(closingLineText, getColumnAfterMove(closingLine.LineNumber, closingWhitespaceLength));
+            spacesWidths[literal] = spacesWidth;
+        }
+
+        return spacesWidth;
     }
 
     /// <summary>

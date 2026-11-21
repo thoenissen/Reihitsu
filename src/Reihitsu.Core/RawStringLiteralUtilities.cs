@@ -84,20 +84,56 @@ public static class RawStringLiteralUtilities
     }
 
     /// <summary>
-    /// Gets the edit that shifts a line of a multi-line raw string literal by a number of columns, the one rule by which
-    /// both the RH5202 code fix and the formatter move such a line. A shift to the right inserts that many spaces in front
-    /// of the line. A shift to the left removes that many characters from the start of the line's leading whitespace,
-    /// whatever whitespace they are, and at most all of it, so the line never moves below column 0. Every whitespace
-    /// character the shift does not remove stays as written
+    /// Gets the width, after the shift, of the indentation the compiler strips from every line of a multi-line raw string
+    /// literal that the formatter and the RH5202 code fix write as spaces (FMT-RAW-010, RH5202-007): when the whitespace
+    /// in front of the closing marker holds a tab, it is the width that whitespace has after the shift, each whitespace
+    /// character one column; otherwise nothing is written as spaces and the width is 0
     /// </summary>
-    /// <param name="leadingWhitespaceLength">The number of whitespace characters at the start of the line, each of them one column (<see cref="GetLeadingWhitespaceLength"/>)</param>
-    /// <param name="shift">The shift in columns; positive moves the line to the right, negative to the left</param>
-    /// <returns>The number of characters to remove at the start of the line, and the number of spaces to insert there</returns>
-    public static (int RemovedLength, int InsertedSpaces) GetLineShiftEdit(int leadingWhitespaceLength, int shift)
+    /// <param name="closingLineText">The text of the line of the closing marker before the shift, without its line break</param>
+    /// <param name="closingWhitespaceLengthAfterShift">The number of whitespace characters in front of the closing marker after the shift</param>
+    /// <returns>The number of leading whitespace characters of a line of the literal's own text to write as spaces</returns>
+    public static int GetStrippedIndentationSpacesWidth(string closingLineText, int closingWhitespaceLengthAfterShift)
     {
-        return shift >= 0
-                   ? (0, shift)
-                   : (Math.Min(-shift, leadingWhitespaceLength), 0);
+        return HasTabInLeadingWhitespace(closingLineText)
+                   ? Math.Max(closingWhitespaceLengthAfterShift, 0)
+                   : 0;
+    }
+
+    /// <summary>
+    /// Determines whether the whitespace at the start of a line holds a tab. Applied to the line of a multi-line raw string
+    /// literal's closing marker, it decides whether the indentation the compiler strips from the literal is written as
+    /// spaces (<see cref="GetStrippedIndentationSpacesWidth"/>)
+    /// </summary>
+    /// <param name="lineText">The text of the line, without its line break</param>
+    /// <returns><see langword="true"/> if the leading whitespace holds a tab</returns>
+    public static bool HasTabInLeadingWhitespace(string lineText)
+    {
+        return lineText.IndexOf('\t', 0, GetLeadingWhitespaceLength(lineText)) >= 0;
+    }
+
+    /// <summary>
+    /// Gets the indentation a line of a multi-line raw string literal has after it shifts by a number of columns, the one
+    /// rule by which both the RH5202 code fix and the formatter move such a line. A shift to the right inserts that many
+    /// spaces in front of the line. A shift to the left removes that many characters from the start of the line's leading
+    /// whitespace, whatever whitespace they are, and at most all of it, so the line never moves below column 0. Then the
+    /// first <paramref name="spacesWidth"/> characters of the shifted indentation, or all of it when it is shorter, are
+    /// written as one space each (<see cref="GetStrippedIndentationSpacesWidth"/>); every other whitespace character stays
+    /// as written, so each character stays one character and the line keeps the column the shift gives it
+    /// </summary>
+    /// <param name="indentation">The leading whitespace of the line, each character of it one column (<see cref="GetLeadingWhitespaceLength"/>)</param>
+    /// <param name="shift">The shift in columns; positive moves the line to the right, negative to the left</param>
+    /// <param name="spacesWidth">The number of leading characters to write as spaces after the shift; 0 writes none</param>
+    /// <returns>The leading whitespace of the line after the shift</returns>
+    public static string GetShiftedIndentation(string indentation, int shift, int spacesWidth)
+    {
+        var shiftedIndentation = shift >= 0
+                                     ? new string(' ', shift) + indentation
+                                     : indentation.Substring(Math.Min(-shift, indentation.Length));
+        var spacesLength = Math.Min(spacesWidth, shiftedIndentation.Length);
+
+        return spacesLength > 0
+                   ? new string(' ', spacesLength) + shiftedIndentation.Substring(spacesLength)
+                   : shiftedIndentation;
     }
 
     #endregion // Methods
