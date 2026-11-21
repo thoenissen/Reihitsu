@@ -5,7 +5,7 @@
 | ID prefix | FMT-RAW |
 | Status | Active |
 | Code owners | `RawStringLineShifts`, `RawStringLiteral`, `RawStringLiteralUtilities` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-INDENT-031, FMT-TAB-001, FMT-TAB-003 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-004, FMT-INDENT-006, FMT-INDENT-007, FMT-INDENT-011, FMT-INDENT-012, FMT-INDENT-029, FMT-INDENT-030, FMT-INDENT-031, FMT-TAB-001 |
 
 This spec covers how the indentation phase moves the lines of a multi-line raw string literal: once the phase has placed the line of the opening quotes, it moves the literal's content lines, the lines of its interpolation holes, and its closing marker so the closing marker starts in the column of the opening quotes. The move belongs to the indentation phase (FMT-PIPE-001), so every alignment of that phase is measured after it (FMT-INDENT-030). The literal's value never changes.
 
@@ -13,7 +13,7 @@ This spec covers how the indentation phase moves the lines of a multi-line raw s
 
 - The position of the opening quotes — they move with the statement, decided by FMT-BREAK, FMT-SPACE, and FMT-INDENT.
 - Single-line raw strings, regular strings, and verbatim (`@"…"`) strings, whose line starts are part of the value.
-- Tab-width alignment of raw strings whose indentation uses tab characters: counting a tab in front of a line as more than one column, or replacing it with spaces. It is a planned extension, tracked in thoenissen/Reihitsu#1432. Until then a tab counts as one column like any other whitespace character (FMT-RAW-001) and stays as written (FMT-RAW-002).
+- Tab-width alignment of raw strings: counting a tab in front of a line as more than one column. A tab counts as one column like any other whitespace character (FMT-RAW-001); the tabs of the indentation the compiler strips are written as spaces (FMT-RAW-010).
 
 ## Requirements
 
@@ -21,7 +21,7 @@ This spec covers how the indentation phase moves the lines of a multi-line raw s
 
 For every multi-line raw string literal — plain, UTF-8 (`u8`), or interpolated — the formatter MUST move the closing marker so it starts in the column of the first `"` of the opening marker, and MUST move every content line by the same number of columns.
 
-The column the closing marker starts in before the move is the width of the whitespace in front of it on its line, and every whitespace character in front of it counts as one column, whatever it is: a space, a tab, a no-break space (U+00A0), an em space (U+2003), a vertical tab, or a form feed. A tab is no exception: it counts as one column like any other whitespace character, not as the width of a tab stop, and it is kept (FMT-TAB-003; FMT-RAW-002). Counting a tab as more than one column is outside this spec (Non-goals). The width is the one the RH5202 analyzer and its code fix measure, so a literal the formatter has aligned is one they find aligned.
+The column the closing marker starts in before the move is the width of the whitespace in front of it on its line, and every whitespace character in front of it counts as one column, whatever it is: a space, a tab, a no-break space (U+00A0), an em space (U+2003), a vertical tab, or a form feed. A tab is no exception: it counts as one column like any other whitespace character, not as the width of a tab stop, and FMT-RAW-010 then writes it as one space. Counting a tab as more than one column is outside this spec (Non-goals). The width is the one the RH5202 analyzer and its code fix measure, so a literal the formatter has aligned is one they find aligned.
 
 Why: The column of the closing marker defines how much indentation the compiler strips from every content line. Lining it up under the opening quotes makes the literal read as one block attached to the code that owns it, wherever indentation moved that code. The compiler strips every whitespace character in front of the closing marker, not only spaces, and each of them takes a column; a move measured from the spaces alone would leave the marker as many columns behind the opening quotes as other whitespace characters stand in front of it.
 
@@ -51,7 +51,7 @@ class C
 }
 ```
 
-Example — `→` stands for one tab. The closing marker stands behind four tabs, so it is in column 4 of its line, and the literal moves 12 columns to the right: 12 spaces are added in front of each line, and the four tabs stay behind them. Counting each tab as one column is what RH5202 and its fix count, so the result is the RH5202 fix's output and RH5202 does not report it:
+Example — `→` stands for one tab. The closing marker stands behind four tabs, so it is in column 4 of its line, and the literal moves 12 columns to the right: 12 spaces are added in front of each line, and FMT-RAW-010 writes the four tabs behind them as four spaces. Counting each tab as one column is what RH5202 and its fix count, so the result is the RH5202 fix's output and RH5202 does not report it:
 
 ```csharp
 class C
@@ -71,15 +71,15 @@ class C
     void M()
     {
         var a = """
-            →→→→x
-            →→→→""";
+                x
+                """;
     }
 }
 ```
 
 ### FMT-RAW-002 — Relative indentation inside the literal is kept
 
-The formatter MUST shift all content lines of a literal by one uniform amount — to the right or to the left — so the indentation of each content line relative to the closing marker stays as written. Lines that are empty MUST stay empty. A shift to the right adds spaces in front of a line; a shift to the left removes that many whitespace characters from the start of a line, whatever they are, and all of them from a line that has fewer. The whitespace characters a shift does not remove stay as written, so a no-break space in front of the closing marker stays a no-break space.
+The formatter MUST shift all content lines of a literal by one uniform amount — to the right or to the left — so the indentation of each content line relative to the closing marker stays as written. Lines that are empty MUST stay empty. A shift to the right adds spaces in front of a line; a shift to the left removes that many whitespace characters from the start of a line, whatever they are, and all of them from a line that has fewer. The whitespace characters a shift does not remove stay as written, so a no-break space in front of the closing marker stays a no-break space, unless the whitespace in front of the closing marker holds a tab (FMT-RAW-010).
 
 Why: The relative indentation is the literal's value (FMT-PIPE-002). A uniform shift together with the closing marker changes only where the block sits in the file, not one character of the string it produces.
 
@@ -328,7 +328,7 @@ Example — not shown as a block because the byte order mark is invisible: the t
 
 ### FMT-RAW-006 — Aligned and single-line literals are left alone
 
-For a raw string literal that is on one line, or whose closing marker already starts in the target column of FMT-RAW-001, the formatter MUST NOT move its content lines, its closing marker, or the lines of its interpolation holes that FMT-RAW-007 moves only with the literal.
+For a raw string literal that is on one line, or whose closing marker already starts in the target column of FMT-RAW-001, the formatter MUST NOT move its content lines, its closing marker, or the lines of its interpolation holes that FMT-RAW-007 moves only with the literal. When the whitespace in front of the closing marker of such a multi-line literal holds a tab, the formatter still writes that whitespace, and the whitespace of the content lines within its width, as spaces (FMT-RAW-010); no line moves by it, so the literal is otherwise left alone.
 
 Why: A single-line raw string has no content lines to align, and an aligned literal is already canonical; rewriting it would only risk churn (FMT-PIPE-004).
 
@@ -675,6 +675,270 @@ class C
                  Hello {name /* a
   b */
                  }
+                 """;
+    }
+}
+```
+
+### FMT-RAW-010 — The stripped indentation of a tab-indented literal is written as spaces
+
+For a multi-line raw string literal — plain, UTF-8, or interpolated, also one nested in an interpolation hole at any depth — whose closing marker has a tab in the whitespace in front of it on its line, the formatter MUST write as one space each, after the lines moved as FMT-RAW-001, FMT-RAW-002, and FMT-RAW-008 state:
+
+- every whitespace character in front of the closing marker, and
+- on every content line that starts in the literal's own text, every whitespace character at the start of the line that lies within the width the whitespace in front of the closing marker has after the move.
+
+Every other character stays as written. The width is counted in characters, each whitespace character one column, as FMT-RAW-001 counts it, so no line and no token moves by this requirement, and every alignment measured after the move (FMT-INDENT-030) is unchanged.
+
+The conditions, each with a case on the other side:
+
+- **A tab in front of the closing marker.** Once it holds one tab, every whitespace character in front of the closing marker becomes a space, a no-break space among them. When it holds no tab, nothing is rewritten, also when a content line holds a tab behind that width; the literal moves as FMT-RAW-002 states, and a no-break space in front of the closing marker stays.
+- **Within the width.** Whitespace at the start of a content line behind that width is part of the literal's value and stays, a tab included. A content line that holds only whitespace and less of it than the width — the compiler accepts one when its whitespace is a start of the closing line's — becomes as many spaces as it has characters after the move.
+- **Starts in the literal's own text.** A line that starts inside an interpolation hole starts with whitespace trivia, which holds no tab (FMT-TAB-001), and moves as FMT-RAW-007 states. A line that starts inside the text of a nested literal other than a raw string, or inside a comment, stays as written (FMT-RAW-009). The lines of a raw string literal nested in a hole start in that literal's own text and are decided by the whitespace in front of its own closing marker.
+- **After the move.** On a line the literal moves to the left, the characters the move removes are gone first (FMT-RAW-002); the rest within the width becomes spaces.
+
+Why: The compiler strips exactly the whitespace in front of the closing marker from every content line, so that whitespace is no part of the literal's value, and writing it as spaces keeps the value (FMT-PIPE-002). Kept as tabs behind the spaces a move adds, it gives the literal mixed indentation, and in an editor that renders a tab wider than one column the content and the closing marker stand beside the opening quotes, and a hole line aligned to a token on a content line stands beside that token. One space for each character keeps every column the move computed, so the formatter and RH5202 keep one measure. Whitespace behind the stripped width is the literal's value and cannot change.
+
+In the examples, `→` stands for one tab and `·` for one space at the end of a line.
+
+Example — the literal moves 14 columns to the right, and the two tabs become spaces:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+→→Hello
+→→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+                Hello
+                """;
+    }
+}
+```
+
+Example — a content line indented further than the closing marker keeps the tab behind the width:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+→→→Hello
+→→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+                →Hello
+                """;
+    }
+}
+```
+
+Example — the whitespace in front of the closing marker holds no tab, so the tab on the content line stays; the literal moves 12 columns to the right as FMT-RAW-002 states:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+    →x
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+                →x
+                """;
+    }
+}
+```
+
+Example — a literal aligned in characters: the closing marker stands behind 12 spaces and four tabs, in column 16, and does not move; the tabs become spaces:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+            →→→→x
+            →→→→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+                x
+                """;
+    }
+}
+```
+
+Example — the closing marker stands behind twenty tabs; the literal moves 4 columns to the left, which removes four tabs, and the sixteen left become spaces:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+→→→→→→→→→→→→→→→→→→→→x
+→→→→→→→→→→→→→→→→→→→→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+                x
+                """;
+    }
+}
+```
+
+Example — the middle content line holds one tab, a start of the closing line's two; it moves 14 columns to the right with the other lines and becomes 15 spaces:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+→→Hello
+→
+→→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = """
+                Hello
+···············
+                """;
+    }
+}
+```
+
+Example — the wrapped argument in the hole stays in column 38, aligned to the opening parenthesis (FMT-INDENT-012); with the tab in front of `Hello` written as a space, it also stands under `"a"` on screen:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+→Hello {string.Concat("a",
+    "b")}
+→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+                 Hello {string.Concat("a",
+                                      "b")}
+                 """;
+    }
+}
+```
+
+Example — a raw string literal nested in a hole is decided by its own closing marker: the outer literal holds no tab in front of its closing marker and moves 13 columns as FMT-RAW-002 states; the nested literal, aligned under its opening quotes in column 24 (FMT-RAW-008), holds two tabs in front of its closing marker, which become spaces:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+    Outer {"""
+→→inner
+→→"""}
+    """;
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+                 Outer {"""
+                        inner
+                        """}
+                 """;
+    }
+}
+```
+
+Example — the continuation line of a verbatim string in a hole starts inside that string's text and keeps its tab (FMT-RAW-009), while the content lines and the closing marker get spaces:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+→Hello {@"a
+→b"}
+→""";
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = $"""
+                 Hello {@"a
+→b"}
                  """;
     }
 }
