@@ -2,13 +2,13 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — wording only: the title of the spec `analyzer/RH5201.md`; no requirement changes |
 
 ## What
 
-The diagnostic title and message of RH5201, the title of its code fix, the heading of its rule page, and its row of the analyzer package README say "member-access chain" instead of "method chain". The rule page's description and "Why" sentences follow, if the maintainer takes change 4. The ID, severity, what is reported, where, and what the code fix produces stay as they are.
+The diagnostic title and message of RH5201, the title of its code fix, the heading of its rule page, and its row of the analyzer package README say "member-access chain" instead of "method chain". The rule page's description and "Why" sentences follow (change 4). The ID, severity, what is reported, where, and what the code fix produces stay as they are.
 
 ## Why
 
@@ -63,7 +63,7 @@ The description's bullets that say "the first call" mean a call there — the an
 ### Maintainer answers
 
 1. RH5201 title, message, and code-fix title (changes 1 to 3): answered on the issue on 2026-11-20 — "Member-access chains should be aligned." and "Align member-access chain"; the rule page heading and every place the title test pins follow.
-2. Rule page body (change 4): open — not covered by that answer; asked by the lead.
+2. Rule page body (change 4): answered by the maintainer — option A: the description's first sentence and the "Why" sentences say "member-access chain" and "chain of member accesses"; the "first call" bullets, "How to fix it", and the examples stay.
 
 ### Punctuation stays as it is
 
@@ -79,5 +79,5 @@ The formatter spec heading FMT-INDENT-029 "Method chains align to their anchor l
 
 ## Alternatives considered
 
-- **Change only the resources, the heading, and the README row, as the issue lists** — possible: the first sentence of the rule page would then call the chain a "method chain" under a heading that calls it a member-access chain. Listed as change 4 so it can be dropped on its own.
+- **Change only the resources, the heading, and the README row, as the issue lists** — not taken: the first sentence of the rule page would then call the chain a "method chain" under a heading that calls it a member-access chain; the maintainer chose change 4.
 - **"Chains should be aligned."** — not taken: the maintainer chose "Member-access chains", and "chains" alone does not say which chain (an `if`/`else if` chain, a constructor-initializer chain).
