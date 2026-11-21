@@ -24,5 +24,6 @@
 ## State
 
 - Audited SHA: 3298297 (auditor 05, a548336: pass, text cleanup; one low FC-031 doc-comment finding in `SelfHostingSolution.cs`).
-- Last step finished: auditor.
-- Next: cleaner fixes the two doc comments; prove with `scripts/verify-text-only.sh --base 3298297 --head worktree`; then validator.
+- Last step finished: cleaner (06, eaea887): doc-comment fix, text-only proof PASS vs audited 3298297 — no second audit needed.
+- Known: `WorkingDocumentsDirectoryContainsNoFiles` fails while `sdd/work/` exists (implementer 02); it passes once the lead deletes `sdd/work/` before publishing.
+- Next: validator.
