@@ -484,6 +484,7 @@ public class RH5201MethodChainsShouldBeAlignedFirstCallTests : BatchCodeFixTests
     [DataRow("\r\n")]
     [Requirement("RH5201-006")]
     [Requirement("RH5201-005")]
+    [Requirement("RH5201-002")]
     [Requirement("SHARED-CHAIN-004")]
     [Requirement("SHARED-CHAIN-005")]
     public async Task VerifyFirstLinkBehindOwnLineCommentTailInRootColumnIsNotReported(string endOfLine)
