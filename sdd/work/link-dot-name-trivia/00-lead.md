@@ -22,10 +22,15 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Using directive: a comment between a qualified name's `.` and its name moves the continuation to column 1 (`using System. // c1` / `Text;`). Outside #1888. Open question (indent vs leave as written) + escalation 10 option (declare unsupported; spec author recommends against). Source: 01-spec-author.md. Escalation 10 to be asked with batch 1.
+
+## Open output questions (batch 1)
+
+- Reason text for FMT-UNSUP-016 (01-spec-author.md): A `a comment or directive between a . and its member name` (rec.), B `a comment or directive between a member access's . and its name`.
+- Escalation 10: using-directive qualified-name dot gap (above).
 
 ## State
 
 - Audited SHA: —
-- Last step: claim, prepare.sh green.
-- Next step: spawn spec author.
+- Last step: spec author done (a5328b71), change doc Draft.
+- Next step: skeptic (02), then batch 1 output questions.
