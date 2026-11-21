@@ -65,6 +65,6 @@
    <Import Project="$(MSBuildThisFileDirectory)src\Reihitsu.Analyzer.Package\buildTransitive\Reihitsu.Analyzer.targets" />
 
    <ItemGroup>
-     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.36.0.15337" PrivateAssets="all" />
+     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.37.0.15768" PrivateAssets="all" />
    </ItemGroup>
 </Project>
