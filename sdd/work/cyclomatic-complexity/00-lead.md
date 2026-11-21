@@ -23,6 +23,11 @@
 5. Spec author Q3 (`and`/`or` patterns): **A** — they score like `&&`/`||`.
 6. Spec author Q4 (test code): **A** — one setting for production and test code.
 7. Spec author Q5 (recursion): **B** — each call of the member itself scores 1.
+8. Skeptic A (chained `?:`): **B** — a `?:` in the false branch of another `?:` scores like `else if` (1, no nesting increment).
+9. Skeptic B (`or` in switch arms / case labels): **B** — combinators in a switch arm's or case label's pattern score nothing; in `is` patterns and `when` clauses they count.
+10. Skeptic D (lambdas): leave lambdas out for now — a lambda's body is **not counted toward the method** that holds it at all, and a lambda is not judged on its own. Checking lambdas becomes a follow-up. This supersedes answers 4 and the lambda-nesting question (maintainer also answered that one B: a lambda adds no nesting) — with lambdas excluded, both are moot.
+11. Self-hosting mechanism: use the existing ignore list of the self-hosting scan (`AnalyzerViolationReport._ignoredDiagnosticIds`, currently empty) for RH2009 until the follow-up.
+12. The maintainer asks to cross-check all decisions against the published definition (SonarSource white paper, https://www.sonarsource.com/docs/CognitiveComplexity.pdf; local copy in the session scratchpad). Comparison requested from a fresh skeptic; results go back to the maintainer before the test implementer.
 
 ## Decisions taken
 
@@ -30,11 +35,13 @@
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | Member selection and location restated from RH2008 (architecture finding, FC-015) | Change the structure in this run: one shared owner in code for member → (body, expression body, name token), used by RH2008 and RH2009; the RH2009 spec references RH2008-002/004/005 instead of restating them | A second copy is exactly the drift the finding names; the move is small (a few dozen lines), within RH2008, its counterpart | RH2008 behavior unchanged; same members and location as the spec already states | – |
 | 2 | Skeptic | Default-on-invalid stated twice (RH2009-001 vs SHARED-LINES-002) | Widen the shared statement to cover configured limits generally and reference it from RH2009; share the configuration-reading code instead of copying it | One statement of the rule | Wording only; behavior identical | – |
+| 4 | Lead | Release.ruleset action for RH2009 while it is on the self-hosting ignore list | `Action="None"` until the follow-up (RulesetTests requires an entry; `Error` would break the next `/bump-version` build on the repo's own violations) | Carries out answer 11: violations ignored for now | Repository build configuration only; the shipped rule's default severity stays Warning | – |
 | 3 | Skeptic | Internal wording points (`when` clauses count `&&`/`||`; `not` breaks a run like `!`; query clauses do not nest; rule page/change doc wording on `!(a && b) && c`; exception sentence aligned with Q2's answer) | Take all, route to spec author with the maintainer's answers | Removes two-reading ambiguity without changing any score | No score changes; rule page wording follows the answers | – |
 
 ## Follow-up candidates
 
-- Self-hosting violations of the new rule and a review of the default threshold (maintainer clarification 3) — lead.
+- Self-hosting violations of the new rule and a review of the default threshold (maintainer clarification 3) — lead; includes removing RH2009 from the self-hosting ignore list and setting its Release.ruleset action to Error.
+- Checking lambdas for cognitive complexity (maintainer answer 10) — lead.
 
 ## Open worklist / next step
 
