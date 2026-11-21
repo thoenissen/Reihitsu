@@ -49,4 +49,5 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 - Done: 02 skeptic (proceed; no output question, no architecture finding, no follow-up).
 - Done: 03 spec author (change doc Accepted, efea239).
 - Done: 04 test implementer (3ebf2d4, 0b0f705): 8 test helpers restructured; failing: Release RH2009 row, RH2009 scan row (19 production members).
-- Next: 05 implementer.
+- Done: 05 implementer (37813ca, 469a7d1, c861527; handover 3cb070c): all tests pass; full self-hosting only fails `WorkingDocumentsDirectoryContainsNoFiles` (expected until sdd/work is deleted).
+- Next: 06 cleaner, then 07 spec checker.
