@@ -67,4 +67,6 @@ Consolidated final answers: Q1 -> replaced by 1b A (join), 1c A (pattern chain r
 - Batch 1c answered (1c A, 1d A).
 - Batch 1b (clarification of the join principle, comment-kept lines, Q4 declaration, parenthesized pattern) sent. Waiting.
 - Spec author amendment done (be4ccf4, 04-spec-author.md): change docs Accepted; 7 new output questions; AGENTS.md phase table needs the new shapes/joins (route to spec author with the next amendment).
-- Next: fresh skeptic (05) on the amended spec diff; then batch 2 of output questions (04's 7 + skeptic's); then the test implementer.
+- Skeptic 05 done (3b2af6d): spec amendments (findings 2, 7, 8, 9, AGENTS.md table) pending for the spec author; 3 new output questions.
+- Batch 2 sent (questions 1-10: 04's 1-7 with 05's additions, plus 05's 3 new). Waiting.
+- Next: one fresh spec author for the answers AND the 05 amendments (06); then test implementer (note 05's list of existing tests that change).
