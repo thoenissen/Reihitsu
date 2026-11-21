@@ -27,8 +27,9 @@ After merges:
 
 ## Status
 
+Status 2026-11-21 (b): maintainer: /bump-version sets no tag (no right to); the GitHub release creates it; release notes run to the merged bump commit; check reuses the release-notes scope definition. Commands changed in the draft.
 Status 2026-11-21 (a): state carried over from `claude/sdd-coordinator` (roadmap condensed into `roadmap.md`; Phase 5–7 inventories not carried). `/coordinator` drafted on `claude/bold-dijkstra-n2wcif`, waiting for the maintainer's go-ahead to publish it as a PR to `main`. #1915 running.
 
 ## Next
 
-When #1915 merges: `/coordinator batch` (records the merge; the milestone is then empty), then `/coordinator check`. After the check: `/bump-version 1.5.0`, `/generate-release-notes v1.5.0 v1.4.0`, publish the release, `/coordinator cleanup`, `/coordinator start 1.6.0`.
+When #1915 merges: `/coordinator batch` (records the merge; the milestone is then empty), then `/coordinator check`. After the check: `/bump-version 1.5.0`; after its merge `/generate-release-notes 1.5.0 v1.4.0`; publish the GitHub release with tag `v1.5.0` on the bump commit, `/coordinator cleanup`, `/coordinator start 1.6.0`.
