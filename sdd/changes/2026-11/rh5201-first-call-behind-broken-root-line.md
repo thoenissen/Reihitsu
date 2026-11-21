@@ -2,13 +2,15 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-CHAIN-005 (changed: states when the first invoked link must start its own line; example added), FMT-BREAK-019 (clarified: names the first call the formatter breaks), RH5201-006 (added), RH5201 non-goals (attached parts and operator tokens behind the first) |
+| Affected requirements | SHARED-CHAIN-005 (changed: states when the first invoked link must start its own line; example added), FMT-BREAK-019 (clarified: names the first call the formatter breaks), RH5201-006 (added), RH5201-001 and RH5201-002 (clarified: a link behind the closing `*/` of a comment that starts its own line is reported whatever column the comment's last line starts in, as SHARED-CHAIN-005 and SHARED-COMMENT-012 already require), RH5201 `Uses` (SHARED-COMMENT-012 added), RH5201 non-goals (attached parts and operator tokens behind the first) |
 
 ## What
 
 In a wrapped chain, the formatter starts the first invoked link on its own line when the line the root ends on does not reach it: when a link between the chain's first link and the first invoked link starts a line or holds a line break inside its operator, or when a comment, a directive, or disabled text keeps the first link below the root (SHARED-CHAIN-004). No spec stated this, and RH5201 did not report it. SHARED-CHAIN-005 now states it for both surfaces, and RH5201 reports such a first invoked link when it does not start a line (RH5201-006). The RH5201 code fix already lays the chain out through the formatter (RH5201-005), so it gives these chains the formatter's layout.
+
+The same change brings RH5201 back to SHARED-CHAIN-005 and SHARED-COMMENT-012 for a link behind the closing `*/` of a delimited comment that starts its own line: those requirements already ask RH5201 to report such a link whatever column it reaches, but RH5201 judged it by the column of the `*/` line and reported nothing when that line started in the anchor column. RH5201-002 now states the case.
 
 The formatter's output does not change. A line break in front of the chain's first link that nothing holds is not counted: the formatter joins it (SHARED-CHAIN-003), after which the root's line reaches the first call, and RH5112 reports it.
 
@@ -144,9 +146,55 @@ var a = c.Next
 // after: two diagnostics, on the `?` and on the `.` of `.Self`; the fix result is unchanged
 ```
 
-The same holds for a first link that a comment keeps below the root in the wrong column (`c // keep` ⏎ `    .Next.Self()`: before one diagnostic on `.Next`, after also one on `.Self`), and for a prefix link behind the closing `*/` of a comment that starts its own line (SHARED-CHAIN-005, example `r`).
+The same holds for a first link that a comment keeps below the root in the wrong column (`c // keep` ⏎ `    .Next.Self()`: before one diagnostic on `.Next`, after also one on `.Self`), and for a prefix link behind the closing `*/` of a comment that starts its own line in a column other than the anchor's (SHARED-CHAIN-005, example `r`).
 
-**6. Not reported, before and after** — a line break in front of the first link that nothing holds (RH5112 reports the first link, and the formatter joins the whole chain onto one line), a first call that already starts its own line, and a chain without a call:
+**6. A link behind the closing `*/` of a comment that starts its own line, with the `*/` in the anchor column, is reported and fixed.** This holds for a later call, for a link of a chain without a call, and for a prefix link; behind a prefix link, the first call is reported as well (RH5201-006).
+
+```csharp
+// input
+var a = c.Self()
+         .Self()
+
+         /* x
+         */ .Self();
+var b = c.Next
+         .Next
+
+         /* x
+         */ .Next;
+var d = c.Next
+
+         /* x
+         */ .Next.Self();
+```
+
+```csharp
+// before: not reported, no fix offered
+```
+
+```csharp
+// after: reported on the `.` behind each `*/`, and in `d` also on the `.` of `.Self`; the fix gives
+var a = c.Self()
+         .Self()
+
+         /* x
+         */
+         .Self();
+var b = c.Next
+         .Next
+
+         /* x
+         */
+         .Next;
+var d = c.Next
+
+         /* x
+         */
+         .Next
+         .Self();
+```
+
+**7. Not reported, before and after** — a line break in front of the first link that nothing holds (RH5112 reports the first link, and the formatter joins the whole chain onto one line), a first call that already starts its own line, a chain without a call, and a prefix link whose operator a comment holds split (the CLI refuses that file as unsupported, and the RH5201 fix is withheld on it):
 
 ```csharp
 var e = c
@@ -156,11 +204,27 @@ var f = c.Next
          .Self();
 var h = c.Next
          .Next.Next;
+var g = c.Opt? // keep
+         .Next.Self();
 ```
 
-**7. The RH5201 rule page** gains one bullet under *Description* — "The first call starts its own line as well when a member access in front of it starts a line" — and the matching words under *How to fix it*.
+**8. The RH5201 rule page** gains one bullet under *Description* — "The first call starts its own line as well when a member access in front of it starts a line" — and the matching words under *How to fix it*.
 
 ## Decisions
+
+### Maintainer answers
+
+The maintainer accepted the visible output changes as recommended (answers 1A, 2A, 3A, 4B, 5A):
+
+- **A first call behind a wrapped prefix link is reported** (changes 1 and 6, the prefix behind an own-line `*/` included), on the first call's `.`; the fix gives the formatter's layout.
+- **A first call behind a first link that a comment or a directive holds below the root is reported** (changes 2–4); behind `#if`, only the active branch is reported and fixed.
+- **A chain already reported for another link gets one more diagnostic**, on the first call; the fix result does not change (change 5).
+- **A line break that a comment, a directive, or disabled text keeps inside a prefix link's operator does not count** (change 7, `g`): it is counted as RH5201-003 counts it, as if it were not there, so the first call behind it is not reported. The same holds for such a line break inside the first link's operator. The formatter refuses every input that holds one (FMT-UNSUP-015), so its output is not involved.
+- **The rule page** gains the bullet and the *How to fix it* words of change 8.
+
+### Report a link behind an own-line `*/` in the anchor column
+
+SHARED-CHAIN-005's exception and SHARED-COMMENT-012 already require RH5201 to report a link behind the closing `*/` of a comment that starts its own line, whatever column it reaches, and the formatter breaks the line in front of it. RH5201 compared only the column of the `*/` line, so it missed the link when that line started in the anchor column. The gap lies in the construct this change touches and in the layouts the issue lists as changed without a diagnostic, so it is closed here (change 6); RH5201-002 states the case, and the RH5201 spec now lists SHARED-COMMENT-012 under `Uses`.
 
 ### State the rule in the shared chain spec
 

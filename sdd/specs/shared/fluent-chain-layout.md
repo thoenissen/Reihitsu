@@ -137,10 +137,10 @@ In a wrapped chain, every link of the chain part after the first invoked link MU
 
 The first invoked link MUST start its own line when the line the root ends on does not reach it. That is the case when:
 
-- a line break, counted as SHARED-CHAIN-007 counts one, stands in front of the operator of a link between the chain's first link and the first invoked link, or between that operator's own tokens; or
+- a line break, counted as SHARED-CHAIN-007 counts one, stands in front of the operator of a link between the chain's first link and the first invoked link, or, when no comment, preprocessor directive, or disabled text keeps it there, between that operator's own tokens; or
 - a comment, a preprocessor directive, or disabled text keeps the chain's first link on its own line (SHARED-CHAIN-004).
 
-A line break in front of the chain's first link that SHARED-CHAIN-003 removes does not count, nor does a line break between the first link's own operator tokens, which SHARED-CHAIN-006 removes. Otherwise the first invoked link keeps the line the author put it on. RH5201 reports a first invoked link that must start its own line and does not; the formatter breaks the line in front of its operator.
+A line break in front of the chain's first link that SHARED-CHAIN-003 removes does not count, nor does a line break between the first link's own operator tokens, which SHARED-CHAIN-006 removes, nor a line break that a comment, a directive, or disabled text keeps between a prefix link's operator tokens, which RH5201 does not count as splitting the operator; the formatter refuses every input that holds one as unsupported. Otherwise the first invoked link keeps the line the author put it on. RH5201 reports a first invoked link that must start its own line and does not; the formatter breaks the line in front of its operator.
 
 The one exception is a link whose operator stands behind the closing `*/` of a delimited comment that spans several lines, which does not start its line (SHARED-COMMENT-012). In a wrapped chain such a link MUST start its own line, also when it is a prefix link, a link of a chain without an invoked link, or the first invoked link: the formatter breaks the line in front of its operator, and RH5201 reports the link as SHARED-COMMENT-012 specifies for a rule that checks in which column a line starts. This exception does not decide the chain's first link, which SHARED-CHAIN-003 and SHARED-CHAIN-004 govern, nor whether a chain whose only line breaks lie inside such a comment counts as wrapped.
 
