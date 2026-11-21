@@ -23,5 +23,5 @@
 
 ## State
 
-- Last step finished: implementer (02, a691cc8): tests pass, Release build clean.
-- Next: cleaner.
+- Last step finished: cleaner (03, c9d0bb1): clean.
+- Next: spec checker.
