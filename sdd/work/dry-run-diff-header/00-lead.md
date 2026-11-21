@@ -13,7 +13,9 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), answered "as recommended":
+- Q1 Windows, file outside the current directory (run in `C:\work`, `--dry-run D:\other\B.cs`): **A** — header `--- D:\other\B.cs` / `+++ D:\other\B.cs`, same path as the `Would format:` line (backslashes kept, no prefix).
+- Q2 full path through a symbolic link (cwd physically `/data/proj`, given `/home/me/proj/src/A.cs`): **A** — paths compared as written, links not resolved; the file counts as outside: `--- /home/me/proj/src/A.cs`. A relative path `src/A.cs` still gives `a/src/A.cs`.
 
 ## Decisions taken
 
@@ -32,4 +34,4 @@
 
 - Last step finished: spec author (8d5f2cc, pushed): change doc Draft, CLI-013 + new CLI-024. Open output question: Windows full path outside cwd, `\` (A, recommended) vs `/` (B). Visible changes 1-3 covered by #933 Q1 answer.
 - Skeptic done (813177e): verdict output question; premise confirmed (patch -p1 / git apply accept the new header).
-- Next: output-question batch 1 (Q1 Windows separator outside cwd, Q2 symlinked path) asked to maintainer; WAITING. Then route answers + decisions 1-3 to spec author (fresh), accept change doc, then test implementer.
+- Batch 1 answered (1A, 2A). Next: spec author (fresh) records answers + decisions 1-3, sets change doc Accepted; then test implementer.
