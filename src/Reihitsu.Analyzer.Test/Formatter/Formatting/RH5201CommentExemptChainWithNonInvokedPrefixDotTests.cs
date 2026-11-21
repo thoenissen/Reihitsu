@@ -156,7 +156,7 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Method chains should be aligned.", 3));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, "Member-access chains should be aligned.", 3));
     }
 
     #endregion // Tests
