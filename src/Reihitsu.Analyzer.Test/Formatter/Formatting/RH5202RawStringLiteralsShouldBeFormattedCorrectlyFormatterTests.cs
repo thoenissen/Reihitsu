@@ -233,11 +233,12 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
 
     /// <summary>
     /// Verifies that the formatter aligns a literal whose closing line starts with four tabs by the analyzer's measure, one
-    /// column per tab, so the analyzer reports nothing on the formatted code
+    /// column per tab, writes the four tabs as spaces, and the analyzer reports nothing on the formatted code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("FMT-RAW-001")]
+    [Requirement("FMT-RAW-010")]
     public async Task VerifyFormatterAlignsLiteralBehindTabsAndClearsTheDiagnostic()
     {
         var input = WithWhitespace("""""
@@ -257,8 +258,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
                                            void M()
                                            {
                                                var a = """
-                                                   →→→→x
-                                                   →→→→""";
+                                                       x
+                                                       """;
                                            }
                                        }
                                        """");
@@ -330,13 +331,14 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
     }
 
     /// <summary>
-    /// Verifies that the formatter leaves a literal the analyzer finds aligned, 12 spaces and four tabs, as the analyzer's
-    /// fix writes it, untouched
+    /// Verifies that the formatter does not move a literal the analyzer finds aligned, 12 spaces and four tabs, and writes its
+    /// four tabs as spaces, while the analyzer reports nothing before or after
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-RAW-001")]
-    public async Task VerifyFormatterKeepsLiteralAlignedByTheAnalyzersMeasureBehindTabs()
+    [Requirement("FMT-RAW-006")]
+    [Requirement("FMT-RAW-010")]
+    public async Task VerifyFormatterWritesTabsOfLiteralAlignedByTheAnalyzersMeasureAsSpaces()
     {
         var input = WithWhitespace(""""
                                    class C
@@ -349,8 +351,19 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
                                        }
                                    }
                                    """");
+        var fixedData = WithWhitespace(""""
+                                       class C
+                                       {
+                                           void M()
+                                           {
+                                               var a = """
+                                                       x
+                                                       """;
+                                           }
+                                       }
+                                       """");
 
-        await VerifyFormatter(input);
+        await VerifyFormatter(input, fixedData);
     }
 
     #endregion // Tests

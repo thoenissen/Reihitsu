@@ -77,6 +77,33 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     }
 
     /// <summary>
+    /// Determines whether the whitespace in front of the closing quotes of a multi-line raw string literal nested in one of
+    /// the interpolation holes of an interpolated raw string literal, at any depth, holds a tab (RH5202-008). The formatter
+    /// writes that nested literal's stripped indentation as spaces (FMT-RAW-010), which a fix that only shifts its lines
+    /// would leave for formatting to do, so the fix is not offered then
+    /// </summary>
+    /// <param name="sourceText">Text of the document</param>
+    /// <param name="interpolatedString">The interpolated raw string literal the fix shifts</param>
+    /// <returns><see langword="true"/> if a nested literal's closing quotes stand behind a tab</returns>
+    private static bool HasTabIndentedNestedRawString(SourceText sourceText, InterpolatedStringExpressionSyntax interpolatedString)
+    {
+        foreach (var nested in interpolatedString.DescendantNodes())
+        {
+            if (RawStringLineUtilities.IsMultiLineRawStringLiteral(nested) == false)
+            {
+                continue;
+            }
+
+            if (RawStringLiteralUtilities.HasTabInLeadingWhitespace(sourceText.ToString(sourceText.Lines.GetLineFromPosition(nested.Span.End).Span)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether a line of a raw string literal starts in one of the literal's own interpolation holes rather
     /// than in its text
     /// </summary>
@@ -107,13 +134,17 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
     /// marker starts in the column of its opening quotes. Every shifted line shifts by the same number of columns
     /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>, as the analyzer measures it), by the shift rule the formatter also applies
-    /// (<see cref="RawStringLiteralUtilities.GetLineShiftEdit"/>): spaces are added in front of it, or up to that many
-    /// leading whitespace characters are removed. Which lines shift is the formatter's decision (<see cref="RawStringLineUtilities.MovesLine"/>): an
+    /// (<see cref="RawStringLiteralUtilities.GetShiftedIndentation"/>): spaces are added in front of it, or up to that many
+    /// leading whitespace characters are removed. When the whitespace in front of the closing marker holds a tab, every
+    /// line that starts in the literal's own text, not in one of its holes, also gets its leading whitespace within the
+    /// width the closing marker's whitespace has after the shift written as spaces, one for each character
+    /// (<see cref="RawStringLiteralUtilities.GetStrippedIndentationSpacesWidth"/>, RH5202-007). Which lines shift is the formatter's decision (<see cref="RawStringLineUtilities.MovesLine"/>): an
     /// empty line stays empty, whether it is literal text, text of a nested raw string, or code in an interpolation
     /// hole, and a line that starts inside a nested literal other than a raw string, or inside a nested comment, stays
     /// as written. A nested raw string literal is not aligned here: its lines shift with the outer literal, and it
     /// keeps its own diagnostic. The fix is not registered where a shift to the left would change a nested raw string
-    /// literal's value (<see cref="ChangesValueOfNestedRawString"/>)
+    /// literal's value (<see cref="ChangesValueOfNestedRawString"/>) or where a nested raw string literal's closing
+    /// marker stands behind a tab (<see cref="HasTabIndentedNestedRawString"/>)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">The syntax node representing the raw string expression</param>
@@ -133,6 +164,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
 
         var openingLine = sourceText.Lines.GetLineFromPosition(node.Span.Start);
         var closingLine = sourceText.Lines.GetLineFromPosition(node.Span.End);
+        var closingLineText = sourceText.ToString(closingLine.Span);
+        var spacesWidth = RawStringLiteralUtilities.GetStrippedIndentationSpacesWidth(closingLineText, RawStringLiteralUtilities.GetLeadingWhitespaceLength(closingLineText) + delta);
         var changes = new List<TextChange>();
 
         for (var lineNumber = openingLine.LineNumber + 1; lineNumber <= closingLine.LineNumber; lineNumber++)
@@ -144,13 +177,14 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
                 continue;
             }
 
-            var leadingWhitespaceLength = RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(line.Span));
-            var (removedLength, insertedSpaces) = RawStringLiteralUtilities.GetLineShiftEdit(leadingWhitespaceLength, delta);
+            var lineText = sourceText.ToString(line.Span);
+            var indentation = lineText.Substring(0, RawStringLiteralUtilities.GetLeadingWhitespaceLength(lineText));
+            var lineSpacesWidth = StartsInOwnHole(node, line.Start) ? 0 : spacesWidth;
+            var shiftedIndentation = RawStringLiteralUtilities.GetShiftedIndentation(indentation, delta, lineSpacesWidth);
 
-            if (removedLength > 0
-                || insertedSpaces > 0)
+            if (shiftedIndentation != indentation)
             {
-                changes.Add(new TextChange(new TextSpan(line.Start, removedLength), new string(' ', insertedSpaces)));
+                changes.Add(new TextChange(new TextSpan(line.Start, indentation.Length), shiftedIndentation));
             }
         }
 
@@ -209,7 +243,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             {
                 sourceText ??= await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
-                if (ChangesValueOfNestedRawString(sourceText, interpolatedString, RawStringLiteralUtilities.GetClosingLineShift(sourceText, interpolatedString)))
+                if (ChangesValueOfNestedRawString(sourceText, interpolatedString, RawStringLiteralUtilities.GetClosingLineShift(sourceText, interpolatedString))
+                    || HasTabIndentedNestedRawString(sourceText, interpolatedString))
                 {
                     continue;
                 }

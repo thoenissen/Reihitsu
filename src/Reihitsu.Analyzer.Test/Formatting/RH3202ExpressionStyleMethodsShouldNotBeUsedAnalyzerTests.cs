@@ -778,6 +778,43 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies that the fix lays out a raw string whose closing quotes stand behind tabs as the formatter does: the literal
+    /// moves under its opening quotes and its stripped tabs are written as spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-010")]
+    public async Task VerifyFixWritesTheStrippedTabsOfARawStringAsSpaces()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string M() {|#0:=> """
+                                →→Hello
+                                →→"""|};
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string M()
+                                     {
+                                         return """
+                                                Hello
+                                                """;
+                                     }
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData),
+                     fixedData,
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies the spec example: in a class indented with two spaces, the fix keeps the method's first token in column 2, and
     /// the lines the depth places keep their place relative to it
     /// </summary>

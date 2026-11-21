@@ -60,13 +60,15 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
 
     /// <summary>
     /// Verifies that the tab in the closing line of an interpolated multi-line raw string is not reported, and that the
-    /// formatter keeps it while it aligns the closing marker under the opening quotes, counting the tab as one column
+    /// formatter aligns the closing marker under the opening quotes, counting the tab as one column, and writes the tab as a
+    /// space
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5601-002")]
     [Requirement("FMT-RAW-001")]
-    public async Task VerifyFormatterKeepsTheClosingLineTabOfAnInterpolatedRawStringAndItIsNotReported()
+    [Requirement("FMT-RAW-010")]
+    public async Task VerifyFormatterWritesTheClosingLineTabOfAnInterpolatedRawStringAsASpaceAndItIsNotReported()
     {
         const string testData = """"
                                 class C
@@ -80,8 +82,8 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
                                  class C
                                  {
                                      string s = $"""
-                                                →a
-                                                →""";
+                                                 a
+                                                 """;
                                  }
                                  """";
 

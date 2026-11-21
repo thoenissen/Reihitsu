@@ -5,7 +5,7 @@
 | ID prefix | FMT-TAB |
 | Status | Active |
 | Code owners | `TabReplacementPhase` |
-| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-REGION-001, FMT-REGION-007, FMT-INDENT-008 |
+| Uses | FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-019, FMT-RAW-007, FMT-RAW-010, FMT-REGION-001, FMT-REGION-007, FMT-INDENT-008 |
 
 This spec covers `TabReplacementPhase`, the TabReplacement sub-phase that the preparation phase runs first (FMT-PIPE-001): the replacement of every tab in whitespace and between the tokens of a directive with four spaces, before any other phase runs, and the text in which tabs are kept.
 
@@ -13,7 +13,7 @@ This spec covers `TabReplacementPhase`, the TabReplacement sub-phase that the pr
 
 - The indentation of a line and the gaps between tokens on a line. FMT-INDENT and FMT-SPACE decide them later; this phase only replaces the tabs they would otherwise receive.
 - Whitespace at the end of a line and the final line break — FMT-CLEAN.
-- Tabs inside the text of a multi-line raw string literal, which are part of its value. Aligning such a literal counts each of these tabs as one column (FMT-RAW-001); tab-width alignment of raw strings is a planned extension, tracked in thoenissen/Reihitsu#1432.
+- Tabs inside the text of a multi-line raw string literal. Aligning such a literal counts each of these tabs as one column (FMT-RAW-001), and the indentation phase writes those in the indentation the compiler strips as spaces (FMT-RAW-010).
 
 ## Requirements
 
@@ -73,7 +73,7 @@ A region written as `#region`, a tab, `Baz`, a tab, `qux` is written with one sp
 
 ### FMT-TAB-003 — Tabs in literals, comments, and disabled text are kept
 
-The formatter MUST NOT replace a tab inside a comment, a documentation comment, a string or character literal (regular, verbatim, interpolated, or raw), or disabled text. Only the whitespace of the code (FMT-TAB-001) and the whitespace between directive tokens (FMT-TAB-002) are changed. In an interpolated string, a tab in the literal's text is kept, while a tab in the whitespace of the code inside one of its holes is whitespace trivia and becomes four spaces (FMT-TAB-001). In a documentation comment, every tab is kept, also one in the whitespace between the parts of an XML element, such as between `param` and `name` in `<param name="x">`. The whitespace in front of the `///` marker of a continuation line is not replaced either; the indentation phase rewrites it as a whole when it indents the marker (FMT-INDENT-008), and then writes spaces.
+The formatter MUST NOT replace a tab inside a comment, a documentation comment, a string or character literal (regular, verbatim, interpolated, or raw), or disabled text, apart from the tabs in the indentation that the compiler strips from a multi-line raw string literal, which are no part of its value and which the indentation phase writes as spaces (FMT-RAW-010). Apart from those, only the whitespace of the code (FMT-TAB-001) and the whitespace between directive tokens (FMT-TAB-002) are changed. In an interpolated string, a tab in the literal's text is kept, while a tab in the whitespace of the code inside one of its holes is whitespace trivia and becomes four spaces (FMT-TAB-001). In a documentation comment, every tab is kept, also one in the whitespace between the parts of an XML element, such as between `param` and `name` in `<param name="x">`. The whitespace in front of the `///` marker of a continuation line is not replaced either; the indentation phase rewrites it as a whole when it indents the marker (FMT-INDENT-008), and then writes spaces.
 
 Why: These are user-authored content (FMT-PIPE-002). A tab inside a literal changes the program's value, and inside a comment or disabled text it may be deliberate alignment. The code inside an interpolation hole is code like any other, so its whitespace follows FMT-TAB-001.
 
