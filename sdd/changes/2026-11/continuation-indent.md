@@ -4,13 +4,13 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-INDENT-034 (new), FMT-INDENT-035 (new), FMT-INDENT-002, FMT-INDENT-013, FMT-INDENT-026, FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, FMT-PIPE-024, SHARED-BLANK-008, SHARED-BODY-001, SHARED-USING-009, RH5111-004 |
+| Affected requirements | FMT-INDENT-034 (new), FMT-INDENT-035 (new), FMT-UNSUP-019 (new, [assignment-comment-in-arm-unsupported.md](assignment-comment-in-arm-unsupported.md)), FMT-INDENT-002, FMT-INDENT-013, FMT-INDENT-026, FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, FMT-PIPE-024, SHARED-BLANK-008, SHARED-BODY-001, SHARED-USING-009, RH5111-004 |
 
 ## What
 
-A line that continues a statement, a member declaration, or a using directive, and that no requirement of the indentation spec other than block indentation places, is indented four columns right of the line on which the construct it continues starts (FMT-INDENT-034). Until now such a line took the block column of its statement or member, which the indentation spec kept as a non-goal. The construct a line continues is the nearest node that contains the line's first token and starts on an earlier line, so a continuation inside an arm of a switch expression or a member of an anonymous object is indented from that construct's line, not from the statement's.
+A line that continues a statement, a member declaration, or a using directive, and that no requirement of the indentation spec other than block indentation places, is indented four columns right of the line on which the construct it continues starts (FMT-INDENT-034). Until now such a line took the block column of its statement or member, which the indentation spec kept as a non-goal. The construct a line continues is the nearest node that contains the line's first token and starts on an earlier line, so a continuation inside an element of a collection expression or an initializer is indented from that construct's line, not from the statement's. Inside an arm of a switch expression or a member of an anonymous object, the one line of this kind — a value kept behind a comment behind an assignment operator — is refused instead ([assignment-comment-in-arm-unsupported.md](assignment-comment-in-arm-unsupported.md)).
 
-Most lines of this kind no longer exist: the maintainer decided to join the gaps they stood behind — a `return` value, a pattern behind `is`, a switch arm's `=>`, a base list, a type behind a modifier, a catch filter, a `for` header, a lambda's body, `with`, `throw`, `await`, `new`, and an anonymous-object member's `=` — and to refuse a comment or a directive in those gaps; [continuation-join.md](continuation-join.md) records that change. FMT-INDENT-034 places what no join removes: a line kept behind a comment or a directive that no requirement refuses, a later declarator, a `;` behind a conditional group or a stray documentation comment, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins.
+Most lines of this kind no longer exist: the maintainer decided to join the gaps they stood behind — a `return` or `yield return` value, a pattern or a type behind `is`, a pattern behind `and`, `or`, or `not`, a switch arm's `when` and `=>`, a base list, everything behind a modifier, a catch filter, a `for` header, a `foreach` collection, a cast's operand, a lambda's body, `with`, `throw`, `await`, `new`, and the `=` of an anonymous-object member and of a `let` clause — and to refuse a comment or a directive in those gaps; [continuation-join.md](continuation-join.md) records that change. FMT-INDENT-034 places what no join removes: a line kept behind a comment or a directive that no requirement refuses, a later declarator, a `;` behind a conditional group or a stray documentation comment, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins.
 
 The lines that block indentation places by their scope are not continuations: a nested statement or member, an accessor, a switch section or label, the braces of a scope, `else`, `catch`, `finally`, the `while` of a `do` statement, and a declaration's attribute lists with the token behind them.
 
@@ -77,46 +77,38 @@ Before:
 ```csharp
 class C
 {
-    int M(int x, int y)
+    int M(int y)
     {
-        var w = new
-                {
-                    A = x += // c
-        3
-                };
+        int[] z = [
+                      1,
+                      y += // c
+        2
+                  ];
 
-        return x switch
-               {
-                   1 => y += // c
-        2,
-                   _ => 0,
-               };
+        return z.Length;
     }
 }
 ```
 
-After: the value is indented from the line of `A` (column 20) and from the line of `1` (column 19).
+After: the value is indented from the line of `y` (column 22), to column 26.
 
 ```csharp
 class C
 {
-    int M(int x, int y)
+    int M(int y)
     {
-        var w = new
-                {
-                    A = x += // c
-                        3
-                };
+        int[] z = [
+                      1,
+                      y += // c
+                          2
+                  ];
 
-        return x switch
-               {
-                   1 => y += // c
-                       2,
-                   _ => 0,
-               };
+        return z.Length;
     }
 }
 ```
+
+The same line inside a switch-expression arm or an anonymous-object member is refused ([assignment-comment-in-arm-unsupported.md](assignment-comment-in-arm-unsupported.md)).
 
 ### The content of a parenthesized pattern (thoenissen/Reihitsu#953)
 
@@ -314,16 +306,16 @@ using System.Linq;
 
 class C
 {
-    void M(int[] arr)
+    void M(int[] arr, int[] brr)
     {
         var q = from x in arr
         let y = x
         where y > 0
         select y;
         var r = from x in arr
-        let y
-        = x
-        select y into z
+        join b in brr on x
+        equals b
+        select x into z
         select z;
     }
 }
@@ -336,16 +328,16 @@ using System.Linq;
 
 class C
 {
-    void M(int[] arr)
+    void M(int[] arr, int[] brr)
     {
         var q = from x in arr
                 let y = x
                 where y > 0
                 select y;
         var r = from x in arr
-                let y
-                    = x
-                select y into z
+                join b in brr on x
+                    equals b
+                select x into z
                 select z;
     }
 }
@@ -399,17 +391,19 @@ After: each `;` moves one level deeper than the line its declaration or statemen
 
 ### Split fields and other declarations (FMT-STRUCT-021, FMT-BLANK-020, SHARED-USING-009)
 
-The fields that FMT-STRUCT-021 splits keep a line break behind the type or between two modifiers; the line behind it moves one level deeper than the field's first line:
+The fields that FMT-STRUCT-021 splits keep a line break behind the type; the line behind it moves one level deeper than the field's first line:
 
 ```csharp
+using System.Collections.Generic;
+
 class C
 {
-    private static
-    readonly int _g = 1;
+    private Dictionary<string, List<int>>
+    _map1, _map2;
 }
 ```
 
-After: `readonly int _g = 1;` moves to column 8. In the same way, a property pattern's `{` behind `if (o is C` and a comment on its own line (FMT-BLANK-020) moves to column 12 with the comment, and `.Text;` behind a directive inside a using directive (SHARED-USING-009) moves to column 4.
+After: `_map1;` and `_map2;` move to column 8, each below its own repeated head. A line break between two modifiers is joined instead ([continuation-join.md](continuation-join.md)). In the same way, a property pattern's `{` behind `if (o is C` and a comment on its own line (FMT-BLANK-020) moves to column 12 with the comment, and `.Text;` behind a directive inside a using directive (SHARED-USING-009) moves to column 4.
 
 ### Code fixes
 
@@ -450,7 +444,7 @@ Every code fix that lays out a node through the formatter gives a continuation l
 
   After: the `;` moves to column 12.
 
-- **RH7101** (a field split into one field per declaration, FMT-STRUCT-021): the line behind a line break between two modifiers or between the type and the name moves as for the formatter above; a line break between the last modifier and the type is joined ([continuation-join.md](continuation-join.md)).
+- **RH7101** (a field split into one field per declaration, FMT-STRUCT-021): the line behind a line break between the type and the name moves as for the formatter above; a line break behind a modifier is joined ([continuation-join.md](continuation-join.md)).
 - **RH5302, RH5308** (a chain of `&&` and `||` operators, a conditional expression), whose fixes format a node that starts in the middle of its line: a continuation line whose construct starts on that line moves from four columns right of the node's first token to four columns right of where the document begins the line, the column whole-document formatting now gives it.
 
   ```csharp
@@ -489,7 +483,7 @@ The maintainer replaced most applications of the continuation indent by joins ([
 
 ### The construct a line continues is the nearest one that starts on an earlier line
 
-The maintainer's earlier decision (thoenissen/Reihitsu#921, Q1) names the line on which the statement or member starts. For a continuation inside a construct laid out to the right — a switch-expression arm or an anonymous-object member — that line puts the continuation left of its own construct. The rule measures from the nearest node that contains the line's first token and starts on an earlier line; where that node starts on the statement's line, which holds for every example of the decision, both readings agree. The maintainer's answers replaced the question with joins and named no column for the lines that remain inside such a construct; the spec is written on this reading, and the run asks it again for the remaining lines.
+The maintainer's earlier decision (thoenissen/Reihitsu#921, Q1) names the line on which the statement or member starts. For a continuation inside a construct laid out to the right — a switch-expression arm or an anonymous-object member — that line puts the continuation left of its own construct. The rule measures from the nearest node that contains the line's first token and starts on an earlier line; where that node starts on the statement's line, which holds for every example of the decision, both readings agree. The maintainer's answers replaced the question with joins, and for the line that remains inside an arm or an anonymous-object member — a value behind a comment behind an assignment operator — the maintainer decided to refuse the input rather than choose a column (batch 2, answer 8; [assignment-comment-in-arm-unsupported.md](assignment-comment-in-arm-unsupported.md)). The nearest construct still decides inside an element of a collection expression or an initializer, and for the hole of a verbatim interpolated string inside an arm or a member, which no answer names; the spec gives them the continuation indent, on the scheme of the maintainer's answers (a line that cannot be joined and is not refused keeps it), for the lead to confirm.
 
 ### The content of a parenthesized pattern is one level inside its parentheses (maintainer, batch 1b, answer 1e A)
 
@@ -511,6 +505,7 @@ FMT-INDENT-013 already aligned the clauses of a query inside a list element with
 
 - **One alignment contributor per construct** — rejected by the maintainer's decision: it repeats today's approach and keeps leaving gaps.
 - **Indent every line behind a gap the maintainer listed as a continuation line** — rejected by the maintainer: those lines are joined.
-- **Measure every continuation from the statement's or member's line** — not chosen: it puts the continuation inside an arm or an anonymous-object member left of that construct.
+- **Measure every continuation from the statement's or member's line** — not chosen: it puts the continuation inside an element of a collection expression or an initializer left of that construct.
+- **Choose a column for a value kept behind a comment inside a switch arm or an anonymous-object member** — rejected by the maintainer (batch 2, answer 8): such an input is refused.
 - **Indent query clauses one level deeper than the statement** — rejected by the maintainer (answer 3A).
 - **Keep the block column for the shapes other open issues ask to align differently** (a line inside an angle-bracket list's first element or a qualified name, thoenissen/Reihitsu#1634 and thoenissen/Reihitsu#1905; the content of a positional pattern, thoenissen/Reihitsu#1542) — rejected: excluding them would be a special case in the rule, and the maintainer decided the rule for every construct. A requirement that aligns one of them later takes precedence over this rule. A base list whose `:` starts its line (thoenissen/Reihitsu#1633) no longer exists: the `:` joins the type's line.

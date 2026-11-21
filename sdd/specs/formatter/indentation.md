@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-017, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001, FMT-UNSUP-009, FMT-UNSUP-017, FMT-UNSUP-018 |
+| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-019, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -2199,9 +2199,9 @@ The formatter MUST indent a continuation line that no other requirement of this 
 - **The column.** The column at which that line begins is the column the indentation phase gives the first token or comment on it, measured where the phase puts it (FMT-INDENT-030), so a continuation line of a continuation line is indented one more level.
 - **A root formatted on its own.** When a node-level entry point formats a node as a root of its own (FMT-PIPE-023) and the line of the construct is the line on which the root's first token stands, the column at which that line begins is the line-start column (FMT-PIPE-024): the column of the first token or comment on that line in the document, which may stand in front of the root. The entry point keeps everything in front of the root as written, so that line begins where the document has it, and the continuation line gets the column whole-document formatting gives it when the document's line begins where whole-document formatting puts it. `FormatNode`, which has no such fact, measures from the root's first token.
 
-The gaps FMT-BREAK-041 joins and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in a gap FMT-BREAK-041 joins is refused (FMT-UNSUP-017). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the value behind `x += // c` or the pattern behind `1 or // c`, a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins.
+The gaps FMT-BREAK-041 joins, the `=` of an anonymous-object member and of a `let` clause that FMT-BREAK-016 joins, and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in one of those gaps is refused (FMT-UNSUP-011, FMT-UNSUP-017). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the value behind `x += // c` outside a switch arm and an anonymous-object member (inside one, FMT-UNSUP-019 refuses it), a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins.
 
-Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an arm or a member of an anonymous object to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column.
+Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an element of a collection expression or an initializer to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column.
 
 Example — a value kept on its own line by a comment continues the statement, also where it starts an expression of its own (`3 + 4`):
 
@@ -2235,25 +2235,20 @@ class C
 }
 ```
 
-Example — the line continues a construct inside an expression, so it is indented from the line of that construct: the value inside the member of an anonymous object from the line of `A` in column 20, and the value inside a switch-expression arm from the line of `1` in column 19:
+Example — the line continues a construct inside an expression, so it is indented from the line of that construct: the value inside an element of a collection expression from the line of `y` in column 22:
 
 ```csharp
 class C
 {
-    int M(int x, int y)
+    int M(int y)
     {
-        var w = new
-                {
-                    A = x += // c
-        3
-                };
+        int[] z = [
+                      1,
+                      y += // c
+        2
+                  ];
 
-        return x switch
-               {
-                   1 => y += // c
-        2,
-                   _ => 0,
-               };
+        return z.Length;
     }
 }
 ```
@@ -2261,23 +2256,20 @@ class C
 ```csharp
 class C
 {
-    int M(int x, int y)
+    int M(int y)
     {
-        var w = new
-                {
-                    A = x += // c
-                        3
-                };
+        int[] z = [
+                      1,
+                      y += // c
+                          2
+                  ];
 
-        return x switch
-               {
-                   1 => y += // c
-                       2,
-                   _ => 0,
-               };
+        return z.Length;
     }
 }
 ```
+
+The same line inside a switch-expression arm or an anonymous-object member is refused (FMT-UNSUP-019).
 
 Example — a later declarator continues its declaration, also behind an `#endif`, in a field that stays whole, an event field, and a local declaration; the declarator in the disabled text keeps its column (FMT-INDENT-011):
 
@@ -2437,16 +2429,16 @@ using System.Linq;
 
 class C
 {
-    void M(int[] arr)
+    void M(int[] arr, int[] brr)
     {
         var q = from x in arr
         let y = x
         where y > 0
         select y;
         var r = from x in arr
-        let y
-        = x
-        select y into z
+        join b in brr on x
+        equals b
+        select x into z
         select z;
     }
 }
@@ -2457,16 +2449,16 @@ using System.Linq;
 
 class C
 {
-    void M(int[] arr)
+    void M(int[] arr, int[] brr)
     {
         var q = from x in arr
                 let y = x
                 where y > 0
                 select y;
         var r = from x in arr
-                let y
-                    = x
-                select y into z
+                join b in brr on x
+                    equals b
+                select x into z
                 select z;
     }
 }

@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-019, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -1118,11 +1118,13 @@ class C
 
 ### FMT-BREAK-016 — Assignments keep target, operator, and value together
 
-The operator of an assignment MUST stay on the line of its target, and the value MUST start on the line of the operator. This holds for every assignment operator — `=` and every compound assignment operator, such as `+=`, `-=`, `|=`, `<<=`, and `??=` — and for the `=` of a variable declarator, a property initializer, an enum member's value, and a parameter's default value (FMT-PIPE-014). A value that spans several lines starts on the operator line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the operator line. Inside a parameter list, this requirement does not decide the gap in front of a parameter's default `=`: FMT-BREAK-015 owns it and joins it as a wrap inside a list element, which gives the layout stated here. The value behind the `=` is placed by this requirement, for a parameter's default as for every equals-value clause, so a multi-line literal default starts on the `=` line (`string s = """`) although FMT-BREAK-015 does not join a multi-line literal.
+The operator of an assignment MUST stay on the line of its target, and the value MUST start on the line of the operator. This holds for every assignment operator — `=` and every compound assignment operator, such as `+=`, `-=`, `|=`, `<<=`, and `??=` — and for the `=` of a variable declarator, a property initializer, an enum member's value, a parameter's default value (FMT-PIPE-014), an anonymous-object member declarator (`new { A = 1 }`), and a `let` clause of a query (`let y = x`). A value that spans several lines starts on the operator line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the operator line. Inside a parameter list, this requirement does not decide the gap in front of a parameter's default `=`: FMT-BREAK-015 owns it and joins it as a wrap inside a list element, which gives the layout stated here. The value behind the `=` is placed by this requirement, for a parameter's default as for every equals-value clause, so a multi-line literal default starts on the `=` line (`string s = """`) although FMT-BREAK-015 does not join a multi-line literal.
 
 A binary operator is not an assignment operator: `a⏎+ b` is laid out by FMT-BREAK-017, while `a⏎+= b` is joined by this requirement.
 
-Why: Splitting the target from its value makes the reader search for what is assigned to what, whichever operator assigns it and whichever construct the `=` belongs to. RH5111 reports the same shapes for the `=` of an assignment, a declarator, a property, an enum member, and a parameter; the formatter lays out the compound assignment operators alike as well (FMT-PIPE-014).
+The join in front of and behind the `=` of an anonymous-object member declarator and of a `let` clause never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one there (FMT-UNSUP-017), so FMT-BREAK-001 never has to refuse these two joins. Every other join of this requirement keeps FMT-BREAK-001's refusal, and the line a comment keeps behind an assignment operator is a continuation line (FMT-INDENT-034), unless the assignment stands inside a switch-expression arm or an anonymous-object member, where the formatter refuses the input (FMT-UNSUP-019).
+
+Why: Splitting the target from its value makes the reader search for what is assigned to what, whichever operator assigns it and whichever construct the `=` belongs to. RH5111 reports the same shapes for the `=` of an assignment, a declarator, a property, an enum member, and a parameter; the formatter lays out the compound assignment operators alike as well (FMT-PIPE-014). An anonymous-object member and a `let` clause name a value with `=` in the same way, so they are laid out as one syntax family with the others, as the maintainer decided; no rule reports them, which the formatter may do (P11).
 
 Example:
 
@@ -1205,13 +1207,65 @@ class C
 }
 ```
 
+Example — the `=` of an anonymous-object member and of a `let` clause joins the name in front of it and the value behind it; the query's clauses align under `from` (FMT-INDENT-035):
+
+```csharp
+using System.Linq;
+
+class C
+{
+    object M(int[] arr)
+    {
+        var w = new
+                {
+                    A
+                        = 1,
+                    B =
+                        2
+                };
+        var q = from x in arr
+                let y
+                    = x
+                let z =
+                    y
+                select z;
+
+        return q;
+    }
+}
+```
+
+```csharp
+using System.Linq;
+
+class C
+{
+    object M(int[] arr)
+    {
+        var w = new
+                {
+                    A = 1,
+                    B = 2
+                };
+        var q = from x in arr
+                let y = x
+                let z = y
+                select z;
+
+        return q;
+    }
+}
+```
+
 ### FMT-BREAK-017 — Binary operators start the continuation line
 
-When a binary expression is wrapped at its operator, the operator MUST start the continuation line instead of ending the previous one. When a binary pattern is wrapped at its combinator (`and`, `or`), the combinator MUST start the continuation line in the same way, and its right pattern MUST join it — in an `is` expression, a `case` label, a switch-expression arm, and every other place a pattern stands. A pattern combinator MUST also start its own line when an operand next to it is a property, list, or parenthesized pattern that spans several lines. The formatter never wraps a binary expression or a binary pattern the author wrote on one line: a combinator that stands inside a line keeps its place, and only one at the end of a line moves.
+When a binary expression is wrapped at its operator, the operator MUST start the continuation line instead of ending the previous one. The `is` of a type test (`o is string`, a binary expression) is the one exception: an `is` at the end of a line stays there, and the type behind it joins it (FMT-BREAK-041); an `is` that starts a line keeps its place. The `as` of a conversion and every other binary operator move. The formatter never wraps a binary expression the author wrote on one line.
 
-A comment, a directive, or disabled text behind a combinator keeps the right pattern off the combinator's line, and the combinator then stays at the end of its line (FMT-BREAK-001); the line the right pattern starts is a continuation line (FMT-INDENT-034).
+A binary pattern is laid out as a chain. The chain of a binary pattern is the pattern together with every binary pattern that is its left or right operand, directly and not through a parenthesized pattern, and so on down; its combinators are the `and` and `or` of those patterns. A chain is wrapped when a line break stands next to one of its combinators — between the combinator and the last token of the pattern in front of it, or between the combinator and the first token of the pattern behind it — or when an operand next to one of its combinators is a property, list, or parenthesized pattern that spans several lines. In a wrapped chain, every combinator MUST start its own line, and the right pattern of each combinator MUST join it, except where FMT-BREAK-022 starts that pattern's first token on a line of its own, which keeps its own line below the combinator. A chain that is not wrapped keeps its layout. This holds in an `is` expression, a `case` label, a switch-expression arm, and every other place a pattern stands. A parenthesized pattern starts a chain of its own: `x is 1 or (2 or 3)` holds two chains, and the inner one is wrapped or not by its own combinator.
 
-Why: An operator at the start of a line shows at a glance how the line continues the expression, and lines up the operands of a long condition. RH5302 reports the same shape for logical expressions. A pattern chain reads the same way: with each combinator at the start of its line, the combinators line up under the `is` or under the first pattern (FMT-INDENT-019), and every line shows how it continues the pattern, as the maintainer decided. The join of the right operand onto its operator's line never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one there (FMT-UNSUP-011), so FMT-BREAK-001 never has to refuse this join.
+The join of a right pattern onto its combinator never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one between a combinator and its right pattern (FMT-UNSUP-017), so FMT-BREAK-001 never has to refuse this join, and no line behind a combinator is left for FMT-INDENT-034 to place.
+
+Why: An operator at the start of a line shows at a glance how the line continues the expression, and lines up the operands of a long condition. RH5302 reports the same shape for logical expressions. A pattern chain reads the same way: with each combinator at the start of its line, the combinators line up under the `is` or under the first pattern (FMT-INDENT-019), and every line shows how it continues the pattern, as the maintainer decided. A chain wrapped at one combinator is wrapped at all of them, as the maintainer decided, so that the patterns it tests stand one per line rather than some on a line and some apart; a binary expression keeps the author's choice of where to wrap, because its operands are expressions of any length. The `is` of a type test keeps its type on its line because it reads like the `is` of a pattern, which the maintainer joined with its pattern, and a reader cannot see which of the two the parser made of `o is string`. The join of the right operand onto its operator's line never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one there (FMT-UNSUP-011), so FMT-BREAK-001 never has to refuse this join. A combinator next to a multi-line property, list, or parenthesized pattern starts its own line so that the delimited pattern reads as a block; FMT-BREAK-022 then keeps the pattern's opening delimiter on its own line below the combinator, as it does below the `is` (FMT-BREAK-041).
 
 Example:
 
@@ -1295,6 +1349,65 @@ class C
     }
 }
 ```
+
+Example — a chain wrapped at one combinator is wrapped at every combinator; a combinator in front of a property pattern that spans several lines starts its own line, and the pattern's opening brace keeps its own line below it (FMT-BREAK-022); the type behind the `is` of a type test joins the `is`:
+
+```csharp
+class C
+{
+    bool M(int x, object o, string s)
+    {
+        var k = x is 1 or 2 or
+        3;
+        var a = s is null or
+        {
+        Length: 2
+        };
+        var t = o is
+        string;
+
+        return k && a && t;
+    }
+}
+```
+
+```csharp
+class C
+{
+    bool M(int x, object o, string s)
+    {
+        var k = x is 1
+                  or 2
+                  or 3;
+        var a = s is null
+                  or
+                  {
+                      Length: 2
+                  };
+        var t = o is string;
+
+        return k && a && t;
+    }
+}
+```
+
+Example — the other side: a chain with no line break next to a combinator keeps its layout, and a type-test `is` that starts its line keeps its place:
+
+```csharp
+class C
+{
+    bool M(int x, object o)
+    {
+        var k = x is 1 or 2 or 3;
+        var t = o
+                is string;
+
+        return k && t;
+    }
+}
+```
+
+is left unchanged.
 
 ### FMT-BREAK-018 — Conditional expressions are on one line or one branch per line
 
@@ -1900,7 +2013,7 @@ In the whole pipeline, FMT-BLANK keeps the first of these blank lines and remove
 
 Where the phase joins two tokens onto one line, it MUST leave the gap between them without whitespace, unless the two tokens written without whitespace would not read back as the same two tokens — they would read as one token, as another pair of tokens, or as the start of a comment; there it MUST write exactly one space. The phase MUST NOT write, remove, or change whitespace in any other gap between two tokens that are on the same line before and after the phase. The spaces of every gap on one line, a joined gap included, are decided by FMT-SPACE (FMT-SPACE-002).
 
-This holds for every join of the phase: a list element's interior wrap (FMT-BREAK-015), a list, its delimiters, and its separators (FMT-BREAK-011 to FMT-BREAK-014), an assignment's operator and value (FMT-BREAK-016), the branch behind a `?` or `:` that moves to the next line (FMT-BREAK-018), a chain's member names (FMT-BREAK-019, FMT-BREAK-020), an argument list's opening parenthesis and the token in front of it (FMT-BREAK-039), an element access, a conditional element access, or a null-forgiving operator and the token in front of it (FMT-BREAK-040), a binary operator that moves to the start of the next line and the operand behind it (FMT-BREAK-017), an accessor list and its accessors (FMT-BREAK-024), the arrow and expression of a property or indexer (FMT-BREAK-026), a `when` guard (FMT-BREAK-028), a declaration's semicolon (FMT-BREAK-009), and the token behind an attribute list (FMT-BREAK-027).
+This holds for every join of the phase: a list element's interior wrap (FMT-BREAK-015), a list, its delimiters, and its separators (FMT-BREAK-011 to FMT-BREAK-014), an assignment's operator and value (FMT-BREAK-016), the branch behind a `?` or `:` that moves to the next line (FMT-BREAK-018), a chain's member names (FMT-BREAK-019, FMT-BREAK-020), an argument list's opening parenthesis and the token in front of it (FMT-BREAK-039), an element access, a conditional element access, or a null-forgiving operator and the token in front of it (FMT-BREAK-040), a binary operator that moves to the start of the next line and the operand behind it, a pattern combinator and the pattern behind it, and the type behind the `is` of a type test (FMT-BREAK-017), the gaps FMT-BREAK-041 joins, an accessor list and its accessors (FMT-BREAK-024), the arrow and expression of a property or indexer (FMT-BREAK-026), a `when` guard (FMT-BREAK-028), a declaration's semicolon (FMT-BREAK-009), and the token behind an attribute list (FMT-BREAK-027).
 
 Why: A space chosen by the kind of the joined tokens is a spacing decision, which FMT-SPACE owns; when this phase made it, the same pair was spaced one way when joined and another way when written on one line, and the phase spaced constructs such as a property's arrow even where it joined nothing. Two tokens that would read as one are the exception, because the phase's text has to be its tree (FMT-PIPE-021) and the program must not change (FMT-PIPE-003): `protected` and `internal` joined without a space read as the identifier `protectedinternal`, `-` and `-b` as `--b`, and `/` and `*p` as the start of a comment. The structural transforms follow the same rule for the tokens they create (FMT-STRUCT-026).
 
@@ -3427,28 +3540,32 @@ class C
 }
 ```
 
-### FMT-BREAK-041 — A continuation behind a keyword, a pattern's `is`, an arm, a base list, a modifier, a filter, a loop header, a lambda, `with`, or a member name joins its line
+### FMT-BREAK-041 — A continuation behind a keyword, `is`, `not`, a modifier, a cast, an arm, a base list, a filter, a loop header, a lambda, or `with` joins its line
 
 The formatter MUST remove the line breaks, and the blank lines with them, from each of these gaps, so that the token behind the gap stands on the line of the token in front of it:
 
-- between the `return` of a return statement, the `throw` of a throw statement or a throw expression, the `await` of an await expression, or the `new` of an object or array creation and the first token of what follows it;
-- between the `is` of an `is` pattern expression and the first token of its pattern;
-- between the last token of a switch-expression arm's pattern, or of its `when` clause, and the arm's `=>`;
+- between the `return` of a return statement with an expression or of a `yield return` statement, the `throw` of a throw statement with an expression or of a throw expression, or the `await` of an await expression and the first token of the expression behind it;
+- between the `await` of an `await foreach` statement, of an `await using` statement, or of an `await using` declaration and the `foreach` or `using` behind it;
+- between the `new` of an object creation, an array creation, or an implicitly typed array creation and the token behind it: the first token of the created type, or the `[` of `new[]`;
+- between the `is` of an `is` pattern expression and the first token of its pattern, and between the `is` of a type test (FMT-BREAK-017) and the first token of its type;
+- between the `not` of a negated pattern and the first token of its pattern;
+- between the last token of a switch-expression arm's pattern and the `when` of its `when` clause, and between the last token of the arm's pattern, or of its `when` clause, and the arm's `=>`;
 - between the token in front of a base list's `:` and the `:`;
-- between the last modifier of a member declaration, a local function, or a local declaration and the first token of the type behind it;
+- between each modifier of a declaration and the token behind it — the next modifier, or the first token of what the modifiers precede, such as the type, the `class`, `struct`, `interface`, `record`, `enum`, `delegate`, or `event` keyword, a constructor's name, or the `implicit` or `explicit` of a conversion operator —, in a member, type, or delegate declaration, a local declaration, a local function, an accessor, a lambda, and an anonymous method;
 - between the token in front of the `when` of a catch filter clause and the `when`;
 - between each `;` of a `for` statement's header and the token behind it;
+- between the `in` of a `foreach` statement and the first token of its expression;
+- between the `)` of a cast expression and the first token of its operand;
 - between the `=>` of a lambda with an expression body and the first token of that expression;
-- between the last token of the expression a `with` expression copies and the `with`;
-- between the name of an anonymous-object member declarator and the `=` behind it.
+- between the last token of the expression a `with` expression copies and the `with`.
 
-The gaps are exactly those FMT-UNSUP-017 names, with the same conditions on both sides: a gap next to the same tokens but outside this list — such as the gap behind a switch arm's `=>`, behind a base list's `:`, between two modifiers, behind the `(` of a `for` header, behind the `=>` of a lambda with a block body, behind `with`, or behind an anonymous-object member's `=` — is not joined by this requirement and keeps its line breaks unless another requirement joins it. A line that starts behind such a gap is a continuation line (FMT-INDENT-034).
+The gaps are those FMT-UNSUP-017 names, with the same conditions on both sides, except three that other requirements join and FMT-UNSUP-017 still refuses: the gap between a pattern combinator (`and`, `or`) and its right pattern, which FMT-BREAK-017 joins; the gaps in front of and behind the `=` of an anonymous-object member and of a `let` clause, which FMT-BREAK-016 joins; and the gaps behind a parameter's modifiers, which stand inside a list element whose wraps FMT-BREAK-015 joins. Conversely, the gap behind the `is` of a type test is joined by this requirement and refused by FMT-UNSUP-011. A gap next to the same tokens but outside this list — such as the gap behind a switch arm's `=>`, behind a base list's `:`, in front of the first modifier, behind the `(` of a `for` header, in front of the `in` of a `foreach` statement, in front of a cast's `)`, behind the `=>` of a lambda with a block body, behind `with`, between `return` and the `;` of a return statement without an expression (`return⏎;`), or between `throw` and the `;` of a rethrow (`throw⏎;`) — is not joined by this requirement and keeps its line breaks unless another requirement joins it. A line that starts behind such a gap is a continuation line (FMT-INDENT-034). The `new` of an anonymous object creation is not in the list: the opening brace behind it starts its own line (FMT-BREAK-021). The `(` behind the `new` of an implicit object creation (`new()`) is joined by FMT-BREAK-039.
 
-The pattern behind `is` is not joined where FMT-BREAK-022 starts its first token on a line of its own: the opening brace of a property pattern without a type that spans several lines, and the opening parenthesis of a parenthesized pattern that spans several lines, keep their own line below the `is`.
+The pattern behind `is` or `not` is not joined where FMT-BREAK-022 starts its first token on a line of its own: the opening brace of a property pattern without a type that spans several lines, and the opening parenthesis of a parenthesized pattern that spans several lines, keep their own line below the `is`.
 
-The join writes the minimal separator (FMT-BREAK-031). It never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one in these gaps (FMT-UNSUP-017), so FMT-BREAK-001 never has to refuse this join. The join applies wherever the gap stands, also inside a list element (FMT-BREAK-015), and in a node-level root as in a whole document.
+The join writes the minimal separator (FMT-BREAK-031). It never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one in these gaps (FMT-UNSUP-011, FMT-UNSUP-017), so FMT-BREAK-001 never has to refuse this join. The join applies wherever the gap stands, also inside a list element (FMT-BREAK-015), and in a node-level root as in a whole document.
 
-Why: The token behind each of these gaps belongs to the token in front of it: a `return` and its value, a pattern and its `is`, an arm and its arrow, a type and its base list, a modifier and the type it modifies, a catch clause and its filter, the three parts of a `for` header, a lambda and its body, an expression and the `with` that copies it, a member name and its `=`. A line break there carries no meaning, and the line it leaves reads as a new statement or needs a column of its own; joining it makes the construct read as one, as the maintainer decided. A blank line there separates nothing, so it goes with the join, as for every join of this phase (FMT-BREAK-030). The opening delimiter of a multi-line property or parenthesized pattern starts its own line so that its content reads as a block below the `is` (FMT-INDENT-026); joining it onto the `is` would undo that layout.
+Why: The token behind each of these gaps belongs to the token in front of it: a `return` and its value, an `await` and the loop or `using` it makes asynchronous, a `new` and what it creates, a pattern or a type and its `is`, a `not` and its pattern, an arm and its guard and arrow, a type and its base list, a modifier and the declaration it modifies, a catch clause and its filter, the three parts of a `for` header, a `foreach` loop and the collection it iterates, a cast and its operand, a lambda and its body, an expression and the `with` that copies it. A line break there carries no meaning, and the line it leaves reads as a new statement or needs a column of its own; joining it makes the construct read as one, as the maintainer decided for every gap of the list. A blank line there separates nothing, so it goes with the join, as for every join of this phase (FMT-BREAK-030). The opening delimiter of a multi-line property or parenthesized pattern starts its own line so that its content reads as a block below the `is` (FMT-INDENT-026); joining it onto the `is` would undo that layout.
 
 Example:
 
@@ -3459,19 +3576,30 @@ using System.Threading.Tasks;
 
 class B;
 
+public
 class D
 : B
 {
-    private
-    int _f;
+    private static
+    readonly int _f = 1;
 
-    async Task<int> M(int x, object o, Task<int> t, int[] a)
+    public
+    event Action E;
+
+    public
+    D()
+    {
+    }
+
+    async Task<int> M(int x, object o, Task<int> t, int[] a, IAsyncEnumerable<int> s)
     {
         var p = o is
-        not null;
-        var r = x switch
+        not
+        null;
+        var r = o switch
                 {
-                    1
+                    int i
+        when i > 0
         => 2,
                     _ => 0,
                 };
@@ -3490,17 +3618,26 @@ class D
         {
         }
 
+        foreach (var y in
+        a)
+        {
+        }
+
+        await
+        foreach (var z in s)
+        {
+        }
+
         Func<int> u = () =>
         a.Length;
         var n = new
         List<int>();
+        int[] m = new
+        [] { 1 };
+        var c = (long)
+        x;
         var q = await
         t;
-        var w = new
-                {
-                    A
-        = 1
-                };
 
         if (x > 0)
         {
@@ -3509,6 +3646,12 @@ class D
         }
 
         return
+        x;
+    }
+
+    IEnumerable<int> Y(int x)
+    {
+        yield return
         x;
     }
 }
@@ -3532,16 +3675,22 @@ using System.Threading.Tasks;
 
 class B;
 
-class D : B
+public class D : B
 {
-    private int _f;
+    private static readonly int _f = 1;
 
-    async Task<int> M(int x, object o, Task<int> t, int[] a)
+    public event Action E;
+
+    public D()
+    {
+    }
+
+    async Task<int> M(int x, object o, Task<int> t, int[] a, IAsyncEnumerable<int> s)
     {
         var p = o is not null;
-        var r = x switch
+        var r = o switch
                 {
-                    1 => 2,
+                    int i when i > 0 => 2,
                     _ => 0,
                 };
 
@@ -3556,13 +3705,19 @@ class D : B
         {
         }
 
+        foreach (var y in a)
+        {
+        }
+
+        await foreach (var z in s)
+        {
+        }
+
         Func<int> u = () => a.Length;
         var n = new List<int>();
+        int[] m = new[] { 1 };
+        var c = (long)x;
         var q = await t;
-        var w = new
-                {
-                    A = 1
-                };
 
         if (x > 0)
         {
@@ -3570,6 +3725,11 @@ class D : B
         }
 
         return x;
+    }
+
+    IEnumerable<int> Y(int x)
+    {
+        yield return x;
     }
 }
 

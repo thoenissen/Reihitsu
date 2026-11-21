@@ -79,7 +79,7 @@ No rule page changes.
 
 The maintainer chose to declare a comment inside a list of omitted type arguments unsupported in this run, and to delete the FMT-INDENT-015 exception.
 
-### Directives and disabled text belong to the shape
+### Directives and disabled text belong to the shape (maintainer, batch 2, answer 7 A)
 
 A directive or disabled text inside such a list keeps it wrapped like a comment does. With comments alone, the indentation phase would keep its case for a wrapped list of omitted type arguments, and the exception could not go. Every other declared shape includes them for the same reason.
 
@@ -91,4 +91,4 @@ A type argument list with a type in it has a first element with text to align to
 
 - **Indent the list's later lines as continuation lines (FMT-INDENT-034)** — rejected by the maintainer in favour of the declaration.
 - **Keep FMT-INDENT-015's block-column exception** — rejected: it is a special case for a rare input.
-- **Declare comments only** — rejected: a directive would keep the list wrapped, and the exception would have to stay for it.
+- **Declare comments only** — rejected by the maintainer (batch 2, answer 7 A): a directive would keep the list wrapped, and the exception would have to stay for it.

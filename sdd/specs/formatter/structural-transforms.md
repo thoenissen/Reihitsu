@@ -1027,7 +1027,7 @@ class C
 }
 ```
 
-Example — line breaks inside and behind the head are repeated in every field, behind the type and between two modifiers; a line break behind a `,` is not. The same output holds under CRLF line endings and for the RH7101 code fix (FMT-PIPE-029); a line that starts with a declarator or a modifier is a continuation line of its field, one level deeper than the field's first line (FMT-INDENT-034):
+Example — line breaks inside and behind the head are repeated in every field, behind the type and between two modifiers; a line break behind a `,` is not. The same output holds under CRLF line endings and for the RH7101 code fix (FMT-PIPE-029); a line that starts with a declarator is a continuation line of its field, one level deeper than the field's first line (FMT-INDENT-034), and the repeated line break between two modifiers is joined in every field, as in a field written alone (FMT-BREAK-041):
 
 ```csharp
 using System;
@@ -1058,10 +1058,8 @@ class C
     private Dictionary<string, List<int>>
         _map2 = new();
 
-    private static
-        readonly int _g = 1;
-    private static
-        readonly int _h;
+    private static readonly int _g = 1;
+    private static readonly int _h;
 
     [NonSerialized]
     private int _x;
