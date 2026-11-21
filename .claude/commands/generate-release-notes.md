@@ -2,7 +2,9 @@
 
 Write the release notes of one Reihitsu release for the people who use it: users of the `Reihitsu.Analyzer` NuGet package and of the `reihitsu-format` CLI (`Reihitsu.Cli`). **$ARGUMENTS** names the release version and the previous release's tag, release first: `1.5.0 v1.4.0`. A `v` in front of the version is dropped, and a missing `v` in front of the tag is added. If either is missing, ask for it and stop.
 
-Sections 1 and 2 are also the one definition of **what a release ships**: the release check of `/coordinator check` collects and sorts its scope by them, with the end of the range at `origin/main`.
+The notes are written before the release exists: `/bump-version` sets no tag, and publishing the GitHub release on the bump commit creates it. The bump changes nothing a user sees, so the range ends at `origin/main`.
+
+Sections 1 and 2 are also the one definition of **what a release ships**, and sections 2 to 4 the rules for writing its notes: `/coordinator finish` follows them.
 
 The result is one Markdown code block the maintainer pastes into the GitHub release. GitHub's *Generate release notes* button adds the list of pull requests and the *Full Changelog* link afterwards, so the notes contain neither. You write nothing to the repository or to GitHub.
 
@@ -15,13 +17,7 @@ The result is one Markdown code block the maintainer pastes into the GitHub rele
    git fetch --tags origin
    ```
 
-2. Find the end of the range, `<end>`. `/bump-version` sets no tag; the tag is created only when the GitHub release is published, so the range ends at the merged bump commit:
-
-   ```shell
-   git log origin/main --format='%H %s' --grep='^Bump version to <version> (#' -1
-   ```
-
-   When the tag `v<version>` already exists (notes written again after publishing), `<end>` is the tag. When no bump commit for `<version>` is on `main` yet, stop and name `/bump-version <version>` as the missing step.
+2. Find the end of the range, `<end>`: `origin/main`, or the tag `v<version>` when it already exists because the release was published before.
 
 3. Check that the previous tag exists and is an ancestor of `<end>` (`git merge-base --is-ancestor <previous> <end>`). Stop and report if not.
 
@@ -43,9 +39,7 @@ The result is one Markdown code block the maintainer pastes into the GitHub rele
 
    Paths can have moved within the range; compare with `git diff <previous>:<old path> <end>:<new path>` when a directory was moved.
 
-7. When the release was checked with `/coordinator check`, read its report from the `coordinator` branch: `git show origin/coordinator:sdd/work/coordinator/inventory/release-check-<version>.md`. Take from it the release-note lines (new refusals and their remedy, changed defaults) as heads-up candidates; its verdicts and probes are not release notes, and the pull-request list above stays the source of every statement.
-
-8. Read the previous release's notes as the style reference: `curl -sS https://api.github.com/repos/thoenissen/Reihitsu/releases/tags/<previous>`.
+7. Read the previous release's notes as the style reference: `curl -sS https://api.github.com/repos/thoenissen/Reihitsu/releases/tags/<previous>`.
 
 ## 2. Sort
 

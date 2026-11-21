@@ -1,14 +1,13 @@
 # Coordinator
 
-Plan and steer the work of one release milestone of `thoenissen/Reihitsu` at a time: place new issues, hand out squad runs in dependency order, check the release, and move on to the next milestone. **$ARGUMENTS** names the subcommand and its argument:
+Plan and steer the work of one release milestone of `thoenissen/Reihitsu` at a time: place new issues, hand out squad runs in dependency order, and check the release and write its notes, which give the go for the release. **$ARGUMENTS** names the subcommand and its argument:
 
 | Subcommand | What it does |
 |---|---|
 | `start <milestone>` | Makes `<milestone>` (for example `1.6.0`) the active milestone and answers with its first start-now set |
 | `triage` | Places every open issue without a milestone, after the maintainer confirms |
 | `batch` | Re-derives the plan of the active milestone after merges and answers with what to start now |
-| `check` | Runs the read-only release check of the active milestone |
-| `cleanup` | Closes out the released milestone and leaves the state ready for the next `start` |
+| `finish` | Runs the read-only release check; when nothing more enters the release, writes the release notes as the go and closes out the milestone |
 
 Without a subcommand, or with an unknown one, read the state (section 1) and answer with its `Next` line, without changing anything.
 
@@ -29,8 +28,9 @@ Begin every subcommand with:
 ```shell
 git fetch origin main coordinator
 git checkout coordinator          # git checkout -b coordinator origin/main when it does not exist yet
-git merge --no-edit origin/main
 ```
+
+Only `start` merges `origin/main` into the branch (`git merge --no-edit origin/main`): the plan is made at the start, and later subcommands only re-plan small parts. Where they need the current code — a run's real file set, a premise re-check — they read it from `origin/main` (`git show origin/main:<path>`, `git diff`, `git grep … origin/main`) without merging.
 
 Then read `state.md` and `roadmap.md`. When the branch does not exist, only `start` and `triage` may create it; any other subcommand answers that no milestone is active and names `/coordinator start <milestone>`.
 
@@ -38,13 +38,13 @@ End every subcommand by updating `state.md`, committing with a message that ends
 
 ### `state.md` layout
 
-1. **Header** — active milestone, milestone number, branch, roadmap theme; or `Active milestone: none` between `cleanup` and the next `start`.
+1. **Header** — active milestone, milestone number, branch, roadmap theme; or `Active milestone: none` between `finish` and the next `start`.
 2. **Decisions** — one line per maintainer decision: date, issue, decision. Newest first.
 3. **Plan** — the open issues of the milestone; the start-now set; the after-merge list (each run with its predecessors); the runs in progress with their pull requests.
 4. **Status** — one line per step, newest first: `Status <date> (<letter>): …`.
 5. **Next** — the exact next step, so a fresh session continues without asking.
 
-The state file holds state only; the working agreements are the rules of this command (section 7).
+The state file holds state only; the working agreements are the rules of this command (section 6).
 
 ### Reading and writing GitHub
 
@@ -64,7 +64,7 @@ Keep your own context small. Reading many issues, building inventories, dependen
 
 ## 2. `start <milestone>`
 
-1. When `state.md` still names an active milestone that is not `<milestone>`, stop: that milestone is not closed out. Answer with its `Next` line (usually `/coordinator check` or `/coordinator cleanup`). When it already names `<milestone>`, resume: continue with `batch` (section 4).
+1. When `state.md` still names an active milestone that is not `<milestone>`, stop: that milestone is not finished. Answer with its `Next` line. When it already names `<milestone>`, resume: continue with `batch` (section 4).
 2. Resolve `<milestone>` to its number from the open milestones. When it does not exist, ask the maintainer to create it and stop.
 3. Write the header from the milestone and its `roadmap.md` section. Read the milestone's open issues into `Plan`, and carry over the runs `roadmap.md` or the previous milestone's `Next` marked for this milestone (such as a run that waited for the previous release's tag).
 4. Run the planning step of `batch` (section 4, steps 3–5) once, so the first answer is the start-now set.
@@ -76,7 +76,7 @@ Triage every open issue without a milestone. Collect and assess as `/triage` sec
 1. **Read** its body and every comment.
 2. **Question the premise** under *Issue intake* in `AGENTS.md`, and check **reachability** under *Supported inputs*: a case no caller reaches is not a defect, and a rare input class gets a refusal, not machinery.
 3. **Check for duplicates** among open and recently closed issues.
-4. **Place** it under the placement rule (section 7): the active milestone, or the roadmap milestone of its theme. Name the run it joins, or say it is a run of its own, with its predecessors.
+4. **Place** it under the placement rule (section 6): the active milestone, or the roadmap milestone of its theme. Name the run it joins, or say it is a run of its own, with its predecessors.
 
 Then ask the maintainer in **one** numbered message, as *Asking the maintainer* in `AGENTS.md` describes:
 
@@ -93,8 +93,8 @@ Re-derive the plan of the active milestone.
 
 1. Read the pull requests merged into `main` since the last `Status` line, and the milestone's open issues.
 2. Close an issue a merge made obsolete only when the maintainer decided it; otherwise propose the close in the answer.
-3. For every run whose predecessors have now merged, re-check its premise and its real file set against `main` (delegate when more than a few runs are affected).
-4. Rebuild the dependency graph under the run rules (section 7): each run with its predecessors; the **start-now set** is every run whose predecessors have merged and which shares no file with a run in progress or with another run of the set.
+3. For every run whose predecessors have now merged, re-check its premise and its real file set against `origin/main` (delegate when more than a few runs are affected).
+4. Rebuild the dependency graph under the run rules (section 6): each run with its predecessors; the **start-now set** is every run whose predecessors have merged and which shares no file with a run in progress or with another run of the set.
 5. Answer with the start-now set as **one** code block of plain lines, one run per line:
 
    ```text
@@ -104,35 +104,29 @@ Re-derive the plan of the active milestone.
 
    followed by the after-merge list: `after #953 merges → /squad #1566 #1568 #1698 #1567`.
 
-When the milestone has no open issue left and no run in progress, the answer is that the milestone is done, and `Next` is `/coordinator check`. `batch` never starts the release check itself.
+When the milestone has no open issue left and no run in progress, the answer is that the milestone is done, and `Next` is `/coordinator finish`. `batch` never starts the release check itself.
 
-## 5. `check`
+## 5. `finish`
 
-The read-only release check of the active milestone, started only by the maintainer. Its model is the 1.4.0 release check.
+The last step of the coordinator for a milestone, started only by the maintainer, when they consider the milestone done. Its release check follows the model of the 1.4.0 release check. The release notes it writes are the go for the release; the version bump and the release itself are the maintainer's steps outside the coordinator.
 
-1. When the milestone still has open issues or runs in progress, list them and ask whether to check anyway; a check while a run that changes shipped behavior is open is usually wasted.
-2. Delegate the check to one `general-purpose` agent. It works on a detached worktree of `origin/main`, changes and pushes nothing, and writes `inventory/release-check-<milestone>.md`:
-   - **Scope** — what the release ships to a user, collected and sorted by `/generate-release-notes` sections 1 and 2 with the range `<previous tag>..origin/main`; no own definition. The check writes this sorted list, not release notes.
+1. When the milestone still has open issues or runs in progress, list them and ask whether to finish anyway.
+2. **Check.** Delegate the release check to one `general-purpose` agent. It works on a detached worktree of `origin/main`, changes and pushes nothing, records the commit it checked, and writes `inventory/release-check-<milestone>.md`:
+   - **Scope** — what the release ships to a user, collected and sorted by `/generate-release-notes` sections 1 and 2, from the previous release tag to the checked commit; no own definition.
    - **Probes** — small inputs per shipped feature through the built CLI and `scripts/apply-fix.sh`, against the specs: what must be reported, fixed, refused, or left alone, and what ordinary code must not be.
    - **Corpus** — a differential run of the built CLI and the previous release's CLI over shallow clones of real-world C# repositories: refusals, output differences, and idempotency (`--check` after a write run).
-   - **Verdict** per feature: good, gap, or blocker; plus release-note lines (a new refusal and its remedy, a changed default).
-3. Ask the maintainer about every finding in one numbered message: `A` enters this release (a new issue on the milestone, labeled `agent-filed`, a run in `Plan`), `B` goes to the roadmap milestone of its theme, `C` dropped. Only findings of the check may still enter the release.
-4. When findings entered, `Next` is `/coordinator batch`, and `check` is run again after they merge, limited to what they changed. When none did, `Next` names the release steps, which the maintainer runs: `/bump-version <milestone>`; after its merge `/generate-release-notes <milestone> <previous tag>`, which reads the check's release-note lines; publishing the GitHub release with the new tag `v<milestone>` on the merged bump commit, which creates the tag; then `/coordinator cleanup`.
-
-## 6. `cleanup`
-
-Close out the released milestone, so the branch carries only what the next milestone needs.
-
-1. Confirm the release: the tag `v<milestone>` exists, which publishing the GitHub release created. When it does not, stop and name the missing release step.
-2. When the milestone still has open issues, propose for each the roadmap milestone of its theme and ask; move them on the answer.
-3. Ask the maintainer to close the milestone on GitHub; the MCP tools cannot.
-4. Delete `sdd/work/coordinator/inventory/`; the inventories of a released milestone are not read again.
-5. Remove the milestone's section from `roadmap.md`, and add to the next milestone's section any run that waits for this release (`after the v<milestone> tag → /squad #1880`).
-6. Reset `state.md`: header `Active milestone: none`; `Decisions` and `Plan` empty, since every decision lives on its issue; one `Status` line `released v<milestone>, cleaned up`; `Next` `/coordinator start <next roadmap milestone>`.
+   - **Verdict** per feature: good, gap, or blocker; plus heads-up lines for the notes (a new refusal and its remedy, a changed default).
+3. **Findings.** Ask the maintainer about every finding in one numbered message: `A` enters this release (a new issue on the milestone, labeled `agent-filed`, a run in `Plan`), `B` goes to the roadmap milestone of its theme, `C` dropped. Only findings of the check may still enter the release. When one enters, `Next` is `/coordinator batch`, and `finish` runs again after it merges, checking only what changed since the checked commit.
+4. **Notes.** When nothing enters, write the release notes as `/generate-release-notes` sections 2 to 4 describe, from the scope list of the check and its heads-up lines, and save them as `inventory/release-notes-<milestone>.md`. Commit and push, so the check and the notes stay in the branch's history.
+5. **Close out.** In the same subcommand:
+   - delete `sdd/work/coordinator/inventory/`;
+   - remove the milestone's section from `roadmap.md`, and add to the next milestone's section any run that waits for this release (`after the v<milestone> tag → /squad #1880`);
+   - reset `state.md`: header `Active milestone: none`; `Decisions` and `Plan` empty, since every decision lives on its issue; one `Status` line `finished <milestone>, notes given`; `Next`: `/bump-version <milestone>`, merge it, publish the GitHub release with the new tag `v<milestone>` on the bump commit, close the milestone on GitHub, then `/coordinator start <next roadmap milestone>`.
+6. **Answer** with the go: the notes as one fenced `markdown` block, as `/generate-release-notes` section 4 delivers them, followed by the steps of `Next`.
 
 The next milestone starts only with `start`, never on its own.
 
-## 7. Working agreements
+## 6. Working agreements
 
 These are decided; do not reopen them.
 
@@ -152,7 +146,7 @@ These are decided; do not reopen them.
 
 - A new issue joins the active milestone only when that milestone's own features need it to be implemented well — a defect or gap in what it ships — or when it is small and will not trigger further follow-ups. Everything else goes to the roadmap milestone of its theme.
 - A rule that ships with a default limit is tried on this repository's own code before the release.
-- Before a release, the read-only release check (`check`); only its findings may still enter the release.
+- Before a release, the read-only release check (`finish`); only its findings may still enter the release.
 
 ### Questions and decisions
 

@@ -63,12 +63,11 @@ The Release build treats warnings as errors, so every finding the new analyzer r
 
 1. Commit exactly the five files with the subject `Bump version to <version>`.
 2. Push the branch and open a pull request against `main` titled `Bump version to <version>`. Fill the headings of `.github/PULL_REQUEST_TEMPLATE.md`: the *Summary* names the new version and that the binaries the solution analyzes itself with were rebuilt from the current `main`; *Why* is the release; *Linked issues* says none; drop *Review notes* and *Follow-up work* unless there is something to say.
-3. Subscribe to the pull request's activity and end the turn. CI arrives as events; do not poll. When the CI of the final commit is decided, unsubscribe and report the result.
+3. Do not subscribe to the pull request; the maintainer watches its CI.
 
 ## 7. Hand over the release
 
-Report the pull request and its CI result, and end with the maintainer's release steps:
+Report the pull request and end with the maintainer's release steps:
 
-1. Merge the pull request.
-2. `/generate-release-notes <version> <previous tag>` writes the notes; the range ends at the merged bump commit.
-3. Publish the GitHub release with the new tag `v<version>`, targeting the merged bump commit (`Bump version to <version> (#<N>)`), not a later commit of `main`. Publishing creates the tag.
+1. Merge the pull request once its CI passes.
+2. Publish the GitHub release with the new tag `v<version>`, targeting the merged bump commit (`Bump version to <version> (#<N>)`). Publishing creates the tag. The notes come from `/coordinator finish`, or from `/generate-release-notes <version> <previous tag>` for a release without the coordinator.
