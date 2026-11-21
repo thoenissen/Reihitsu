@@ -39,5 +39,5 @@
 ## State
 
 - Audited SHA: d94d4f58d64a9bbcd6420063b24a11a843506146 (auditor 10: pass, text cleanup — doc comment in ChainLineBreakRewriter class summary)
-- Last step: cleaner 08 clean (dd21564a), spec checker 09 consistent (a6e19053), merged origin/main b69a6ae3, Release build green.
-- Next step: cleaner (11) fixes doc comment, verify-text-only vs audited SHA → validator (12) → note, publish.
+- Last step: cleaner 11 comment fix (d40ab838, text-only proof PASS), validator 12 pass (af6d4eef).
+- Next step: issue manager (13) for the qualified-name follow-up → note, delete sdd/work, CI trigger, PR body.
