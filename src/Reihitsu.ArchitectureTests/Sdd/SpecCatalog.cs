@@ -163,49 +163,7 @@ internal static class SpecCatalog
 
         foreach (var specFile in EnumerateSpecFiles(specsDirectory))
         {
-            var specPath = Path.GetRelativePath(specsDirectory, specFile).Replace('\\', '/');
-            var isInFence = false;
-            var lineNumber = 0;
-            SpecRequirement current = null;
-
-            foreach (var line in File.ReadLines(specFile))
-            {
-                lineNumber++;
-
-                if (line.TrimStart().StartsWith("```", StringComparison.Ordinal))
-                {
-                    isInFence = isInFence == false;
-
-                    continue;
-                }
-
-                if (isInFence)
-                {
-                    continue;
-                }
-
-                if (line.StartsWith("#", StringComparison.Ordinal))
-                {
-                    current = null;
-                }
-
-                var heading = _requirementHeadingPattern.Match(line);
-
-                if (heading.Success)
-                {
-                    current = new SpecRequirement(specPath, lineNumber, heading.Groups["id"].Value, false);
-                    requirements.Add(current);
-                }
-                else if (current != null
-                         && _retiredStatusPattern.IsMatch(line))
-                {
-                    current = current with
-                                      {
-                                          IsRetired = true
-                                      };
-                    requirements[^1] = current;
-                }
-            }
+            AddRequirements(Path.GetRelativePath(specsDirectory, specFile).Replace('\\', '/'), specFile, requirements);
         }
 
         return requirements;
@@ -259,46 +217,7 @@ internal static class SpecCatalog
 
         foreach (var specFile in EnumerateSpecFiles(specsDirectory))
         {
-            var ids = new HashSet<string>(StringComparer.Ordinal);
-            var isInHeaderTable = false;
-            var hasPassedHeaderTable = false;
-            var isInNonGoals = false;
-
-            foreach (var line in File.ReadLines(specFile))
-            {
-                if (hasPassedHeaderTable == false)
-                {
-                    if (line.StartsWith('|'))
-                    {
-                        isInHeaderTable = true;
-
-                        continue;
-                    }
-
-                    if (isInHeaderTable)
-                    {
-                        hasPassedHeaderTable = true;
-                    }
-                }
-
-                if (line.StartsWith("## ", StringComparison.Ordinal))
-                {
-                    hasPassedHeaderTable = true;
-                    isInNonGoals = line.TrimEnd() == NonGoalsHeading;
-                }
-
-                if (isInNonGoals)
-                {
-                    continue;
-                }
-
-                foreach (Match match in _requirementIdPattern.Matches(line))
-                {
-                    ids.Add(match.Groups["id"].Value);
-                }
-            }
-
-            mentions.Add(GetSpecPath(specsDirectory, specFile), ids);
+            mentions.Add(GetSpecPath(specsDirectory, specFile), ReadMentionedRequirementIdsOfSpec(specFile));
         }
 
         return mentions;
@@ -415,6 +334,106 @@ internal static class SpecCatalog
     public static string GetTypeKey(string name, int arity)
     {
         return arity == 0 ? name : $"{name}`{arity}";
+    }
+
+    /// <summary>
+    /// Adds the requirement headings of one spec, skipping fenced code blocks. A requirement is retired when a
+    /// <c>Status: Retired</c> line follows its heading before the next heading
+    /// </summary>
+    /// <param name="specPath">Path of the spec relative to the <c>sdd/specs</c> directory</param>
+    /// <param name="specFile">Full path of the spec file</param>
+    /// <param name="requirements">The requirement headings read so far</param>
+    private static void AddRequirements(string specPath, string specFile, List<SpecRequirement> requirements)
+    {
+        var isInFence = false;
+        var lineNumber = 0;
+        SpecRequirement current = null;
+
+        foreach (var line in File.ReadLines(specFile))
+        {
+            lineNumber++;
+
+            if (line.TrimStart().StartsWith("```", StringComparison.Ordinal))
+            {
+                isInFence = isInFence == false;
+
+                continue;
+            }
+
+            if (isInFence)
+            {
+                continue;
+            }
+
+            if (line.StartsWith("#", StringComparison.Ordinal))
+            {
+                current = null;
+            }
+
+            var heading = _requirementHeadingPattern.Match(line);
+
+            if (heading.Success)
+            {
+                current = new SpecRequirement(specPath, lineNumber, heading.Groups["id"].Value, false);
+                requirements.Add(current);
+            }
+            else if (current != null
+                     && _retiredStatusPattern.IsMatch(line))
+            {
+                current = current with
+                                  {
+                                      IsRetired = true
+                                  };
+                requirements[^1] = current;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads every requirement ID one spec mentions outside its header table and its <c>Non-goals</c> section,
+    /// including the IDs of its own requirements
+    /// </summary>
+    /// <param name="specFile">Full path of the spec file</param>
+    /// <returns>The mentioned IDs</returns>
+    private static HashSet<string> ReadMentionedRequirementIdsOfSpec(string specFile)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        var isInHeaderTable = false;
+        var hasPassedHeaderTable = false;
+        var isInNonGoals = false;
+
+        foreach (var line in File.ReadLines(specFile))
+        {
+            if (hasPassedHeaderTable == false)
+            {
+                if (line.StartsWith('|'))
+                {
+                    isInHeaderTable = true;
+
+                    continue;
+                }
+
+                hasPassedHeaderTable = isInHeaderTable;
+            }
+
+            if (line.StartsWith("## ", StringComparison.Ordinal))
+            {
+                hasPassedHeaderTable = true;
+                isInNonGoals = line.TrimEnd() == NonGoalsHeading;
+            }
+
+            if (isInNonGoals)
+            {
+                continue;
+            }
+
+            foreach (Match match in _requirementIdPattern.Matches(line))
+            {
+                ids.Add(match.Groups["id"].Value);
+            }
+        }
+
+        return ids;
     }
 
     /// <summary>

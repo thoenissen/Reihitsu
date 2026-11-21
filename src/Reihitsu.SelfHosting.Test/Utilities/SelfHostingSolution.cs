@@ -376,32 +376,37 @@ internal sealed class SelfHostingSolution
                     continue;
                 }
 
-                foreach (var compileAsset in compileAssets.EnumerateObject())
-                {
-                    var compileAssetPath = compileAsset.Name.Replace('/', Path.DirectorySeparatorChar);
+                AddCompileAssets(referencePaths, packageFolderPaths, packagePath, compileAssets);
+            }
+        }
+    }
 
-                    if (string.Equals(Path.GetFileName(compileAssetPath), "_._", StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
+    /// <summary>
+    /// Adds the compile assets of one package, each from the first package folder that holds it, unless the reference
+    /// set already contains an assembly with the same simple name
+    /// </summary>
+    /// <param name="referencePaths">Reference paths</param>
+    /// <param name="packageFolderPaths">Package folders, in the order they are searched</param>
+    /// <param name="packagePath">Path of the package inside a package folder</param>
+    /// <param name="compileAssets">The <c>compile</c> element of the package in the assets target</param>
+    private static void AddCompileAssets(HashSet<string> referencePaths, string[] packageFolderPaths, string packagePath, JsonElement compileAssets)
+    {
+        foreach (var compileAsset in compileAssets.EnumerateObject())
+        {
+            var compileAssetPath = compileAsset.Name.Replace('/', Path.DirectorySeparatorChar);
 
-                    foreach (var packageFolderPath in packageFolderPaths)
-                    {
-                        var fullPath = Path.Combine(packageFolderPath, packagePath, compileAssetPath);
+            if (string.Equals(Path.GetFileName(compileAssetPath), "_._", StringComparison.Ordinal))
+            {
+                continue;
+            }
 
-                        if (File.Exists(fullPath))
-                        {
-                            if (ContainsReferenceAssembly(referencePaths, fullPath))
-                            {
-                                break;
-                            }
+            var fullPath = packageFolderPaths.Select(packageFolderPath => Path.Combine(packageFolderPath, packagePath, compileAssetPath))
+                                             .FirstOrDefault(File.Exists);
 
-                            referencePaths.Add(fullPath);
-
-                            break;
-                        }
-                    }
-                }
+            if (fullPath != null
+                && ContainsReferenceAssembly(referencePaths, fullPath) == false)
+            {
+                referencePaths.Add(fullPath);
             }
         }
     }

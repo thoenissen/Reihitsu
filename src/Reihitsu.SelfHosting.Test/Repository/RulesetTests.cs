@@ -112,12 +112,13 @@ public sealed class RulesetTests
     }
 
     /// <summary>
-    /// Verifies that the Release ruleset sets the action of the line-count rules RH2008 and RH2111 and of the
-    /// shipped rules it once had no entry for to error, like every other rule it enables
+    /// Verifies that the Release ruleset sets the action of the line-count rules RH2008 and RH2111, of the complexity
+    /// rule RH2009, and of the shipped rules it once had no entry for to error, like every other rule it enables
     /// </summary>
     /// <param name="ruleId">Rule ID</param>
     [TestMethod]
     [DataRow("RH2008")]
+    [DataRow("RH2009")]
     [DataRow("RH2111")]
     [DataRow("RH5113")]
     [DataRow("RH5308")]
@@ -143,20 +144,6 @@ public sealed class RulesetTests
     }
 
     /// <summary>
-    /// Verifies that the Release ruleset switches the complexity rule RH2009 off, so the repository's own build does not
-    /// judge its code by it while the self-hosting scan ignores it
-    /// </summary>
-    [TestMethod]
-    public void ReleaseRulesetSwitchesOffComplexityRule()
-    {
-        // Act
-        var entries = LoadReihitsuEntries(ReleaseRuleset);
-
-        // Assert
-        Assert.AreEqual("None", entries.GetValueOrDefault("RH2009"), $"Action of RH2009 in {ReleaseRuleset}");
-    }
-
-    /// <summary>
     /// Verifies that the Debug ruleset, which lists Reihitsu rules only to switch them off, leaves the line-count rules
     /// RH2008 and RH2111 on
     /// </summary>
@@ -171,6 +158,20 @@ public sealed class RulesetTests
 
         // Assert
         Assert.IsFalse(entries.ContainsKey(ruleId), $"{DebugRuleset} lists {ruleId} with the action {entries.GetValueOrDefault(ruleId)}.");
+    }
+
+    /// <summary>
+    /// Verifies that the Debug ruleset, which lists Reihitsu rules only to switch them off, leaves the complexity rule
+    /// RH2009 on, so a Debug build reports it at its shipped severity
+    /// </summary>
+    [TestMethod]
+    public void DebugRulesetHasNoEntryForComplexityRule()
+    {
+        // Act
+        var entries = LoadReihitsuEntries(DebugRuleset);
+
+        // Assert
+        Assert.IsFalse(entries.ContainsKey("RH2009"), $"{DebugRuleset} lists RH2009 with the action {entries.GetValueOrDefault("RH2009")}.");
     }
 
     /// <summary>

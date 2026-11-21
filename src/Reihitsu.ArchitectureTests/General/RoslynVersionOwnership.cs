@@ -121,27 +121,41 @@ internal static class RoslynVersionOwnership
                 continue;
             }
 
-            var document = XDocument.Load(path, LoadOptions.SetLineInfo);
-
-            foreach (var element in document.Descendants())
-            {
-                if (_packageItemTypes.Any(itemType => IsNamed(element, itemType)))
-                {
-                    CheckPackageItem(file, element, items, violations);
-                }
-                else if (IsNamed(element, VersionPropertyName)
-                         && element.Parent != null
-                         && IsNamed(element.Parent, "PropertyGroup"))
-                {
-                    definitions.Add((string.Equals(Path.GetFullPath(path), rootProps, StringComparison.Ordinal) ? null : file, element));
-                }
-            }
+            ReadBuildFile(path, string.Equals(Path.GetFullPath(path), rootProps, StringComparison.Ordinal) ? null : file, file, items, violations, definitions);
         }
 
         CheckDefinitions(definitions, violations);
         CheckPackageDirectives(definitions, directives, violations);
 
         return (items, violations);
+    }
+
+    /// <summary>
+    /// Reads a build file, checks every Roslyn package item it holds, and records every definition of the version property in a property group
+    /// </summary>
+    /// <param name="path">Full path of the build file</param>
+    /// <param name="definitionFile">Relative path recorded with a definition of the property; <see langword="null"/> for the root <c>Directory.Build.props</c></param>
+    /// <param name="file">Relative path of the build file</param>
+    /// <param name="items">Roslyn package items read so far</param>
+    /// <param name="violations">Violations found so far</param>
+    /// <param name="definitions">Definitions of the version property read so far</param>
+    private static void ReadBuildFile(string path, string definitionFile, string file, List<(string File, string Package)> items, List<string> violations, List<(string File, XElement Property)> definitions)
+    {
+        var document = XDocument.Load(path, LoadOptions.SetLineInfo);
+
+        foreach (var element in document.Descendants())
+        {
+            if (_packageItemTypes.Any(itemType => IsNamed(element, itemType)))
+            {
+                CheckPackageItem(file, element, items, violations);
+            }
+            else if (IsNamed(element, VersionPropertyName)
+                     && element.Parent != null
+                     && IsNamed(element.Parent, "PropertyGroup"))
+            {
+                definitions.Add((definitionFile, element));
+            }
+        }
     }
 
     /// <summary>

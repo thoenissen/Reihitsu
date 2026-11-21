@@ -1,6 +1,10 @@
 # Generate Release Notes
 
-Write the release notes of one Reihitsu release for the people who use it: users of the `Reihitsu.Analyzer` NuGet package and of the `reihitsu-format` CLI (`Reihitsu.Cli`). **$ARGUMENTS** names the release and its predecessor as git tags, release first: `v1.2.0 v1.1.0`. A missing `v` prefix is added. If either is missing, ask for it and stop.
+Write the release notes of one Reihitsu release for the people who use it: users of the `Reihitsu.Analyzer` NuGet package and of the `reihitsu-format` CLI (`Reihitsu.Cli`). **$ARGUMENTS** names the release version and the previous release's tag, release first: `1.5.0 v1.4.0`. A `v` in front of the version is dropped, and a missing `v` in front of the tag is added. If either is missing, ask for it and stop.
+
+The notes are written before the release exists: `/bump-version` sets no tag, and publishing the GitHub release on the bump commit creates it. The bump changes nothing a user sees, so the range ends at `origin/main`.
+
+Sections 1 and 2 are also the one definition of **what a release ships**, and sections 2 to 4 the rules for writing its notes: `/coordinator finish` follows them.
 
 The result is one Markdown code block the maintainer pastes into the GitHub release. GitHub's *Generate release notes* button adds the list of pull requests and the *Full Changelog* link afterwards, so the notes contain neither. You write nothing to the repository or to GitHub.
 
@@ -13,27 +17,29 @@ The result is one Markdown code block the maintainer pastes into the GitHub rele
    git fetch --tags origin
    ```
 
-2. Check that both tags exist and that the predecessor is an ancestor of the release (`git merge-base --is-ancestor <previous> <release>`). Stop and report if not.
+2. Find the end of the range, `<end>`: `origin/main`, or the tag `v<version>` when it already exists because the release was published before.
 
-3. List the pull requests of the range. Every commit on `main` is a squash merge whose subject ends in `(#<N>)`:
+3. Check that the previous tag exists and is an ancestor of `<end>` (`git merge-base --is-ancestor <previous> <end>`). Stop and report if not.
+
+4. List the pull requests of the range. Every commit on `main` is a squash merge whose subject ends in `(#<N>)`:
 
    ```shell
-   git log --format='%h %an %s' <previous>..<release>
+   git log --format='%h %an %s' <previous>..<end>
    ```
 
-   Drop dependency bumps (author `dependabot[bot]`, subject `Bump …`) unless they change a dependency of a shipped project (step 5).
+   Drop dependency bumps (author `dependabot[bot]`, subject `Bump …`) unless they change a dependency of a shipped project (step 6), and the version bump itself.
 
-4. Read the description of every remaining pull request, through the GitHub MCP server (`pull_request_read`) or the public API (`curl -sS https://api.github.com/repos/thoenissen/Reihitsu/pulls/<N>`). The `Summary` section says what changes for a user; the `Review notes` say where the result differs from the issue. Ignore run reports, role tables, and lane checks.
+5. Read the description of every remaining pull request, through the GitHub MCP server (`pull_request_read`) or the public API (`curl -sS https://api.github.com/repos/thoenissen/Reihitsu/pulls/<N>`). The `Summary` section says what changes for a user; the `Review notes` say where the result differs from the issue. Ignore run reports, role tables, and lane checks.
 
-5. Check the facts the descriptions may not state, from the diff of the two tags:
-   - new, removed, or renamed rules: `git diff --name-status <previous> <release> -- documentation/rules`, titles from the first line of each rule page;
+6. Check the facts the descriptions may not state, from the diff of the range:
+   - new, removed, or renamed rules: `git diff --name-status <previous> <end> -- documentation/rules`, titles from the first line of each rule page;
    - a rule's code-fix and formatter coverage: the rule table in `src/Reihitsu.Analyzer.Package/README.MD`;
    - CLI options and behavior: `src/Reihitsu.Cli` and `src/Reihitsu.Cli/README.MD`;
    - dependencies and target frameworks of the shipped projects: the `.csproj` files of `Reihitsu.Analyzer`, `Reihitsu.Analyzer.CodeFixes`, `Reihitsu.Formatter`, `Reihitsu.Core`, and `Reihitsu.Cli`. A raised minimum Roslyn or .NET version is a heads-up.
 
-   Paths can have moved between the tags; compare with `git diff <previous>:<old path> <release>:<new path>` when a directory was moved.
+   Paths can have moved within the range; compare with `git diff <previous>:<old path> <end>:<new path>` when a directory was moved.
 
-6. Read the previous release's notes as the style reference: `curl -sS https://api.github.com/repos/thoenissen/Reihitsu/releases/tags/<previous>`.
+7. Read the previous release's notes as the style reference: `curl -sS https://api.github.com/repos/thoenissen/Reihitsu/releases/tags/<previous>`.
 
 ## 2. Sort
 

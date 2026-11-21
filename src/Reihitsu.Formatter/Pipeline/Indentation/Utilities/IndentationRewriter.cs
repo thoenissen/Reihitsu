@@ -93,20 +93,7 @@ internal static class IndentationRewriter
                 && lineStarts.IsLineStart(triviaItem.FullSpan.Start, out var lineNumber))
             {
                 placesLine = true;
-
-                if (WriteLineStart(result, pendingWhitespace, lineNumber, model, placedColumns, IsNonRegionDirectiveTrivia(triviaItem)) is { } column
-                    && triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                {
-                    triviaItem = DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, column);
-
-                    // The later lines of the comment take the column of its first line, before the move as after it
-                    var lastLine = lineStarts.GetLine(trivia[triviaIndex].Span.End - 1);
-
-                    for (var continuationLine = lineNumber + 1; continuationLine <= lastLine; continuationLine++)
-                    {
-                        placedColumns[continuationLine] = column;
-                    }
-                }
+                triviaItem = WriteTriviaLineStart(result, pendingWhitespace, triviaItem, lineNumber, lineStarts, model, placedColumns);
             }
             else
             {
@@ -141,6 +128,37 @@ internal static class IndentationRewriter
         return placesLine
                    ? token.WithLeadingTrivia(SyntaxFactory.TriviaList(result))
                    : token;
+    }
+
+    /// <summary>
+    /// Writes the start of a line whose text starts at a trivia element, as <see cref="WriteLineStart"/> describes. When the
+    /// element is a <c>///</c> comment on a line with a layout, its later exterior markers are aligned under its first one,
+    /// and its later lines take the column of its first line, before the move as after it
+    /// </summary>
+    /// <param name="result">The rebuilt trivia list</param>
+    /// <param name="whitespace">The whitespace in front of the element</param>
+    /// <param name="triviaItem">The trivia element the line starts at, as in the input tree</param>
+    /// <param name="lineNumber">The 0-based line the element starts</param>
+    /// <param name="lineStarts">The line starts of the tree</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="placedColumns">Receives the column before the move of the line, and of every later line of a placed <c>///</c> comment</param>
+    /// <returns>The trivia element to write at the start of the line</returns>
+    private static SyntaxTrivia WriteTriviaLineStart(List<SyntaxTrivia> result, List<SyntaxTrivia> whitespace, SyntaxTrivia triviaItem, int lineNumber, LineStartIndex lineStarts, LayoutModel model, Dictionary<int, int> placedColumns)
+    {
+        if (WriteLineStart(result, whitespace, lineNumber, model, placedColumns, IsNonRegionDirectiveTrivia(triviaItem)) is not { } column
+            || triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
+        {
+            return triviaItem;
+        }
+
+        var lastLine = lineStarts.GetLine(triviaItem.Span.End - 1);
+
+        for (var continuationLine = lineNumber + 1; continuationLine <= lastLine; continuationLine++)
+        {
+            placedColumns[continuationLine] = column;
+        }
+
+        return DocumentationCommentUtilities.AlignContinuationExteriorMarkers(triviaItem, column);
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -111,68 +112,87 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : ReihitsuCodeFixProvid
     /// </remarks>
     private static IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
-        var replaced = false;
-        var isLineBreakPending = false;
-        var commentIndentation = default(SyntaxTrivia);
-        var previousTrivia = default(SyntaxTrivia);
+        // Only the flagged (first) documentation comment is replaced. Replacing every documentation comment would
+        // emit multiple <inheritdoc/> lines when a member carries more than one documentation comment
+        var commentIndex = FindFirstDocumentationComment(triviaList);
 
-        foreach (var trivia in triviaList)
+        if (commentIndex < 0)
         {
-            if (isLineBreakPending)
-            {
-                // Whitespace between the replaced comment and its line break is dropped along with the line break
-                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                {
-                    continue;
-                }
-
-                isLineBreakPending = false;
-
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    continue;
-                }
-
-                // An ordinary comment followed the */ on its line. The <inheritdoc/> line ends with a line break, so the
-                // comment starts the next line in the column the replaced comment started in
-                if (commentIndentation.IsKind(SyntaxKind.WhitespaceTrivia))
-                {
-                    yield return commentIndentation;
-                }
-            }
-
-            // Only the flagged (first) documentation comment is replaced. Replacing every documentation comment would
-            // emit multiple <inheritdoc/> lines when a member carries more than one documentation comment
-            if (replaced == false
-                && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia))
-            {
-                replaced = true;
-
-                // A /** ... */ comment does not carry its own line break, while the synthesized <inheritdoc/> trivia
-                // does. The line break that terminated the replaced comment is therefore dropped so the fix does not
-                // introduce a blank line before the member
-                isLineBreakPending = trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-                commentIndentation = previousTrivia;
-
-                yield return CreateInheritdocTrivia(endOfLine);
-
-                previousTrivia = trivia;
-
-                continue;
-            }
-
-            previousTrivia = trivia;
-
-            yield return trivia;
+            return triviaList;
         }
 
-        // The member's first token followed the */ on its line, so it starts the line after <inheritdoc/>, in the column
-        // the replaced comment started in
-        if (isLineBreakPending
-            && commentIndentation.IsKind(SyntaxKind.WhitespaceTrivia))
+        var result = new List<SyntaxTrivia>(triviaList.Count + 1);
+
+        result.AddRange(triviaList.Take(commentIndex));
+        result.Add(CreateInheritdocTrivia(endOfLine));
+
+        var restIndex = commentIndex + 1;
+
+        // A /** ... */ comment does not carry its own line break, while the synthesized <inheritdoc/> trivia
+        // does. The line break that terminated the replaced comment is therefore dropped so the fix does not
+        // introduce a blank line before the member
+        if (triviaList[commentIndex].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
         {
-            yield return commentIndentation;
+            var commentIndentation = commentIndex > 0 ? triviaList[commentIndex - 1] : default;
+
+            restIndex = DropLineBreakBehindComment(triviaList, restIndex, commentIndentation, result);
         }
+
+        result.AddRange(triviaList.Skip(restIndex));
+
+        return result;
+    }
+
+    /// <summary>
+    /// Finds the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> or
+    /// <see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/> in a trivia list
+    /// </summary>
+    /// <param name="triviaList">List of trivia elements</param>
+    /// <returns>The index of the documentation comment, or <c>-1</c> when the list holds none</returns>
+    private static int FindFirstDocumentationComment(SyntaxTriviaList triviaList)
+    {
+        for (var index = 0; index < triviaList.Count; index++)
+        {
+            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(triviaList[index]))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Drops the line break that ends the line of a replaced <c>/** ... */</c> comment, together with the whitespace in
+    /// front of it. When an ordinary comment or the member's first token followed the <c>*/</c> on its line, there is no
+    /// such line break: the <c>&lt;inheritdoc/&gt;</c> line ends with a line break, so what followed starts the next line,
+    /// in the column the replaced comment started in
+    /// </summary>
+    /// <param name="triviaList">List of trivia elements</param>
+    /// <param name="index">Index of the trivia behind the replaced comment</param>
+    /// <param name="commentIndentation">The trivia in front of the replaced comment, its indentation when it is whitespace</param>
+    /// <param name="result">Receives the indentation of the next line, when one is written</param>
+    /// <returns>The index of the first trivia that is kept as written</returns>
+    private static int DropLineBreakBehindComment(SyntaxTriviaList triviaList, int index, SyntaxTrivia commentIndentation, List<SyntaxTrivia> result)
+    {
+        while (index < triviaList.Count
+               && triviaList[index].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            index++;
+        }
+
+        if (index < triviaList.Count
+            && triviaList[index].IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            return index + 1;
+        }
+
+        if (commentIndentation.IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            result.Add(commentIndentation);
+        }
+
+        return index;
     }
 
     /// <summary>

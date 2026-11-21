@@ -120,41 +120,8 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
         }
 
         var closeBracket = attributeList.CloseBracketToken;
-        var updatedCloseBracket = closeBracket;
-
-        if (placementMode == TargetAttributePlacementMode.SeparateLine)
-        {
-            var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-            var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
-
-            // The indentation of the inserted line is normally the declaration's nesting depth, which is
-            // canonical: it self-corrects a stray extra space or tab on the attribute list's own line instead of
-            // propagating it. That canonical value does not exist when an object initializer or anonymous object
-            // sits between the declaration and its nearest brace scope, because neither is a level -
-            // SyntaxIndentationUtilities' nesting-depth model has no way to turn "one more initializer" into the
-            // anchor-derived column the formatter's own alignment contributors would place it at. In
-            // that situation there is nothing to compute from, so the declaration's own first token - the
-            // earliest attribute list already on it, or this list itself when it is the first one - is read
-            // directly from the current source text instead, which also keeps a Fix All pass over several
-            // attribute lists sharing one line correct, since every split member still aligns to the same first
-            // token regardless of which list is being split
-            var indentColumn = SyntaxIndentationUtilities.HasAnchorScopeAncestor(attributeList)
-                                   ? SyntaxTokenPositionUtilities.GetColumn(attributeList.Parent.GetFirstToken())
-                                   : SyntaxIndentationUtilities.ComputeBaseIndentLevel(attributeList) * SyntaxIndentationUtilities.IndentSize;
-
-            if (indentColumn > 0)
-            {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', indentColumn)));
-            }
-
-            updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
-        }
-        else
-        {
-            updatedCloseBracket = closeBracket.WithTrailingTrivia(SyntaxFactory.Space);
-        }
-
-        updatedCloseBracket = updatedCloseBracket.WithAdditionalAnnotations(listAnnotation);
+        var updatedCloseBracket = closeBracket.WithTrailingTrivia(CreateCloseBracketTrailingTrivia(root, attributeList, placementMode))
+                                              .WithAdditionalAnnotations(listAnnotation);
 
         var updatedTokenAfter = tokenAfter.WithLeadingTrivia(SyntaxFactory.TriviaList());
         var openBracket = attributeList.OpenBracketToken;
@@ -190,6 +157,47 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
     }
 
     /// <summary>
+    /// Creates the trailing trivia of the placed list's closing bracket: a line break and the indentation of the
+    /// declaration for a separate line, or one space for the line of the token behind the list
+    /// </summary>
+    /// <param name="root">Syntax root of the document</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <param name="placementMode">Placement mode</param>
+    /// <returns>The trailing trivia of the closing bracket</returns>
+    private static SyntaxTriviaList CreateCloseBracketTrailingTrivia(SyntaxNode root, AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode)
+    {
+        if (placementMode != TargetAttributePlacementMode.SeparateLine)
+        {
+            return SyntaxFactory.TriviaList(SyntaxFactory.Space);
+        }
+
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
+
+        // The indentation of the inserted line is normally the declaration's nesting depth, which is
+        // canonical: it self-corrects a stray extra space or tab on the attribute list's own line instead of
+        // propagating it. That canonical value does not exist when an object initializer or anonymous object
+        // sits between the declaration and its nearest brace scope, because neither is a level -
+        // SyntaxIndentationUtilities' nesting-depth model has no way to turn "one more initializer" into the
+        // anchor-derived column the formatter's own alignment contributors would place it at. In
+        // that situation there is nothing to compute from, so the declaration's own first token - the
+        // earliest attribute list already on it, or this list itself when it is the first one - is read
+        // directly from the current source text instead, which also keeps a Fix All pass over several
+        // attribute lists sharing one line correct, since every split member still aligns to the same first
+        // token regardless of which list is being split
+        var indentColumn = SyntaxIndentationUtilities.HasAnchorScopeAncestor(attributeList)
+                               ? SyntaxTokenPositionUtilities.GetColumn(attributeList.Parent.GetFirstToken())
+                               : SyntaxIndentationUtilities.ComputeBaseIndentLevel(attributeList) * SyntaxIndentationUtilities.IndentSize;
+
+        if (indentColumn > 0)
+        {
+            trailingTrivia = trailingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', indentColumn)));
+        }
+
+        return trailingTrivia;
+    }
+
+    /// <summary>
     /// Determines whether an enclosing scope owns a brace the parser could not find. Such a scope silently drops
     /// out of <see cref="SyntaxIndentationUtilities.ComputeBaseIndentLevel"/>'s count instead of raising an error,
     /// which would understate the level-fallback indentation on exactly the transient, mid-edit documents where an
@@ -211,18 +219,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
 
         for (var ancestor = attributeList.Parent; ancestor != null; ancestor = ancestor.Parent)
         {
-            var braces = ancestor switch
-                         {
-                             BlockSyntax block => (Open: block.OpenBraceToken, Close: block.CloseBraceToken),
-                             TypeDeclarationSyntax typeDeclaration => (typeDeclaration.OpenBraceToken, typeDeclaration.CloseBraceToken),
-                             NamespaceDeclarationSyntax namespaceDeclaration => (namespaceDeclaration.OpenBraceToken, namespaceDeclaration.CloseBraceToken),
-                             EnumDeclarationSyntax enumDeclaration => (enumDeclaration.OpenBraceToken, enumDeclaration.CloseBraceToken),
-                             SwitchStatementSyntax switchStatement => (switchStatement.OpenBraceToken, switchStatement.CloseBraceToken),
-                             AccessorListSyntax accessorList => (accessorList.OpenBraceToken, accessorList.CloseBraceToken),
-                             InitializerExpressionSyntax initializer => (initializer.OpenBraceToken, initializer.CloseBraceToken),
-                             AnonymousObjectCreationExpressionSyntax anonymousObject => (anonymousObject.OpenBraceToken, anonymousObject.CloseBraceToken),
-                             _ => default((SyntaxToken Open, SyntaxToken Close)?)
-                         };
+            var braces = GetScopeBraces(ancestor);
 
             // A type declared with a semicolon has no braces and encloses nothing
             if (braces is { Open.RawKind: (int)SyntaxKind.None })
@@ -239,11 +236,9 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
                 && braces is { } found
                 && found.Open.SpanStart < attributeList.SpanStart)
             {
-                var line = found.Open.SyntaxTree.GetText().Lines.GetLineFromPosition(found.Open.SpanStart).ToString();
-
                 checksColumn = false;
 
-                if (FormattingTextAnalysisUtilities.GetLeadingWhitespace(line).Sum(obj => obj == '\t' ? SyntaxIndentationUtilities.IndentSize : 1) != SyntaxIndentationUtilities.ComputeBaseIndentLevel(ancestor) * SyntaxIndentationUtilities.IndentSize)
+                if (IsOffItsDepthColumn(found.Open, ancestor))
                 {
                     return true;
                 }
@@ -251,6 +246,42 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Gets the braces of a scope that <see cref="HasUnusableEnclosingScope"/> counts. Its node-kind set mirrors
+    /// <see cref="SyntaxIndentationUtilities"/>'s internal <c>IsIndentingAncestor</c> brace kinds
+    /// </summary>
+    /// <param name="ancestor">Enclosing node</param>
+    /// <returns>The braces of the scope, or <see langword="null"/> when the node is no such scope</returns>
+    private static (SyntaxToken Open, SyntaxToken Close)? GetScopeBraces(SyntaxNode ancestor)
+    {
+        return ancestor switch
+               {
+                   BlockSyntax block => (Open: block.OpenBraceToken, Close: block.CloseBraceToken),
+                   TypeDeclarationSyntax typeDeclaration => (typeDeclaration.OpenBraceToken, typeDeclaration.CloseBraceToken),
+                   NamespaceDeclarationSyntax namespaceDeclaration => (namespaceDeclaration.OpenBraceToken, namespaceDeclaration.CloseBraceToken),
+                   EnumDeclarationSyntax enumDeclaration => (enumDeclaration.OpenBraceToken, enumDeclaration.CloseBraceToken),
+                   SwitchStatementSyntax switchStatement => (switchStatement.OpenBraceToken, switchStatement.CloseBraceToken),
+                   AccessorListSyntax accessorList => (accessorList.OpenBraceToken, accessorList.CloseBraceToken),
+                   InitializerExpressionSyntax initializer => (initializer.OpenBraceToken, initializer.CloseBraceToken),
+                   AnonymousObjectCreationExpressionSyntax anonymousObject => (anonymousObject.OpenBraceToken, anonymousObject.CloseBraceToken),
+                   _ => default((SyntaxToken Open, SyntaxToken Close)?)
+               };
+    }
+
+    /// <summary>
+    /// Determines whether the line of a scope's opening brace is not indented four spaces per enclosing scope, a tab
+    /// counted as four spaces
+    /// </summary>
+    /// <param name="openBrace">Opening brace of the scope</param>
+    /// <param name="scope">The scope</param>
+    /// <returns><see langword="true"/> when the brace's line is not indented by the scope's nesting depth</returns>
+    private static bool IsOffItsDepthColumn(SyntaxToken openBrace, SyntaxNode scope)
+    {
+        var line = openBrace.SyntaxTree.GetText().Lines.GetLineFromPosition(openBrace.SpanStart).ToString();
+
+        return FormattingTextAnalysisUtilities.GetLeadingWhitespace(line).Sum(obj => obj == '\t' ? SyntaxIndentationUtilities.IndentSize : 1) != SyntaxIndentationUtilities.ComputeBaseIndentLevel(scope) * SyntaxIndentationUtilities.IndentSize;
     }
 
     /// <summary>

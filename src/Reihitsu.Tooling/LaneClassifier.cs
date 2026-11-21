@@ -1,4 +1,4 @@
-using Reihitsu.Tooling.Enumerations;
+﻿using Reihitsu.Tooling.Enumerations;
 
 namespace Reihitsu.Tooling;
 
@@ -109,55 +109,15 @@ public static class LaneClassifier
 
         if (categories.Contains(PathCategory.Production))
         {
-            if (categories.Contains(PathCategory.Tooling) && hasChangeDoc == false)
-            {
-                reason = "production and tooling paths without a change doc fit neither the bug-fix nor the behavior-change lane";
-
-                return false;
-            }
-
-            lane = hasChangeDoc ? Lane.BehaviorChange : Lane.BugFix;
-
-            return true;
+            return TryGetProductionLane(categories, hasChangeDoc, out lane, out reason);
         }
 
         if (categories.Contains(PathCategory.Tooling))
         {
-            if (hasWording)
-            {
-                if (hasChangeDoc == false)
-                {
-                    reason = "wording and tooling paths without a change doc fit neither the tooling nor the behavior-change lane";
+            return TryGetToolingLane(hasWording, hasChangeDoc, out lane, out reason);
+        }
 
-                    return false;
-                }
-
-                lane = Lane.BehaviorChange;
-            }
-            else
-            {
-                lane = Lane.Tooling;
-            }
-        }
-        else if (hasWording)
-        {
-            if (categories.Contains(PathCategory.Test))
-            {
-                lane = hasChangeDoc ? Lane.BehaviorChange : Lane.Tests;
-            }
-            else
-            {
-                lane = Lane.Wording;
-            }
-        }
-        else if (hasChangeDoc)
-        {
-            lane = Lane.BehaviorChange;
-        }
-        else if (categories.Contains(PathCategory.Test))
-        {
-            lane = Lane.Tests;
-        }
+        lane = GetTextLane(categories, hasWording, hasChangeDoc);
 
         return true;
     }
@@ -301,6 +261,94 @@ public static class LaneClassifier
         }
 
         return PathCategory.Production;
+    }
+
+    /// <summary>
+    /// Derives the lane of a diff that holds production paths: bug fix, or behavior change with a change doc; next to
+    /// tooling paths, no lane admits it without a change doc
+    /// </summary>
+    /// <param name="categories">Categories of every changed path</param>
+    /// <param name="hasChangeDoc">Whether the diff holds a change doc</param>
+    /// <param name="lane">The narrowest admitting lane, when one exists</param>
+    /// <param name="reason">Why no lane admits the diff, when none does</param>
+    /// <returns><see langword="true"/> when a lane admits the diff; otherwise, <see langword="false"/></returns>
+    private static bool TryGetProductionLane(IReadOnlyCollection<PathCategory> categories, bool hasChangeDoc, out Lane lane, out string reason)
+    {
+        lane = Lane.Docs;
+        reason = null;
+
+        if (categories.Contains(PathCategory.Tooling) && hasChangeDoc == false)
+        {
+            reason = "production and tooling paths without a change doc fit neither the bug-fix nor the behavior-change lane";
+
+            return false;
+        }
+
+        lane = hasChangeDoc ? Lane.BehaviorChange : Lane.BugFix;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Derives the lane of a diff that holds tooling paths and no production path: the tooling lane, or behavior change
+    /// next to wording, which no lane admits without a change doc
+    /// </summary>
+    /// <param name="hasWording">Whether the diff holds wording paths</param>
+    /// <param name="hasChangeDoc">Whether the diff holds a change doc</param>
+    /// <param name="lane">The narrowest admitting lane, when one exists</param>
+    /// <param name="reason">Why no lane admits the diff, when none does</param>
+    /// <returns><see langword="true"/> when a lane admits the diff; otherwise, <see langword="false"/></returns>
+    private static bool TryGetToolingLane(bool hasWording, bool hasChangeDoc, out Lane lane, out string reason)
+    {
+        lane = Lane.Docs;
+        reason = null;
+
+        if (hasWording == false)
+        {
+            lane = Lane.Tooling;
+
+            return true;
+        }
+
+        if (hasChangeDoc == false)
+        {
+            reason = "wording and tooling paths without a change doc fit neither the tooling nor the behavior-change lane";
+
+            return false;
+        }
+
+        lane = Lane.BehaviorChange;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Derives the lane of a diff that holds neither production nor tooling paths: wording needs the wording lane, or the
+    /// tests lane next to test paths, which becomes behavior change with a change doc; otherwise a change doc needs
+    /// behavior change, test paths the tests lane, and text alone the docs lane
+    /// </summary>
+    /// <param name="categories">Categories of every changed path</param>
+    /// <param name="hasWording">Whether the diff holds wording paths</param>
+    /// <param name="hasChangeDoc">Whether the diff holds a change doc</param>
+    /// <returns>The narrowest admitting lane</returns>
+    private static Lane GetTextLane(IReadOnlyCollection<PathCategory> categories, bool hasWording, bool hasChangeDoc)
+    {
+        if (hasWording)
+        {
+            if (categories.Contains(PathCategory.Test))
+            {
+                return hasChangeDoc ? Lane.BehaviorChange : Lane.Tests;
+            }
+
+            return Lane.Wording;
+        }
+
+        if (hasChangeDoc)
+        {
+            return Lane.BehaviorChange;
+        }
+
+        return categories.Contains(PathCategory.Test) ? Lane.Tests : Lane.Docs;
     }
 
     #endregion // Methods

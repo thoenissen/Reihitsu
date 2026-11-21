@@ -314,31 +314,7 @@ internal sealed class RawStringLineShifts
                 continue;
             }
 
-            var triviaIndex = triviaStarts.FindIndex(triviaStart => triviaStart >= edit.LineStart);
-
-            if (triviaIndex < 0)
-            {
-                triviaIndex = triviaStarts.Count;
-            }
-
-            if (triviaIndex > 0
-                && edit.LineStart < token.LeadingTrivia[triviaIndex - 1].FullSpan.End)
-            {
-                leadingTrivia[triviaIndex - 1] = MoveLineInsideTrivia(leadingTrivia[triviaIndex - 1], edit.LineStart - triviaStarts[triviaIndex - 1], edit);
-
-                continue;
-            }
-
-            if (triviaIndex < leadingTrivia.Count
-                && leadingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                leadingTrivia.RemoveAt(triviaIndex);
-            }
-
-            if (edit.NewLength > 0)
-            {
-                leadingTrivia.Insert(triviaIndex, SyntaxFactory.Whitespace(new string(' ', edit.NewLength)));
-            }
+            ApplyLeadingTriviaEdit(token, leadingTrivia, triviaStarts, edit);
         }
 
         var movedToken = textChanged
@@ -346,6 +322,44 @@ internal sealed class RawStringLineShifts
                              : token.WithLeadingTrivia(leadingTrivia);
 
         return token.CopyAnnotationsTo(movedToken);
+    }
+
+    /// <summary>
+    /// Applies an indentation edit in the token's leading trivia: it replaces the whitespace trivia that starts the line, or
+    /// inserts whitespace in front of the trivia that does, or behind the trivia when the token itself starts the line; a
+    /// line that starts inside a trivia, such as a later line of a <c>///</c> comment, is moved inside that trivia's text
+    /// </summary>
+    /// <param name="token">The token of the indented tree</param>
+    /// <param name="leadingTrivia">The token's leading trivia, with the later edits already applied</param>
+    /// <param name="triviaStarts">The start positions of the token's leading trivia in the indented tree</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
+    private static void ApplyLeadingTriviaEdit(SyntaxToken token, List<SyntaxTrivia> leadingTrivia, List<int> triviaStarts, (int LineStart, int OldLength, int NewLength) edit)
+    {
+        var triviaIndex = triviaStarts.FindIndex(triviaStart => triviaStart >= edit.LineStart);
+
+        if (triviaIndex < 0)
+        {
+            triviaIndex = triviaStarts.Count;
+        }
+
+        if (triviaIndex > 0
+            && edit.LineStart < token.LeadingTrivia[triviaIndex - 1].FullSpan.End)
+        {
+            leadingTrivia[triviaIndex - 1] = MoveLineInsideTrivia(leadingTrivia[triviaIndex - 1], edit.LineStart - triviaStarts[triviaIndex - 1], edit);
+
+            return;
+        }
+
+        if (triviaIndex < leadingTrivia.Count
+            && leadingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            leadingTrivia.RemoveAt(triviaIndex);
+        }
+
+        if (edit.NewLength > 0)
+        {
+            leadingTrivia.Insert(triviaIndex, SyntaxFactory.Whitespace(new string(' ', edit.NewLength)));
+        }
     }
 
     /// <summary>

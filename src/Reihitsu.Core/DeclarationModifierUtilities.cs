@@ -232,25 +232,7 @@ public static class DeclarationModifierUtilities
 
         for (var index = replacesFirstModifier ? 1 : 0; index < modifiers.Count; index++)
         {
-            var modifier = modifiers[index];
-
-            if (IsAccessibilityModifier(modifier.Kind()) == false)
-            {
-                tokens.Add(carriedLeadingTrivia == null ? modifier : modifier.WithLeadingTrivia(carriedLeadingTrivia.Value));
-                carriedLeadingTrivia = null;
-            }
-            else if (ContainsEndOfLine(modifier.LeadingTrivia)
-                     || (carriedLeadingTrivia == null && ContainsEndOfLine(tokens[tokens.Count - 1].TrailingTrivia)))
-            {
-                carriedLeadingTrivia = modifier.LeadingTrivia;
-            }
-            else if (carriedLeadingTrivia == null
-                     && ContainsEndOfLine(modifier.TrailingTrivia))
-            {
-                var previousToken = tokens[tokens.Count - 1];
-
-                tokens[tokens.Count - 1] = previousToken.WithTrailingTrivia(TrimTrailingWhitespace(previousToken.TrailingTrivia.AddRange(modifier.LeadingTrivia)).AddRange(modifier.TrailingTrivia));
-            }
+            AddFollowingModifier(tokens, modifiers[index], ref carriedLeadingTrivia);
         }
 
         if (carriedLeadingTrivia != null)
@@ -259,6 +241,36 @@ public static class DeclarationModifierUtilities
         }
 
         return SyntaxFactory.TokenList(tokens);
+    }
+
+    /// <summary>
+    /// Adds a modifier that follows the replaced accessibility modifiers: a modifier that is no accessibility modifier is
+    /// kept, with the carried leading trivia when there is one; a later accessibility modifier is dropped, and its gaps are
+    /// kept as <see cref="ReplaceAccessibilityModifiers"/> describes — its leading trivia is carried to the next kept token
+    /// when it starts its line, and its trailing trivia ends the previous token when it ends its line
+    /// </summary>
+    /// <param name="tokens">Modifiers of the result so far; holds at least one token</param>
+    /// <param name="modifier">Modifier</param>
+    /// <param name="carriedLeadingTrivia">Leading trivia of a dropped modifier that the next kept token takes</param>
+    private static void AddFollowingModifier(List<SyntaxToken> tokens, SyntaxToken modifier, ref SyntaxTriviaList? carriedLeadingTrivia)
+    {
+        if (IsAccessibilityModifier(modifier.Kind()) == false)
+        {
+            tokens.Add(carriedLeadingTrivia == null ? modifier : modifier.WithLeadingTrivia(carriedLeadingTrivia.Value));
+            carriedLeadingTrivia = null;
+        }
+        else if (ContainsEndOfLine(modifier.LeadingTrivia)
+                 || (carriedLeadingTrivia == null && ContainsEndOfLine(tokens[tokens.Count - 1].TrailingTrivia)))
+        {
+            carriedLeadingTrivia = modifier.LeadingTrivia;
+        }
+        else if (carriedLeadingTrivia == null
+                 && ContainsEndOfLine(modifier.TrailingTrivia))
+        {
+            var previousToken = tokens[tokens.Count - 1];
+
+            tokens[tokens.Count - 1] = previousToken.WithTrailingTrivia(TrimTrailingWhitespace(previousToken.TrailingTrivia.AddRange(modifier.LeadingTrivia)).AddRange(modifier.TrailingTrivia));
+        }
     }
 
     /// <summary>
