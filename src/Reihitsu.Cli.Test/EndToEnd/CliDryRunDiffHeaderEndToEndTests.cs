@@ -382,6 +382,112 @@ public class CliDryRunDiffHeaderEndToEndTests
     }
 
     /// <summary>
+    /// Verifies that a file given by its full path, while the current directory has been deleted, is outside the current
+    /// directory: the dry run prints its diff with the full-path header and reports that formatting is needed, without an error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [OSCondition(OperatingSystems.Linux)]
+    [Requirement("CLI-013")]
+    [Requirement("CLI-024")]
+    public async Task FullPathToAFileWhileTheCurrentDirectoryIsDeletedPrintsTheFullPathHeader()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile(Path.Combine("work", "src", "A.cs"), UnformattedSource);
+
+            var (exitCode, output, error) = await RunInDeletedDirectory(Path.Combine(tempDir.Path, "gone"), ["--dry-run", filePath]);
+
+            Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            AssertWholeOutput(output, filePath);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a file selected through a directory given by its full path, while the current directory has been deleted, is
+    /// outside the current directory: the dry run prints its diff with the full-path header and reports that formatting is needed,
+    /// without an error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [OSCondition(OperatingSystems.Linux)]
+    [Requirement("CLI-013")]
+    [Requirement("CLI-024")]
+    public async Task FullPathToADirectoryWhileTheCurrentDirectoryIsDeletedPrintsTheFullPathHeader()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile(Path.Combine("work", "src", "A.cs"), UnformattedSource);
+
+            var (exitCode, output, error) = await RunInDeletedDirectory(Path.Combine(tempDir.Path, "gone"), ["--dry-run", Path.Combine(tempDir.Path, "work", "src")]);
+
+            Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            AssertWholeOutput(output, filePath);
+        }
+    }
+
+    /// <summary>
+    /// Asserts the whole standard output of a dry run over the unformatted file of the specification examples, named outside the
+    /// current directory by its full path
+    /// </summary>
+    /// <param name="output">The captured standard output</param>
+    /// <param name="filePath">The full path of the file</param>
+    private static void AssertWholeOutput(string output, string filePath)
+    {
+        Assert.AreSequenceEqual(new[]
+                                {
+                                    "Would format: " + filePath,
+                                    "--- " + filePath,
+                                    "+++ " + filePath,
+                                    "@@ -1,4 +1,4 @@",
+                                    " class A",
+                                    " {",
+                                    "-    int  x;",
+                                    "-}",
+                                    "+    int x;",
+                                    "+}",
+                                    "\\ No newline at end of file",
+                                    string.Empty,
+                                    string.Empty,
+                                    "1 of 1 file(s) would be formatted."
+                                },
+                                Lines(output));
+    }
+
+    /// <summary>
+    /// Runs the CLI with a current directory that has been deleted, restoring the previous current directory afterwards
+    /// </summary>
+    /// <param name="directory">The directory to make the current directory and then delete</param>
+    /// <param name="arguments">The command-line arguments</param>
+    /// <returns>The exit code, the standard output, and the standard error</returns>
+    private static async Task<(int ExitCode, string Output, string Error)> RunInDeletedDirectory(string directory, string[] arguments)
+    {
+        var previousDirectory = Directory.GetCurrentDirectory();
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+            Directory.SetCurrentDirectory(directory);
+            Directory.Delete(directory);
+
+            Assert.Throws<IOException>(() => Directory.GetCurrentDirectory(), "Precondition: the process must be unable to read its deleted current directory.");
+
+            using (var capture = new ConsoleCapture())
+            {
+                var exitCode = await Program.Main(arguments);
+
+                return (exitCode, capture.StandardOutput, capture.StandardError);
+            }
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(previousDirectory);
+        }
+    }
+
+    /// <summary>
     /// Asserts the <c>Would format:</c> line and the two header lines that follow it
     /// </summary>
     /// <param name="output">The captured standard output</param>
