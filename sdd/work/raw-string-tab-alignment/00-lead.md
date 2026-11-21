@@ -23,5 +23,5 @@
 
 ## State
 
-- Last step finished: claim, lane claimed.
-- Next: spawn spec author.
+- Last step finished: spec author (01-spec-author.md, commit 8c2ce8b): change doc Draft, 4 output questions; lane check confirmed behavior-change.
+- Next: skeptic (02-skeptic.md), then output-question batch before the test implementer.
