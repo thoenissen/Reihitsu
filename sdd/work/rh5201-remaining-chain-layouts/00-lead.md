@@ -16,6 +16,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Where does the first-call rule live? | In shared SHARED-CHAIN-005, with new RH5201-006 (not a wider RH5201-001) | Formatter and analyzer share the chain layout; a separate requirement keeps tests traceable | Spec structure only; outputs are asked as output questions | 064eb20 |
+| 2 | Spec author | Drop issue goal 2 (columns of trivia-kept pieces)? | Drop | Precheck refuses those shapes (FMT-UNSUP-014/015): no caller reaches the case; issue is `agent-filed` | Nothing changes for those inputs; PR states the difference | 064eb20 |
 
 ## Follow-up candidates
 
@@ -23,4 +25,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author.
+- Spec author done (064eb20, lane check confirmed behavior-change). Skeptic running → 02-skeptic.md.
+- Next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
