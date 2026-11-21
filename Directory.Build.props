@@ -57,10 +57,16 @@
    </ItemGroup>
 
    <!--
+      The root reihitsu.json holds the repository's own limits. It is passed to the analyzers above in every project
+      and every configuration, so the build enforces those limits as the self-hosting scan does.
+   -->
+   <ItemGroup>
+     <AdditionalFiles Include="$(MSBuildThisFileDirectory)reihitsu.json" />
+   </ItemGroup>
+
+   <!--
       The analyzers above are loaded directly, not through the package, so the package's build file is imported
       here: it makes the MSBuild properties that tell test code from production code visible to the analyzers.
-      The root reihitsu.json, which holds the repository's own limits, is not passed to these analyzers: their
-      configuration check predates its design section and would report it. The self-hosting scan reads it.
    -->
    <Import Project="$(MSBuildThisFileDirectory)src\Reihitsu.Analyzer.Package\buildTransitive\Reihitsu.Analyzer.targets" />
 
