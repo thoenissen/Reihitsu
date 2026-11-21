@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP-016 (new), FMT-UNSUP-015 (changed: the gap between a link's `.` and its member name is FMT-UNSUP-016's), FMT-BREAK-020 (changed: the join of a member name onto its dot never meets the shape), RH2001-007 (changed: a comment between a `.` and its member name in the initializer's value withholds the fix), RH7101-007 (changed: names FMT-UNSUP-016 among the shapes that withhold the fix) |
 | Depends on | [A comment or directive inside a `?.` or `!.` operator is unsupported](unsupported-link-operator-trivia.md), [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md) |
@@ -27,7 +27,7 @@ The maintainer decided, while the run for FMT-UNSUP-015 was open, to declare thi
 
 ## Visible output changes
 
-Every *before* below is the output of `main`, produced with `scripts/format.sh` for the formatter and with `scripts/apply-fix.sh` for the code fixes. The CLI's line has the form it prints today for the other unsupported shapes; the reason text is the one this change proposes (*Decisions*).
+Every *before* below is the output of `main`, produced with `scripts/format.sh` for the formatter and with `scripts/apply-fix.sh` for the code fixes. The CLI's line has the form it prints today for the other unsupported shapes; the reason text is the one the maintainer chose (*Decisions*).
 
 **1. A comment, a directive, or disabled text between a link's `.` and its member name refuses the file.**
 
@@ -323,9 +323,9 @@ The same holds for every other fix that formats through the formatter, wherever 
 
 While the run for FMT-UNSUP-015 was open, the maintainer was asked whether the gap between a link's `.` and its member name should be declared unsupported, and answered: declare it, in a change of its own, carried by a follow-up issue (recorded in [unsupported-link-operator-trivia.md](unsupported-link-operator-trivia.md), *Decisions*). This change is that declaration; it deletes the special case the shape makes unnecessary and lists it above.
 
-### The shape is a place in the syntax tree, on any line
+### The shape is a place in the syntax tree, on any line (maintainer, batch 1, answer 2A)
 
-The shape is the gap between the `.` and the member name, whether or not it holds a line break, as for FMT-UNSUP-008, FMT-UNSUP-011, FMT-UNSUP-014, and FMT-UNSUP-015. A block comment there on one line (`t. /* c */ Length`) is refused too; on `main` the formatter removes the space behind it (change 1, last input). Refusing only a gap that holds a line break would make the boundary depend on layout.
+The shape is the gap between the `.` and the member name, whether or not it holds a line break, as for FMT-UNSUP-008, FMT-UNSUP-011, FMT-UNSUP-014, and FMT-UNSUP-015. A block comment there on one line (`t. /* c */ Length`) is refused too; on `main` the formatter removes the space behind it (change 1, last input). Refusing only a gap that holds a line break would make the boundary depend on layout. The maintainer confirmed that the one-line form is refused too, in this change (batch 1, answer 2A).
 
 ### Directives and disabled text belong to the shape
 
@@ -335,9 +335,9 @@ The join refusal tests comments, directives, and disabled text alike; with comme
 
 The `.` of a qualified name is not a link (SHARED-CHAIN-001), the chain layout never joins its name onto it, and FMT-INDENT-013 specifies where a qualified name's continuation goes in a base list. The issue asks for the link's gap only; a qualified name stays supported.
 
-### The reason names the place
+### The reason names the place (maintainer, batch 1, answer 1A)
 
-The reason `a comment or directive between a . and its member name` follows the form of the other reasons, which name the place of the comment, and stays apart from FMT-UNSUP-015's `inside a ?. or !. operator`. The reason text is CLI output and is asked as an output question of the run.
+The reason `a comment or directive between a . and its member name` follows the form of the other reasons, which name the place of the comment, and stays apart from FMT-UNSUP-015's `inside a ?. or !. operator`. The maintainer chose this reason text over `a comment or directive between a member access's . and its name` (batch 1, answer 1A).
 
 ## Alternatives considered
 
