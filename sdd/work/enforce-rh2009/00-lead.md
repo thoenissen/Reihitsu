@@ -35,6 +35,7 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 | 5 | 02 | Ask output question 1 (default 15/20/10)? | Not asked; default stays 15 | Maintainer's triage comment asks only if the default is poorly chosen; scan: 0.73 % of production members over 15, p99 = 14, matches RH2008 roll-out share; skeptic re-ran and confirmed 27 members | RH2009-001 unchanged, no output changes | (change-doc amendment) |
 | 6 | 02 | Who restructures the 8 test helpers | Test implementer (results unchanged); implementer takes the 19 production members | Test code is the test implementer's | Internal | |
 | 7 | 02 | Test names | Fold RH2009 into `ReleaseRulesetReportsRuleAsError`, delete `ReleaseRulesetSwitchesOffComplexityRule`; add a separate `DebugRulesetHasNoEntryForComplexityRule` instead of renaming the line-count test, so `scripts/README.md` stays valid | Avoids doc churn | Internal | |
+| 8 | 03 | Change doc names test methods? | No; states only what is checked | Change doc carries no task list | Internal | efea239 |
 | 4 | 01 | Remove empty `_ignoredDiagnosticIds` and its test | Remove | Dead code once RH2009 leaves it | Test utility, internal | 2645615 |
 
 ## Follow-up candidates
@@ -45,4 +46,5 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 
 - Done: 01 spec author (change doc Draft; output question 1 on default limit, recommended A=15).
 - Done: 02 skeptic (proceed; no output question, no architecture finding, no follow-up).
-- Next: 03 spec author (record decision 5, Status Accepted) in parallel with 04 test implementer; then implementer.
+- Done: 03 spec author (change doc Accepted, efea239).
+- Next: wait for 04 test implementer; then 05 implementer.
