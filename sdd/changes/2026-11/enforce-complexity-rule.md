@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — RH2009-001 keeps its default of 15 |
 | Depends on | [Complexity rule for methods](method-complexity-rule.md), [This repository judges its own code by the line-count rules](enable-line-count-rules.md) |
@@ -45,13 +45,18 @@ The 99th percentile of the production members is 14, just under the default; the
 
 None — no output an end user sees changes. The default of RH2009 stays 15, its titles, message, and rule page stay as they are, and the scoring guide `documentation/cognitive-complexity.md` stays as it is. The restructured members of the repository keep their behavior; the rulesets, the self-hosting scan, and the root `reihitsu.json` are not a surface an end user sees.
 
-Whether the default stays 15 is asked as an output question in this run; a different answer changes the default in RH2009-001, its rule page, and the scoring guide, and this section then lists that change.
-
 ## Decisions
 
 ### The default of 15 stays
 
-Pending the maintainer's answer to the run's output question; recommended on the measurements above: 0.7 % of the production members and 0.05 % of the test members exceed it, the 99th percentile of production members lies just below it, and the 27 members over it are a restructuring of the size the line-count roll-out carried.
+The maintainer asked for the default to be tried on this repository's code before 1.5.0 ships the rule, and for a proposed new default only if 15 turned out poorly chosen (triage of thoenissen/Reihitsu#1915). The trial does not show that, so no new default is proposed and the default is not put to the maintainer:
+
+- 19 of 2609 production members exceed it (0.73 %), the share the RH2008 roll-out found for its production-method default (18 of 2514, 0.72 %), which stayed as it was.
+- The 99th percentile of the production members is 14, just under the default; 8 of 16909 test members exceed it (0.05 %).
+- No member stands far out: the highest score is 29, and the 27 members over the default are spread over the analyzers, code fixes, formatter, Core, tooling, and test utilities.
+- A second, independent run of the self-hosting scan at the default found the same 27 members with the same scores.
+
+RH2009-001, its rule page, and the scoring guide stay as they are.
 
 ### The repository sets no complexity limit of its own
 
@@ -59,7 +64,7 @@ Pending the maintainer's answer to the run's output question; recommended on the
 
 ### The Debug build reports the rule as a warning
 
-`Debug.ruleset` lists Reihitsu rules only to switch them off, and leaves RH2008 and RH2111 unlisted. RH2009 follows them: a Debug build reports it at its shipped severity, Warning, which a Debug build does not treat as an error, and a Release build fails on it. The deliberate entry the issue asks for is the absence of one, which the ruleset tests check as they do for the line-count rules.
+`Debug.ruleset` lists Reihitsu rules only to switch them off, and leaves RH2008 and RH2111 unlisted. RH2009 follows them: a Debug build reports it at its shipped severity, Warning, which a Debug build does not treat as an error, and a Release build fails on it. The deliberate entry the issue asks for is the absence of one, which a ruleset test of its own checks, as one does for the line-count rules. The Release ruleset's `Error` for RH2009 is checked by the same test that checks it for RH2008 and RH2111.
 
 ### The build enforces the rule once `binaries/` is rebuilt
 
@@ -67,11 +72,11 @@ The build loads the analyzers committed under `binaries/`, which predate RH2009.
 
 ### Members are restructured, not exempted
 
-A member over the limit is made less complex by a restructuring that keeps its behavior. A suppression, an `.editorconfig` exemption, or a repository limit above the default would hide whether the default fits a real code base, which is what this change tests.
+A member over the limit is made less complex by a restructuring that keeps its behavior: 19 production members and 8 test helpers, none of them a test method. A production member keeps its output, which its existing tests pin. A test helper keeps its results for every argument the tests pass, because it builds the fixtures and observations the tests compare or decides what the architecture and self-hosting tests check; a changed result would let a test assert something else, or check less, without failing. A suppression, an `.editorconfig` exemption, or a repository limit above the default would hide whether the default fits a real code base, which is what this change tests.
 
 ## Alternatives considered
 
-- **A default of 20** — 8 members over it instead of 27. Rejected on the recommendation: a member of complexity 16 to 20 nests decisions three and four levels deep, as the example of RH2009-001 does, and the members of that range sampled in this repository — such as a loop over tokens that holds a second loop over their trivia — hold a nested block with a purpose of its own, a candidate for extraction, rather than code that needs the room.
+- **A default of 20** — 8 members over it instead of 27. Rejected: a member of complexity 16 to 20 nests decisions three and four levels deep, as the example of RH2009-001 does, and the members of that range sampled in this repository — such as a loop over tokens that holds a second loop over their trivia — hold a nested block with a purpose of its own, a candidate for extraction, rather than code that needs the room.
 - **A default of 10** — 120 members over it. Rejected: it reports members whose structure is ordinary — a loop with a nested condition and a guard or two — and would make the rule a frequent obstacle instead of a prompt for a design decision.
 - **Separate limits for test code** — rejected: the test members stay far below the production members, so a separate limit would buy nothing; the decision of [Complexity rule for methods](method-complexity-rule.md) holds.
 - **Keeping RH2009 off in the build and on only in the self-hosting scan** — rejected: the build and the scan would judge the code differently, as the line-count roll-out found.
