@@ -36,5 +36,7 @@
 - Implementer done (05-implementer.md, ed3d5e7): all pass except one disputed test (decision 6).
 - Decision 6 done (06-test-implementer.md, 4fb0363).
 - Cleaner done (07-cleaner.md, 24fd601): clean, 0 warnings.
-- Next: spec checker (08-spec-checker.md), then auditor, validator.
+- Spec checker done (08-spec-checker.md, 534d5ea): consistent, no findings.
+- Merged origin/main (cfa445f, #1921: build config only; no overlap) as 6655052; Release build green, 0 warnings.
+- Next: auditor (09-auditor.md), audited SHA = HEAD after this commit.
 - Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
