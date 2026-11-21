@@ -38,6 +38,6 @@
 
 ## State
 
-- Audited SHA: —
+- Audited SHA: d94d4f58d64a9bbcd6420063b24a11a843506146 (auditor 10: pass, text cleanup — doc comment in ChainLineBreakRewriter class summary)
 - Last step: cleaner 08 clean (dd21564a), spec checker 09 consistent (a6e19053), merged origin/main b69a6ae3, Release build green.
-- Next step: auditor (10) → validator (11) → note, publish.
+- Next step: cleaner (11) fixes doc comment, verify-text-only vs audited SHA → validator (12) → note, publish.
