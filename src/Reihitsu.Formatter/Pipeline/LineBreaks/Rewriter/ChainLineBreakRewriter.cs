@@ -43,9 +43,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </item>
 /// </list>
 /// <para>
-/// A gap in front of a link operator or between its dot and the member name that holds a comment, a preprocessor
-/// directive or disabled text is never closed, so trivia is neither moved nor absorbed. A gap between two tokens of a link
-/// operator never holds such trivia: the precheck refuses an input that holds it (FMT-UNSUP-015)
+/// A gap in front of a link operator that holds a comment, a preprocessor directive or disabled text is never closed,
+/// so trivia is neither moved nor absorbed. A gap between two tokens of a link operator or between a link's dot and its
+/// member name never holds such trivia: the precheck refuses an input that holds it (FMT-UNSUP-015, FMT-UNSUP-016)
 /// </para>
 /// </summary>
 internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
