@@ -38,5 +38,6 @@
 - Cleaner done (07-cleaner.md, 24fd601): clean, 0 warnings.
 - Spec checker done (08-spec-checker.md, 534d5ea): consistent, no findings.
 - Merged origin/main (cfa445f, #1921: build config only; no overlap) as 6655052; Release build green, 0 warnings.
-- Next: auditor (09-auditor.md), audited SHA = HEAD after this commit.
+- Audited SHA: 1a0127edc904eeb29b1dddc96838f1b27d0ebea4 (main cfa445f). Auditor (09-auditor.md, 340c71c): pass with one doc finding (two `<param name="edit">` docs in RawStringLineShifts.cs).
+- Next: cleaner fixes docs (10-cleaner.md), prove text-only vs audited SHA, then validator (11-validator.md), then publish.
 - Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
