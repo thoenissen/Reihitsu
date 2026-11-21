@@ -33,7 +33,7 @@ Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
 
 ## Follow-up candidates
 
-- From `17-auditor.md` (pre-existing on `main`, safety rail: fix convergence): RH5201 judges the column of the chain's first link behind an own-line `*/` by the `*/` line (contrary to SHARED-COMMENT-012); the fix cannot move that line, so when the `*/` line is not in the root column the diagnostic stays and the fix never converges (auditor fixtures y01, y02, y09, y10, LF and CRLF; e.g. `var a = c` ⏎ `        /* x` ⏎ `            */ .Next.Self();`). File as `bug`; name first under PR Review notes.
+- FILED as thoenissen/Reihitsu#1914 (bug). From `17-auditor.md` (pre-existing on `main`, safety rail: fix convergence): RH5201 judges the column of the chain's first link behind an own-line `*/` by the `*/` line (contrary to SHARED-COMMENT-012); the fix cannot move that line, so when the `*/` line is not in the root column the diagnostic stays and the fix never converges (auditor fixtures y01, y02, y09, y10, LF and CRLF; e.g. `var a = c` ⏎ `        /* x` ⏎ `            */ .Next.Self();`). File as `bug`; name first under PR Review notes.
 
 ## Worklist / next step
 
