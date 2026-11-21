@@ -23,5 +23,6 @@
 
 ## State
 
-- Last step finished: spec checker (04, 4f1bebe): consistent.
-- Next: auditor.
+- Audited SHA: 3298297 (auditor 05, a548336: pass, text cleanup; one low FC-031 doc-comment finding in `SelfHostingSolution.cs`).
+- Last step finished: auditor.
+- Next: cleaner fixes the two doc comments; prove with `scripts/verify-text-only.sh --base 3298297 --head worktree`; then validator.
