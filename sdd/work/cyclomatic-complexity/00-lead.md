@@ -33,6 +33,16 @@
 16. Sonar Q4 (anonymous methods): **A** — treated like lambdas: not counted, not judged.
 17. Sonar Q5 (parenthesized chained `?:`): not answered yet; maintainer asked to see the departures from the paper as code with per-line point comments — re-asked in that form.
 18. A comprehensive documentation document explaining the whole scoring with examples is required. Placement asked (rule pages are short by convention).
+19. Review of the departures from the paper (maintainer: prefers to stay closer to the paper; the discussion is still open and no decision is final — the updated concept goes back to the maintainer before any test is written):
+   - Chained `?:` scored flat (answer 8): kept.
+   - Lambdas and anonymous methods: **follow the paper** — their bodies count toward the member that holds them and raise the nesting level by one. Supersedes answers 10 and 16 for lambdas/anonymous methods; the lambda follow-up is dropped. Answer 4 (nesting that comes only from a lambda does not lift the no-nesting exception) still stands. A lambda in a field/property/event initializer stays unjudged (answer 10's part about initializer lambdas is not reopened).
+   - Local functions: judged only on their own (answer 3), kept.
+   - Recursion: our simple variant (answer 14), kept.
+   - `#if`: only active code, directives score nothing (answer 13), kept.
+   - `&`, `|`, `^` on `bool`: **follow the paper** — they count like `&&`/`||` (as binary boolean operators in sequences). Supersedes answer 15.
+   - Patterns (answers 5, 9) and limit/no-nesting exception: kept.
+20. Sonar Q5 (parenthesized chained `?:`): **A** — parentheses directly around the false branch do not break the chain.
+21. Scoring guide placement: **A** — separate page `documentation/cognitive-complexity.md` with the full scoring guide (every construct with points and nesting, the departures from the paper, worked examples with per-line point comments); `documentation/rules/RH2009.md` stays short and links to it.
 12. The maintainer asks to cross-check all decisions against the published definition (SonarSource white paper, https://www.sonarsource.com/docs/CognitiveComplexity.pdf; local copy in the session scratchpad). Comparison requested from a fresh skeptic; results go back to the maintainer before the test implementer.
 
 ## Decisions taken
@@ -47,10 +57,11 @@
 ## Follow-up candidates
 
 - Self-hosting violations of the new rule and a review of the default threshold (maintainer clarification 3) — lead; includes removing RH2009 from the self-hosting ignore list and setting its Release.ruleset action to Error.
-- Checking lambdas for cognitive complexity (maintainer answer 10) — lead.
+- ~~Checking lambdas~~ — dropped: lambdas are counted per the paper (answer 19).
 
 ## Open worklist / next step
 
+- Next: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
 - Sonar comparison done (03-skeptic.md). Sent to maintainer as chat questions 11–15 = skeptic 03 Q1 (#if), Q2 (recursion re-ask), Q3 (& | ^), Q4 (anonymous methods), Q5 (parenthesized chained ?:). Waiting.
 - Answers 3–7 received. Remaining questions sent: chained `?:`, `or` in switch arms, initializer lambdas, lambda nesting depth in the score, self-hosting mechanism.
 - Earlier: concept + output questions 1–8 and escalation 6 (self-hosting mechanism, question 9) sent to the maintainer; waiting for answers. Then: route answers + decisions 1–3 to the spec author (fresh), spec author sets change doc Accepted, then test implementer.
