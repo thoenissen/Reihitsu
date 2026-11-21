@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Proves that a change carries no compiled behavior.
 #
-#   scripts/verify-text-only.sh [--base <rev>] [--head <rev>]
+#   scripts/verify-text-only.sh [--base <rev>] [--head <rev>] [--exclude <path>]... [--no-install]
 #
 # Defaults to the merge base with origin/main and HEAD. Use `--head worktree`
-# to include uncommitted changes. A documentation edit is a legitimate
+# to include uncommitted changes. `--exclude <path>`, repeatable, leaves one
+# repository-relative path out of the proof as if it had not changed; the
+# verdict line then ends with `; excluded: <n> path(s)`. A documentation edit is a legitimate
 # comment-only change: it is reported, and it never fails the proof.
 #
 # Exit codes: 0 proven text-only, 1 not proven, 2 tool or setup error.

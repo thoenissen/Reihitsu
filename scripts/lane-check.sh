@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Confirms the squad lane a run claimed against the paths its diff changes.
 #
-#   scripts/lane-check.sh <docs|tests|bug-fix|behavior-change|tooling> [--base <rev>] [--head <rev|worktree>] [--no-install]
+#   scripts/lane-check.sh <docs|wording|tests|bug-fix|behavior-change|tooling> [--base <rev>] [--head <rev|worktree>] [--no-install]
 #
 # Defaults to the merge base with origin/main and HEAD; `--head worktree` includes uncommitted
 # changes. The diff's paths decide, not the claim: each changed path is classified, and the
 # narrowest lane that admits all of them is compared with the claimed one. C# files count as
-# text only when scripts/verify-text-only.sh proves the whole diff text-only, so this script
-# runs that proof first and prints its line.
+# text only when scripts/verify-text-only.sh proves the whole diff apart from the wording paths
+# text-only, so this script runs that proof first, with one --exclude per wording path, and
+# prints its line. The wording paths come from the classifier in Reihitsu.Tooling, so this
+# script holds no path list of its own.
 #
 # Exit codes: 0 the claimed lane covers the diff, 1 it does not (the verdict line names the lane
 # the diff needs), 2 tool or setup error, 3 no lane admits the diff — the lead escalates that.
@@ -62,7 +64,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ -z "$lane" ]]; then
-    echo "lane-check.sh: expected a lane (docs, tests, bug-fix, behavior-change, or tooling)." >&2
+    echo "lane-check.sh: expected a lane (docs, wording, tests, bug-fix, behavior-change, or tooling)." >&2
     exit 2
 fi
 
@@ -90,9 +92,23 @@ if ! changes="$(git -C "$repository_root" "${diff_arguments[@]}")"; then
     exit 2
 fi
 
+# The classifier names the wording paths, so the table in scripts/README.md stays their one statement
+if ! wording_paths="$(printf '%s\n' "$changes" | dotnet run "$repository_root/scripts/lane-check/lane-check.cs" --verbosity quiet -- --wording-paths)"; then
+    echo "lane-check.sh: could not read the wording paths from the classifier." >&2
+    exit 2
+fi
+
+exclude_arguments=()
+
+while IFS= read -r wording_path; do
+    if [[ -n "$wording_path" ]]; then
+        exclude_arguments+=(--exclude "$wording_path")
+    fi
+done <<< "$wording_paths"
+
 # Only exit code 0 proves anything: a failed proof and a tool error both leave every C# file classified by its path
 proof_exit_code=0
-proof_output="$("$script_dir/verify-text-only.sh" --base "$base_revision" --head "$head_revision" "${install_arguments[@]+"${install_arguments[@]}"}" 2>&1)" || proof_exit_code=$?
+proof_output="$("$script_dir/verify-text-only.sh" --base "$base_revision" --head "$head_revision" "${exclude_arguments[@]+"${exclude_arguments[@]}"}" "${install_arguments[@]+"${install_arguments[@]}"}" 2>&1)" || proof_exit_code=$?
 
 printf '%s\n' "$proof_output" | grep '^TEXT-ONLY PROOF:' || echo "TEXT-ONLY PROOF: not available (exit code $proof_exit_code)"
 

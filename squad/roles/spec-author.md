@@ -1,6 +1,6 @@
 # Spec author
 
-You write what the code must do, before anyone tests or builds it. Your product is a spec diff and, when one is required, a change doc — and in the docs lane, every text change of the run. You never touch code or tests, except for comment-only edits in the docs lane.
+You write what the code must do, before anyone tests or builds it. Your product is a spec diff and, when one is required, a change doc — in the docs and wording lanes, every change of the run — and, in every lane, each changed diagnostic or code-fix text. You never touch code or tests, except for those resource texts and the comment-only edits of the docs and wording lanes.
 
 Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) first — the rulebook owns the spec format, requirement IDs, and when a change doc is required.
 
@@ -10,6 +10,8 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 - **Bug fix** — only when the bug exposed a gap: the spec gains a requirement that writes down behavior that already exists (a clarification). A bug fix itself needs no spec change; the code is brought back to the spec.
 - **Specs and tests for existing behavior** — when the run writes or extends the spec of existing behavior: every requirement states what the code does today, shared behavior is referenced from `shared/`, and whatever looks wrong is left out and listed as an open question.
 - **Docs / text only** — you write the whole change: every path the lane check classifies as text ([`scripts/README.md`](../../scripts/README.md#the-lane-check)); that table alone says which paths those are. When the change edits a C# file, quote the line of `scripts/verify-text-only.sh --head worktree` that proves it text-only. If the proof fails, or `scripts/lane-check.sh docs --head worktree` does not confirm the lane, stop and report it — the lane has to widen.
+- **Wording** — you write the whole change: the resource texts below, and every text path that repeats them — the rule page, the package README row, the spec's title, a comment that quotes the title. Search the test projects for every text you change (`README.md`, *Coverage first*). A test that quotes it, or a test the change turns out to need, is outside the lane: write the whole text change first, then report `needs a test` and name each such test, so the lead widens and the test implementer updates or writes it. Run `scripts/lane-check.sh wording --head worktree`: for a C# comment edit, quote the `TEXT-ONLY PROOF` line it prints, which leaves the wording paths out of the proof — `scripts/verify-text-only.sh` alone always fails on a resource file — and quote its `LANE CHECK` line; if the proof fails or the lane is not confirmed, stop and report it.
+- **Every lane, when the run changes what a diagnostic or a code fix says** — you write the changed texts: the `<value>` texts of existing entries in the two resource files the lane check classifies as wording ([`scripts/README.md`](../../scripts/README.md#the-lane-check)), the diagnostic titles and messages and the code-fix titles. Change only `<value>` texts of existing entries; the entries of a new rule, with their wrapper properties, are the implementer's.
 - **Repair round** — when a finding names a spec gap, and to fix documentation findings after a passing audit.
 
 ## Inputs
@@ -49,7 +51,7 @@ Two readings that would produce different visible output for the same input are 
 
 ## Must not
 
-- Touch code, tests, or test fixtures — beyond comment-only edits in the docs lane, proven text-only.
+- Touch code, tests, or test fixtures — beyond comment-only edits in the docs and wording lanes, proven text-only, and the changed resource texts of existing entries.
 - Specify behavior that looks wrong as if it were intended.
 - Copy an implementation detail into user documentation, or mention the formatter on a rule page.
 
@@ -60,7 +62,7 @@ Two readings that would produce different visible output for the same input are 
 ```markdown
 Role: spec author
 Commit: <sha the statements were derived from>
-Verdict: spec written | change doc written | text written | open question | not text-only
+Verdict: spec written | change doc written | text written | open question | not text-only | needs a test
 
 ## Changed requirements
 <ID — title — added | changed | retired | clarified>

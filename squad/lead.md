@@ -22,9 +22,21 @@ You ask the maintainer only what `README.md`, *What reaches the maintainer* and 
 
 Every commit of the run ends its subject with `[skip ci]`, except the single trigger commit in section 8.
 
+### Pushes
+
+Roles commit; only you push, and only at a stage boundary:
+
+- the claim (step 2 above);
+- at the end of each role's stage, once its handover is committed, together with what you committed since the last push — one push per stage, however many commits it holds;
+- before every stop that waits for the maintainer — a batch of output questions or an escalation — so the run's state is on the branch while it waits;
+- before you end a run that cannot go on — a role that blocks twice, roles that cannot be spawned — so the branch holds what was done;
+- the trigger commit (section 8, step 5), and each CI repair (section 9).
+
+Between these points the commits stay local. Every push fires check-suite events on the pull request, `[skip ci]` or not, and those events carry no information; before section 9 you are not subscribed, so they wake no session. A lost session loses only the commits since the last push, at most one stage's, which a fresh session redoes from the pushed handovers.
+
 ## 3. Claim the lane
 
-Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; a change to repository tooling — what the lane-check table in [`scripts/README.md`](../scripts/README.md#the-lane-check) classifies as tooling — is tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; text alone, as that table classifies it, is docs, and the spec author writes it — you edit nothing yourself. For several issues, the run claims the lane they share (section 1, step 4). Write `00-lead.md`: the issues with their `agent-filed` status, slug, lane and reason (for several issues, why each issue has that lane), the roles the lane runs and skips, and the maintainer's relevant clarifications, summarized in English — never quoted verbatim. It also holds three sections you keep current through the run, so every role reads them in one place instead of the run's history:
+Pick the lane from the issue: a reported observed-versus-expected difference is a bug fix; requested new or changed behavior, or a new rule, is a behavior change; a change to repository tooling — what the lane-check table in [`scripts/README.md`](../scripts/README.md#the-lane-check) classifies as tooling — is tooling; tests for behavior that already exists, and specs for an existing rule together with their tests, are tests; a change of only what a diagnostic or a code fix says — its title, its message, or the code-fix title — with the rule pages and specs that repeat it, is wording; text alone, as that table classifies it, is docs. In the docs and wording lanes the spec author writes every path — you edit nothing yourself. For several issues, the run claims the lane they share (section 1, step 4). Write `00-lead.md`: the issues with their `agent-filed` status, slug, lane and reason (for several issues, why each issue has that lane), the roles the lane runs and skips, and the maintainer's relevant clarifications, summarized in English — never quoted verbatim. It also holds three sections you keep current through the run, so every role reads them in one place instead of the run's history:
 
 - `Maintainer answers` — each output question and escalation with its answer, summarized;
 - `Decisions taken` — the table `README.md`, *Decisions taken*, prescribes;
@@ -58,7 +70,8 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, a context growth
 
 | Verdict | Your move |
 |---|---|
-| Spec author: change doc written | Accept it yourself once the skeptic has run and any amendment it caused is written; its `Visible output changes` go into the output questions before the test implementer (section 5). The spec author sets `Status: Accepted` with its next follow-up after the maintainer's answers, or in a status-only follow-up before the spec checker when none is due |
+| Spec author: change doc written | Accept it yourself once the skeptic has run and any amendment it caused is written (in a lane without a skeptic, once it is written); its `Visible output changes` go into the output questions before the test implementer (section 5). The spec author sets `Status: Accepted` with its next follow-up after the maintainer's answers, or in a status-only follow-up before the spec checker when none is due |
+| Spec author: needs a test (wording lane) | Widen to the lane the lane-check rules give the diff once the tests the handover names are in it ([`scripts/README.md`](../scripts/README.md#the-lane-check), the one statement of those rules) — record it under *Decisions taken*, and run the roles it adds. The texts are already written; the test implementer updates or writes the tests the handover names |
 | Spec author or skeptic: an output question about a case within the run's issues | Collect it for the next batch (section 5); at once when it blocks writing a test (escalation 1) |
 | Spec author or skeptic: an open question about a case outside the run's issues | A follow-up candidate carrying the question (*Follow-ups*); declaring a shape unsupported is escalation 10 instead |
 | Any role: declaring a shape unsupported is an option (`AGENTS.md`, *Special cases do not grow the source*) | Escalation 10, with the next batch; the run refuses the class locally meanwhile |
@@ -88,7 +101,7 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, a context growth
 
 Ask output questions in batches (`README.md`, *What reaches the maintainer*), in one chat message per batch, in the form of `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions), and wait for the answers:
 
-- **Before the test implementer starts**: every visible output change of the change doc, and every output question the spec author and the skeptic raised. When nothing is open, there is no stop.
+- **Before the test implementer starts** (in the docs and wording lanes, after the spec author, as `README.md` says): every visible output change of the change doc, and every output question the spec author and the skeptic raised. When nothing is open, there is no stop.
 - **Before the auditor** (section 6): the questions found since.
 
 Before you send a batch, check every question in it:
@@ -133,7 +146,13 @@ If the maintainer asks to skip local validation and rely on CI, do so and say un
 
 ## 9. Watch CI
 
-Watch the published PR until its CI is green. A failure caused by the PR is a finding: route it as in section 7 with its handovers in a fresh `sdd/work/<slug>/`, re-run the cleaner and the validator, delete `sdd/work/<slug>/` again, and push; the last commit of the push carries no `[skip ci]`. A failure that also exists on `main` is yours to decide: a follow-up, or an adjacent fix under `README.md`, *Scope*. A CI repair counts as one of the run's repair rounds; a CI failure after the third is resolved by narrowing like any other block.
+You watch the published PR only for the CI result of its final commit. Subscribe to the PR's activity once section 8 is done, instead of polling, and end your turn; the CI events arrive as messages. When the final commit's CI has already finished by then, read its result from the PR once instead of waiting.
+
+- **Green** — unsubscribe at once. The run ends.
+- **Red, caused by the PR** — a finding: route it as in section 7 with its handovers in a fresh `sdd/work/<slug>/`, re-run the cleaner and the validator, delete `sdd/work/<slug>/` again, and push; the last commit of the push carries no `[skip ci]`. Stay subscribed and wait for the result of the new final commit. A CI repair counts as one of the run's repair rounds; a CI failure after the third is resolved by narrowing like any other block.
+- **Red, also on `main`** — yours to decide: a follow-up, or an adjacent fix under `README.md`, *Scope*. A follow-up decides that failure; once every failure of the final commit is decided this way, unsubscribe as for green.
+
+Other events — a check of an earlier commit, a review comment — are not acted on; the maintainer sends what they want changed in the chat. After you unsubscribe, review comments, the merge, and closed issues no longer reach the session at all. A change the maintainer asks for in the chat is handled like a repair round, with its handovers in a fresh `sdd/work/<slug>/` and the run's note as its record of the run, and its push puts you back into this section.
 
 ## Escalating
 

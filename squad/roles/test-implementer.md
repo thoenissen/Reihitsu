@@ -9,6 +9,7 @@ Read [`../README.md`](../README.md) and [`../failure-classes.md`](../failure-cla
 - **Bug fix** — your first test for each reported bug is its reproduction.
 - **Behavior change / new rule** — tests derived from the spec examples.
 - **Specs and tests for existing behavior** — every test must pass on the unchanged code. When the run writes a spec, tag the existing tests that cover its requirements and add tests for the examples no test covers yet; a test that fails is a finding against the spec, not the code.
+- **A run widened from the wording lane** — the spec author has already changed the resource texts, so the tree is no longer unchanged: update each existing test that quotes a changed text to the new text, write any test the spec author reported as needed, and every test passes on the changed tree.
 - **Tooling** when the tool has tests.
 - **Repair round** — for a missing or weak test.
 
@@ -26,7 +27,7 @@ Every issue of the run by number, `00-lead.md`, the spec author's and skeptic's 
 
 ## The test matrix
 
-Then, before the implementer starts, cover:
+Then, before the implementer starts, cover the following, after checking each value for an existing test that already pins it (`README.md`, *Coverage first*) — a pinned value gets no new test, and the `Not covered, and why` section names the test that pins it:
 
 - every example of the requirements the spec author named, and every candidate input the skeptic listed;
 - every existing test that asserts an output the change doc or the spec diff changes: `rg` the test projects, code-fix tests included, for each changed output separately, not only the tests the handovers name, and report each one you change or leave;

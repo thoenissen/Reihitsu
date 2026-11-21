@@ -16,6 +16,11 @@ public enum PathCategory
     ChangeDoc,
 
     /// <summary>
+    /// One of the two resource files that hold the diagnostic titles and messages and the code-fix titles
+    /// </summary>
+    Wording,
+
+    /// <summary>
     /// A file of a test project
     /// </summary>
     Test,

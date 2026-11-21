@@ -2,7 +2,7 @@
 
 // Syntax-aware proof that a change carries no compiled behavior.
 //
-//   dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>]
+//   dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--exclude <path>]...
 //
 // The workflow skills use this instead of a line-based grep over the diff,
 // because a grep does not recognize every block-comment form and cannot
@@ -30,6 +30,12 @@
 // under `core.autocrlf`, so a raw worktree comparison would report every
 // multi-line literal and disabled-text region as changed on Windows.
 //
+// `--exclude <path>`, repeatable, leaves one repository-relative path out of the
+// proof as if it had not changed, matched exactly and case-insensitively; the
+// lane check passes one per changed wording path. When it excluded a changed
+// path, the verdict line ends with `; excluded: <n> path(s)`, so a quoted PASS
+// never reads as covering them.
+//
 // Exit codes: 0 proven text-only, 1 not proven, 2 tool or setup error.
 
 using System.Diagnostics;
@@ -42,6 +48,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 string? baseRevision = null;
 var headRevision = "HEAD";
 var repositoryPath = ".";
+var excludedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 for (var index = 0; index < args.Length; index++)
 {
@@ -59,11 +66,16 @@ for (var index = 0; index < args.Length; index++)
             repositoryPath = args[++index];
             break;
 
+        case "--exclude" when index + 1 < args.Length:
+            excludedPaths.Add(args[++index]);
+            break;
+
         case "--help":
         case "-h":
-            Console.WriteLine("usage: dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--repository <path>]");
+            Console.WriteLine("usage: dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--repository <path>] [--exclude <path>]...");
             Console.WriteLine("       --head worktree compares the base revision against the working tree");
             Console.WriteLine("       --repository names the repository to inspect, defaulting to the working directory");
+            Console.WriteLine("       --exclude leaves one repository-relative path out of the proof, matched exactly and case-insensitively");
 
             return 0;
 
@@ -113,6 +125,11 @@ catch (Exception exception)
     return 2;
 }
 
+// An excluded path is left out as if it had not changed; a rename is left out only when both of its paths are excluded
+var excludedCount = changedFiles.RemoveAll(changedFile => excludedPaths.Contains(changedFile.Path)
+                                                          && (changedFile.Status != "R" || excludedPaths.Contains(changedFile.OldPath!)));
+var exclusionSuffix = excludedCount == 0 ? string.Empty : $"; excluded: {excludedCount} path(s)";
+
 var baseLabel = Proof.ShortRevision(repositoryRoot, baseRevision);
 var headLabel = comparesWorkTree ? "worktree" : Proof.ShortRevision(repositoryRoot, headRevision);
 
@@ -120,7 +137,7 @@ Console.WriteLine($"verify-text-only: base={baseLabel} head={headLabel}");
 
 if (changedFiles.Count == 0)
 {
-    Console.WriteLine($"TEXT-ONLY PROOF: PASS — base={baseLabel} head={headLabel} — no changed files");
+    Console.WriteLine($"TEXT-ONLY PROOF: PASS — base={baseLabel} head={headLabel} — no changed files{exclusionSuffix}");
 
     return 0;
 }
@@ -160,12 +177,12 @@ if (Proof.SkippedUntracked.Count > 0)
 
 if (behavioral > 0)
 {
-    Console.WriteLine($"TEXT-ONLY PROOF: FAIL — base={baseLabel} head={headLabel} — {behavioral} of {verdicts.Count} changed file(s) carry compiled behavior; xml-doc impact: {documentationSummary}");
+    Console.WriteLine($"TEXT-ONLY PROOF: FAIL — base={baseLabel} head={headLabel} — {behavioral} of {verdicts.Count} changed file(s) carry compiled behavior; xml-doc impact: {documentationSummary}{exclusionSuffix}");
 
     return 1;
 }
 
-Console.WriteLine($"TEXT-ONLY PROOF: PASS — base={baseLabel} head={headLabel} — {verdicts.Count} changed file(s) ({nonCompiled} non-compiled, {commentOnly} C# comment/layout-only); xml-doc impact: {documentationSummary}");
+Console.WriteLine($"TEXT-ONLY PROOF: PASS — base={baseLabel} head={headLabel} — {verdicts.Count} changed file(s) ({nonCompiled} non-compiled, {commentOnly} C# comment/layout-only); xml-doc impact: {documentationSummary}{exclusionSuffix}");
 
 return 0;
 

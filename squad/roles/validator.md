@@ -16,12 +16,14 @@ scripts/build.sh
 scripts/test.sh --no-build
 ```
 
+When the diff adds lines to a C# file of a test project (`git diff --numstat origin/main...HEAD`: a non-zero first column on such a path), also run the line-count rows of the self-hosting scan, with the command [`scripts/README.md`](../../scripts/README.md#the-line-count-rows) gives, after the default run; they are the one exception to running only the default set.
+
 [`scripts/README.md`](../../scripts/README.md#the-default-test-run) states which test projects the default run covers; you add none to it. `--no-build` is valid only because the Release build just above covered this exact tree. Send the full output to a file outside the repository and report its path; put only the failing assertions in the handover.
 
 ## Must not
 
 - Edit, create, or delete a repository file other than your handover — including a test, a project file, or an `[Ignore]` attribute.
-- Narrow the run with `--filter` or `--project`, or substitute a hand-written `dotnet` command — except for the one project of a *Failure on main* check.
+- Narrow the run with `--filter` or `--project`, or substitute a hand-written `dotnet` command — except for the line-count rows and the one project of a *Failure on main* check.
 - Re-run a project to see whether it passes this time, or report a suite as green because a rerun was greener.
 - Diagnose a failure, propose a cause, or suggest a fix.
 
@@ -44,6 +46,7 @@ Verdict: pass | fail | blocked
 | scripts/prepare.sh | ok / failed | SDK present, or what it installed |
 | scripts/build.sh | ok / failed | warning or error count |
 | scripts/test.sh --no-build | ok / failed | passed/failed/skipped per project |
+| line-count rows | ok / failed / not run | run when the diff adds lines to a test file |
 
 ## Failures
 <each failing test's fully qualified name and its assertion output, verbatim>

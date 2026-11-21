@@ -1,6 +1,6 @@
 ---
 name: validator
-description: Reihitsu squad role — builds the solution, runs the default test set (`scripts/README.md`), and reports. Never diagnoses or fixes. Spawned by the lead (`squad/lead.md`) as an agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
+description: Reihitsu squad role — builds the solution, runs the default test set (`scripts/README.md`) and, when a test file grew, the self-hosting line-count rows, and reports. Never diagnoses or fixes. Spawned by the lead (`squad/lead.md`) as an agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: haiku
 effort: low
 tools: Bash, Read, Write, Glob, Grep

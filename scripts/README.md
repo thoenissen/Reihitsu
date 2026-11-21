@@ -26,6 +26,7 @@ scripts/prepare.sh
 scripts/build.sh
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
 scripts/test.sh --project selfhosting
+scripts/test.sh --no-build --project selfhosting --filter "Name~RH2008|Name~RH2111"
 scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/benchmark.sh --version 1.2.0 --version 1.3.0 --repetitions 5
@@ -97,6 +98,16 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 `Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency, for formatter stability, and for the stability of the formatted output under each formatter phase run alone. It is a second safety net rather than a requirement check, and it takes long enough that the default run leaves it out. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
 
+### The line-count rows
+
+The analyzers the solution build loads from `binaries/` do not receive the root `reihitsu.json` (`Directory.Build.props`), so the repository's own line limits — RH2008 for a method, RH2111 for a type, with test code judged as test code — are judged only by the self-hosting scan, never by `scripts/build.sh` or the default run. A change that adds lines to a test file can therefore pass both locally and fail CI. The **line-count rows** are the self-hosting rows whose name contains `RH2008` or `RH2111`:
+
+```bash
+scripts/test.sh --no-build --project selfhosting --filter "Name~RH2008|Name~RH2111"
+```
+
+`--no-build` assumes a Release build of the same tree, as `scripts/build.sh` leaves it. The filter selects every self-hosting row whose name carries one of the two rule IDs: the two analyzer rows, the two ruleset rows of each rule (`ReleaseRulesetReportsRuleAsError`, `DebugRulesetHasNoEntryForLineCountRule`), and the formatter rows of the source files named after the two rules — 18 tests today, none of them a `LineCountSelfHostingTests` method, which name no rule ID. They took 41 seconds after the build in a cloud sandbox, most of it loading the solution, where the rows of every analyzer had not finished after nine minutes. The squad's validator runs them when a run adds lines to a test file ([`squad/roles/validator.md`](../squad/roles/validator.md)); this section is the one statement of which rows they are.
+
 ## Hang timeout
 
 `test.sh` runs every test host under a hang timeout of **10 minutes**: when no test in a host starts or finishes for that long, the host is ended and its project fails with `The active Test Run was aborted`, naming the test that was running. A test that blocks forever therefore fails the run about 10 minutes after the last test in its host started or finished — its own start when the host runs tests one at a time, or a later test's when it runs them in parallel — whatever the blocked code checks; a test's own `[Timeout]` with cooperative cancellation stops only code that observes its token. No dump is written. The limit is the VSTest blame collector's (`--blame-hang-timeout 10min --blame-hang-dump-type none`), so it bounds a hang, not the length of a run, and it sits far above the longest single test, the self-hosting rows included.
@@ -126,6 +137,8 @@ A file that is neither C# nor a known non-compiled text path (Markdown, `.claude
 
 Two things about `--head worktree`. Both sides are compared with normalized line endings, because git rewrites line endings on checkout under `core.autocrlf` and a raw comparison would otherwise report every multi-line literal and disabled-text region as changed on Windows; a byte order mark is stripped from both sides for the same reason. And untracked files are ignored with a note rather than counted as additions — they are not part of the tree that will merge, so a stray scratch file must not decide the verdict.
 
+`--exclude <path>`, repeatable, leaves one repository-relative path, written with forward slashes and matched exactly and case-insensitively, out of the proof, as if it had not changed; a path that names no changed file excludes nothing. The proof finds renames, so a renamed file is one changed file with an old and a new path, and it is left out only when both paths are excluded: a rename between a wording path and any other file stays in the proof. It exists for [the lane check](#the-lane-check), which gets the wording paths of the diff from the classifier and passes one `--exclude` per path, so a resource-text change does not turn a comment edit next to it into production. When it excluded at least one changed path, the `TEXT-ONLY PROOF: …` line ends with `; excluded: <n> path(s)`, so a quoted `PASS` never reads as covering them.
+
 Exit codes: `0` proven text-only, `1` not proven, `2` tool or setup error. The single `TEXT-ONLY PROOF: …` line is the quotable evidence the workflows record.
 
 The proof itself lives in `proof/verify-text-only.cs` as a standalone [file-based app](https://learn.microsoft.com/dotnet/core/sdk/file-based-programs). It is deliberately outside `Reihitsu.sln`: it ships with no package, is not built by CI, and its local `Directory.Build.props` keeps the solution's versioning, ruleset, and self-hosting analyzer references out of it. Its `#:package` directive pins Roslyn at the repository's one Roslyn version, the `RoslynVersion` property in the root `Directory.Build.props`, so the proof parses C# as the formatter and the analyzers do. It cannot read that property, so the version is written out; the Roslyn-version guard in `Reihitsu.ArchitectureTests` fails when a Roslyn `#:package` directive of a file-based program states any other version, so a change of `RoslynVersion` updates the pin with it.
@@ -134,24 +147,35 @@ One consequence is worth knowing: its leading `#:package` directive is not C# th
 
 ## The lane check
 
-`lane-check.sh <lane> [--base <rev>] [--head <rev|worktree>] [--no-install]` confirms the lane a squad run claimed — `docs`, `tests`, `bug-fix`, `behavior-change`, or `tooling` — against the paths its diff changes. The diff decides, not the claim. The defaults are the merge base with `origin/main` and `HEAD`; `--head worktree` includes uncommitted changes to tracked files and ignores untracked ones, so stage a new file before checking it.
+`lane-check.sh <lane> [--base <rev>] [--head <rev|worktree>] [--no-install]` confirms the lane a squad run claimed — `docs`, `wording`, `tests`, `bug-fix`, `behavior-change`, or `tooling` — against the paths its diff changes. The diff decides, not the claim. The defaults are the merge base with `origin/main` and `HEAD`; `--head worktree` includes uncommitted changes to tracked files and ignores untracked ones, so stage a new file before checking it.
 
-It first runs the text-only proof over the same range and prints its line, because a C# file counts as text only when the proof covers the whole diff. Then every changed path (`git diff --name-status --no-renames`, so a rename counts as a deletion and an addition) is classified:
+It first runs the text-only proof over the same range, with one `--exclude` for each changed wording path (table below), and prints its line. The script gets those paths from `scripts/lane-check/lane-check.cs --wording-paths`, which reads the diff's `git diff --name-status --no-renames` lines, as below, and writes each path the classifier in `Reihitsu.Tooling` counts as wording, one per line; it takes no other argument. The script holds no path list of its own, so the table below stays the one statement of which paths are wording. The proof runs first because a C# file counts as text only when the proof covers the whole diff apart from the wording paths. Then every changed path (`git diff --name-status --no-renames`, so a rename counts as a deletion and an addition) is classified:
 
 | Category | Paths |
 |---|---|
 | Change doc | `sdd/changes/**` |
 | Text | the rest of `sdd/**`, `squad/notes/**`, `documentation/**`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and C# under `src/` when the proof passed |
 | Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, the root `reihitsu.json`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
+| Wording | `src/Reihitsu.Analyzer/AnalyzerResources.resx` and `src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx`, the resources that hold the diagnostic titles and messages and the code-fix titles; every other `*.resx` is production |
 | Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
 | Production | every other file under `src/` |
 | Unknown | anything else |
 
-The narrowest lane that admits every category is the lane the diff needs: production with a change doc needs `behavior-change`, production without one `bug-fix`, tooling `tooling`, a change doc alone `behavior-change`, tests `tests`, and text alone `docs`. The claim passes when it is that lane or a wider one along docs → tests → bug fix → behavior change, or docs → tests → tooling → behavior change; a `behavior-change` claim additionally needs a change doc in the diff.
+The narrowest lane that admits every category is the lane the diff needs. It is decided by the first of these rules that applies; text is admitted by every lane:
 
-Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
+1. An unknown path: no lane.
+2. Production: with tooling and without a change doc, no lane; otherwise `behavior-change` with a change doc and `bug-fix` without one. Wording and test paths next to production change nothing.
+3. Tooling, without production: with wording, `behavior-change` when the diff has a change doc and no lane when it has none; without wording, `tooling`, with or without a change doc.
+4. Wording, without production and tooling: with test paths, `behavior-change` when the diff has a change doc and `tests` when it has none; without test paths, `wording`, with or without a change doc.
+5. Otherwise: a change doc needs `behavior-change`, test paths `tests`, and text alone `docs`.
 
-This table is the one statement of the classification, and other documents link here instead of listing paths. A path belongs to the first row that names it, whatever its extension: every file under `squad/notes/` is text while the rest of `squad/**` is tooling, the issue and PR templates are text while the rest of `.github/**` is tooling, and a test project's `*.csproj` is tooling rather than a test. The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
+The `wording` lane therefore admits the two resource files, text, and a change doc, and nothing else: a diff that also changes a test needs a wider lane, and these rules decide which. A change doc without a wording path still needs `behavior-change`.
+
+The claim passes when it is that lane or a wider one along docs → wording → tests → bug fix → behavior change, or docs → tests → tooling → behavior change; `tooling` does not cover `wording`, and `wording` covers only `docs`. A `behavior-change` claim additionally needs a change doc in the diff; a `wording` claim needs nothing beyond its paths.
+
+Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production or wording next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
+
+This table is the one statement of the classification, and other documents link here instead of listing paths. A path belongs to the first row that names it, whatever its extension: every file under `squad/notes/` is text while the rest of `squad/**` is tooling, the issue and PR templates are text while the rest of `.github/**` is tooling, a test project's `*.csproj` is tooling rather than a test, and the two resource files are wording rather than production. The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
 
 ## The usage report
 
