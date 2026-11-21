@@ -36,6 +36,14 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 | 7 | Spec author | Self-hosting trigger | Only when a run adds lines to a test file, as the maintainer stated | Binding wording of the answer | Process only | a9a156d |
 | 8 | Spec author | Output-question batch in docs/wording lanes | One batch after the spec author, before the spec checker | These lanes have no test implementer | Process only | a9a156d |
 | 9 | Spec author | Maintainer change requests after unsubscribe | Run like a repair round with a fresh `sdd/work/<slug>/` | Reuses existing mechanics | Process only | a9a156d |
+| 10 | Skeptic | F1 who writes resource texts after a wording run widens | Spec author owns the two resource files' values in every lane and writes them before reporting "needs a test"; test-implementer file gets a clause for a run widened from wording | Otherwise nobody may write them in the tests lane | Process only | pending |
+| 11 | Skeptic | F2 an updated test literal widens the wording lane (stricter than "unless a new test") | Keep the path-based rule (option A); state it in the change doc and PR; follow-up candidate 1 removes the quoted literals so wording runs stop touching tests | Lanes are internal (`squad/README.md`); a path-only check cannot tell a literal update from a new test; the follow-up restores the maintainer's intent | Process only | pending |
+| 12 | Skeptic | F4 push points | Push once at each role-stage boundary (after each role's handover commit), plus the existing points | Closest to the maintainer's "stage boundaries"; keeps "a run can continue in a later session" true | Process only | pending |
+| 13 | Skeptic | F3, F5, F6 corrections | Route to spec author: cleaner.md lane list, line-count filter description, follow-up template lane list | Factual errors | Process only | pending |
+| 14 | Skeptic | Source of wording paths for `--exclude` | `lane-check.sh` asks the classifier for them; no second statement in bash; `scripts/README.md` says so | One statement of the classification | Tooling only | pending |
+| 15 | Skeptic | Claims wider than wording | State in `squad/README.md` lane bullets that tests/bug-fix claims cover a wording diff | Documents existing order semantics | Process only | pending |
+| 16 | Skeptic | Unsubscribe when remaining CI failures also exist on `main` | Keep; name it in the PR | A failure on `main` is decided by the lead anyway; waiting would never end | Process only | pending |
+| 17 | Skeptic | Accept change doc | Accept after the amendment; the amending spec author sets `Status: Accepted` | Skeptic ran; amendment follows | Process only | pending |
 
 ## Follow-up candidates
 
@@ -44,5 +52,5 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 
 ## State
 
-- Last step: spec author done (a9a156d), change doc Draft `sdd/changes/2026-11/squad-wording-lane-and-ci-only-watch.md`.
-- Next: skeptic (fresh), then accept change doc; no output questions expected (process only).
+- Last step: skeptic done (bc98e05), verdict proceed, no output questions.
+- Next: fresh spec author for amendment F1-F6 + decisions 10-17, sets Accepted; then test implementer.
