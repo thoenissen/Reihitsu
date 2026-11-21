@@ -26,5 +26,5 @@
 
 ## State
 
-- Last step finished: claim (commit 6590112), `scripts/prepare.sh` green.
-- Next: spec author.
+- Last step finished: spec author (8d5f2cc, pushed): change doc Draft, CLI-013 + new CLI-024. Open output question: Windows full path outside cwd, `\` (A, recommended) vs `/` (B). Visible changes 1-3 covered by #933 Q1 answer.
+- Next: skeptic (running), then output-question batch before the test implementer.
