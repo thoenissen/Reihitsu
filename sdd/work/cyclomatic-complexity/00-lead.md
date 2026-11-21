@@ -64,7 +64,7 @@
 
 ## Open worklist / next step
 
-- Next: fresh spec author applies answers 23–24 (05-spec-author.md); then ask the maintainer to approve the concept.
+- Answers 23–24 applied (05-spec-author.md, 5fbfd58). Asked the maintainer to approve the concept; waiting. On approval: status-only follow-up (spec author sets Accepted), then test implementer.
 - Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
 - Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
 - Sonar comparison done (03-skeptic.md). Sent to maintainer as chat questions 11–15 = skeptic 03 Q1 (#if), Q2 (recursion re-ask), Q3 (& | ^), Q4 (anonymous methods), Q5 (parenthesized chained ?:). Waiting.
