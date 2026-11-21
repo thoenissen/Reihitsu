@@ -36,6 +36,7 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 | 6 | 02 | Who restructures the 8 test helpers | Test implementer (results unchanged); implementer takes the 19 production members | Test code is the test implementer's | Internal | |
 | 7 | 02 | Test names | Fold RH2009 into `ReleaseRulesetReportsRuleAsError`, delete `ReleaseRulesetSwitchesOffComplexityRule`; add a separate `DebugRulesetHasNoEntryForComplexityRule` instead of renaming the line-count test, so `scripts/README.md` stays valid | Avoids doc churn | Internal | |
 | 8 | 03 | Change doc names test methods? | No; states only what is checked | Change doc carries no task list | Internal | efea239 |
+| 9 | 04 | Test implementer removed `_ignoredDiagnosticIds` itself | Accepted | Test-project code; it is what makes the scan check RH2009 | Internal | 3ebf2d4 |
 | 4 | 01 | Remove empty `_ignoredDiagnosticIds` and its test | Remove | Dead code once RH2009 leaves it | Test utility, internal | 2645615 |
 
 ## Follow-up candidates
@@ -47,4 +48,5 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 - Done: 01 spec author (change doc Draft; output question 1 on default limit, recommended A=15).
 - Done: 02 skeptic (proceed; no output question, no architecture finding, no follow-up).
 - Done: 03 spec author (change doc Accepted, efea239).
-- Next: wait for 04 test implementer; then 05 implementer.
+- Done: 04 test implementer (3ebf2d4, 0b0f705): 8 test helpers restructured; failing: Release RH2009 row, RH2009 scan row (19 production members).
+- Next: 05 implementer.
