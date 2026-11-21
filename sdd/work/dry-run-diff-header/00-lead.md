@@ -34,4 +34,4 @@ Batch 1 (before test implementer), answered "as recommended":
 
 - Last step finished: spec author (8d5f2cc, pushed): change doc Draft, CLI-013 + new CLI-024. Open output question: Windows full path outside cwd, `\` (A, recommended) vs `/` (B). Visible changes 1-3 covered by #933 Q1 answer.
 - Skeptic done (813177e): verdict output question; premise confirmed (patch -p1 / git apply accept the new header).
-- Batch 1 answered (1A, 2A); spec author recorded them, change doc Accepted (c45a33a). Next: test implementer.
+- Change doc Accepted (c45a33a). Test implementer done (557151c): 14 E2E tests, 13 red on the header lines (reproduced), 1 Windows-only skipped. Next: implementer.
