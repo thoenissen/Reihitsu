@@ -51,4 +51,6 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 - Claim done (draft PR #1920, `scripts/prepare.sh` passed).
 - Spec author done (fc44967): 2 Draft change docs, FMT-INDENT-034/035; 4 output questions in 01-spec-author.md.
 - Skeptic done (5f6af8f): all four reproduce; 5 amendments routed to a fresh spec author.
-- Next: spec-author amendment (03), then the output-question batch.
+- Spec-author amendment done (5fe7f28), 03-spec-author.md supersedes 01 for output questions.
+- Output-question batch 1 sent to the maintainer (questions 1-7: reference line, blank-line join, query clauses, omitted type args, return value, #endif declarator, other applications). Waiting for the answer.
+- Next: route the answers to the spec author (status Accepted), then the test implementer.
