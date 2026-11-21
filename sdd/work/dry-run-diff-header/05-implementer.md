@@ -23,7 +23,7 @@ The `IDiffGenerator.Generate(filePath, …)` contract is unchanged (it still rec
 - Relative-path computation: `rg -n "GetRelativePath|GetCurrentDirectory" src/Reihitsu.Cli` → `Program` (default path), `FormatCommandHandler.IsInBuildOutputDirectory` (relative to a selection root for `bin`/`obj`, a different decision), `DefaultDiffGenerator.Generate`. `Path.GetRelativePath` is deliberately not used for the header: it applies the BCL's own case rule and returns `..` paths, while CLI-024 fixes the rule to CLI-006's comparer and an ancestry condition.
 
 ## Production diff size
-`git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'` after the commit: 5 files changed, about 78 insertions, 9 deletions (61/9 in the four existing files plus the 17-line new file). New type: `PathComparison` (internal static, one property).
+`git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'` after the commit: 5 files changed, 77 insertions(+), 9 deletions(-). New type: `PathComparison` (internal static, one property).
 
 ## Deleted special cases
 _N/A._
