@@ -63,12 +63,12 @@
 
 ## Follow-up candidates
 
-- Self-hosting violations of the new rule and a review of the default threshold (maintainer clarification 3) — lead; includes removing RH2009 from the self-hosting ignore list and setting its Release.ruleset action to Error.
+- Self-hosting violations of the new rule and a review of the default threshold (maintainer clarification 3) — lead; includes removing RH2009 from the self-hosting ignore list and setting its Release.ruleset action to Error; note that `Debug.ruleset` does not list RH2009, so once `/bump-version` ships RH2009 into `binaries/`, Debug builds show RH2009 warnings on the repository's own code (auditor 13 hint).
 - Reporting lambdas outside every judged member — field, property, and event initializers — possibly judged on their own (maintainer answer 22) — lead.
 
 ## Open worklist / next step
 
-- Cleaner clean (11), spec checker consistent (12). Merged origin/main 77a1f37 (head 90a5e8b), Release build green. Auditor (13) running against main 77a1f37. Next: validator, issue manager (follow-ups), note, publish.
+- Cleaner clean (11), spec checker consistent (12). Merged origin/main 77a1f37 (head 90a5e8b), Release build green. Auditor (13) PASS, audited SHA 76e9eac. Next: validator, issue manager (follow-ups), note, publish.
 - Answers 23–24 applied (05-spec-author.md, 5fbfd58). On approval: status-only follow-up (spec author sets Accepted), then test implementer.
 - Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
 - Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
