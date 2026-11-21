@@ -25,6 +25,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
+| [shared/configured-limits.md](shared/configured-limits.md) | SHARED-LIMIT | `ConfiguredLimitUtilities` |
 | [shared/debug-message-text.md](shared/debug-message-text.md) | SHARED-DEBUG | `DebugMessageTextAnalysisUtilities` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `AnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
@@ -65,7 +66,8 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
 | [analyzer/RH2006.md](analyzer/RH2006.md) | RH2006 | `RH2006DebugAssertMustProvideMessageTextAnalyzer` |
 | [analyzer/RH2007.md](analyzer/RH2007.md) | RH2007 | `RH2007DebugFailMustProvideMessageTextAnalyzer` |
-| [analyzer/RH2008.md](analyzer/RH2008.md) | RH2008 | `RH2008MethodsShouldNotExceedTheLineLimitAnalyzer` |
+| [analyzer/RH2008.md](analyzer/RH2008.md) | RH2008 | `RH2008MethodsShouldNotExceedTheLineLimitAnalyzer`, `MemberBodyUtilities` |
+| [analyzer/RH2009.md](analyzer/RH2009.md) | RH2009 | `RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzer`, `CognitiveComplexityWalker` |
 | [analyzer/RH2101.md](analyzer/RH2101.md) | RH2101 | `RH2101NestedClassesShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2102.md](analyzer/RH2102.md) | RH2102 | `RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer` |
 | [analyzer/RH2103.md](analyzer/RH2103.md) | RH2103 | `RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer` |

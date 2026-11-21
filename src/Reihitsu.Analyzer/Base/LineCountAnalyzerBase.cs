@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Data;
 using Reihitsu.Analyzer.Enumerations;
 
@@ -200,20 +201,16 @@ public abstract class LineCountAnalyzerBase : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Resolves the limit of the compilation: the setting for its kind of code when the setting has a valid value,
-    /// and that setting's default otherwise
+    /// Resolves the limit of the compilation: the setting for its kind of code, as SHARED-LIMIT-001 resolves it
     /// </summary>
     /// <param name="design">Design section, or <see langword="null"/> when there is none</param>
     /// <param name="isTestCode">Whether the compilation is test code</param>
     /// <returns>Limit</returns>
     private int ResolveLimit(ConfigurationCategoryDesign design, bool isTestCode)
     {
-        if (isTestCode)
-        {
-            return (design == null ? null : _testSetting(design)) ?? _defaultTestLimit;
-        }
-
-        return (design == null ? null : _productionSetting(design)) ?? _defaultProductionLimit;
+        return isTestCode
+                   ? ConfiguredLimitUtilities.ResolveLimit(design, _testSetting, _defaultTestLimit)
+                   : ConfiguredLimitUtilities.ResolveLimit(design, _productionSetting, _defaultProductionLimit);
     }
 
     /// <summary>
@@ -222,7 +219,7 @@ public abstract class LineCountAnalyzerBase : DiagnosticAnalyzerBase
     /// <param name="context">Context</param>
     private void OnCompilationStart(CompilationStartAnalysisContext context)
     {
-        var design = ConfigurationManager.GetConfiguration(context.Options.AdditionalFiles).Configuration?.Design;
+        var design = ConfiguredLimitUtilities.GetDesignSection(context.Options);
         var isTestCode = IsTestCode(context.Options.AnalyzerConfigOptionsProvider.GlobalOptions);
         var limit = ResolveLimit(design, isTestCode);
 
@@ -243,7 +240,7 @@ public abstract class LineCountAnalyzerBase : DiagnosticAnalyzerBase
 
         var count = CountLinesOfCode(context.Node, span, context.Node.SyntaxTree.GetText(context.CancellationToken));
 
-        if (count > limit)
+        if (ConfiguredLimitUtilities.ExceedsLimit(count, limit))
         {
             context.ReportDiagnostic(CreateDiagnostic(location, count, limit));
         }

@@ -22,7 +22,10 @@ internal static class AnalyzerViolationReport
     /// <summary>
     /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
     /// </summary>
-    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal);
+    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
+                                                                    {
+                                                                        "RH2009"
+                                                                    };
 
     #endregion // Fields
 

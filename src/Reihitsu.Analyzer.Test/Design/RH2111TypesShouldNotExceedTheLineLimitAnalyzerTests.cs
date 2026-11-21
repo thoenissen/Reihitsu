@@ -76,6 +76,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-002")]
     public async Task DefaultProductionLimitIsFifteenHundred()
     {
         await VerifyLines(CreateTypesAround(1500), null, LineLimit(0, 1501, 1500));
@@ -89,6 +90,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-002")]
     public async Task DefaultTestLimitIsThreeThousand()
     {
         await VerifyLines(CreateTypesAround(3000), null, "build_property.IsTestProject = true", LineLimit(0, 3001, 3000));
@@ -130,6 +132,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-001")]
     [DataRow("""{ "design": { "maximumTypeLines": 0 } }""")]
     [DataRow("""{ "design": { "maximumTypeLines": "400" } }""")]
     [DataRow("""{ "design": { "maximumTypeLines": 400.0 } }""")]
@@ -149,6 +152,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-001")]
     public async Task InvalidTestSettingKeepsDefaultTestLimit()
     {
         await VerifyLines(CreateTypesAround(3000), """{ "design": { "maximumTestTypeLines": 0 } }""", "build_property.IsTestProject = true", LineLimit(0, 3001, 3000));
@@ -161,6 +165,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     [TestMethod]
     [Requirement("RH2111-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-002")]
     public async Task ConfiguredLimitReportsOnlyTheBodyAboveIt()
     {
         await VerifyLines(TwoAndThreeLineTypes, LimitTwo, LineLimit(0, 3, 2));
@@ -187,6 +192,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-001")]
     [DataRow("""{ "design": { "maximumTypeLines": 2 }, "formatting": 1 }""")]
     [DataRow("""{ "design": { "maximumTypeLines": 2, "maximumMethodLines": "60" } }""")]
     [DataRow("""{ "design": { "maximumTypeLines": 2, "maximumFileLines": 900 } }""")]

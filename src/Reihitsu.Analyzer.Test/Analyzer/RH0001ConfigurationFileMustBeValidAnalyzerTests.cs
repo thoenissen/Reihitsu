@@ -744,13 +744,13 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies the valid example of RH0001-007: all four line limits as whole numbers
+    /// Verifies the valid example of RH0001-007: the four line limits and the complexity limit as whole numbers
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH0001-004")]
     [Requirement("RH0001-007")]
-    public async Task DesignSectionWithEveryLineLimitIsValid()
+    public async Task DesignSectionWithEverySettingIsValid()
     {
         const string configuration = """
                                      {
@@ -758,7 +758,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                                          "maximumMethodLines": 50,
                                          "maximumTestMethodLines": 80,
                                          "maximumTypeLines": 400,
-                                         "maximumTestTypeLines": 800
+                                         "maximumTestTypeLines": 800,
+                                         "maximumMethodComplexity": 20
                                        }
                                      }
                                      """;
@@ -779,7 +780,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies the bounds of the valid range of a line limit, 1 and 2147483647, for every setting
+    /// Verifies the bounds of the valid range of a limit, 1 and 2147483647, for every setting
     /// </summary>
     /// <param name="settingName">Name of the setting</param>
     /// <param name="value">Valid value</param>
@@ -794,7 +795,9 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     [DataRow("maximumTypeLines", "2147483647")]
     [DataRow("maximumTestTypeLines", "1")]
     [DataRow("maximumTestTypeLines", "2147483647")]
-    public async Task LineLimitAtTheBoundsOfTheRangeIsValid(string settingName, string value)
+    [DataRow("maximumMethodComplexity", "1")]
+    [DataRow("maximumMethodComplexity", "2147483647")]
+    public async Task LimitAtTheBoundsOfTheRangeIsValid(string settingName, string value)
     {
         await VerifyConfiguration($$"""{ "design": { "{{settingName}}": {{value}} } }""");
     }
@@ -817,8 +820,8 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies the invalid example of RH0001-007: three invalid values, each reported on the value, and an unknown
-    /// setting, reported on its property name
+    /// Verifies the invalid example of RH0001-007: four invalid values, each reported on the value, and two unknown
+    /// settings, each reported on its property name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -826,13 +829,52 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     [Requirement("RH0001-007")]
     public async Task InvalidDesignSettingsAreReported()
     {
-        const string configuration = """{ "design": { "maximumMethodLines": 50.0, "maximumTypeLines": "500", "maximumTestTypeLines": 0, "maximumFileLines": 900 } }""";
+        const string configuration = """{ "design": { "maximumMethodLines": 50.0, "maximumTypeLines": "500", "maximumTestTypeLines": 0, "maximumFileLines": 900, "maximumMethodComplexity": -1, "maximumTestMethodComplexity": 30 } }""";
 
         await VerifyConfiguration(configuration,
                                   InvalidConfiguration("The 'design.maximumMethodLines' setting must be a whole number from 1 to 2147483647.", 1, 37),
                                   InvalidConfiguration("The 'design.maximumTypeLines' setting must be a whole number from 1 to 2147483647.", 1, 64),
                                   InvalidConfiguration("The 'design.maximumTestTypeLines' setting must be a whole number from 1 to 2147483647.", 1, 94),
-                                  InvalidConfiguration("Unknown configuration setting 'design.maximumFileLines'.", 1, 98));
+                                  InvalidConfiguration("Unknown configuration setting 'design.maximumFileLines'.", 1, 98),
+                                  InvalidConfiguration("The 'design.maximumMethodComplexity' setting must be a whole number from 1 to 2147483647.", 1, 149),
+                                  InvalidConfiguration("Unknown configuration setting 'design.maximumTestMethodComplexity'.", 1, 154));
+    }
+
+    /// <summary>
+    /// Verifies that every value of <c>maximumMethodComplexity</c> that is not a JSON number written as a whole number
+    /// from 1 to 2147483647 is reported on the value
+    /// </summary>
+    /// <param name="value">Invalid value</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("0")]
+    [DataRow("-1")]
+    [DataRow("2.5")]
+    [DataRow("15.0")]
+    [DataRow("1e1")]
+    [DataRow("2147483648")]
+    [DataRow("null")]
+    [DataRow("true")]
+    [DataRow("[ 15 ]")]
+    [DataRow("{ }")]
+    public async Task NonWholeNumberComplexityLimitIsReported(string value)
+    {
+        await VerifyConfiguration($$"""{ "design": { "maximumMethodComplexity": {{value}} } }""",
+                                  InvalidConfiguration("The 'design.maximumMethodComplexity' setting must be a whole number from 1 to 2147483647.", 1, 42));
+    }
+
+    /// <summary>
+    /// Verifies that a string value of <c>maximumMethodComplexity</c> is reported, also one that holds a valid number,
+    /// located on the text of the string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    public async Task StringComplexityLimitIsReported()
+    {
+        await VerifyConfiguration("""{ "design": { "maximumMethodComplexity": "15" } }""",
+                                  InvalidConfiguration("The 'design.maximumMethodComplexity' setting must be a whole number from 1 to 2147483647.", 1, 43));
     }
 
     /// <summary>
@@ -883,7 +925,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies that an invalid value is reported for each of the four settings, with the setting's name in the
+    /// Verifies that an invalid value is reported for each of the five settings, with the setting's name in the
     /// message
     /// </summary>
     /// <param name="settingName">Name of the setting</param>
@@ -895,6 +937,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     [DataRow("maximumTestMethodLines", 41)]
     [DataRow("maximumTypeLines", 35)]
     [DataRow("maximumTestTypeLines", 39)]
+    [DataRow("maximumMethodComplexity", 42)]
     public async Task InvalidValueIsReportedForEverySetting(string settingName, int column)
     {
         await VerifyConfiguration($$"""{ "design": { "{{settingName}}": 0 } }""",
@@ -912,6 +955,9 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     [DataRow("maximumFileLines")]
     [DataRow("MaximumMethodLines")]
     [DataRow("allowedNamespaceDeclarations")]
+    [DataRow("maximumTestMethodComplexity")]
+    [DataRow("MaximumMethodComplexity")]
+    [DataRow("maximumComplexity")]
     public async Task UnknownDesignSettingIsReported(string settingName)
     {
         await VerifyConfiguration($$"""{ "design": { "{{settingName}}": 900 } }""",
@@ -946,7 +992,7 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                                      {
                                        "naming": { "allowedNamespaceDeclarations": [ "TestNamespace" ] },
                                        "copyright": { "copyrightText": "// Copyright (c) {company}.", "company": "Example" },
-                                       "design": { "maximumMethodLines": 60, "maximumTypeLines": 500 }
+                                       "design": { "maximumMethodLines": 60, "maximumTypeLines": 500, "maximumMethodComplexity": 15 }
                                      }
                                      """;
 

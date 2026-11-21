@@ -27,6 +27,11 @@ internal class ConfigurationCategoryDesign
     /// </summary>
     public const string MaximumTestTypeLinesPropertyName = "maximumTestTypeLines";
 
+    /// <summary>
+    /// Configuration property name: maximumMethodComplexity
+    /// </summary>
+    public const string MaximumMethodComplexityPropertyName = "maximumMethodComplexity";
+
     #endregion // Constants
 
     #region Properties
@@ -50,6 +55,11 @@ internal class ConfigurationCategoryDesign
     /// Limit of lines of code of a type's body in test code, or <see langword="null"/> when the setting has no valid value
     /// </summary>
     public int? MaximumTestTypeLines { get; set; }
+
+    /// <summary>
+    /// Limit of the cognitive complexity of a member's body, or <see langword="null"/> when the setting has no valid value
+    /// </summary>
+    public int? MaximumMethodComplexity { get; set; }
 
     #endregion // Properties
 }

@@ -443,25 +443,31 @@ internal static class ConfigurationManager
             {
                 case ConfigurationCategoryDesign.MaximumMethodLinesPropertyName:
                     {
-                        design.MaximumMethodLines = ParseLineLimit(ref reader, propertyName, errors);
+                        design.MaximumMethodLines = ParseLimit(ref reader, propertyName, errors);
                     }
                     break;
 
                 case ConfigurationCategoryDesign.MaximumTestMethodLinesPropertyName:
                     {
-                        design.MaximumTestMethodLines = ParseLineLimit(ref reader, propertyName, errors);
+                        design.MaximumTestMethodLines = ParseLimit(ref reader, propertyName, errors);
                     }
                     break;
 
                 case ConfigurationCategoryDesign.MaximumTypeLinesPropertyName:
                     {
-                        design.MaximumTypeLines = ParseLineLimit(ref reader, propertyName, errors);
+                        design.MaximumTypeLines = ParseLimit(ref reader, propertyName, errors);
                     }
                     break;
 
                 case ConfigurationCategoryDesign.MaximumTestTypeLinesPropertyName:
                     {
-                        design.MaximumTestTypeLines = ParseLineLimit(ref reader, propertyName, errors);
+                        design.MaximumTestTypeLines = ParseLimit(ref reader, propertyName, errors);
+                    }
+                    break;
+
+                case ConfigurationCategoryDesign.MaximumMethodComplexityPropertyName:
+                    {
+                        design.MaximumMethodComplexity = ParseLimit(ref reader, propertyName, errors);
                     }
                     break;
 
@@ -476,14 +482,14 @@ internal static class ConfigurationManager
     }
 
     /// <summary>
-    /// Parse a line limit of the design category: a JSON number written as a whole number without a sign, a fraction,
+    /// Parse a line or complexity limit of the design category: a JSON number written as a whole number without a sign, a fraction,
     /// or an exponent, from 1 to <see cref="int.MaxValue"/>
     /// </summary>
     /// <param name="reader">Reader positioned on the value</param>
     /// <param name="propertyName">Property name</param>
     /// <param name="errors">Errors</param>
     /// <returns>The limit, or <see langword="null"/> when the value is not such a number</returns>
-    private static int? ParseLineLimit(ref Utf8JsonReader reader, string propertyName, List<ConfigurationValidationError> errors)
+    private static int? ParseLimit(ref Utf8JsonReader reader, string propertyName, List<ConfigurationValidationError> errors)
     {
         if (reader.TokenType == JsonTokenType.Number
             && IsWrittenAsDigits(reader.ValueSpan)

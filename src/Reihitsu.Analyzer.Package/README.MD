@@ -34,6 +34,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH2006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2006.md)| Debug.Assert must provide message text.| ✔| ❌| ❌|
 | [RH2007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2007.md)| Debug.Fail must provide message text.| ✔| ❌| ❌|
 | [RH2008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2008.md)| Methods should not exceed the line limit.| ✔| ❌| ❌|
+| [RH2009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2009.md)| Methods should not exceed the complexity limit.| ✔| ❌| ❌|
 | [RH2101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2101.md)| Nested classes should not be used.| ✔| ❌| ❌|
 | [RH2102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2102.md)| Classes should not use parameterized primary constructors.| ✔| ❌| ❌|
 | [RH2103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2103.md)| Structs should not use parameterized primary constructors.| ✔| ❌| ❌|

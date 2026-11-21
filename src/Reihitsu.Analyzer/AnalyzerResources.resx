@@ -255,6 +255,12 @@
   <data name="RH2008Title" xml:space="preserve">
     <value>Methods should not exceed the line limit.</value>
   </data>
+  <data name="RH2009MessageFormat" xml:space="preserve">
+    <value>This member has a cognitive complexity of {0}, which exceeds the limit of {1}.</value>
+  </data>
+  <data name="RH2009Title" xml:space="preserve">
+    <value>Methods should not exceed the complexity limit.</value>
+  </data>
   <data name="RH3106MessageFormat" xml:space="preserve">
     <value>Unnecessary delegate parentheses should be removed.</value>
   </data>
