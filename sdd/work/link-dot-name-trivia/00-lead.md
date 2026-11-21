@@ -36,5 +36,5 @@
 ## State
 
 - Audited SHA: —
-- Last step: spec author recorded answers, change doc Accepted (566968bd).
-- Next step: test implementer (04).
+- Last step: test implementer done (3c7d2da1): 302 formatter + 17 analyzer + 4 CLI tests red as expected.
+- Next step: implementer (05).
