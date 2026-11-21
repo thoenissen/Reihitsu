@@ -42,6 +42,7 @@ Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
 - Open worklist for a later spec-author pass: RH5201-006 example 2 and example `g` in the spec declare `C? Next`, which makes `c.Next?.Next` raise CS8602; tests use `C Next` + `C? Opt`. Spec example fixture to align (route with spec-checker findings).
 - Implementer done (dde283b, e92a72b): all tests green; decision 3 via `FluentChain.IsRootLineShortOfFirstInvokedLink`; decision 4 via `IsBehindMultiLineCommentTail` moved to Core `SyntaxTokenPositionUtilities` (shared helper, 2 consumers; ~82+/50-).
 - Open for batch 2 (before auditor): Q7 — `/* x` ⏎ `*/ /* y */ .Next` (second comment between `*/` and link) is now reported by RH5201 (helper reads wider than RH5201-002's wording); formatter breaks there today.
-- NOW: cleaner → 06-cleaner.md. Then ask Q7, spec author pass (Q7 wording + CS8602 fixture item), spec checker, auditor.
+- Cleaner done (b532773, clean). Q7 outputs verified with apply-fix/format: fix and formatter both give `*/ /* y */` ⏎ `.Self();`.
+- WAITING: Q7 posted to maintainer. Then: spec author pass (Q7 wording + CS8602 fixture item), spec checker, auditor.
 - Then: spec author follow-up (answers, decisions 4–5, Status Accepted), lane check, test implementer.
 - Old next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
