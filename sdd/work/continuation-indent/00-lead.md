@@ -36,7 +36,7 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 
 ## Follow-up candidates
 
-(none yet)
+- Comment on open issues #1633, #1634, #1905, #1542: their "Before" output changes under FMT-INDENT-034; an alignment chosen there later takes precedence (01-spec-author.md).
 
 ## Audited SHA
 
@@ -45,4 +45,5 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 ## Open worklist / next step
 
 - Claim done (draft PR #1920, `scripts/prepare.sh` passed).
-- Next: spawn the spec author.
+- Spec author done (fc44967): 2 Draft change docs, FMT-INDENT-034/035; 4 output questions in 01-spec-author.md.
+- Next: skeptic, then the output-question batch.
