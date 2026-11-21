@@ -2461,7 +2461,11 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyHoleTests : BatchC
                                   }
                                   """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
+        // The outer literal's fix is withheld until the nested literal's fix has run, so Fix All needs one pass for the nested literal and one for the outer literal
+        await Verify(ExpandWhitespaceMarkers(testData),
+                     resultData,
+                     static config => config.NumberOfFixAllIterations = 2,
+                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
