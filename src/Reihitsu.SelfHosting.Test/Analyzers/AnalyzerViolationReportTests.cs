@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -98,6 +100,78 @@ public sealed class AnalyzerViolationReportTests
         // Assert
         Assert.Contains(nameof(RH2008MethodsShouldNotExceedTheLineLimitAnalyzer), names);
         Assert.Contains(nameof(RH2111TypesShouldNotExceedTheLineLimitAnalyzer), names);
+    }
+
+    /// <summary>
+    /// Verifies that the complexity rule RH2009 has a row like every other analyzer
+    /// </summary>
+    [TestMethod]
+    public void ComplexityAnalyzerHasARow()
+    {
+        // Act
+        var names = AnalyzerSelfHostingTests.AnalyzerNames.ToList();
+
+        // Assert
+        Assert.Contains(nameof(RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzer), names);
+    }
+
+    /// <summary>
+    /// Verifies that the scan leaves out what RH2009 reports, so the repository's own code is not held to the
+    /// complexity rule yet, while the analyzer itself does report the same code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReportLeavesOutComplexityViolations()
+    {
+        // Arrange
+        const string source = """
+                              namespace Sample;
+
+                              internal class Holder
+                              {
+                                  internal int Score(int[] values)
+                                  {
+                                      int total = 0;
+
+                                      foreach (var value in values)
+                                      {
+                                          if (value > 0)
+                                          {
+                                              if (value % 2 == 0)
+                                              {
+                                                  for (int i = 0; i < value; i++)
+                                                  {
+                                                      if (i % 3 == 0)
+                                                      {
+                                                          total += i;
+                                                      }
+                                                      else if (i % 5 == 0)
+                                                      {
+                                                          total -= i;
+                                                      }
+                                                  }
+                                              }
+                                          }
+                                      }
+
+                                      return total;
+                                  }
+                              }
+                              """;
+        var compilation = CreateCompilation(("Sample/Holder.cs", source));
+        var analyzer = new RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzer();
+
+        // Act
+        var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation,
+                                                                    ImmutableArray.Create<DiagnosticAnalyzer>(analyzer),
+                                                                    new CompilationWithAnalyzersOptions(null, null, true, false));
+        var reported = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(TestContext.CancellationToken);
+        var violations = AnalyzerViolationReport.Collect(analyzer, [compilation], _solutionRoot, TestContext.CancellationToken);
+
+        // Assert
+        Assert.IsTrue(reported.Any(diagnostic => diagnostic.Id == RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzer.DiagnosticId),
+                      "RH2009 does not report the sample, so the report cannot show that it leaves the diagnostic out.");
+        Assert.IsEmpty(violations);
     }
 
     /// <summary>

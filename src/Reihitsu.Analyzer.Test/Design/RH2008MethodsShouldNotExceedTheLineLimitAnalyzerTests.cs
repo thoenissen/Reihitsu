@@ -463,6 +463,8 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
     [Requirement("RH2008-001")]
+    [Requirement("SHARED-LIMIT-001")]
+    [Requirement("SHARED-LIMIT-002")]
     public async Task ConfiguredLimitReportsOnlyTheBodyAboveIt()
     {
         await VerifyLines(TwoAndThreeLineMethods, LimitTwo, LineLimit(0, 3, 2));
@@ -476,6 +478,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-001")]
     [DataRow("""{ "design": { "maximumMethodLines": 2 }, "formatting": 1 }""")]
     [DataRow("""{ "design": { "maximumMethodLines": 2, "maximumTypeLines": "500" } }""")]
     [DataRow("""{ "design": { "maximumMethodLines": 2, "maximumTestMethodLines": 0 } }""")]
@@ -495,6 +498,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
     [Requirement("RH2008-001")]
+    [Requirement("SHARED-LIMIT-001")]
     [DataRow("""{ }""")]
     [DataRow("""{ "design": { } }""")]
     [DataRow("""{ "design": { "maximumMethodLines": 0 } }""")]
@@ -516,6 +520,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
     [Requirement("RH2008-001")]
+    [Requirement("SHARED-LIMIT-001")]
     public async Task DefaultProductionLimitAppliesWithoutConfigurationFile()
     {
         await VerifyLines(TwoAndThreeLineMethods.Replace("{|#0:N|}", "N"), null);
@@ -554,6 +559,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("RH2008-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-002")]
     public async Task DefaultProductionLimitIsSixty()
     {
         await VerifyLines(CreateMethodsAround(60), null, LineLimit(0, 61, 60));
@@ -567,6 +573,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("RH2008-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-002")]
     public async Task DefaultTestLimitIsOneHundredTwenty()
     {
         await VerifyLines(CreateMethodsAround(120), null, "build_property.IsTestProject = true", LineLimit(0, 121, 120));
@@ -607,6 +614,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("RH2008-001")]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-001")]
     public async Task ProductionSettingReportedByRH0001KeepsDefault()
     {
         var source = $"class C\n{{\n{CreateMethod("M70", 70, true)}}}\n";
@@ -623,6 +631,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
     [Requirement("RH2008-001")]
+    [Requirement("SHARED-LIMIT-001")]
     [DataRow("""{ "design": { "maximumMethodLines": "40" } }""")]
     [DataRow("""{ "design": { "maximumMethodLines": 0 } }""")]
     [DataRow("""{ "design": { "maximumMethodLines": -5 } }""")]
@@ -650,6 +659,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
     [Requirement("RH2008-001")]
+    [Requirement("SHARED-LIMIT-001")]
     [DataRow("""{ "design": { "maximumTestMethodLines": 0 } }""")]
     [DataRow("""{ "design": { "maximumTestMethodLines": "40" } }""")]
     [DataRow("{ } junk")]
@@ -664,6 +674,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-LINES-002")]
+    [Requirement("SHARED-LIMIT-001")]
     public async Task LargestValidLimitTakesEffect()
     {
         await VerifyLines(CreateMethodsAround(60).Replace("{|#0:M61|}", "M61"), """{ "design": { "maximumMethodLines": 2147483647 } }""");
