@@ -19,18 +19,20 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Ask escalation 10 for the qualified-name dot gap? | No; file it as a follow-up with options A/B/C | Declaring it would delete no special case (no phase handles it) and leave the no-comment cells broken; AGENTS.md: a shape that deletes nothing is not declared | Follow-up only; nothing in this run changes that output | — |
+| 2 | Skeptic | Own requirement FMT-UNSUP-016 vs widening FMT-UNSUP-015; defined by syntax kind (every member access/binding) | Accept the spec author's choices | Matches the earlier answer (a place in the tree), cheap check | Internal structure; the refused inputs are those the maintainer's answer names | a5328b71 |
 
 ## Follow-up candidates
 
-- Using directive: a comment between a qualified name's `.` and its name moves the continuation to column 1 (`using System. // c1` / `Text;`). Outside #1888. Open question (indent vs leave as written) + escalation 10 option (declare unsupported; spec author recommends against). Source: 01-spec-author.md. Escalation 10 to be asked with batch 1.
+- Qualified name split at its `.` loses its column (with or without a comment): `using static System.`/`Math;` to column 1; `typeof`, `new`, member-type continuations to statement/member column; with comments also using aliases, namespaces, attribute names, `default`, casts. No phase joins a `QualifiedNameSyntax` at its dot. Outside #1888. Carries an open question with options: A join the name back onto its dot, B indent the continuation one level, C leave as written. Sources: 01-spec-author.md, 02-skeptic.md (wider class).
 
 ## Open output questions (batch 1)
 
 - Reason text for FMT-UNSUP-016 (01-spec-author.md): A `a comment or directive between a . and its member name` (rec.), B `a comment or directive between a member access's . and its name`.
-- Escalation 10: using-directive qualified-name dot gap (above).
+- One-line form `t. /* c */ Length` refused (02-skeptic.md) — asked as a neighbour to confirm the earlier answer covers it.
 
 ## State
 
 - Audited SHA: —
-- Last step: spec author done (a5328b71), change doc Draft.
-- Next step: skeptic (02), then batch 1 output questions.
+- Last step: skeptic done (3449c887), verdict proceed. Batch 1 output questions posted to maintainer.
+- Next step: wait for answers; then spec author status/amendment, then test implementer.
