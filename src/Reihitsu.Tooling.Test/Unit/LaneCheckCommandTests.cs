@@ -10,6 +10,27 @@ namespace Reihitsu.Tooling.Test.Unit;
 [TestClass]
 public sealed class LaneCheckCommandTests
 {
+    #region Constants
+
+    /// <summary>
+    /// Name-status lines of a wording diff: both resource files, the rule page, and the package README that repeat the texts
+    /// </summary>
+    private const string WordingChanges = "M\tsrc/Reihitsu.Analyzer/AnalyzerResources.resx\n"
+                                          + "M\tsrc/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx\n"
+                                          + "M\tdocumentation/rules/RH5201.md\n"
+                                          + "M\tsrc/Reihitsu.Analyzer.Package/README.MD\n";
+
+    /// <summary>
+    /// Name-status lines of a wording diff with its change doc, spec, run note, and a comment edit in the analyzer
+    /// </summary>
+    private const string WordingChangesWithChangeDoc = WordingChanges
+                                                       + "A\tsdd/changes/2026-11/rh5201-member-access-wording.md\n"
+                                                       + "M\tsdd/specs/analyzer/RH5201.md\n"
+                                                       + "A\tsquad/notes/2026-11-21-rh5201-member-access-wording.md\n"
+                                                       + "M\tsrc/Reihitsu.Analyzer/Rules/Layout/RH5201MethodChainsShouldBeAlignedAnalyzer.cs\n";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -146,6 +167,173 @@ public sealed class LaneCheckCommandTests
         Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.Contains("Text       CONTRIBUTING.md", output);
         Assert.Contains("LANE CHECK: confirmed — claimed tooling, diff needs tooling", output);
+    }
+
+    /// <summary>
+    /// Verifies that a diff changing the two resource files and the text that repeats them is wording and fits the
+    /// wording lane
+    /// </summary>
+    [TestMethod]
+    public void ExecuteConfirmsTheWordingLaneForTheResourceFilesAndText()
+    {
+        // Act
+        var (exitCode, output, _) = Run(WordingChanges, "--lane", "wording", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("Wording    src/Reihitsu.Analyzer/AnalyzerResources.resx", output);
+        Assert.Contains("Wording    src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx", output);
+        Assert.Contains("Text       documentation/rules/RH5201.md", output);
+        Assert.Contains("LANE CHECK: confirmed — claimed wording, diff needs wording", output);
+    }
+
+    /// <summary>
+    /// Verifies that a wording claim needs no change doc, unlike a behavior-change claim
+    /// </summary>
+    [TestMethod]
+    public void ExecuteConfirmsAWordingClaimWithoutChangeDoc()
+    {
+        // Act
+        var (exitCode, output, _) = Run("M\tsrc/Reihitsu.Analyzer/AnalyzerResources.resx\n", "--lane", "wording", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("LANE CHECK: confirmed — claimed wording, diff needs wording", output);
+    }
+
+    /// <summary>
+    /// Verifies that the change of a diagnostic wording with its change doc, its spec, its notes, and a proven
+    /// text-only comment edit in the analyzer fits the wording lane
+    /// </summary>
+    [TestMethod]
+    public void ExecuteConfirmsTheWordingLaneForAWordingChangeWithChangeDocAndProvenCommentEdit()
+    {
+        // Act
+        var (exitCode, output, _) = Run(WordingChangesWithChangeDoc, "--lane", "wording", "--text-only", "pass");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("ChangeDoc  sdd/changes/2026-11/rh5201-member-access-wording.md", output);
+        Assert.Contains("Text       src/Reihitsu.Analyzer/Rules/Layout/RH5201MethodChainsShouldBeAlignedAnalyzer.cs", output);
+        Assert.Contains("LANE CHECK: confirmed — claimed wording, diff needs wording", output);
+    }
+
+    /// <summary>
+    /// Verifies that the same wording change with a changed test, which fails the text-only proof through its literal,
+    /// needs the behavior-change lane, so a wording claim is a mismatch
+    /// </summary>
+    [TestMethod]
+    public void ExecuteRejectsAWordingClaimForAWordingChangeWithAChangedTest()
+    {
+        // Arrange
+        var changes = WordingChangesWithChangeDoc + "M\tsrc/Reihitsu.Analyzer.Test/Formatter/Formatting/RH5201CommentExemptChainWithNonInvokedPrefixDotTests.cs\n";
+
+        // Act
+        var (exitCode, output, _) = Run(changes, "--lane", "wording", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.LaneMismatch, exitCode);
+        Assert.Contains("LANE CHECK: mismatch — claimed wording, diff needs behavior-change", output);
+    }
+
+    /// <summary>
+    /// Verifies that wording next to a test path without a change doc needs the tests lane, so a wording claim is a
+    /// mismatch
+    /// </summary>
+    [TestMethod]
+    public void ExecuteRejectsAWordingClaimForWordingWithATestPath()
+    {
+        // Arrange
+        var changes = WordingChanges + "M\tsrc/Reihitsu.Analyzer.Test/Layout/RH5201MethodChainsShouldBeAlignedAnalyzerTests.cs\n";
+
+        // Act
+        var (exitCode, output, _) = Run(changes, "--lane", "wording", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.LaneMismatch, exitCode);
+        Assert.Contains("LANE CHECK: mismatch — claimed wording, diff needs tests", output);
+    }
+
+    /// <summary>
+    /// Verifies that a claim narrower than or beside the wording lane is a mismatch naming the wording lane
+    /// </summary>
+    /// <param name="claimed">Claimed lane</param>
+    [TestMethod]
+    [DataRow("docs")]
+    [DataRow("tooling")]
+    public void ExecuteRejectsAClaimThatDoesNotCoverTheWordingLane(string claimed)
+    {
+        // Act
+        var (exitCode, output, _) = Run(WordingChanges, "--lane", claimed, "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.LaneMismatch, exitCode);
+        Assert.Contains($"LANE CHECK: mismatch — claimed {claimed}, diff needs wording", output);
+    }
+
+    /// <summary>
+    /// Verifies that a tests or bug-fix claim covers a wording diff, also one that carries a change doc
+    /// </summary>
+    /// <param name="claimed">Claimed lane</param>
+    [TestMethod]
+    [DataRow("tests")]
+    [DataRow("bug-fix")]
+    public void ExecuteConfirmsAWiderClaimForAWordingDiffWithChangeDoc(string claimed)
+    {
+        // Act
+        var (exitCode, output, _) = Run(WordingChangesWithChangeDoc, "--lane", claimed, "--text-only", "pass");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains($"LANE CHECK: confirmed — claimed {claimed}, diff needs only wording", output);
+    }
+
+    /// <summary>
+    /// Verifies that a behavior-change claim over a wording diff still needs a change doc
+    /// </summary>
+    [TestMethod]
+    public void ExecuteRejectsABehaviorChangeClaimForAWordingDiffWithoutChangeDoc()
+    {
+        // Act
+        var (exitCode, output, _) = Run(WordingChanges, "--lane", "behavior-change", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.LaneMismatch, exitCode);
+        Assert.Contains("no change doc under sdd/changes/; it needs wording", output);
+    }
+
+    /// <summary>
+    /// Verifies that wording next to tooling without a change doc ends in the no-lane verdict
+    /// </summary>
+    [TestMethod]
+    public void ExecuteReportsNoLaneForWordingAndToolingWithoutChangeDoc()
+    {
+        // Arrange
+        var changes = WordingChanges + "M\tscripts/lane-check.sh\n";
+
+        // Act
+        var (exitCode, output, _) = Run(changes, "--lane", "behavior-change", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.NoLane, exitCode);
+        Assert.Contains("LANE CHECK: no lane — claimed behavior-change, but", output);
+    }
+
+    /// <summary>
+    /// Verifies that wording next to tooling with a change doc needs the behavior-change lane
+    /// </summary>
+    [TestMethod]
+    public void ExecuteConfirmsTheBehaviorChangeLaneForWordingAndToolingWithChangeDoc()
+    {
+        // Arrange
+        var changes = WordingChangesWithChangeDoc + "M\tscripts/lane-check.sh\n";
+
+        // Act
+        var (exitCode, output, _) = Run(changes, "--lane", "behavior-change", "--text-only", "pass");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains("LANE CHECK: confirmed — claimed behavior-change, diff needs behavior-change", output);
     }
 
     /// <summary>

@@ -15,7 +15,9 @@ public sealed class LaneClassifierTests
     #region Methods
 
     /// <summary>
-    /// Verifies the category of each kind of path when the diff is not proven text-only
+    /// Verifies the category of each kind of path when the diff is not proven text-only; of the resource files, only
+    /// the two that hold the diagnostic and code-fix texts are wording, and every other one keeps the category of
+    /// where it lives
     /// </summary>
     /// <param name="path">Changed path</param>
     /// <param name="expected">Expected category</param>
@@ -48,7 +50,15 @@ public sealed class LaneClassifierTests
     [DataRow("src/Reihitsu.Formatter.Test/Unit/SampleTests.cs", PathCategory.Test)]
     [DataRow("src/Reihitsu.ArchitectureTests/SampleTests.cs", PathCategory.Test)]
     [DataRow("src/Reihitsu.Formatter/Pipeline/FormattingPipeline.cs", PathCategory.Production)]
-    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.resx", PathCategory.Wording)]
+    [DataRow("src/Reihitsu.Cli/CliResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Formatter/FormatterResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer/Rules/AnalyzerResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer/CodeFixResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer.CodeFixes/AnalyzerResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.de.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer.Test/AnalyzerResources.resx", PathCategory.Test)]
+    [DataRow("src/Reihitsu.Tooling/ToolingResources.resx", PathCategory.Tooling)]
     [DataRow("notes.txt", PathCategory.Unknown)]
     public void ClassifyPathAssignsTheCategoryOfEachKindOfPath(string path, PathCategory expected)
     {
@@ -125,7 +135,8 @@ public sealed class LaneClassifierTests
     [DataRow("src/Reihitsu.Formatter/Pipeline/FormattingPipeline.cs", PathCategory.Text)]
     [DataRow("src/Reihitsu.Formatter.Test/Unit/SampleTests.cs", PathCategory.Text)]
     [DataRow("src/Reihitsu.Tooling/LaneClassifier.cs", PathCategory.Tooling)]
-    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.resx", PathCategory.Production)]
+    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.resx", PathCategory.Wording)]
+    [DataRow("src/Reihitsu.Cli/CliResources.resx", PathCategory.Production)]
     public void ClassifyPathTreatsCSharpAsTextOnlyWhenProven(string path, PathCategory expected)
     {
         // Act
@@ -136,7 +147,30 @@ public sealed class LaneClassifierTests
     }
 
     /// <summary>
-    /// Verifies the narrowest lane each combination of categories needs
+    /// Verifies that the two resource files holding the diagnostic and code-fix texts are wording, in any letter case
+    /// and whether or not the diff was proven text-only
+    /// </summary>
+    /// <param name="path">Changed path</param>
+    /// <param name="isTextOnlyProven">Whether the whole diff was proven text-only</param>
+    [TestMethod]
+    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.resx", false)]
+    [DataRow("src/Reihitsu.Analyzer/AnalyzerResources.resx", true)]
+    [DataRow("src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx", false)]
+    [DataRow("src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx", true)]
+    [DataRow("SRC/reihitsu.analyzer/analyzerresources.RESX", false)]
+    [DataRow("src/reihitsu.analyzer.codefixes/CODEFIXRESOURCES.resx", true)]
+    public void ClassifyPathTreatsTheDiagnosticAndCodeFixResourcesAsWording(string path, bool isTextOnlyProven)
+    {
+        // Act
+        var category = LaneClassifier.ClassifyPath(path, isTextOnlyProven);
+
+        // Assert
+        Assert.AreEqual(PathCategory.Wording, category);
+    }
+
+    /// <summary>
+    /// Verifies the narrowest lane each combination of categories needs under the ordered lane rules: production
+    /// decides first, tooling next, then wording with or without test paths, then change doc, test, and text
     /// </summary>
     /// <param name="categories">Categories of the changed paths</param>
     /// <param name="expected">Expected lane</param>
@@ -150,6 +184,20 @@ public sealed class LaneClassifierTests
     [DataRow(new[] { PathCategory.Text, PathCategory.ChangeDoc }, Lane.BehaviorChange)]
     [DataRow(new[] { PathCategory.Tooling, PathCategory.Test }, Lane.Tooling)]
     [DataRow(new[] { PathCategory.Tooling, PathCategory.ChangeDoc }, Lane.Tooling)]
+    [DataRow(new[] { PathCategory.Tooling, PathCategory.Text, PathCategory.ChangeDoc }, Lane.Tooling)]
+    [DataRow(new[] { PathCategory.Wording }, Lane.Wording)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Text }, Lane.Wording)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.ChangeDoc }, Lane.Wording)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Text, PathCategory.ChangeDoc }, Lane.Wording)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Test }, Lane.Tests)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Text, PathCategory.Test }, Lane.Tests)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Test, PathCategory.ChangeDoc }, Lane.BehaviorChange)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Tooling, PathCategory.ChangeDoc }, Lane.BehaviorChange)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Tooling, PathCategory.Test, PathCategory.ChangeDoc }, Lane.BehaviorChange)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Production }, Lane.BugFix)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Production, PathCategory.Test }, Lane.BugFix)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Production, PathCategory.ChangeDoc }, Lane.BehaviorChange)]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Production, PathCategory.Tooling, PathCategory.ChangeDoc }, Lane.BehaviorChange)]
     public void TryGetRequiredLaneReturnsTheNarrowestAdmittingLane(PathCategory[] categories, Lane expected)
     {
         // Act
@@ -158,6 +206,57 @@ public sealed class LaneClassifierTests
         // Assert
         Assert.IsTrue(found);
         Assert.AreEqual(expected, lane);
+    }
+
+    /// <summary>
+    /// Verifies that wording next to tooling without a change doc leaves no lane, because the tooling lane runs no
+    /// spec author to write the texts and the behavior-change lane requires a change doc
+    /// </summary>
+    /// <param name="categories">Categories of the changed paths</param>
+    [TestMethod]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Tooling })]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Tooling, PathCategory.Text })]
+    [DataRow(new[] { PathCategory.Wording, PathCategory.Tooling, PathCategory.Test })]
+    public void TryGetRequiredLaneFindsNoLaneForWordingAndToolingWithoutChangeDoc(PathCategory[] categories)
+    {
+        // Act
+        var found = LaneClassifier.TryGetRequiredLane(categories, out _, out var reason);
+
+        // Assert
+        Assert.IsFalse(found);
+        Assert.Contains("wording", reason);
+        Assert.Contains("tooling", reason);
+        Assert.Contains("without a change doc", reason);
+    }
+
+    /// <summary>
+    /// Verifies that production next to wording and tooling without a change doc leaves no lane under the production
+    /// rule, which decides before the wording rule
+    /// </summary>
+    [TestMethod]
+    public void TryGetRequiredLaneFindsNoLaneForProductionWordingAndToolingWithoutChangeDoc()
+    {
+        // Act
+        var found = LaneClassifier.TryGetRequiredLane([PathCategory.Wording, PathCategory.Production, PathCategory.Tooling], out _, out var reason);
+
+        // Assert
+        Assert.IsFalse(found);
+        Assert.Contains("without a change doc", reason);
+    }
+
+    /// <summary>
+    /// Verifies that an unclassified path next to a wording path leaves no lane, because the unknown-path rule decides
+    /// first
+    /// </summary>
+    [TestMethod]
+    public void TryGetRequiredLaneFindsNoLaneForAnUnknownPathNextToWording()
+    {
+        // Act
+        var found = LaneClassifier.TryGetRequiredLane([PathCategory.Wording, PathCategory.Unknown], out _, out var reason);
+
+        // Assert
+        Assert.IsFalse(found);
+        Assert.Contains("no lane rule classifies", reason);
     }
 
     /// <summary>
@@ -190,7 +289,8 @@ public sealed class LaneClassifierTests
     }
 
     /// <summary>
-    /// Verifies which claimed lanes cover which required lanes along the two widening orders
+    /// Verifies which claimed lanes cover which required lanes along the two widening orders; wording sits between
+    /// docs and tests on the bug-fix order, so tooling does not cover it and it covers only docs and itself
     /// </summary>
     /// <param name="claimed">Claimed lane</param>
     /// <param name="required">Required lane</param>
@@ -208,6 +308,17 @@ public sealed class LaneClassifierTests
     [DataRow(Lane.Tooling, Lane.BehaviorChange, false)]
     [DataRow(Lane.BehaviorChange, Lane.Tooling, true)]
     [DataRow(Lane.BehaviorChange, Lane.BugFix, true)]
+    [DataRow(Lane.Wording, Lane.Wording, true)]
+    [DataRow(Lane.Docs, Lane.Wording, false)]
+    [DataRow(Lane.Tests, Lane.Wording, true)]
+    [DataRow(Lane.BugFix, Lane.Wording, true)]
+    [DataRow(Lane.BehaviorChange, Lane.Wording, true)]
+    [DataRow(Lane.Tooling, Lane.Wording, false)]
+    [DataRow(Lane.Wording, Lane.Docs, true)]
+    [DataRow(Lane.Wording, Lane.Tests, false)]
+    [DataRow(Lane.Wording, Lane.BugFix, false)]
+    [DataRow(Lane.Wording, Lane.BehaviorChange, false)]
+    [DataRow(Lane.Wording, Lane.Tooling, false)]
     public void CoversFollowsTheWideningOrders(Lane claimed, Lane required, bool expected)
     {
         // Act
@@ -215,6 +326,22 @@ public sealed class LaneClassifierTests
 
         // Assert
         Assert.AreEqual(expected, covers);
+    }
+
+    /// <summary>
+    /// Verifies that the wording lane is spelled <c>wording</c> as the scripts take it
+    /// </summary>
+    [TestMethod]
+    public void WordingLaneIsNamedWording()
+    {
+        // Act
+        var parsed = LaneClassifier.TryParseLane("wording", out var lane);
+        var name = LaneClassifier.GetName(Lane.Wording);
+
+        // Assert
+        Assert.IsTrue(parsed);
+        Assert.AreEqual(Lane.Wording, lane);
+        Assert.AreEqual("wording", name);
     }
 
     /// <summary>
@@ -227,6 +354,7 @@ public sealed class LaneClassifierTests
     [DataRow(Lane.BugFix)]
     [DataRow(Lane.BehaviorChange)]
     [DataRow(Lane.Tooling)]
+    [DataRow(Lane.Wording)]
     public void LaneNamesRoundTrip(Lane lane)
     {
         // Act
