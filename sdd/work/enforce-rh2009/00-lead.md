@@ -37,6 +37,7 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 | 7 | 02 | Test names | Fold RH2009 into `ReleaseRulesetReportsRuleAsError`, delete `ReleaseRulesetSwitchesOffComplexityRule`; add a separate `DebugRulesetHasNoEntryForComplexityRule` instead of renaming the line-count test, so `scripts/README.md` stays valid | Avoids doc churn | Internal | |
 | 8 | 03 | Change doc names test methods? | No; states only what is checked | Change doc carries no task list | Internal | efea239 |
 | 9 | 04 | Test implementer removed `_ignoredDiagnosticIds` itself | Accepted | Test-project code; it is what makes the scan check RH2009 | Internal | 3ebf2d4 |
+| 10 | 08 | Auditor hint 1: add a test that `Collect` returns RH2009 lines | Not taken | With no ignore list, the report has no per-rule filter left to test; the RH2009 scan row exercises the rule on real code | Internal | |
 | 4 | 01 | Remove empty `_ignoredDiagnosticIds` and its test | Remove | Dead code once RH2009 leaves it | Test utility, internal | 2645615 |
 
 ## Follow-up candidates
@@ -52,4 +53,5 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 - Done: 05 implementer (37813ca, 469a7d1, c861527; handover 3cb070c): all tests pass; full self-hosting only fails `WorkingDocumentsDirectoryContainsNoFiles` (expected until sdd/work is deleted).
 - Done: 06 cleaner (clean, afbbb8e).
 - Done: 07 spec checker (consistent, 5ecd923). Merged origin/main 080a2dc (tooling/commands only, no overlap); Release build green.
-- Next: 08 auditor.
+- Done: 08 auditor (pass, no findings). Audited SHA: 56b341e (handover 1fb54ab).
+- Next: 09 validator, then publish (section 8).
