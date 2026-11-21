@@ -39,5 +39,5 @@
 ## State
 
 - Audited SHA: —
-- Last step: test implementer 07 done (4e4af935); formatter 6827/6827 green.
-- Next step: cleaner (08) → spec checker (09) → merge main, build, auditor (10) → validator.
+- Last step: cleaner 08 clean (dd21564a), spec checker 09 consistent (a6e19053), merged origin/main b69a6ae3, Release build green.
+- Next step: auditor (10) → validator (11) → note, publish.
