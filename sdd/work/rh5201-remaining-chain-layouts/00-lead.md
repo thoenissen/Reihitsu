@@ -10,7 +10,12 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
+- Q1 first call behind a wrapped prefix link (incl. prefix behind own-line `*/`, F11): A — report on the first call's `.`, fix gives formatter layout.
+- Q2 first call behind a first link held by a comment or directive below the root (change doc 2, 3, 4): A — report; with `#if`, only the active branch is reported and fixed.
+- Q3 chains already reported for another link: A — one more diagnostic on the first call; fix result unchanged.
+- Q4 comment-held line break inside a prefix link's operator (`c.Opt? // keep` ⏎ `.Next.Self()`): B — not reported (counted as RH5201-003 counts it, `HasInnerLineBreak(true)`); sibling first-link case stays unreported.
+- Q5 rule page: A — the new Description bullet and How-to-fix wording as drafted.
 
 ## Decisions taken
 
@@ -30,6 +35,7 @@
 
 - Spec author done (064eb20, lane check confirmed behavior-change). Skeptic running → 02-skeptic.md.
 - Skeptic done (9fc40a5): output question on comment inside a prefix link operator; architecture finding (decision 3); adjacent fix (decision 4).
-- WAITING: output-question batch 1 posted to maintainer (Q1–Q5).
+- Batch 1 answered (see Maintainer answers).
+- NOW: spec author follow-up running.
 - Then: spec author follow-up (answers, decisions 4–5, Status Accepted), lane check, test implementer.
 - Old next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
