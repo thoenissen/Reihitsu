@@ -44,6 +44,7 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 | 15 | Skeptic | Claims wider than wording | State in `squad/README.md` lane bullets that tests/bug-fix claims cover a wording diff | Documents existing order semantics | Process only | 75f9cbd |
 | 16 | Skeptic | Unsubscribe when remaining CI failures also exist on `main` | Keep; name it in the PR | A failure on `main` is decided by the lead anyway; waiting would never end | Process only | 75f9cbd |
 | 18 | Spec author | Spec author's ownership of resource texts | Only changed texts of existing entries; a new rule's entries stay with the implementer; *Internal* follow-up variant keeps its lane list | Narrow ownership; wording changes user-visible text | Process only | 75f9cbd |
+| 19 | Test implementer | Untested tooling (`--exclude`, shell query of wording paths, usage strings) | Accept; implementer demonstrates by runs listed in 04, auditor checks | No harness for the scripts outside the solution | Tooling only | a0c2957 |
 | 17 | Skeptic | Accept change doc | Accept after the amendment; the amending spec author sets `Status: Accepted` | Skeptic ran; amendment follows | Process only | 75f9cbd |
 
 ## Follow-up candidates
@@ -53,5 +54,5 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 
 ## State
 
-- Last step: spec-author amendment done (75f9cbd), change doc Accepted. No output questions (process only), so no stop before tests.
-- Next: test implementer (Reihitsu.Tooling.Test, lane classifier + lane check).
+- Last step: test implementer done (a0c2957); tests need `Lane.Wording`/`PathCategory.Wording`; verify-text-only `--exclude` and the shell's wording-path query have no test harness, the implementer shows them by run.
+- Next: implementer.
