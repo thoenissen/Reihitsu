@@ -48,8 +48,8 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 | 20 | Implementer | Interface for decision 14 | Accept `LaneCheckCommand --wording-paths`; spec author names it in `scripts/README.md`; test implementer adds its test | One statement of the classification; every option tested | Tooling only | 120ef1d, 7099932 |
 | 21 | Implementer | Renamed file under `--exclude` | Excluded only when both old and new paths are excluded; spec author states it | Safe default: a rename into a wording path cannot hide C# changes | Tooling only | 120ef1d, 7099932 |
 | 22 | Test implementer | Deleted wording resource file | No rule; dropped | Nobody deletes the analyzer's resource file in a wording run | Tooling only | - |
-| 23 | Auditor (round 1) | F2 widening row restates the lane rules and is wrong for a wording diff with a C# comment edit | Architecture finding: remove the restatement; `squad/lead.md` §4 row and the change doc point to `scripts/lane-check.sh` for the lane to widen to (one statement in `scripts/README.md`) | Narrow fix would keep a second statement of the rule | Process only | pending |
-| 24 | Auditor (round 1) | F1 fixture names a squad note; F3 spec-author wording proof source | Repair round 1: F1 to test implementer, F3 (+F2) to spec author | PR-introduced | Process/test only | pending |
+| 23 | Auditor (round 1) | F2 widening row restates the lane rules and is wrong for a wording diff with a C# comment edit | Architecture finding: remove the restatement; `squad/lead.md` §4 row and the change doc point to `scripts/lane-check.sh` for the lane to widen to (one statement in `scripts/README.md`) | Narrow fix would keep a second statement of the rule | Process only | 0736a75 |
+| 24 | Auditor (round 1) | F1 fixture names a squad note; F3 spec-author wording proof source | Repair round 1: F1 to test implementer, F3 (+F2) to spec author | PR-introduced | Process/test only | 1ffb220, 0736a75 |
 | 17 | Skeptic | Accept change doc | Accept after the amendment; the amending spec author sets `Status: Accepted` | Skeptic ran; amendment follows | Process only | 75f9cbd |
 
 ## Follow-up candidates
