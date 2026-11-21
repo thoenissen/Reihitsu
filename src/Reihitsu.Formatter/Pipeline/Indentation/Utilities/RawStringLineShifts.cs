@@ -342,7 +342,7 @@ internal sealed class RawStringLineShifts
     /// <param name="token">The token of the indented tree</param>
     /// <param name="leadingTrivia">The token's leading trivia, with the later edits already applied</param>
     /// <param name="triviaStarts">The start positions of the token's leading trivia in the indented tree</param>
-    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, the column it has after the move, and the number of leading characters to write as spaces after it</param>
     private static void ApplyLeadingTriviaEdit(SyntaxToken token, List<SyntaxTrivia> leadingTrivia, List<int> triviaStarts, (int LineStart, int OldLength, int NewLength, int SpacesWidth) edit)
     {
         var triviaIndex = triviaStarts.FindIndex(triviaStart => triviaStart >= edit.LineStart);
@@ -397,7 +397,7 @@ internal sealed class RawStringLineShifts
     /// </summary>
     /// <param name="trivia">The trivia</param>
     /// <param name="offset">The offset of the line's start in the trivia's text</param>
-    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, and the column it has after the move</param>
+    /// <param name="edit">The edit: the position the line starts at, the number of characters of indentation it has, the column it has after the move, and the number of leading characters to write as spaces after it</param>
     /// <returns>The trivia with the line moved</returns>
     private static SyntaxTrivia MoveLineInsideTrivia(SyntaxTrivia trivia, int offset, (int LineStart, int OldLength, int NewLength, int SpacesWidth) edit)
     {
