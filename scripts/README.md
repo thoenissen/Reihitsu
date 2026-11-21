@@ -169,7 +169,7 @@ The narrowest lane that admits every category is the lane the diff needs. It is 
 4. Wording, without production and tooling: with test paths, `behavior-change` when the diff has a change doc and `tests` when it has none; without test paths, `wording`, with or without a change doc.
 5. Otherwise: a change doc needs `behavior-change`, test paths `tests`, and text alone `docs`.
 
-The `wording` lane therefore admits the two resource files, text, and a change doc, and nothing else: a diff that also changes a test needs a wider lane, and these rules decide which. A changed test fails the text-only proof, so a C# file outside the test projects, such as a comment edit that quotes a changed title, then counts as production: without tooling, `bug-fix` without a change doc and `behavior-change` with one (rule 2), and `tests` or `behavior-change` by rule 4 only when the diff holds no such file. A change doc without a wording path still needs `behavior-change`.
+The `wording` lane therefore admits the two resource files, text, and a change doc, and nothing else: a diff that also changes a test needs a wider lane, and these rules decide which. A change doc without a wording path still needs `behavior-change`.
 
 The claim passes when it is that lane or a wider one along docs → wording → tests → bug fix → behavior change, or docs → tests → tooling → behavior change; `tooling` does not cover `wording`, and `wording` covers only `docs`. A `behavior-change` claim additionally needs a change doc in the diff; a `wording` claim needs nothing beyond its paths.
 
