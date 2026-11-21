@@ -36,5 +36,5 @@
 ## State
 
 - Audited SHA: —
-- Last step: batch 1 answered (1A, 2A).
-- Next step: spec author records answers in change doc Decisions + Status Accepted (03); then test implementer (04).
+- Last step: spec author recorded answers, change doc Accepted (566968bd).
+- Next step: test implementer (04).
