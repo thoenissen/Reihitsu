@@ -30,6 +30,9 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Lane: issue says tooling | behavior-change | Production refactors next to ruleset/tooling paths need a change doc | Lane choice is internal | f1a9c2b |
+| 2 | 01 | Root `reihitsu.json` complexity limit | None set | Spec author's recommendation; repository uses the default | Repository config, not shipped | 2645615 |
+| 3 | 01 | `Debug.ruleset` RH2009 entry | No entry (like RH2008/RH2111), pinned by a test | Consistent with precedent; deliberate absence meets the goal | Repository build config only | 2645615 |
+| 4 | 01 | Remove empty `_ignoredDiagnosticIds` and its test | Remove | Dead code once RH2009 leaves it | Test utility, internal | 2645615 |
 
 ## Follow-up candidates
 
@@ -37,4 +40,5 @@ The issue labels itself `Lane: tooling`, but the work refactors production metho
 
 ## Worklist / next step
 
-- Next: spawn spec author (stage 01).
+- Done: 01 spec author (change doc Draft; output question 1 on default limit, recommended A=15).
+- Next: 02 skeptic, then output-question batch before test implementer.
