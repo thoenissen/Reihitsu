@@ -22,6 +22,8 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | Ask escalation 10 for the qualified-name dot gap? | No; file it as a follow-up with options A/B/C | Declaring it would delete no special case (no phase handles it) and leave the no-comment cells broken; AGENTS.md: a shape that deletes nothing is not declared | Follow-up only; nothing in this run changes that output | — |
+| 3 | Implementer | `MethodChainAlignmentTests.ConditionalAccessAnchorOnLaterLineThanInitializerCloseBraceStaysIdempotent` asserts formatting of `}.` ⏎ `// keep` ⏎ `Choices?.Select(…)`, now refused | Rewrite it to expect the refusal (FMT-UNSUP-016) | Its input holds the declared shape; covered by the maintainer's pre-run answer and 2A | Refusal of this input is the declared shape the maintainer chose | — |
+| 4 | Implementer | Is the `GetLine(anchorDot) == GetLine(firstDot)` condition in `MethodChainAlignmentContributor.GetChainAnchorColumn` a special case the shape makes unnecessary? | Spec author verifies and lists it under *Special cases* (deleted or checked and kept); if deleted, implementer deletes it | AGENTS.md: the declaring change deletes every special case the shape makes unnecessary | Internal; no output beyond the declared refusal | — |
 | 2 | Skeptic | Own requirement FMT-UNSUP-016 vs widening FMT-UNSUP-015; defined by syntax kind (every member access/binding) | Accept the spec author's choices | Matches the earlier answer (a place in the tree), cheap check | Internal structure; the refused inputs are those the maintainer's answer names | a5328b71 |
 
 ## Follow-up candidates
@@ -36,5 +38,5 @@
 ## State
 
 - Audited SHA: —
-- Last step: test implementer done (3c7d2da1): 302 formatter + 17 analyzer + 4 CLI tests red as expected.
-- Next step: implementer (05).
+- Last step: implementer done (4b68a4df, 89cd516c): verdict test disputed (one old test), possible extra special case.
+- Next step: spec author (06) on special case → test implementer (07) rewrite disputed test → implementer (08) delete if listed → cleaner.
