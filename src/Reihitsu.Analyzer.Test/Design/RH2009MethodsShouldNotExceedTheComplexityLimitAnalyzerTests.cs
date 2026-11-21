@@ -1533,8 +1533,9 @@ public class RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzerTests : Analy
 
     /// <summary>
     /// Verifies which uses of the method count as recursion, in a method with two nested <c>if</c> statements (3): an
-    /// invocation of the method itself, also through <c>this</c> and inside a lambda, adds 1 once; a call of another
-    /// overload or another method, a method group, and a self-call inside a local function add nothing
+    /// invocation of the method itself, also through <c>this</c>, on another instance, and inside a lambda, adds 1 once,
+    /// also when a call on another instance and a direct call stand together; a call of another overload, also on
+    /// another instance, or of another method, a method group, and a self-call inside a local function add nothing
     /// </summary>
     /// <param name="call">Statements inside the inner <c>if</c></param>
     /// <param name="complexity">Cognitive complexity of <c>M</c></param>
@@ -1544,6 +1545,9 @@ public class RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzerTests : Analy
     [DataRow("M(n - 1);", 4)]
     [DataRow("this.M(n - 1);", 4)]
     [DataRow("M(n - 1); M(n - 2);", 4)]
+    [DataRow("new C().M(n - 1);", 4)]
+    [DataRow("new C().M(n - 1); M(n - 2);", 4)]
+    [DataRow("new C().M(\"text\");", 3)]
     [DataRow("System.Func<int> f = () => M(n - 1);", 4)]
     [DataRow("M(\"text\");", 3)]
     [DataRow("S(n);", 3)]
@@ -1596,6 +1600,88 @@ public class RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzerTests : Analy
                               """;
 
         await VerifyComplexity(source, Limit(1), Complexity(0, 4, 1), Complexity(1, 4, 1));
+    }
+
+    /// <summary>
+    /// Verifies the example of RH2009-003 on recursion on another instance: <c>Depth</c> calls itself on
+    /// <c>Left</c> and <c>Right</c> and has a cognitive complexity of 4 — <c>if</c> 1, <c>if</c> 2 (nesting 1),
+    /// recursion 1, once for both calls — and is reported at a limit of 3
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2009-003")]
+    public async Task RecursionOnAnotherInstanceExample()
+    {
+        const string source = """
+                              using System;
+
+                              class Node
+                              {
+                                  public Node Left;
+
+                                  public Node Right;
+
+                                  public int {|#0:Depth|}()
+                                  {
+                                      if (Left != null)
+                                      {
+                                          if (Right != null)
+                                          {
+                                              return 1 + Math.Max(Left.Depth(), Right.Depth());
+                                          }
+                                      }
+
+                                      return 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyComplexity(source, Limit(3), Complexity(0, 4, 3));
+    }
+
+    /// <summary>
+    /// Verifies that a call of a member of the same name and signature that another type declares is not recursion,
+    /// also on an instance: <c>Depth</c> calls <c>Leaf.Depth</c> and has a cognitive complexity of 3, so it is not
+    /// reported at a limit of 3
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2009-003")]
+    public async Task SameNamedMemberOfAnotherTypeIsNotRecursion()
+    {
+        const string source = """
+                              using System;
+
+                              class Leaf
+                              {
+                                  public int Depth()
+                                  {
+                                      return 1;
+                                  }
+                              }
+
+                              class Node
+                              {
+                                  public Leaf Left;
+
+                                  public Leaf Right;
+
+                                  public int Depth()
+                                  {
+                                      if (Left != null)
+                                      {
+                                          if (Right != null)
+                                          {
+                                              return 1 + Math.Max(Left.Depth(), Right.Depth());
+                                          }
+                                      }
+
+                                      return 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyComplexity(source, Limit(3));
     }
 
     /// <summary>
