@@ -2709,10 +2709,11 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyHoleTests : BatchC
                                   }
                                   """";
 
-        // Each fix rewrites the exact text span of one raw string literal expression, and one raw string literal
-        // can never nest inside another (its content is atomic character data, not a syntax tree), so the two
-        // literals here can never share or abut a text span; interference is structurally unreachable for this
-        // rule's fix, so this proves both occurrences are corrected independently
+        // Each fix rewrites the exact text span of one raw string literal expression. A plain raw string literal
+        // cannot nest another (its content is atomic character data, not a syntax tree), and the two literals here
+        // are plain and stand in separate methods, so they neither share nor abut a text span; this proves both
+        // occurrences are corrected independently (an interpolated raw string literal can nest one in a hole,
+        // which the tests above cover)
         return new FixAllScenario(testCode,
                                   resultData,
                                   Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
