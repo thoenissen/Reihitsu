@@ -28,12 +28,21 @@ All accepted rules are stated in a process change doc under `sdd/changes/` with 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Lane | behavior-change | Change doc first; lane-check design needs a premise check; avoids widening | Process and tooling only; no formatter, analyzer, code-fix, rule-page, or CLI output changes | claim |
+| 2 | Spec author | Wording category scope | Only the two analyzer/code-fix `.resx` files, not every `.resx` | They hold diagnostic and code-fix texts; other `.resx` keep their category | Classification only | a9a156d |
+| 3 | Spec author | Test paths in the wording lane | Wording lane admits no test path; a changed test widens to tests (no change doc) or behavior-change | Path-only lane check; checking literal-only test edits needs contents | Process only | a9a156d |
+| 4 | Spec author | Text-only proof over `.resx` | `verify-text-only.sh --exclude`, passed per wording path by lane-check | Keeps the proof's scope exact | Tooling only | a9a156d |
+| 5 | Spec author | Wording next to tooling / change doc | Wording may carry a change doc; wording + tooling needs one (mirrors production + tooling) | Consistency with existing rule | Process only | a9a156d |
+| 6 | Spec author | Meaning of "stage boundaries" for pushes | The push list in `squad/lead.md` §2 *Pushes* | Concrete list a lead can follow | Process only | a9a156d |
+| 7 | Spec author | Self-hosting trigger | Only when a run adds lines to a test file, as the maintainer stated | Binding wording of the answer | Process only | a9a156d |
+| 8 | Spec author | Output-question batch in docs/wording lanes | One batch after the spec author, before the spec checker | These lanes have no test implementer | Process only | a9a156d |
+| 9 | Spec author | Maintainer change requests after unsubscribe | Run like a repair round with a fresh `sdd/work/<slug>/` | Reuses existing mechanics | Process only | a9a156d |
 
 ## Follow-up candidates
 
-(none yet)
+1. 21 test files quote a diagnostic message as a literal instead of `MessageFormat`; each pushes a wording change out of the wording lane. Cleanup, no visible change. (01-spec-author)
+2. The line-count self-hosting rows also apply to production files; widening the validator's trigger to any C# under `src/` would be a process question for the maintainer. (01-spec-author)
 
 ## State
 
-- Last step: claim, prepare, 00-lead written.
-- Next: spawn spec author.
+- Last step: spec author done (a9a156d), change doc Draft `sdd/changes/2026-11/squad-wording-lane-and-ci-only-watch.md`.
+- Next: skeptic (fresh), then accept change doc; no output questions expected (process only).
