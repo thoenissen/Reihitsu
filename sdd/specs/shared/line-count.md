@@ -5,9 +5,9 @@
 | ID prefix | SHARED-LINES |
 | Status | Active |
 | Code owners | `LineCountAnalyzerBase` |
-| Uses | RH0001-001, RH0001-003, RH0001-007, SHARED-DIAG-008 |
+| Uses | SHARED-DIAG-008, SHARED-LIMIT-001, SHARED-LIMIT-002 |
 
-This spec covers the rules that count the lines of code of a declaration's body and report the declaration when the count exceeds a limit: RH2008 for methods and the other members with a body, RH2111 for types. It defines what a line of code is, which code is test code, which limit applies to a declaration, and how the count is compared with it. Each rule that uses this spec states which declarations it judges, which span of each declaration it counts, which settings hold its limits, and their default values, and where its diagnostic is located.
+This spec covers the rules that count the lines of code of a declaration's body and report the declaration when the count exceeds a limit: RH2008 for methods and the other members with a body, RH2111 for types. It defines what a line of code is, which code is test code, and which limit applies to a declaration; when a default applies and how the count is compared with the limit are shared with every rule that has a configured limit (SHARED-LIMIT). Each rule that uses this spec states which declarations it judges, which span of each declaration it counts, which settings hold its limits, and their default values, and where its diagnostic is located.
 
 ## Non-goals
 
@@ -73,11 +73,11 @@ class C
 }
 ```
 
-### SHARED-LINES-002 — A declaration is reported when its count is greater than its limit
+### SHARED-LINES-002 — Each kind of code has a limit of its own
 
-A rule MUST report a declaration whose count of lines of code is greater than the limit that applies to it, and MUST NOT report a declaration whose count equals the limit or is lower. The limit that applies is the value of the rule's setting for the kind of code the declaration lies in — its production setting in production code, its test setting in test code (SHARED-LINES-003) — and that setting's default value whenever the setting has no valid value: for example when there is no configuration file (RH0001-001), when the file holds no `design` section or the section does not hold the setting, when RH0001 reports a problem with the setting's value (RH0001-007), and when the file is empty or cannot be parsed (RH0001-003), and when it cannot be read. Each setting has a default of its own: a production setting that is configured MUST NOT change the limit of test code, and a test setting that is configured MUST NOT change the limit of production code. A problem RH0001 reports elsewhere in the configuration file MUST NOT keep a valid setting from taking effect.
+A rule MUST compare a declaration's count of lines of code with the limit of the kind of code the declaration lies in — its production setting in production code, its test setting in test code (SHARED-LINES-003) — as SHARED-LIMIT-002 specifies, and each setting MUST keep its own default whenever it has no valid value (SHARED-LIMIT-001). A production setting that is configured MUST NOT change the limit of test code, and a test setting that is configured MUST NOT change the limit of production code.
 
-Why: The limit is the largest size the project accepts, so a declaration of exactly that size is accepted. The defaults make both rules work without setup, at a size few declarations reach; a project that wants another size sets it. A setting without a valid value has nothing the rule could trust, so the rule keeps to the documented default rather than going silent, and RH0001 reports the setting or the file. A problem in another section does not change the value of a valid setting. Test code and production code are held to separate limits, each with a documented default, so a project changes one without moving the other; a project that wants one limit for both sets both settings.
+Why: Test code and production code are held to separate limits, each with a documented default, so a project changes one without moving the other; a project that wants one limit for both sets both settings. When a default applies, and how the count is compared with the limit, is shared with every rule that compares a measure with a configured limit.
 
 Example — with `{ "design": { "maximumMethodLines": 2 } }` in a production project, `M` holds two lines of code and is not reported; `N` holds three and is reported:
 
@@ -99,7 +99,7 @@ class C
 }
 ```
 
-With `{ "design": { "maximumMethodLines": 2 }, "formatting": 1 }`, `N` is reported as well, although RH0001 reports the unknown section `formatting`. Without a `reihitsu.json`, with `{ "design": { } }`, with `{ "design": { "maximumMethodLines": 0 } }`, with `{ "design": { "maximumMethodLines": "2" } }`, with an empty `reihitsu.json`, with `{ } junk`, and with `{ "design": { "maximumTestMethodLines": 2 } }`, the default production limit of 60 lines applies and neither method is reported. In a test project, `{ "design": { "maximumMethodLines": 2 } }` does not apply: the default test limit of 120 lines applies, and neither method is reported; `{ "design": { "maximumTestMethodLines": 2 } }` reports `N`.
+With `{ "design": { "maximumTestMethodLines": 2 } }`, the default production limit of 60 lines applies and neither method is reported. In a test project, `{ "design": { "maximumMethodLines": 2 } }` does not apply: the default test limit of 120 lines applies, and neither method is reported; `{ "design": { "maximumTestMethodLines": 2 } }` reports `N`.
 
 ### SHARED-LINES-003 — Test code is the code of a test project
 

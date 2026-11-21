@@ -25,6 +25,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
+| [shared/configured-limits.md](shared/configured-limits.md) | SHARED-LIMIT | — |
 | [shared/debug-message-text.md](shared/debug-message-text.md) | SHARED-DEBUG | `DebugMessageTextAnalysisUtilities` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
 | [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `AnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
