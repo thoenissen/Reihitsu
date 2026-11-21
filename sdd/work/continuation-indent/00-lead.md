@@ -33,10 +33,14 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | FC-028: code fixes measure the FMT-INDENT-034 column from a node starting mid-line; how to make fix and CLI agree | Add a document fact (column where the node's first line starts) to FMT-PIPE-024 and use it in FMT-INDENT-034; test RH5302/RH5308 against the CLI | RH5302/RH5308 already require "as the formatter formats it in place"; the fact is part of the issue's own fix, not a rare-class special case | Unchanged requirements already demand CLI-equal output | (spec amendment) |
+| 2 | skeptic | SHARED-ATTR-022 example moved to the new column | Revert; drop RH5514 from the change doc | RH5514 does not call the formatter; SHARED-ATTR-017 unchanged | Reverting to today's output | (spec amendment) |
+| 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
 ## Follow-up candidates
 
 - Comment on open issues #1633, #1634, #1905, #1542: their "Before" output changes under FMT-INDENT-034; an alignment chosen there later takes precedence (01-spec-author.md).
+- Whether a wrapped `for` header should align under the token after `(` instead of FMT-INDENT-034's column (02-skeptic.md).
 
 ## Audited SHA
 
@@ -46,4 +50,5 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 
 - Claim done (draft PR #1920, `scripts/prepare.sh` passed).
 - Spec author done (fc44967): 2 Draft change docs, FMT-INDENT-034/035; 4 output questions in 01-spec-author.md.
-- Next: skeptic, then the output-question batch.
+- Skeptic done (5f6af8f): all four reproduce; 5 amendments routed to a fresh spec author.
+- Next: spec-author amendment (03), then the output-question batch.
