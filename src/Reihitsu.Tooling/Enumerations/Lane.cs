@@ -11,6 +11,12 @@ public enum Lane
     Docs,
 
     /// <summary>
+    /// Change of the diagnostic and code-fix texts in the two analyzer resource files, with the text that repeats
+    /// them; the spec author writes it and the spec checker verifies it
+    /// </summary>
+    Wording,
+
+    /// <summary>
     /// Tests for behavior that already exists, without a production change
     /// </summary>
     Tests,

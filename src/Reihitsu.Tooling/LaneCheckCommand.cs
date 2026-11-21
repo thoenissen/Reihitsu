@@ -10,19 +10,21 @@ public static class LaneCheckCommand
     #region Methods
 
     /// <summary>
-    /// Executes the lane check. The changed paths are read as <c>git diff --name-status --no-renames</c> lines
+    /// Executes the lane check. The changed paths are read as <c>git diff --name-status --no-renames</c> lines.
+    /// With <c>--wording-paths</c>, the command instead writes the changed paths the classifier counts as wording, one
+    /// per line, so the wrapper script can exclude them from the text-only proof without a path list of its own
     /// </summary>
     /// <param name="args">Command arguments</param>
     /// <param name="changes">Reader that supplies the name-status lines of the diff</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="error">Standard error writer</param>
     /// <returns>
-    /// Exit code 0 when the claimed lane covers the diff, 1 when it does not, 3 when no lane admits the diff, or 2
-    /// when the command could not run
+    /// Exit code 0 when the claimed lane covers the diff or the wording paths were written, 1 when the claim does not
+    /// cover the diff, 3 when no lane admits the diff, or 2 when the command could not run
     /// </returns>
     public static int Execute(string[] args, TextReader changes, TextWriter output, TextWriter error)
     {
-        if (TryParseArguments(args, out var claimed, out var isTextOnlyProven, out var showHelp, out var parseError) == false)
+        if (TryParseArguments(args, out var claimed, out var isTextOnlyProven, out var showHelp, out var listWordingPaths, out var parseError) == false)
         {
             error.WriteLine($"lane-check: {parseError}");
             PrintUsage(error);
@@ -42,6 +44,17 @@ public static class LaneCheckCommand
             error.WriteLine($"lane-check: {readError}");
 
             return ExitCodes.Error;
+        }
+
+        if (listWordingPaths)
+        {
+            // Whether a path is wording does not depend on the proof, which has not run yet when the script asks
+            foreach (var path in paths.Where(path => LaneClassifier.ClassifyPath(path, false) == PathCategory.Wording))
+            {
+                output.WriteLine(path);
+            }
+
+            return ExitCodes.Success;
         }
 
         var categories = new List<PathCategory>();
@@ -146,9 +159,10 @@ public static class LaneCheckCommand
     /// <param name="writer">Writer that receives the usage text</param>
     private static void PrintUsage(TextWriter writer)
     {
-        writer.WriteLine("usage: lane-check --lane <docs|tests|bug-fix|behavior-change|tooling> --text-only <pass|fail>");
+        writer.WriteLine("usage: lane-check --lane <docs|wording|tests|bug-fix|behavior-change|tooling> --text-only <pass|fail>");
+        writer.WriteLine("       lane-check --wording-paths");
         writer.WriteLine("       lane-check --help");
-        writer.WriteLine("       reads `git diff --name-status --no-renames` lines from standard input");
+        writer.WriteLine("       reads `git diff --name-status --no-renames` lines from standard input; --wording-paths writes the changed wording paths, one per line");
     }
 
     /// <summary>
@@ -158,17 +172,20 @@ public static class LaneCheckCommand
     /// <param name="claimed">Claimed lane</param>
     /// <param name="isTextOnlyProven">Whether <c>verify-text-only</c> proved the diff text-only</param>
     /// <param name="showHelp">Whether usage should be printed</param>
+    /// <param name="listWordingPaths">Whether the changed wording paths should be written instead of a verdict</param>
     /// <param name="error">Argument error when parsing fails</param>
     /// <returns><see langword="true"/> when the arguments are valid; otherwise, <see langword="false"/></returns>
     private static bool TryParseArguments(string[] args,
                                           out Lane claimed,
                                           out bool isTextOnlyProven,
                                           out bool showHelp,
+                                          out bool listWordingPaths,
                                           out string error)
     {
         claimed = Lane.Docs;
         isTextOnlyProven = false;
         showHelp = false;
+        listWordingPaths = false;
         error = null;
 
         string laneName = null;
@@ -185,6 +202,12 @@ public static class LaneCheckCommand
                 case "--help" or "-h":
                     {
                         showHelp = true;
+                    }
+                    break;
+
+                case "--wording-paths":
+                    {
+                        listWordingPaths = true;
                     }
                     break;
 
@@ -214,9 +237,21 @@ public static class LaneCheckCommand
             return true;
         }
 
+        if (listWordingPaths)
+        {
+            if (laneName != null || textOnly != null)
+            {
+                error = "--wording-paths takes no other argument.";
+
+                return false;
+            }
+
+            return true;
+        }
+
         if (laneName == null || LaneClassifier.TryParseLane(laneName, out claimed) == false)
         {
-            error = "--lane expects docs, tests, bug-fix, behavior-change, or tooling.";
+            error = "--lane expects docs, wording, tests, bug-fix, behavior-change, or tooling.";
 
             return false;
         }

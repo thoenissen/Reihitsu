@@ -34,6 +34,12 @@ public static class LaneClassifier
     /// </summary>
     private static readonly string[] _toolingExtensions = [".csproj", ".props", ".targets", ".ruleset", ".editorconfig"];
 
+    /// <summary>
+    /// The resource files that hold the diagnostic titles and messages and the code-fix titles; every other resource
+    /// file keeps the category of where it lives
+    /// </summary>
+    private static readonly string[] _wordingFiles = ["src/Reihitsu.Analyzer/AnalyzerResources.resx", "src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx"];
+
     #endregion // Fields
 
     #region Methods
@@ -42,7 +48,7 @@ public static class LaneClassifier
     /// Classifies one changed path
     /// </summary>
     /// <param name="path">Repository-relative path with forward slashes</param>
-    /// <param name="isTextOnlyProven">Whether <c>verify-text-only</c> proved the whole diff text-only, which turns every changed C# file into text</param>
+    /// <param name="isTextOnlyProven">Whether <c>verify-text-only</c> proved the whole diff apart from the wording paths text-only, which turns every changed C# file into text</param>
     /// <returns>The category of the path</returns>
     public static PathCategory ClassifyPath(string path, bool isTextOnlyProven)
     {
@@ -75,7 +81,12 @@ public static class LaneClassifier
     }
 
     /// <summary>
-    /// Derives the narrowest lane that admits every category of a diff
+    /// Derives the narrowest lane that admits every category of a diff. The first rule that applies decides: an
+    /// unknown path admits no lane; production needs bug fix, or behavior change with a change doc, and admits no
+    /// lane next to tooling without one; tooling needs the tooling lane, or behavior change next to wording, which
+    /// admits no lane without a change doc; wording needs the wording lane, or the tests lane next to test paths,
+    /// which becomes behavior change with a change doc; otherwise a change doc needs behavior change, test paths
+    /// the tests lane, and text alone the docs lane
     /// </summary>
     /// <param name="categories">Categories of every changed path</param>
     /// <param name="lane">The narrowest admitting lane, when one exists</param>
@@ -94,6 +105,7 @@ public static class LaneClassifier
         }
 
         var hasChangeDoc = categories.Contains(PathCategory.ChangeDoc);
+        var hasWording = categories.Contains(PathCategory.Wording);
 
         if (categories.Contains(PathCategory.Production))
         {
@@ -111,7 +123,32 @@ public static class LaneClassifier
 
         if (categories.Contains(PathCategory.Tooling))
         {
-            lane = Lane.Tooling;
+            if (hasWording)
+            {
+                if (hasChangeDoc == false)
+                {
+                    reason = "wording and tooling paths without a change doc fit neither the tooling nor the behavior-change lane";
+
+                    return false;
+                }
+
+                lane = Lane.BehaviorChange;
+            }
+            else
+            {
+                lane = Lane.Tooling;
+            }
+        }
+        else if (hasWording)
+        {
+            if (categories.Contains(PathCategory.Test))
+            {
+                lane = hasChangeDoc ? Lane.BehaviorChange : Lane.Tests;
+            }
+            else
+            {
+                lane = Lane.Wording;
+            }
         }
         else if (hasChangeDoc)
         {
@@ -127,8 +164,8 @@ public static class LaneClassifier
 
     /// <summary>
     /// Determines whether a claimed lane runs every role the required lane runs. Lanes widen along two orders —
-    /// docs, tests, bug fix, behavior change; and docs, tests, tooling, behavior change — so bug fix and tooling
-    /// do not cover each other
+    /// docs, wording, tests, bug fix, behavior change; and docs, tests, tooling, behavior change — so bug fix and
+    /// tooling do not cover each other, tooling does not cover wording, and wording covers only docs
     /// </summary>
     /// <param name="claimed">Lane the lead claimed</param>
     /// <param name="required">Lane the diff needs</param>
@@ -137,14 +174,15 @@ public static class LaneClassifier
     {
         return claimed == required
                || required == Lane.Docs
-               || (required == Lane.Tests && claimed != Lane.Docs)
+               || (required == Lane.Wording && claimed is (Lane.Tests or Lane.BugFix))
+               || (required == Lane.Tests && claimed is not (Lane.Docs or Lane.Wording))
                || claimed == Lane.BehaviorChange;
     }
 
     /// <summary>
     /// Parses a lane name as the scripts spell it
     /// </summary>
-    /// <param name="name">Lane name: <c>docs</c>, <c>tests</c>, <c>bug-fix</c>, <c>behavior-change</c>, or <c>tooling</c></param>
+    /// <param name="name">Lane name: <c>docs</c>, <c>wording</c>, <c>tests</c>, <c>bug-fix</c>, <c>behavior-change</c>, or <c>tooling</c></param>
     /// <param name="lane">The parsed lane</param>
     /// <returns><see langword="true"/> when the name is known; otherwise, <see langword="false"/></returns>
     public static bool TryParseLane(string name, out Lane lane)
@@ -154,6 +192,13 @@ public static class LaneClassifier
             case "docs":
                 {
                     lane = Lane.Docs;
+
+                    return true;
+                }
+
+            case "wording":
+                {
+                    lane = Lane.Wording;
 
                     return true;
                 }
@@ -204,6 +249,7 @@ public static class LaneClassifier
     {
         return lane switch
                {
+                   Lane.Wording => "wording",
                    Lane.Tests => "tests",
                    Lane.BugFix => "bug-fix",
                    Lane.BehaviorChange => "behavior-change",
@@ -226,13 +272,19 @@ public static class LaneClassifier
     }
 
     /// <summary>
-    /// Classifies a path below <c>src/</c> that is neither tooling nor a build setting
+    /// Classifies a path below <c>src/</c> that is neither tooling nor a build setting; the two resource files that
+    /// hold the diagnostic and code-fix texts are wording whatever the proof found
     /// </summary>
     /// <param name="path">Repository-relative path with forward slashes</param>
-    /// <param name="isTextOnlyProven">Whether the whole diff was proven text-only</param>
+    /// <param name="isTextOnlyProven">Whether the whole diff apart from the wording paths was proven text-only</param>
     /// <returns>The category of the path</returns>
     private static PathCategory ClassifySourcePath(string path, bool isTextOnlyProven)
     {
+        if (_wordingFiles.Contains(path, StringComparer.OrdinalIgnoreCase))
+        {
+            return PathCategory.Wording;
+        }
+
         if (path.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
             || (isTextOnlyProven && path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
         {
