@@ -385,6 +385,114 @@ public sealed class LaneCheckCommandTests
     }
 
     /// <summary>
+    /// Verifies that the wording-paths query writes exactly the changed paths the classifier counts as wording, one per
+    /// line in diff order, with no category column and no verdict, and leaves out every other resource file and the
+    /// C# file that would be text under a passing proof
+    /// </summary>
+    [TestMethod]
+    public void ExecuteWritesOnlyTheWordingPathsOfADiff()
+    {
+        // Arrange
+        var changes = WordingChangesWithChangeDoc
+                      + "M\tsrc/Reihitsu.Cli/CliResources.resx\n"
+                      + "M\tsrc/Reihitsu.Analyzer/AnalyzerResources.de.resx\n";
+
+        // Act
+        var (exitCode, output, error) = Run(changes, "--wording-paths");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.AreEqual($"src/Reihitsu.Analyzer/AnalyzerResources.resx{Environment.NewLine}src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx{Environment.NewLine}", output);
+        Assert.AreEqual(string.Empty, error);
+    }
+
+    /// <summary>
+    /// Verifies that the wording-paths query writes nothing, and no verdict or empty-diff line, for a diff without a
+    /// wording path and for an empty diff
+    /// </summary>
+    /// <param name="changes">Name-status lines of the diff</param>
+    [TestMethod]
+    [DataRow("M\tdocumentation/rules/RH5201.md\nM\tsrc/Reihitsu.Cli/CliResources.resx\nM\tsrc/Reihitsu.Analyzer/Rules/Layout/RH5201MethodChainsShouldBeAlignedAnalyzer.cs\n")]
+    [DataRow("")]
+    public void ExecuteWritesNoWordingPathForADiffWithoutWording(string changes)
+    {
+        // Act
+        var (exitCode, output, error) = Run(changes, "--wording-paths");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.AreEqual(string.Empty, output);
+        Assert.AreEqual(string.Empty, error);
+    }
+
+    /// <summary>
+    /// Verifies that the wording-paths query recognizes a resource file in another letter case or with backslashes and
+    /// writes it as read, with forward slashes, so the proof's case-insensitive exclusion matches it
+    /// </summary>
+    [TestMethod]
+    public void ExecuteWritesAWordingPathInItsOwnSpellingWithForwardSlashes()
+    {
+        // Act
+        var (exitCode, output, _) = Run("M\tSRC\\reihitsu.analyzer\\ANALYZERRESOURCES.resx\n", "--wording-paths");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.AreEqual($"SRC/reihitsu.analyzer/ANALYZERRESOURCES.resx{Environment.NewLine}", output);
+    }
+
+    /// <summary>
+    /// Verifies that the wording-paths query next to a lane or a proof verdict is a tool error rather than a verdict or
+    /// a path list
+    /// </summary>
+    /// <param name="arguments">Command arguments, separated by spaces</param>
+    [TestMethod]
+    [DataRow("--wording-paths --lane docs")]
+    [DataRow("--wording-paths --text-only pass")]
+    [DataRow("--lane docs --text-only fail --wording-paths")]
+    public void ExecuteRejectsTheWordingPathsQueryWithOtherArguments(string arguments)
+    {
+        // Act
+        var (exitCode, output, error) = Run(WordingChanges, arguments.Split(' '));
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(string.Empty, output);
+        Assert.Contains("lane-check: --wording-paths takes no other argument.", error);
+        Assert.Contains("usage: lane-check", error);
+    }
+
+    /// <summary>
+    /// Verifies that the wording-paths query with an unknown argument is a tool error naming that argument
+    /// </summary>
+    [TestMethod]
+    public void ExecuteRejectsTheWordingPathsQueryWithAnUnknownArgument()
+    {
+        // Act
+        var (exitCode, output, error) = Run(WordingChanges, "--wording-paths", "--extra");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(string.Empty, output);
+        Assert.Contains("lane-check: unexpected argument '--extra'.", error);
+    }
+
+    /// <summary>
+    /// Verifies that the wording-paths query over a line that is not a name-status line is a tool error and writes no
+    /// path, so the script never passes a partial exclusion list to the proof
+    /// </summary>
+    [TestMethod]
+    public void ExecuteRejectsAMalformedChangeLineInTheWordingPathsQuery()
+    {
+        // Act
+        var (exitCode, output, error) = Run("M\tsrc/Reihitsu.Analyzer/AnalyzerResources.resx\nR100\told.cs\tnew.cs\n", "--wording-paths");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(string.Empty, output);
+        Assert.Contains("unexpected name-status line", error);
+    }
+
+    /// <summary>
     /// Runs the lane check over the provided name-status lines
     /// </summary>
     /// <param name="changes">Name-status lines of the diff</param>
