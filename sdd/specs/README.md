@@ -66,6 +66,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH2006.md](analyzer/RH2006.md) | RH2006 | `RH2006DebugAssertMustProvideMessageTextAnalyzer` |
 | [analyzer/RH2007.md](analyzer/RH2007.md) | RH2007 | `RH2007DebugFailMustProvideMessageTextAnalyzer` |
 | [analyzer/RH2008.md](analyzer/RH2008.md) | RH2008 | `RH2008MethodsShouldNotExceedTheLineLimitAnalyzer` |
+| [analyzer/RH2009.md](analyzer/RH2009.md) | RH2009 | `RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzer` |
 | [analyzer/RH2101.md](analyzer/RH2101.md) | RH2101 | `RH2101NestedClassesShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2102.md](analyzer/RH2102.md) | RH2102 | `RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer` |
 | [analyzer/RH2103.md](analyzer/RH2103.md) | RH2103 | `RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer` |
