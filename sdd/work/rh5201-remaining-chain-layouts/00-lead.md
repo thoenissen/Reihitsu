@@ -18,6 +18,9 @@
 |---|---|---|---|---|---|---|
 | 1 | Spec author | Where does the first-call rule live? | In shared SHARED-CHAIN-005, with new RH5201-006 (not a wider RH5201-001) | Formatter and analyzer share the chain layout; a separate requirement keeps tests traceable | Spec structure only; outputs are asked as output questions | 064eb20 |
 | 2 | Spec author | Drop issue goal 2 (columns of trivia-kept pieces)? | Drop | Precheck refuses those shapes (FMT-UNSUP-014/015): no caller reaches the case; issue is `agent-filed` | Nothing changes for those inputs; PR states the difference | 064eb20 |
+| 3 | Skeptic | Architecture finding FC-015: where does "the root's line reaches the first invoked link" live? | Move the decision into `Reihitsu.Core` `FluentChain` (next to `IsFirstLinkBlocked`/`IsPrefixLink`/`GetAnchorLink`); formatter `ChainLineBreakRewriter` and RH5201 both call it. Inner-break reading follows the maintainer's answer to Q4 | A private copy in the analyzer would be a second statement of one rule; the change stays within the components the run touches and their counterparts, small, no new type | Formatter output unchanged (comment-in-operator inputs are refused by the precheck, so the inner-break reading cannot differ on any formatter input) | — |
+| 4 | Skeptic | Adjacent fix: RH5201 misses a link behind the `*/` of an own-line delimited comment when the line starts in the anchor column (skeptic G1, G2) | Take it into the run | Unchanged requirements SHARED-COMMENT-012 and SHARED-CHAIN-005 exception demand it; few lines in RH5201 `IsMisplaced`; fits #893's purpose; gets a test | Restores an unchanged requirement | — |
+| 5 | Skeptic | Change doc: list F11; RH5201 spec `Uses` adds SHARED-COMMENT-012 | Route to spec author with the maintainer answers | Completeness / wording | Listing only | — |
 
 ## Follow-up candidates
 
@@ -26,4 +29,7 @@
 ## Worklist / next step
 
 - Spec author done (064eb20, lane check confirmed behavior-change). Skeptic running → 02-skeptic.md.
-- Next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
+- Skeptic done (9fc40a5): output question on comment inside a prefix link operator; architecture finding (decision 3); adjacent fix (decision 4).
+- WAITING: output-question batch 1 posted to maintainer (Q1–Q5).
+- Then: spec author follow-up (answers, decisions 4–5, Status Accepted), lane check, test implementer.
+- Old next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
