@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-CHAIN-005 (changed: states when the first invoked link must start its own line; example added), FMT-BREAK-019 (clarified: names the first call the formatter breaks), RH5201-006 (added), RH5201-001 and RH5201-002 (clarified: a link behind the closing `*/` of a comment that starts its own line is reported whatever column the comment's last line starts in, as SHARED-CHAIN-005 and SHARED-COMMENT-012 already require), RH5201 `Uses` (SHARED-COMMENT-012 added), RH5201 non-goals (attached parts and operator tokens behind the first) |
+| Affected requirements | SHARED-CHAIN-005 (changed: states when the first invoked link must start its own line; example added; its exception for a link behind the closing `*/` of a comment names a comment that stands below the token in front of the link, also with a second comment between the `*/` and the link), FMT-BREAK-019 (clarified: names the first call the formatter breaks), RH5201-006 (added), RH5201-001 and RH5201-002 (clarified: a link behind the closing `*/` of a comment that starts its own line is reported whatever column the comment's last line starts in, also with a second comment between the `*/` and the link, as SHARED-CHAIN-005 and SHARED-COMMENT-012 already require), RH5201 `Uses` (SHARED-COMMENT-012 added), RH5201 non-goals (attached parts and operator tokens behind the first) |
 
 ## What
 
@@ -131,13 +131,13 @@ var b = c
 
 ```csharp
 // input
-var a = c.Next?
+var a = c.Opt?
          .Next.Self();
 ```
 
 ```csharp
 // before: one diagnostic, on the `?` of the split operator; the fix gives
-var a = c.Next
+var a = c.Opt
          ?.Next
          .Self();
 ```
@@ -148,7 +148,7 @@ var a = c.Next
 
 The same holds for a first link that a comment keeps below the root in the wrong column (`c // keep` ⏎ `    .Next.Self()`: before one diagnostic on `.Next`, after also one on `.Self`), and for a prefix link behind the closing `*/` of a comment that starts its own line in a column other than the anchor's (SHARED-CHAIN-005, example `r`).
 
-**6. A link behind the closing `*/` of a comment that starts its own line, with the `*/` in the anchor column, is reported and fixed.** This holds for a later call, for a link of a chain without a call, and for a prefix link; behind a prefix link, the first call is reported as well (RH5201-006).
+**6. A link behind the closing `*/` of a comment that starts its own line, with the `*/` in the anchor column, is reported and fixed.** This holds for a later call, for a link of a chain without a call, and for a prefix link; behind a prefix link, the first call is reported as well (RH5201-006). It holds as well when a second comment stands between the `*/` and the link (`f`).
 
 ```csharp
 // input
@@ -166,6 +166,11 @@ var d = c.Next
 
          /* x
          */ .Next.Self();
+var f = c.Self()
+         .Self()
+
+         /* x
+         */ /* y */ .Self();
 ```
 
 ```csharp
@@ -173,7 +178,7 @@ var d = c.Next
 ```
 
 ```csharp
-// after: reported on the `.` behind each `*/`, and in `d` also on the `.` of `.Self`; the fix gives
+// after: reported on the `.` behind each `*/` (in `f`, the `.` behind `/* y */`), and in `d` also on the `.` of `.Self`; the fix gives
 var a = c.Self()
          .Self()
 
@@ -191,6 +196,12 @@ var d = c.Next
          /* x
          */
          .Next
+         .Self();
+var f = c.Self()
+         .Self()
+
+         /* x
+         */ /* y */
          .Self();
 ```
 
@@ -221,6 +232,8 @@ The maintainer accepted the visible output changes as recommended (answers 1A, 2
 - **A chain already reported for another link gets one more diagnostic**, on the first call; the fix result does not change (change 5).
 - **A line break that a comment, a directive, or disabled text keeps inside a prefix link's operator does not count** (change 7, `g`): it is counted as RH5201-003 counts it, as if it were not there, so the first call behind it is not reported. The same holds for such a line break inside the first link's operator. The formatter refuses every input that holds one (FMT-UNSUP-015), so its output is not involved.
 - **The rule page** gains the bullet and the *How to fix it* words of change 8.
+
+In a second batch, the maintainer answered A for a second comment between the closing `*/` of an own-line comment and the link (change 6, `f`): the link is reported, and the fix gives `*/ /* y */` ⏎ `.Self();`, which is the formatter's output for the same input. The comment between does not give the link a line of its own, so it is judged as the link directly behind the `*/`.
 
 ### Report a link behind an own-line `*/` in the anchor column
 
