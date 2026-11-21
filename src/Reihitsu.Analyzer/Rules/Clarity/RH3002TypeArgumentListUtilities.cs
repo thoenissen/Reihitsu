@@ -160,31 +160,11 @@ internal static class RH3002TypeArgumentListUtilities
             return true;
         }
 
-        var isOpening = CanOpenTypeArgumentList(argument, out var declarationEnd);
-
-        if (isOpening == false)
+        if (CanOpenTypeArgumentList(argument, out var declarationEnd) == false
+            && (CanContinueTypeArgumentList(argument) == false
+                || IsPrecededByOpeningArgument(arguments, index, out declarationEnd) == false))
         {
-            if (CanContinueTypeArgumentList(argument) == false)
-            {
-                return false;
-            }
-
-            for (var previousIndex = index - 1; previousIndex >= 0 && isOpening == false; previousIndex--)
-            {
-                if (CanOpenTypeArgumentList(arguments[previousIndex], out declarationEnd))
-                {
-                    isOpening = true;
-                }
-                else if (CanContinueTypeArgumentList(arguments[previousIndex]) == false)
-                {
-                    return false;
-                }
-            }
-
-            if (isOpening == false)
-            {
-                return false;
-            }
+            return false;
         }
 
         for (var nextIndex = index + 1; nextIndex < arguments.Count; nextIndex++)
@@ -195,6 +175,33 @@ internal static class RH3002TypeArgumentListUtilities
             }
 
             if (CanContinueTypeArgumentList(arguments[nextIndex]) == false)
+            {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determine whether an opening argument precedes an argument with only type shaped arguments between them
+    /// </summary>
+    /// <param name="arguments">Arguments of the list</param>
+    /// <param name="index">Position of the argument</param>
+    /// <param name="declarationEnd">The predicate of the opening argument for the token kind that may follow its declared identifier</param>
+    /// <returns><see langword="true"/> if such an opening argument precedes the argument</returns>
+    private static bool IsPrecededByOpeningArgument(SeparatedSyntaxList<ArgumentSyntax> arguments, int index, out Func<SyntaxKind, bool> declarationEnd)
+    {
+        declarationEnd = null;
+
+        for (var previousIndex = index - 1; previousIndex >= 0; previousIndex--)
+        {
+            if (CanOpenTypeArgumentList(arguments[previousIndex], out declarationEnd))
+            {
+                return true;
+            }
+
+            if (CanContinueTypeArgumentList(arguments[previousIndex]) == false)
             {
                 return false;
             }
@@ -300,24 +307,11 @@ internal static class RH3002TypeArgumentListUtilities
                 return -1;
             }
 
-            while (kindAt(index) is SyntaxKind.QuestionToken or SyntaxKind.AsteriskToken or SyntaxKind.OpenBracketToken)
+            index = ScanTypeArgumentSuffixes(kindAt, index);
+
+            if (index < 0)
             {
-                if (kindAt(index) == SyntaxKind.OpenBracketToken)
-                {
-                    index++;
-
-                    while (kindAt(index) == SyntaxKind.CommaToken)
-                    {
-                        index++;
-                    }
-
-                    if (kindAt(index) != SyntaxKind.CloseBracketToken)
-                    {
-                        return -1;
-                    }
-                }
-
-                index++;
+                return -1;
             }
         }
         while (kindAt(index) == SyntaxKind.CommaToken);
@@ -325,6 +319,37 @@ internal static class RH3002TypeArgumentListUtilities
         return kindAt(index) == SyntaxKind.GreaterThanToken
                    ? index + 1
                    : -1;
+    }
+
+    /// <summary>
+    /// Scan the nullable, pointer, and array suffixes of a type argument at a position of a token list
+    /// </summary>
+    /// <param name="kindAt">Reader for the token kinds</param>
+    /// <param name="index">Position behind the type of the type argument</param>
+    /// <returns>The position after the suffixes, or <c>-1</c> if an array suffix is not closed</returns>
+    private static int ScanTypeArgumentSuffixes(Func<int, SyntaxKind> kindAt, int index)
+    {
+        while (kindAt(index) is SyntaxKind.QuestionToken or SyntaxKind.AsteriskToken or SyntaxKind.OpenBracketToken)
+        {
+            if (kindAt(index) == SyntaxKind.OpenBracketToken)
+            {
+                index++;
+
+                while (kindAt(index) == SyntaxKind.CommaToken)
+                {
+                    index++;
+                }
+
+                if (kindAt(index) != SyntaxKind.CloseBracketToken)
+                {
+                    return -1;
+                }
+            }
+
+            index++;
+        }
+
+        return index;
     }
 
     /// <summary>
@@ -456,14 +481,7 @@ internal static class RH3002TypeArgumentListUtilities
     /// </returns>
     private static Func<SyntaxKind, bool> GetDeclarationEnd(ArgumentSyntax argument, ExpressionSyntax unparenthesizedExpression, SyntaxToken lastNameToken)
     {
-        var name = lastNameToken.Parent;
-
-        while ((name?.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == name)
-               || (name?.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == name)
-               || (name?.Parent is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name == name))
-        {
-            name = name.Parent;
-        }
+        var name = GetWholeName(lastNameToken.Parent);
 
         // Only a name that could be read as a type starts a declaration; a qualifier such as this, an invocation, or an
         // element access keeps the angle brackets relational operators
@@ -498,6 +516,24 @@ internal static class RH3002TypeArgumentListUtilities
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Get the whole name a name is the last part of: the member access, qualified name, or alias qualified name whose
+    /// right part it is, repeated outwards
+    /// </summary>
+    /// <param name="name">Name, or <see langword="null"/></param>
+    /// <returns>The whole name, or <see langword="null"/> when <paramref name="name"/> is <see langword="null"/></returns>
+    private static SyntaxNode GetWholeName(SyntaxNode name)
+    {
+        while ((name?.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == name)
+               || (name?.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == name)
+               || (name?.Parent is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name == name))
+        {
+            name = name.Parent;
+        }
+
+        return name;
     }
 
     /// <summary>

@@ -130,6 +130,41 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             return new TextSpan(0, 0);
         }
 
+        var (endPosition, commentRunEnd, commentRunLineEnd, hasComment, hasCopyrightComment) = ScanLeadingTrivia(firstToken.LeadingTrivia);
+
+        // Only replace the leading comment block when it is an existing copyright header. A leading
+        // comment that is not a copyright header (for example a file note) must be preserved, so the
+        // configured header is inserted before it instead of overwriting it.
+        if (hasComment
+            && hasCopyrightComment == false)
+        {
+            return new TextSpan(0, 0);
+        }
+
+        // An old header is replaced through its last comment only, so the line break that ends that comment's line and
+        // the blank lines behind it stay as the author wrote them. A header that ends with a line break takes the place
+        // of that line break, so the file keeps exactly one line break there
+        if (hasCopyrightComment)
+        {
+            endPosition = headerEndsWithLineBreak
+                              ? commentRunLineEnd
+                              : commentRunEnd;
+        }
+
+        return TextSpan.FromBounds(0, Math.Min(endPosition, sourceText.Length));
+    }
+
+    /// <summary>
+    /// Scans the leading run of white space, line breaks, and ordinary comments in front of the first token
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia of the first token</param>
+    /// <returns>
+    /// The end of the run; the end of its last comment and of the white space behind it on its line; the end of that
+    /// line, its line break included; whether the run holds a comment; and whether one of its comments holds the word
+    /// copyright
+    /// </returns>
+    private static (int EndPosition, int CommentRunEnd, int CommentRunLineEnd, bool HasComment, bool HasCopyrightComment) ScanLeadingTrivia(SyntaxTriviaList leadingTrivia)
+    {
         var endPosition = 0;
         var commentRunEnd = 0;
         var commentRunLineEnd = 0;
@@ -137,7 +172,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         var hasComment = false;
         var hasCopyrightComment = false;
 
-        foreach (var trivia in firstToken.LeadingTrivia)
+        foreach (var trivia in leadingTrivia)
         {
             if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                 || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
@@ -149,14 +184,11 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
                 if (isBehindLastComment)
                 {
                     commentRunLineEnd = trivia.FullSpan.End;
+                    isBehindLastComment = trivia.IsKind(SyntaxKind.WhitespaceTrivia);
 
-                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                    if (isBehindLastComment)
                     {
                         commentRunEnd = trivia.FullSpan.End;
-                    }
-                    else
-                    {
-                        isBehindLastComment = false;
                     }
                 }
 
@@ -179,26 +211,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             break;
         }
 
-        // Only replace the leading comment block when it is an existing copyright header. A leading
-        // comment that is not a copyright header (for example a file note) must be preserved, so the
-        // configured header is inserted before it instead of overwriting it.
-        if (hasComment
-            && hasCopyrightComment == false)
-        {
-            return new TextSpan(0, 0);
-        }
-
-        // An old header is replaced through its last comment only, so the line break that ends that comment's line and
-        // the blank lines behind it stay as the author wrote them. A header that ends with a line break takes the place
-        // of that line break, so the file keeps exactly one line break there
-        if (hasCopyrightComment)
-        {
-            endPosition = headerEndsWithLineBreak
-                              ? commentRunLineEnd
-                              : commentRunEnd;
-        }
-
-        return TextSpan.FromBounds(0, Math.Min(endPosition, sourceText.Length));
+        return (endPosition, commentRunEnd, commentRunLineEnd, hasComment, hasCopyrightComment);
     }
 
     #endregion // Methods

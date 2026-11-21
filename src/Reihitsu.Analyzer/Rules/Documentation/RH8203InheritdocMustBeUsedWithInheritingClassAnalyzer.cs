@@ -56,6 +56,34 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
     }
 
     /// <summary>
+    /// Get the <c>inheritdoc</c> elements of a part of a partial member. Each part of a partial member is judged by its own
+    /// documentation (SHARED-DIAG-004). The expanded documentation of a part's symbol can be the other part's, so later
+    /// comments are read from the part's syntax unless one of its comments holds an include element; then the part's
+    /// whole documentation is expanded on its own
+    /// </summary>
+    /// <param name="declaration">Declaration of the part</param>
+    /// <param name="context">Context</param>
+    /// <param name="laterInheritdocNode">The first direct <c>inheritdoc</c> tag of a later documentation comment of the part, when its comments are read from the syntax</param>
+    /// <returns>The first <c>inheritdoc</c> element of the part's expanded documentation, or <see langword="null"/> when its comments are read from the syntax</returns>
+    private static XElement GetInheritdocOfPart(MemberDeclarationSyntax declaration, SyntaxNodeAnalysisContext context, out XmlNodeSyntax laterInheritdocNode)
+    {
+        var documentationComments = DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration);
+
+        if (documentationComments.Any(obj => DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "include").Length > 0))
+        {
+            laterInheritdocNode = null;
+
+            return XmlDocumentationExpander.GetFirstExpandedElement(XmlDocumentationExpander.GetExpandedDocumentationOfPart(declaration, context.SemanticModel, context.CancellationToken), "inheritdoc");
+        }
+
+        laterInheritdocNode = documentationComments.Skip(1)
+                                                   .Select(obj => DirectDocumentationSyntaxChecker.GetFirstDirectTag(obj, "inheritdoc"))
+                                                   .FirstOrDefault(obj => obj != null);
+
+        return null;
+    }
+
+    /// <summary>
     /// Analyze a declaration
     /// </summary>
     /// <param name="context">Context</param>
@@ -81,23 +109,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
 
         if (IsPartOfPartialMember(declaration, context.SemanticModel, context.CancellationToken))
         {
-            // Each part of a partial member is judged by its own documentation (SHARED-DIAG-004). The expanded
-            // documentation of a part's symbol can be the other part's, so later comments are read from the part's
-            // syntax unless one of its comments holds an include element; then the part's whole documentation is
-            // expanded on its own
-            var documentationComments = DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration);
-
-            if (documentationComments.Any(obj => DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "include").Length > 0))
-            {
-                expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(XmlDocumentationExpander.GetExpandedDocumentationOfPart(declaration, context.SemanticModel, context.CancellationToken), "inheritdoc");
-            }
-            else
-            {
-                expandedInheritdocElement = null;
-                laterInheritdocNode = documentationComments.Skip(1)
-                                                           .Select(obj => DirectDocumentationSyntaxChecker.GetFirstDirectTag(obj, "inheritdoc"))
-                                                           .FirstOrDefault(obj => obj != null);
-            }
+            expandedInheritdocElement = GetInheritdocOfPart(declaration, context, out laterInheritdocNode);
         }
         else
         {

@@ -183,64 +183,77 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
                 continue;
             }
 
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
-
-            if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false)
-            {
-                continue;
-            }
-
-            var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex - 1]);
-
-            if (DocumentationAnalysisUtilities.IsDocumentationLine(previousLineText)
-                || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
-            {
-                continue;
-            }
-
-            var previousNonBlankLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, lineIndex);
-
-            if (previousNonBlankLineIndex < 0)
-            {
-                continue;
-            }
-
-            var lineTextWithIndentation = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
-            var documentationStart = lineTextWithIndentation.IndexOf("///", StringComparison.Ordinal);
-            var diagnosticStart = sourceText.Lines[lineIndex].Start + documentationStart;
-            var documentationTrivia = root.FindTrivia(diagnosticStart);
-
-            // A line below the first line of a comment written behind code continues that comment, which is judged on
-            // its first line below
-            if (documentationTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                && DocumentationCommentUtilities.IsWrittenBehindSource(documentationTrivia, sourceText))
-            {
-                continue;
-            }
-
-            // The first documentation header behind an opening token is exempt. The decision is read from the token
-            // preceding the documentation rather than from line text, so a comment behind the opening token does not hide
-            // it and a comment ending with a brace character behind another token does not imitate it. Continuation lines
-            // of documentation that starts behind the opening token resolve to the same documentation trivia
-            if (IsFirstBehindOpeningToken(documentationTrivia))
-            {
-                continue;
-            }
-
-            // A documentation header that directly abuts an ordinary comment or a preprocessor directive is exempt,
-            // mirroring RH5020: the formatter treats adjacent comment blocks as a unit and never inserts a blank line
-            // between them, and it leaves directive-adjacent comments untouched, so flagging these would leave a
-            // permanent, CLI-unfixable diagnostic. The preceding construct is read from trivia rather than line text so
-            // that string content that only looks like a comment or a directive is not mistaken for one
-            if (IsPrecededByCommentOrDirective(root, diagnosticStart))
-            {
-                continue;
-            }
-
-            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(diagnosticStart, diagnosticStart + 3))));
+            AnalyzeDocumentationLine(context, root, sourceText, lineIndex);
         }
 
         AnalyzeDocumentationBehindCode(context, root, sourceText, nonFormattableLineIndices);
+    }
+
+    /// <summary>
+    /// Reports the line when it starts a <c>///</c> documentation header that is not preceded by a blank line and none of
+    /// the exemptions applies
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="lineIndex">Zero-based index of the line, behind the first line of the text</param>
+    private void AnalyzeDocumentationLine(SyntaxTreeAnalysisContext context, SyntaxNode root, SourceText sourceText, int lineIndex)
+    {
+        var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
+
+        if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false)
+        {
+            return;
+        }
+
+        var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex - 1]);
+
+        if (DocumentationAnalysisUtilities.IsDocumentationLine(previousLineText)
+            || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
+        {
+            return;
+        }
+
+        var previousNonBlankLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, lineIndex);
+
+        if (previousNonBlankLineIndex < 0)
+        {
+            return;
+        }
+
+        var lineTextWithIndentation = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
+        var documentationStart = lineTextWithIndentation.IndexOf("///", StringComparison.Ordinal);
+        var diagnosticStart = sourceText.Lines[lineIndex].Start + documentationStart;
+        var documentationTrivia = root.FindTrivia(diagnosticStart);
+
+        // A line below the first line of a comment written behind code continues that comment, which is judged on
+        // its first line below
+        if (documentationTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+            && DocumentationCommentUtilities.IsWrittenBehindSource(documentationTrivia, sourceText))
+        {
+            return;
+        }
+
+        // The first documentation header behind an opening token is exempt. The decision is read from the token
+        // preceding the documentation rather than from line text, so a comment behind the opening token does not hide
+        // it and a comment ending with a brace character behind another token does not imitate it. Continuation lines
+        // of documentation that starts behind the opening token resolve to the same documentation trivia
+        if (IsFirstBehindOpeningToken(documentationTrivia))
+        {
+            return;
+        }
+
+        // A documentation header that directly abuts an ordinary comment or a preprocessor directive is exempt,
+        // mirroring RH5020: the formatter treats adjacent comment blocks as a unit and never inserts a blank line
+        // between them, and it leaves directive-adjacent comments untouched, so flagging these would leave a
+        // permanent, CLI-unfixable diagnostic. The preceding construct is read from trivia rather than line text so
+        // that string content that only looks like a comment or a directive is not mistaken for one
+        if (IsPrecededByCommentOrDirective(root, diagnosticStart))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(diagnosticStart, diagnosticStart + 3))));
     }
 
     /// <summary>

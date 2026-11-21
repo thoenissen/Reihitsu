@@ -129,123 +129,41 @@ public class CliDeepNestingEndToEndTests
     /// <returns>The source text</returns>
     private static string CreateSource(string shape, int depth, string endOfLine)
     {
-        var body = new StringBuilder();
-
-        switch (shape)
-        {
-            case "chain":
-                {
-                    body.Append("    internal object M(System.Collections.Generic.List<int> items)\n    {\n        return items\n");
-
-                    for (var index = 0; index < depth; index++)
-                    {
-                        body.Append($"            .Where(x => x > {index})\n");
-                    }
-
-                    body.Append("            .ToList();\n    }\n");
-                }
-                break;
-
-            case "concat":
-                {
-                    body.Append("    internal string M(string s)\n    {\n        return s");
-
-                    for (var index = 0; index < depth; index++)
-                    {
-                        body.Append($"\n            + \"{index}\"");
-                    }
-
-                    body.Append(";\n    }\n");
-                }
-                break;
-
-            case "concat1line":
-                {
-                    var expression = new StringBuilder("\"\"");
-
-                    for (var index = 0; index < depth; index++)
-                    {
-                        expression.Append($" + \"{index}\"");
-                    }
-
-                    body.Append(CreateMethod("string", expression.ToString()));
-                }
-                break;
-
-            case "andchain":
-                {
-                    var expression = new StringBuilder("c");
-
-                    for (var index = 0; index < depth; index++)
-                    {
-                        expression.Append("\n            && c");
-                    }
-
-                    body.Append(CreateMethod("bool", expression.ToString()));
-                }
-                break;
-
-            case "orpattern":
-                {
-                    var expression = new StringBuilder("a is 0");
-
-                    for (var index = 1; index < depth; index++)
-                    {
-                        expression.Append($"\n            or {index}");
-                    }
-
-                    body.Append(CreateMethod("bool", expression.ToString()));
-                }
-                break;
-
-            case "elementaccess":
-                {
-                    var expression = new StringBuilder("arr");
-
-                    for (var index = 0; index < depth; index++)
-                    {
-                        expression.Append("[0]");
-                    }
-
-                    body.Append(CreateMethod("int", expression.ToString()));
-                }
-                break;
-
-            case "elseif":
-                {
-                    body.Append("    internal int M(int x)\n    {\n        if (x == 0)\n        {\n            return 0;\n        }\n");
-
-                    for (var index = 1; index < depth; index++)
-                    {
-                        body.Append($"        else if (x == {index})\n        {{\n            return {index};\n        }}\n");
-                    }
-
-                    body.Append("        return -1;\n    }\n");
-                }
-                break;
-
-            case "memberaccess":
-                {
-                    var expression = new StringBuilder("a");
-
-                    for (var index = 0; index < depth; index++)
-                    {
-                        expression.Append(".P");
-                    }
-
-                    body.Append(CreateMethod("object", expression.ToString()));
-                }
-                break;
-
-            default:
-                {
-                    throw new ArgumentOutOfRangeException(nameof(shape), shape, null);
-                }
-        }
+        var body = shape switch
+                   {
+                       "chain" => $"    internal object M(System.Collections.Generic.List<int> items)\n    {{\n        return items\n{Repeat(0, depth, index => $"            .Where(x => x > {index})\n")}            .ToList();\n    }}\n",
+                       "concat" => $"    internal string M(string s)\n    {{\n        return s{Repeat(0, depth, index => $"\n            + \"{index}\"")};\n    }}\n",
+                       "concat1line" => CreateMethod("string", $"\"\"{Repeat(0, depth, index => $" + \"{index}\"")}"),
+                       "andchain" => CreateMethod("bool", $"c{Repeat(0, depth, _ => "\n            && c")}"),
+                       "orpattern" => CreateMethod("bool", $"a is 0{Repeat(1, depth, index => $"\n            or {index}")}"),
+                       "elementaccess" => CreateMethod("int", $"arr{Repeat(0, depth, _ => "[0]")}"),
+                       "elseif" => $"    internal int M(int x)\n    {{\n        if (x == 0)\n        {{\n            return 0;\n        }}\n{Repeat(1, depth, index => $"        else if (x == {index})\n        {{\n            return {index};\n        }}\n")}        return -1;\n    }}\n",
+                       "memberaccess" => CreateMethod("object", $"a{Repeat(0, depth, _ => ".P")}"),
+                       _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null)
+                   };
 
         var source = $"namespace N;\n\ninternal class C\n{{\n{body}}}\n";
 
         return source.Replace("\n", endOfLine);
+    }
+
+    /// <summary>
+    /// Concatenates one part per index, from the first index up to but not including the end index
+    /// </summary>
+    /// <param name="firstIndex">The index of the first part</param>
+    /// <param name="endIndex">The index behind the last part</param>
+    /// <param name="createPart">Creates the part of an index</param>
+    /// <returns>The concatenated parts; empty when the end index is not behind the first index</returns>
+    private static string Repeat(int firstIndex, int endIndex, Func<int, string> createPart)
+    {
+        var parts = new StringBuilder();
+
+        for (var index = firstIndex; index < endIndex; index++)
+        {
+            parts.Append(createPart(index));
+        }
+
+        return parts.ToString();
     }
 
     /// <summary>

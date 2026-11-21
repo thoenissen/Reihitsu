@@ -130,16 +130,7 @@ public static class ObservedPipeline
                 else if (trivia.IsDirective
                          && trivia.GetStructure() is DirectiveTriviaSyntax directive)
                 {
-                    foreach (var directiveToken in directive.DescendantTokens())
-                    {
-                        foreach (var directiveTrivia in directiveToken.LeadingTrivia.Concat(directiveToken.TrailingTrivia))
-                        {
-                            if (IsWhitespaceWithTab(directiveTrivia))
-                            {
-                                findings.Add(Describe(directiveTrivia, "directive whitespace"));
-                            }
-                        }
-                    }
+                    AddDirectiveWhitespaceTabs(directive, findings);
                 }
             }
         }
@@ -213,6 +204,26 @@ public static class ObservedPipeline
     {
         return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                && trivia.ToFullString().Contains('\t');
+    }
+
+    /// <summary>
+    /// Describes every tab in the whitespace between the tokens of a directive; a tab in the directive's free text is
+    /// not reported
+    /// </summary>
+    /// <param name="directive">The directive to scan</param>
+    /// <param name="findings">The descriptions found so far, which the new ones are appended to</param>
+    private static void AddDirectiveWhitespaceTabs(DirectiveTriviaSyntax directive, List<string> findings)
+    {
+        foreach (var directiveToken in directive.DescendantTokens())
+        {
+            foreach (var directiveTrivia in directiveToken.LeadingTrivia.Concat(directiveToken.TrailingTrivia))
+            {
+                if (IsWhitespaceWithTab(directiveTrivia))
+                {
+                    findings.Add(Describe(directiveTrivia, "directive whitespace"));
+                }
+            }
+        }
     }
 
     /// <summary>

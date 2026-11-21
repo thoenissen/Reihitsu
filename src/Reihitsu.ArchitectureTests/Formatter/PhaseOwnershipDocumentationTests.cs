@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -660,27 +661,35 @@ public sealed class PhaseOwnershipDocumentationTests
                     continue;
                 }
 
-                var root = CSharpSyntaxTree.ParseText(File.ReadAllText(file)).GetRoot();
-
-                foreach (var type in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
-                {
-                    if (declarations.TryGetValue(type.Identifier.ValueText, out var members) == false)
-                    {
-                        members = new HashSet<string>(StringComparer.Ordinal);
-                        declarations.Add(type.Identifier.ValueText, members);
-                    }
-
-                    members.UnionWith(GetMemberNames(type));
-                }
-
-                foreach (var declaration in root.DescendantNodes().OfType<DelegateDeclarationSyntax>())
-                {
-                    declarations.TryAdd(declaration.Identifier.ValueText, new HashSet<string>(StringComparer.Ordinal));
-                }
+                AddDeclarations(CSharpSyntaxTree.ParseText(File.ReadAllText(file)).GetRoot(), declarations);
             }
         }
 
         return declarations;
+    }
+
+    /// <summary>
+    /// Adds the types and members declared in one source file. Comments and literals declare nothing
+    /// </summary>
+    /// <param name="root">Syntax root of the source file</param>
+    /// <param name="declarations">The member names of every type declared so far, keyed by the type's simple name; partial parts are merged</param>
+    private static void AddDeclarations(SyntaxNode root, Dictionary<string, HashSet<string>> declarations)
+    {
+        foreach (var type in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
+        {
+            if (declarations.TryGetValue(type.Identifier.ValueText, out var members) == false)
+            {
+                members = new HashSet<string>(StringComparer.Ordinal);
+                declarations.Add(type.Identifier.ValueText, members);
+            }
+
+            members.UnionWith(GetMemberNames(type));
+        }
+
+        foreach (var declaration in root.DescendantNodes().OfType<DelegateDeclarationSyntax>())
+        {
+            declarations.TryAdd(declaration.Identifier.ValueText, new HashSet<string>(StringComparer.Ordinal));
+        }
     }
 
     /// <summary>

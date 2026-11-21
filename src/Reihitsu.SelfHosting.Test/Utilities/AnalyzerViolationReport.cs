@@ -17,18 +17,6 @@ namespace Reihitsu.SelfHosting.Test.Utilities;
 /// </summary>
 internal static class AnalyzerViolationReport
 {
-    #region Fields
-
-    /// <summary>
-    /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
-    /// </summary>
-    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
-                                                                    {
-                                                                        "RH2009"
-                                                                    };
-
-    #endregion // Fields
-
     #region Methods
 
     /// <summary>
@@ -74,8 +62,7 @@ internal static class AnalyzerViolationReport
             diagnostics.AddRange(compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken)
                                                          .GetAwaiter()
                                                          .GetResult()
-                                                         .Where(diagnostic => diagnostic.Location.SourceTree != null
-                                                                              && _ignoredDiagnosticIds.Contains(diagnostic.Id) == false));
+                                                         .Where(diagnostic => diagnostic.Location.SourceTree != null));
         }
 
         return diagnostics.OrderBy(diagnostic => diagnostic.Location.SourceTree.FilePath, StringComparer.OrdinalIgnoreCase)

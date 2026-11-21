@@ -33,56 +33,9 @@ public static class RegionDirectiveBlankLineUtilities
 
         for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
         {
-            if (removedLines.Contains(lineIndex)
-                || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex) == false)
-            {
-                continue;
-            }
-
-            // The run of blank and removed lines this blank line belongs to, between two kept lines that hold content
-            var runStart = lineIndex;
-            var runEnd = lineIndex;
-
-            while (runStart > 0
-                   && (removedLines.Contains(runStart - 1) || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, runStart - 1)))
-            {
-                runStart--;
-            }
-
-            while (runEnd < lines.Count - 1
-                   && (removedLines.Contains(runEnd + 1) || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, runEnd + 1)))
-            {
-                runEnd++;
-            }
-
-            // The first blank line of the run stays where no brace is next to it; a blank line that a removed line
-            // separates from an earlier blank line of the run is doubled by the removal
-            var touchesRemoval = false;
-            var isDoubled = false;
-            var seenBlankLine = false;
-
-            for (var runLine = runStart; runLine < lineIndex; runLine++)
-            {
-                if (removedLineIndices.Contains(runLine))
-                {
-                    touchesRemoval = true;
-                    isDoubled |= seenBlankLine;
-                }
-                else
-                {
-                    seenBlankLine = true;
-                }
-            }
-
-            for (var runLine = lineIndex + 1; runLine <= runEnd && touchesRemoval == false; runLine++)
-            {
-                touchesRemoval = removedLineIndices.Contains(runLine);
-            }
-
-            if (touchesRemoval
-                && (isDoubled
-                    || (runStart > 0 && IsLastTokenOfLine(root, lines[runStart - 1], SyntaxKind.OpenBraceToken))
-                    || (runEnd < lines.Count - 1 && IsFirstTokenOfLine(root, lines[runEnd + 1], SyntaxKind.CloseBraceToken))))
+            if (removedLines.Contains(lineIndex) == false
+                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex)
+                && IsBlankLineLeftOverByRemoval(root, sourceText, removedLines, removedLineIndices, lineIndex))
             {
                 removedLines.Add(lineIndex);
             }
@@ -212,6 +165,97 @@ public static class RegionDirectiveBlankLineUtilities
                                             && targetFirstToken.SpanStart == targetContentStart;
 
         return RequiresBlankLineBelow(directive is EndRegionDirectiveTriviaSyntax, doesTargetBeginWithCloseBrace);
+    }
+
+    /// <summary>
+    /// Determines whether a kept blank line has to go with the removal: it belongs to a run of blank and removed lines that
+    /// a removed line touches, and it is either doubled by the removal, or the run starts behind a line whose last token is
+    /// an opening brace, or ends in front of a line whose first token is a closing brace
+    /// </summary>
+    /// <param name="root">Syntax root of the text</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="removedLines">Lines removed so far, the blank lines this removal already takes included</param>
+    /// <param name="removedLineIndices">Zero-based indices of the lines the caller removes</param>
+    /// <param name="lineIndex">Zero-based index of the blank line</param>
+    /// <returns><see langword="true"/> when the blank line has to be removed</returns>
+    private static bool IsBlankLineLeftOverByRemoval(SyntaxNode root, SourceText sourceText, ISet<int> removedLines, ISet<int> removedLineIndices, int lineIndex)
+    {
+        var lines = sourceText.Lines;
+
+        // The run of blank and removed lines this blank line belongs to, between two kept lines that hold content
+        var runStart = lineIndex;
+        var runEnd = lineIndex;
+
+        while (runStart > 0
+               && IsBlankOrRemovedLine(sourceText, removedLines, runStart - 1))
+        {
+            runStart--;
+        }
+
+        while (runEnd < lines.Count - 1
+               && IsBlankOrRemovedLine(sourceText, removedLines, runEnd + 1))
+        {
+            runEnd++;
+        }
+
+        var touchesRemoval = TouchesRemoval(removedLineIndices, runStart, runEnd, lineIndex, out var isDoubled);
+
+        return touchesRemoval
+               && (isDoubled
+                   || (runStart > 0 && IsLastTokenOfLine(root, lines[runStart - 1], SyntaxKind.OpenBraceToken))
+                   || (runEnd < lines.Count - 1 && IsFirstTokenOfLine(root, lines[runEnd + 1], SyntaxKind.CloseBraceToken)));
+    }
+
+    /// <summary>
+    /// Determines whether a line is removed or blank
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="removedLines">Lines removed so far</param>
+    /// <param name="lineIndex">Zero-based line index</param>
+    /// <returns><see langword="true"/> when the line is removed or blank</returns>
+    private static bool IsBlankOrRemovedLine(SourceText sourceText, ISet<int> removedLines, int lineIndex)
+    {
+        return removedLines.Contains(lineIndex)
+               || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex);
+    }
+
+    /// <summary>
+    /// Determines whether a removed line lies in a run of blank and removed lines, and whether the removal doubles the given
+    /// blank line of the run: the first blank line of the run stays, and a blank line that a removed line separates from an
+    /// earlier blank line of the run is doubled by the removal
+    /// </summary>
+    /// <param name="removedLineIndices">Zero-based indices of the lines the caller removes</param>
+    /// <param name="runStart">Zero-based index of the first line of the run</param>
+    /// <param name="runEnd">Zero-based index of the last line of the run</param>
+    /// <param name="lineIndex">Zero-based index of the blank line in the run</param>
+    /// <param name="isDoubled">Whether a removed line separates the blank line from an earlier blank line of the run</param>
+    /// <returns><see langword="true"/> when a removed line lies in the run</returns>
+    private static bool TouchesRemoval(ISet<int> removedLineIndices, int runStart, int runEnd, int lineIndex, out bool isDoubled)
+    {
+        var touchesRemoval = false;
+        var seenBlankLine = false;
+
+        isDoubled = false;
+
+        for (var runLine = runStart; runLine < lineIndex; runLine++)
+        {
+            if (removedLineIndices.Contains(runLine))
+            {
+                touchesRemoval = true;
+                isDoubled |= seenBlankLine;
+            }
+            else
+            {
+                seenBlankLine = true;
+            }
+        }
+
+        for (var runLine = lineIndex + 1; runLine <= runEnd && touchesRemoval == false; runLine++)
+        {
+            touchesRemoval = removedLineIndices.Contains(runLine);
+        }
+
+        return touchesRemoval;
     }
 
     /// <summary>

@@ -89,31 +89,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 alignColumn += IndentSize;
             }
 
-            var leadingTrivia = token.LeadingTrivia;
-            var endsMultiLineCommentOnLine = false;
-
-            for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
-            {
-                var trivia = leadingTrivia[triviaIndex];
-
-                if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
-                {
-                    continue;
-                }
-
-                var lineSpan = trivia.GetLocation().GetLineSpan();
-                var commentLine = lineSpan.StartLinePosition.Line;
-
-                endsMultiLineCommentOnLine |= (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                                              && commentLine < tokenLine
-                                              && lineSpan.EndLinePosition.Line == tokenLine;
-
-                if (commentLine != tokenLine
-                    && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex))
-                {
-                    expectedIndentationByLine[commentLine] = (alignColumn, CommentPositionUtilities.GetCommentLocation(trivia));
-                }
-            }
+            var endsMultiLineCommentOnLine = AlignLeadingComments(token, tokenLine, alignColumn, expectedIndentationByLine);
 
             if (endsMultiLineCommentOnLine
                 && expectation.Location.SourceSpan == token.Span)
@@ -121,6 +97,45 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 expectedIndentationByLine.Remove(tokenLine);
             }
         }
+    }
+
+    /// <summary>
+    /// Aligns the comments in a token's leading trivia that start their line to the given column
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <param name="tokenLine">Line of the token</param>
+    /// <param name="alignColumn">Column the comments are aligned to</param>
+    /// <param name="expectedIndentationByLine">Expected indentation by line</param>
+    /// <returns><see langword="true"/> when a multi-line comment that starts on an earlier line ends on the token's line</returns>
+    private static bool AlignLeadingComments(SyntaxToken token, int tokenLine, int alignColumn, Dictionary<int, (int Indentation, Location Location)> expectedIndentationByLine)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+        var endsMultiLineCommentOnLine = false;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        {
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false)
+            {
+                continue;
+            }
+
+            var lineSpan = trivia.GetLocation().GetLineSpan();
+            var commentLine = lineSpan.StartLinePosition.Line;
+
+            endsMultiLineCommentOnLine |= (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                                          && commentLine < tokenLine
+                                          && lineSpan.EndLinePosition.Line == tokenLine;
+
+            if (commentLine != tokenLine
+                && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex))
+            {
+                expectedIndentationByLine[commentLine] = (alignColumn, CommentPositionUtilities.GetCommentLocation(trivia));
+            }
+        }
+
+        return endsMultiLineCommentOnLine;
     }
 
     /// <summary>
