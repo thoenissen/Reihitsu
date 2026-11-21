@@ -232,6 +232,32 @@ public static class LaneCheckCommand
             }
         }
 
+        return TryValidateArguments(laneName, textOnly, showHelp, listWordingPaths, out claimed, out isTextOnlyProven, out error);
+    }
+
+    /// <summary>
+    /// Validates the parsed arguments and derives the claimed lane and the text-only verdict
+    /// </summary>
+    /// <param name="laneName">Value of <c>--lane</c>, or <see langword="null"/> when it was not given</param>
+    /// <param name="textOnly">Value of <c>--text-only</c>, or <see langword="null"/> when it was not given</param>
+    /// <param name="showHelp">Whether usage should be printed</param>
+    /// <param name="listWordingPaths">Whether the changed wording paths should be written instead of a verdict</param>
+    /// <param name="claimed">Claimed lane</param>
+    /// <param name="isTextOnlyProven">Whether <c>verify-text-only</c> proved the diff text-only</param>
+    /// <param name="error">Argument error when validation fails</param>
+    /// <returns><see langword="true"/> when the arguments are valid; otherwise, <see langword="false"/></returns>
+    private static bool TryValidateArguments(string laneName,
+                                             string textOnly,
+                                             bool showHelp,
+                                             bool listWordingPaths,
+                                             out Lane claimed,
+                                             out bool isTextOnlyProven,
+                                             out string error)
+    {
+        claimed = Lane.Docs;
+        isTextOnlyProven = false;
+        error = null;
+
         if (showHelp)
         {
             return true;
