@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-LIMIT |
 | Status | Active |
-| Code owners | — |
+| Code owners | `ConfiguredLimitUtilities` |
 | Uses | RH0001-001, RH0001-003, RH0001-007 |
 
 This spec covers the rules that measure a declaration, compare the measure with a limit taken from the `design` section of the `reihitsu.json` configuration file, and report the declaration when the measure exceeds the limit: RH2008 and RH2111, which count lines of code (SHARED-LINES), and RH2009, which computes a cognitive complexity. It states when a setting's default applies and how the measure is compared with the limit. Each rule that uses this spec states what it measures, which setting holds its limit — or, for a rule with separate limits for test code, which setting applies to which code — and that setting's default.

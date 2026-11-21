@@ -1,10 +1,9 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.Rules.Design;
 
@@ -44,19 +43,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyze
                DefaultProductionLimit,
                design => design.MaximumTestMethodLines,
                DefaultTestLimit,
-               SyntaxKind.MethodDeclaration,
-               SyntaxKind.ConstructorDeclaration,
-               SyntaxKind.DestructorDeclaration,
-               SyntaxKind.OperatorDeclaration,
-               SyntaxKind.ConversionOperatorDeclaration,
-               SyntaxKind.LocalFunctionStatement,
-               SyntaxKind.GetAccessorDeclaration,
-               SyntaxKind.SetAccessorDeclaration,
-               SyntaxKind.InitAccessorDeclaration,
-               SyntaxKind.AddAccessorDeclaration,
-               SyntaxKind.RemoveAccessorDeclaration,
-               SyntaxKind.PropertyDeclaration,
-               SyntaxKind.IndexerDeclaration)
+               [.. MemberBodyUtilities.MemberKinds])
     {
     }
 
@@ -67,27 +54,15 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyze
     /// <inheritdoc/>
     private protected override bool TryGetCountedSpan(SyntaxNode node, out TextSpan span, out Location location)
     {
-        var (body, expressionBody, nameToken) = node switch
-                                                {
-                                                    MethodDeclarationSyntax method => (method.Body, method.ExpressionBody, method.Identifier),
-                                                    ConstructorDeclarationSyntax constructor => (constructor.Body, constructor.ExpressionBody, constructor.Identifier),
-                                                    DestructorDeclarationSyntax destructor => (destructor.Body, destructor.ExpressionBody, destructor.Identifier),
-                                                    OperatorDeclarationSyntax operatorDeclaration => (operatorDeclaration.Body, operatorDeclaration.ExpressionBody, operatorDeclaration.OperatorToken),
-                                                    ConversionOperatorDeclarationSyntax conversion => (conversion.Body, conversion.ExpressionBody, conversion.OperatorKeyword),
-                                                    LocalFunctionStatementSyntax localFunction => (localFunction.Body, localFunction.ExpressionBody, localFunction.Identifier),
-                                                    AccessorDeclarationSyntax accessor => (accessor.Body, accessor.ExpressionBody, accessor.Keyword),
-                                                    PropertyDeclarationSyntax property => (null, property.ExpressionBody, property.Identifier),
-                                                    IndexerDeclarationSyntax indexer => (null, indexer.ExpressionBody, indexer.ThisKeyword),
-                                                    _ => ((BlockSyntax)null, (ArrowExpressionClauseSyntax)null, default(SyntaxToken))
-                                                };
-
-        if (TryGetBodySpan(body, expressionBody, out span))
+        if (MemberBodyUtilities.TryGetBody(node, out var body, out var expressionBody, out var nameToken)
+            && TryGetBodySpan(body, expressionBody, out span))
         {
             location = nameToken.GetLocation();
 
             return true;
         }
 
+        span = default;
         location = null;
 
         return false;
