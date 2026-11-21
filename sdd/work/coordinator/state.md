@@ -37,6 +37,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 Prompts are plain `/squad #a #b …` (maintainer 2026-10-25): every decision lives on the issues (triage comments), never in a prompt. Added 2026-10-25: #1458 (RH5202 fix changes verbatim value, 1.2.0, alone, after R3), #1463 (formatter phases must not predict later phases; behavior change, Maintenance; after R1, R3, #1458; before R10, R11), #1464 (squad architecture escalation, tooling; after #1441; body edited: no decisions entry). R3 = PR #1457.
 
+Status 2026-11-21 (z6): MERGED #1897 (#1877 #1878) #1898 (#897) #1899 (#1890). 1.5.0 open: #352 #893 #1888. Start now: #1888. Asked: 1 triage #1900 #1901 -> 1.5.0 (#1900 before #893, shares RH5201 files; #1901 docs now); 2 #1900 output question (member-access chain wording).
 Status 2026-11-20 (z5): DECIDED 1A, APPLIED: #1895 -> 1.10.0, #1896 -> 1.6.0 (comments). Running: #1877 #1878 | #897 | #1890.
 Status 2026-11-20 (z4): MERGED #1891 (#896) #1892 (#892) #1893 (#1887) #1894 (#1886). 1.5.0 open: #352 #893 #897 #1877 #1878 #1888 #1890. Start now: #1877 #1878 | #897 | #1890 (pairwise disjoint per graph (b)). Then #1888 after #1877 #1878; #893 after #1888 + #897; #352 last alone. Asked triage: #1895 -> 1.10.0 (T13 line ends; premise unconfirmed), #1896 -> 1.6.0 (T12, with #953).
 Status 2026-11-20 (z3): DECIDED 1A, APPLIED: #1886 #1887 #1888 #1890 -> 1.5.0 (comments #1887 #1888 #1890), #1889 -> 1.7.0. Running: #896 | #892 | #1887 | #1886.
