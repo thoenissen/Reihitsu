@@ -43,6 +43,7 @@
    - Patterns (answers 5, 9) and limit/no-nesting exception: kept.
 20. Sonar Q5 (parenthesized chained `?:`): **A** — parentheses directly around the false branch do not break the chain.
 21. Scoring guide placement: **A** — separate page `documentation/cognitive-complexity.md` with the full scoring guide (every construct with points and nesting, the departures from the paper, worked examples with per-line point comments); `documentation/rules/RH2009.md` stays short and links to it.
+22. Lambda follow-up reinstated: a follow-up issue covers reporting lambdas that stand outside every judged member (field, property, and event initializers), possibly judged on their own. Not part of this run.
 12. The maintainer asks to cross-check all decisions against the published definition (SonarSource white paper, https://www.sonarsource.com/docs/CognitiveComplexity.pdf; local copy in the session scratchpad). Comparison requested from a fresh skeptic; results go back to the maintainer before the test implementer.
 
 ## Decisions taken
@@ -57,7 +58,7 @@
 ## Follow-up candidates
 
 - Self-hosting violations of the new rule and a review of the default threshold (maintainer clarification 3) — lead; includes removing RH2009 from the self-hosting ignore list and setting its Release.ruleset action to Error.
-- ~~Checking lambdas~~ — dropped: lambdas are counted per the paper (answer 19).
+- Reporting lambdas outside every judged member — field, property, and event initializers — possibly judged on their own (maintainer answer 22) — lead.
 
 ## Open worklist / next step
 
