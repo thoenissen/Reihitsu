@@ -27,7 +27,7 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (questions 1-7), first reply, summarized: the maintainer doubts #953 is still current. Q1: asks whether the anonymous-object case (`A // c` then `= 1`) is not unsupported anyway; a parenthesized pattern's content should be one indent inside `(`; `is` followed by `1` on the next line should be joined; a switch arm's `=> 2` on the next line should be joined. Q2: A. Q3: A. Q4: declare unsupported. Q5: the `return` value should be joined onto the `return` line. Q6: A. Q7: these lines should be joined too. Several points are ambiguous -> asked back (batch 1b).
 
 ## Decisions taken
 
@@ -53,4 +53,5 @@ All roles of the behavior-change lane run: spec author → skeptic → test impl
 - Skeptic done (5f6af8f): all four reproduce; 5 amendments routed to a fresh spec author.
 - Spec-author amendment done (5fe7f28), 03-spec-author.md supersedes 01 for output questions.
 - Output-question batch 1 sent to the maintainer (questions 1-7: reference line, blank-line join, query clauses, omitted type args, return value, #endif declarator, other applications). Waiting for the answer.
+- Batch 1b (clarification of the join principle, comment-kept lines, Q4 declaration, parenthesized pattern) sent. Waiting.
 - Next: route the answers to the spec author (status Accepted), then the test implementer.
