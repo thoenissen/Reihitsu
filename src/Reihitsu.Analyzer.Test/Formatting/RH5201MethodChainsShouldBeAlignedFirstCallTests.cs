@@ -354,6 +354,72 @@ public class RH5201MethodChainsShouldBeAlignedFirstCallTests : BatchCodeFixTests
     }
 
     /// <summary>
+    /// Verifies the example of RH5201-002 for a second comment between the closing <c>*/</c> of a comment that starts its
+    /// own line and the link: the link is reported although the <c>*/</c> stands in the anchor column, and the fix starts
+    /// it on its own line behind both comments
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
+    public async Task VerifyLinkBehindSecondCommentBehindOwnLineCommentTailInAnchorColumnIsReportedAndFixed(string endOfLine)
+    {
+        const string body = """
+                                    var f = c.Self()
+                                             .Self()
+
+                                             /* x
+                                             */ /* y */ {|#0:.|}Self();
+                            """;
+        const string fixedBody = """
+                                         var f = c.Self()
+                                                  .Self()
+
+                                                  /* x
+                                                  */ /* y */
+                                                  .Self();
+                                 """;
+
+        await VerifyFix(InChainClass(body, endOfLine), InChainClass(fixedBody, endOfLine), 1, 1);
+    }
+
+    /// <summary>
+    /// Verifies the example of RH5201-002 for a comment that starts behind another comment on its own line: the link behind
+    /// its closing <c>*/</c> is reported although the <c>*/</c> stands in the anchor column, and the fix starts it on its
+    /// own line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5201-002")]
+    [Requirement("RH5201-005")]
+    public async Task VerifyLinkBehindTailOfCommentStartingBehindOwnLineCommentInAnchorColumnIsReportedAndFixed(string endOfLine)
+    {
+        const string body = """
+                                    var g = c.Self()
+                                             .Self()
+
+                                             /* w */ /* x
+                                             */ {|#0:.|}Self();
+                            """;
+        const string fixedBody = """
+                                         var g = c.Self()
+                                                  .Self()
+
+                                                  /* w */ /* x
+                                                  */
+                                                  .Self();
+                                 """;
+
+        await VerifyFix(InChainClass(body, endOfLine), InChainClass(fixedBody, endOfLine), 1, 1);
+    }
+
+    /// <summary>
     /// Verifies that the first call behind a first link that a block comment on the root's line holds below the root is
     /// reported, and that the fix starts it on its own line in the root's column
     /// </summary>

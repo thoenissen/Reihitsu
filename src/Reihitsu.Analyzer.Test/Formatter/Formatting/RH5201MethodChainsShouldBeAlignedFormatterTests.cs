@@ -612,5 +612,95 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
         await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a link behind a second comment behind the closing <c>*/</c> of a comment that starts its own line is
+    /// reported although the <c>*/</c> stands in the anchor column, and that the formatter breaks the line in front of the
+    /// link, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyFormatterBreaksLinkBehindSecondCommentBehindOwnLineCommentTailInAnchorColumn()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /* x
+                                              */ /* y */ {|#0:.|}D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B()
+                                                  .C()
+
+                                                  /* x
+                                                  */ /* y */
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a link behind the closing <c>*/</c> of a comment that starts behind another comment on its own line is
+    /// reported although the <c>*/</c> stands in the anchor column, and that the formatter breaks the line in front of the
+    /// link, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyFormatterBreaksLinkBehindTailOfCommentStartingBehindOwnLineCommentInAnchorColumn()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+
+                                              /* w */ /* x
+                                              */ {|#0:.|}D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B()
+                                                  .C()
+
+                                                  /* w */ /* x
+                                                  */
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
     #endregion // Tests
 }
