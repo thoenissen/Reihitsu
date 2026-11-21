@@ -18,6 +18,7 @@ Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
 - Q5 rule page: A — the new Description bullet and How-to-fix wording as drafted.
 - Q6 (asked after spec follow-up; change doc item 6) link behind the `*/` of an own-line comment, `*/` in anchor column (later call, chain without a call, prefix link): A — report each, fix gives formatter layout. Spec as written in 1986bc0 stands.
 - Q7 (batch 2) a second comment between `*/` (of an own-line comment) and the link, `*/ /* y */ .Self()`: A — reported; fix gives `*/ /* y */` ⏎ `.Self();` (same as formatter).
+- Q8 (batch 2) multi-line comment starting behind another comment on its own line, `/* w */ /* x` ⏎ `*/ .Self()`: A — reported; fix gives `*/` ⏎ `.Self();` (same as formatter).
 
 ## Decisions taken
 
@@ -44,7 +45,7 @@ Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
 - Implementer done (dde283b, e92a72b): all tests green; decision 3 via `FluentChain.IsRootLineShortOfFirstInvokedLink`; decision 4 via `IsBehindMultiLineCommentTail` moved to Core `SyntaxTokenPositionUtilities` (shared helper, 2 consumers; ~82+/50-).
 - Open for batch 2 (before auditor): Q7 — `/* x` ⏎ `*/ /* y */ .Next` (second comment between `*/` and link) is now reported by RH5201 (helper reads wider than RH5201-002's wording); formatter breaks there today.
 - Cleaner done (b532773, clean). Q7 outputs verified with apply-fix/format: fix and formatter both give `*/ /* y */` ⏎ `.Self();`.
-- Spec author Q7 pass done (3f8d20f). It raised Q8: `/* w */ /* x` ⏎ `*/ .Self()` (multi-line comment starting behind another comment on its own line) — branch reports it; spec silent. WAITING: Q8 posted. Then: spec author adds clause+example `g` if A (wording in 07-spec-author.md), test implementer adds Q7 (+Q8) tests.
+- Spec author Q7 pass done (3f8d20f). It raised Q8: `/* w */ /* x` ⏎ `*/ .Self()` (multi-line comment starting behind another comment on its own line) — branch reports it; spec silent. Q8 answered A. NOW: spec author (clause + example `g`) → 08-spec-author.md; then test implementer (Q7, Q8 tests) → 09-test-implementer.md. Then: spec author adds clause+example `g` if A (wording in 07-spec-author.md), test implementer adds Q7 (+Q8) tests.
 - (done) Q7 spec author pass (Q7 wording into RH5201-002/change doc; CS8602 fixture item) → 07-spec-author.md; test implementer adds a Q7 test if none exists. Then: spec author pass (Q7 wording + CS8602 fixture item), spec checker, auditor.
 - Then: spec author follow-up (answers, decisions 4–5, Status Accepted), lane check, test implementer.
 - Old next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
