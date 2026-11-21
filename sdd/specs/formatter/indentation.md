@@ -541,7 +541,9 @@ is left unchanged.
 
 ### FMT-INDENT-012 — Wrapped argument and parameter lists align to the opening delimiter
 
-When a parenthesized or bracketed list spans several lines — arguments, element-access arguments, parameters, bracketed parameters, attribute arguments, tuple elements, tuple type elements, and unmanaged calling conventions — the formatter MUST indent every element, every separator, and the closing delimiter that starts a line to the column directly after the opening delimiter.
+When a parenthesized or bracketed list spans several lines — arguments, bracketed arguments, parameters, bracketed parameters, attribute arguments, tuple elements, tuple type elements, and unmanaged calling conventions — the formatter MUST indent every element, every separator, and the closing delimiter that starts a line to the column directly after the opening delimiter.
+
+A bracketed argument list is aligned this way whatever its parent in the syntax tree is: an `ElementAccessExpressionSyntax` (`d[0,⏎1]`), the `ElementBindingExpressionSyntax` of a conditional element access (`c?[1,⏎2]`), or the `VariableDeclaratorSyntax` of a fixed-size buffer (`fixed int b[⏎3];`). The one exception is the key of an indexer initializer, whose parent is an `ImplicitElementAccessSyntax` (`[key] = value` in an object initializer): FMT-INDENT-014 indents it as a block.
 
 Why: Aligning with the first element shows at a glance that the lines belong to one list and which call or declaration owns them, independent of the scope depth.
 
@@ -579,6 +581,42 @@ class C
               int b,
               int c)
     {
+    }
+}
+```
+
+Example — a bracketed argument list aligns behind its opening bracket alike for an element access, a conditional element access, and a fixed-size buffer; FMT-BREAK-014 keeps the two index lists wrapped here, one because an element spans two lines and one because a comment sits in a gap, and it does not decide the buffer's size list:
+
+```csharp
+unsafe struct S
+{
+    fixed int b[
+        3];
+
+    void M(int[,] c, int[,] d)
+    {
+        var a = c?[1,
+            2 +
+            3];
+        var e = d[0,
+            /* c */ 1];
+    }
+}
+```
+
+```csharp
+unsafe struct S
+{
+    fixed int b[
+                3];
+
+    void M(int[,] c, int[,] d)
+    {
+        var a = c?[1,
+                   2
+                   + 3];
+        var e = d[0,
+                  /* c */ 1];
     }
 }
 ```
