@@ -1150,10 +1150,11 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
     }
 
     /// <summary>
-    /// Verifies that a chain whose first link is kept on its own line by a comment aligns every wrapped link with the root, and that only a link sharing a line is reported
+    /// Verifies that a chain whose first link is kept on its own line by a comment aligns every wrapped link with the root, and that a link sharing a line is reported, the first call behind the held first link included
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5201-006")]
     public async Task VerifyCommentKeptFirstLinkAlignsChainToRootColumn()
     {
         const string source = """
@@ -1163,7 +1164,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                   {
                                       return a
                                              // Comment
-                                             .Prop.Foo()
+                                             .Prop{|#1:.|}Foo()
                                              .Bar(){|#0:.|}Baz();
                                   }
 
@@ -1204,7 +1205,7 @@ public class RH5201FluentChainLinkFormatterTests : FormatterTestsBase<RH5201Meth
                                    }
                                    """;
 
-        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
+        await VerifyFormatter(source, fixedSource, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
