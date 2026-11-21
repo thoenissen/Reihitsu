@@ -20,6 +20,8 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 2. Output question 1 of the batch before the test implementer (RH5201 rule page body wording): **A**. "method chain" becomes "member-access chain" in the Description's first sentence and in the Why sentence, and "chain of calls" becomes "chain of member accesses"; the "first call" bullets, "How to fix it", and the examples stay unchanged.
 
+3. After CI repair round 1 (tests moved to their own class), the maintainer asked why a text change needs tests and chose **A**: remove the new test class `RH5201MemberAccessChainWordingTests` entirely; keep only the one-line update of the existing message test in `RH5201CommentExemptChainWithNonInvokedPrefixDotTests.cs`. Reason: title and message are already pinned by the architecture tests (title vs rule page heading and README row, message vs title); the code-fix title is a resource string visible in the diff.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -32,5 +34,5 @@ Roles: spec author → skeptic → test implementer → implementer → cleaner 
 
 ## State
 
-- Published PR #1902 (ready). Audited SHA b427430. CI red on c369147: RH2111 self-hosting (test class 3015 > 3000 lines), see 10-ci.md. Repair round 1 (CI).
-- Next: fresh test implementer → cleaner → validator; delete sdd/work; push without [skip ci] on the last commit.
+- Audited SHA (repair round 1): 7107bb8 (14-auditor pass). Validator of round 1 stopped: superseded by maintainer answer 3.
+- Next: test implementer removes the new test class (answer 3) → cleaner → auditor (repair only) → validator incl. selfhosting → run note (update: repair round, answer 3) → delete sdd/work → CI trigger.
