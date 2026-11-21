@@ -31,8 +31,9 @@ These are a hint to the summarizer, not a guarantee; the safeguard is `sdd/work/
 | Command | Purpose |
 |---|---|
 | `/squad` | Run the squad on one or more GitHub issues, as its lead |
+| `/coordinator` | Steer one release milestone: `start`, `triage`, `batch`, and `finish` (release check and release notes) |
 | `/triage` | Assess open issues without a milestone and assign milestones and labels after the maintainer confirms |
 | `/create-rule-doc` | Write or update rule markdown under `documentation/rules/`; it owns the rule-page format |
 | `/add-resource-texts` | Add or update localized resource strings |
-| `/bump-version` | Raise the version, rebuild the analyzer binaries under `binaries/`, publish the bump as a pull request, and tag the merged commit |
-| `/generate-release-notes` | Write user-facing release notes for a release tag compared with its predecessor, as one copyable Markdown block |
+| `/bump-version` | Raise the version, rebuild the analyzer binaries under `binaries/`, and publish the bump as a pull request; publishing the GitHub release sets the tag |
+| `/generate-release-notes` | Write user-facing release notes for a release compared with the previous tag, as one copyable Markdown block |
