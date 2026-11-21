@@ -39,5 +39,5 @@
 ## State
 
 - Audited SHA: —
-- Last step: implementer done (4b68a4df, 89cd516c): verdict test disputed (one old test), possible extra special case.
-- Next step: test implementer (07): rewrite disputed test + regression test for kept condition → cleaner (08).
+- Last step: test implementer 07 done (4e4af935); formatter 6827/6827 green.
+- Next step: cleaner (08) → spec checker (09) → merge main, build, auditor (10) → validator.
