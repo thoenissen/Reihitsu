@@ -251,9 +251,9 @@ public class UnsupportedConditionalOperatorCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the excepted places and the operators that are no conditional expression do not refuse the input: a comment
-    /// in front of an operator, inside a branch behind its first token, behind a <c>ref</c> of a branch, and behind a nullable
-    /// type's <c>?</c> and a null-conditional operator, and in front of the null-coalescing operator, behind which a comment is
-    /// refused as a comment behind a binary operator (FMT-UNSUP-011)
+    /// in front of an operator, inside a branch behind its first token, behind a <c>ref</c> of a branch, behind a nullable type's
+    /// <c>?</c>, in front of a null-conditional operator, behind a null-conditional element access's <c>[</c>, and in front of the
+    /// null-coalescing operator, behind which a comment is refused as a comment behind a binary operator (FMT-UNSUP-011)
     /// </summary>
     /// <param name="statement">The statement</param>
     [TestMethod]
@@ -265,7 +265,7 @@ public class UnsupportedConditionalOperatorCommentTests : FormatterTestsBase
     [DataRow("        var x = a ? F(/* c */ 1) : 2;", DisplayName = "Inside the true branch behind its first token")]
     [DataRow("        var x = a ? (/* c */ 1) : 2;", DisplayName = "Inside parentheses of the branch")]
     [DataRow("        var n = (int? /* c */)null;", DisplayName = "Nullable type")]
-    [DataRow("        var l = s?. /* c */ Length;", DisplayName = "Null-conditional member access")]
+    [DataRow("        var l = s /* c */ ?.Length;", DisplayName = "Null-conditional member access")]
     [DataRow("        var e = s?[/* c */ 0];", DisplayName = "Null-conditional element access")]
     [DataRow("        var m = s /* c */ ?? \"\";", DisplayName = "Null-coalescing operator")]
     public void CommentOutsideTheShapeIsSupported(string statement)
