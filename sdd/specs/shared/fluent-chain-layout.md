@@ -135,9 +135,16 @@ is left unchanged.
 
 In a wrapped chain, every link of the chain part after the first invoked link MUST start its own line. The prefix links and the links of a chain without an invoked link MUST keep the line the author put them on. RH5201 reports a later link that does not start a line; the formatter breaks the line in front of its operator.
 
+The first invoked link MUST start its own line when the line the root ends on does not reach it. That is the case when:
+
+- a line break, counted as SHARED-CHAIN-007 counts one, stands in front of the operator of a link between the chain's first link and the first invoked link, or between that operator's own tokens; or
+- a comment, a preprocessor directive, or disabled text keeps the chain's first link on its own line (SHARED-CHAIN-004).
+
+A line break in front of the chain's first link that SHARED-CHAIN-003 removes does not count, nor does a line break between the first link's own operator tokens, which SHARED-CHAIN-006 removes. Otherwise the first invoked link keeps the line the author put it on. RH5201 reports a first invoked link that must start its own line and does not; the formatter breaks the line in front of its operator.
+
 The one exception is a link whose operator stands behind the closing `*/` of a delimited comment that spans several lines, which does not start its line (SHARED-COMMENT-012). In a wrapped chain such a link MUST start its own line, also when it is a prefix link, a link of a chain without an invoked link, or the first invoked link: the formatter breaks the line in front of its operator, and RH5201 reports the link as SHARED-COMMENT-012 specifies for a rule that checks in which column a line starts. This exception does not decide the chain's first link, which SHARED-CHAIN-003 and SHARED-CHAIN-004 govern, nor whether a chain whose only line breaks lie inside such a comment counts as wrapped.
 
-Why: Once a chain is wrapped, one step per line is what makes it scannable; a wrapped chain that still carries several calls on one line hides steps at the end of a line. A property prefix (`settings.Items`) is not a step of the pipeline, so it may stay together on one line, and a chain of property reads has no steps at all. A link behind the tail of a comment that spans several lines has no line of its own to keep: the author wrote it on the line the comment started on, so it gets a line of its own like every other step of a wrapped chain.
+Why: Once a chain is wrapped, one step per line is what makes it scannable; a wrapped chain that still carries several calls on one line hides steps at the end of a line. A property prefix (`settings.Items`) is not a step of the pipeline, so it may stay together on one line, and a chain of property reads has no steps at all. The first call stays on the root's line while that line holds the receiver and the first step together; once the prefix is wrapped, or the first link is held below the root, that line no longer reaches the first call, and the first call behind a wrapped property read would be a step hidden at the end of a line like any later one. A link behind the tail of a comment that spans several lines has no line of its own to keep: the author wrote it on the line the comment started on, so it gets a line of its own like every other step of a wrapped chain.
 
 Example:
 
@@ -169,6 +176,39 @@ class C
         var c = settings.Items
                         .Where(x => x.A)
                         .Select(x => x.B);
+    }
+}
+```
+
+Example — the wrapped prefix link `.Values` in `a`, and the comment that holds the first link `.Values` below the root in `b`, leave the root's line short of the first call `.Where(…)`, so it starts its own line; in `c`, the line break in front of the first link is removed (SHARED-CHAIN-003), the root's line reaches the first call, and the chain is no longer wrapped:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = settings.Items
+                        .Values.Where(x => x.A);
+        var b = items // c
+                .Values.Where(x => x.A);
+        var c = settings
+            .Items.Where(x => x.A);
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = settings.Items
+                        .Values
+                        .Where(x => x.A);
+        var b = items // c
+                .Values
+                .Where(x => x.A);
+        var c = settings.Items.Where(x => x.A);
     }
 }
 ```
