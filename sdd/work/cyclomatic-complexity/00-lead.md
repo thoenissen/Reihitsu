@@ -46,6 +46,7 @@
 22. Lambda follow-up reinstated: a follow-up issue covers reporting lambdas that stand outside every judged member (field, property, and event initializers), possibly judged on their own. Not part of this run.
 23. 04-spec-author Q1–Q4: **all A** — `&`/`|` on `bool?` count like on `bool`; `&=`/`|=`/`^=` score nothing; only an invocation `M(…)` of the member itself counts as recursion; a `?:` in a switch `when` clause is nested in the switch.
 24. No reference to the SonarSource PDF / white paper anywhere in the repository (it was only looked at for comparison): no link, no citation, no "departures from the paper" framing in the guide, rule page, spec, or change doc. The rules are described on their own terms.
+25. **Concept approved** (spec, change doc, rule page, scoring guide at 5fbfd58). Implementation may start.
 12. The maintainer asks to cross-check all decisions against the published definition (SonarSource white paper, https://www.sonarsource.com/docs/CognitiveComplexity.pdf; local copy in the session scratchpad). Comparison requested from a fresh skeptic; results go back to the maintainer before the test implementer.
 
 ## Decisions taken
@@ -64,7 +65,8 @@
 
 ## Open worklist / next step
 
-- Answers 23–24 applied (05-spec-author.md, 5fbfd58). Asked the maintainer to approve the concept; waiting. On approval: status-only follow-up (spec author sets Accepted), then test implementer.
+- Concept approved (answer 25). Next: spec author status-only (Accepted, 06), then test implementer (07).
+- Answers 23–24 applied (05-spec-author.md, 5fbfd58). On approval: status-only follow-up (spec author sets Accepted), then test implementer.
 - Updated concept (04-spec-author.md, guide `documentation/cognitive-complexity.md`) presented for approval with chat questions 17–20 = 04 Q1–Q4. Waiting. On approval: spec author sets Accepted with the answers, then test implementer.
 - Done: fresh spec author applies answers 3–21 and decisions 1–4, writes the scoring guide; then lead presents the updated concept to the maintainer for approval (no tests before).
 - Sonar comparison done (03-skeptic.md). Sent to maintainer as chat questions 11–15 = skeptic 03 Q1 (#if), Q2 (recursion re-ask), Q3 (& | ^), Q4 (anonymous methods), Q5 (parenthesized chained ?:). Waiting.
