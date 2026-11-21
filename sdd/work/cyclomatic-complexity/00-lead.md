@@ -18,6 +18,11 @@
 
 1. Correction of clarification 2: the rule computes **cognitive complexity**, as the issue proposes — not cyclomatic. Default limit 15, configurability, the no-nesting exception, and the self-hosting handling stay as stated above.
 2. Deeper nesting costs more points: a construct's increment grows with its nesting depth (the cognitive-complexity nesting increment).
+3. Spec author Q1 (local function): **B** — a local function is judged only on its own; it does not count toward the member that holds it.
+4. Spec author Q2 / skeptic C (nesting only through a lambda): **B** — nesting that comes only from a lambda does not lift the no-nesting exception ("lambdas are ok"). Whether a lambda still adds nesting depth to the score is asked separately (open).
+5. Spec author Q3 (`and`/`or` patterns): **A** — they score like `&&`/`||`.
+6. Spec author Q4 (test code): **A** — one setting for production and test code.
+7. Spec author Q5 (recursion): **B** — each call of the member itself scores 1.
 
 ## Decisions taken
 
@@ -33,4 +38,5 @@
 
 ## Open worklist / next step
 
-- Concept + output questions 1–8 and escalation 6 (self-hosting mechanism, question 9) sent to the maintainer; waiting for answers. Then: route answers + decisions 1–3 to the spec author (fresh), spec author sets change doc Accepted, then test implementer.
+- Answers 3–7 received. Remaining questions sent: chained `?:`, `or` in switch arms, initializer lambdas, lambda nesting depth in the score, self-hosting mechanism.
+- Earlier: concept + output questions 1–8 and escalation 6 (self-hosting mechanism, question 9) sent to the maintainer; waiting for answers. Then: route answers + decisions 1–3 to the spec author (fresh), spec author sets change doc Accepted, then test implementer.
