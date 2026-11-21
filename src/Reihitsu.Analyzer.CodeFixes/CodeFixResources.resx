@@ -331,7 +331,7 @@
     <value>Align method chain</value>
   </data>
   <data name="RH5112Title" xml:space="preserve">
-    <value>Keep first wrapped fluent call on original line</value>
+    <value>Keep first wrapped member access on original line</value>
   </data>
   <data name="RH5303Title" xml:space="preserve">
     <value>Fix the indentation of the collection initializer</value>

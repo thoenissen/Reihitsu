@@ -712,10 +712,10 @@
     <value>Method chains should be aligned.</value>
   </data>
   <data name="RH5112MessageFormat" xml:space="preserve">
-    <value>Wrapped fluent calls should keep the first call on the original line.</value>
+    <value>Wrapped chains should keep the first member access on the original line.</value>
   </data>
   <data name="RH5112Title" xml:space="preserve">
-    <value>Wrapped fluent calls should keep the first call on the original line.</value>
+    <value>Wrapped chains should keep the first member access on the original line.</value>
   </data>
   <data name="RH5303MessageFormat" xml:space="preserve">
     <value>Collection initializer should be formatted correctly</value>
@@ -1672,10 +1672,10 @@
     <value>Comments must not be placed inside an auto-property accessor list</value>
   </data>
   <data name="RH5048Title" xml:space="preserve">
-    <value>Comments must not be placed before the first call of a wrapped chain</value>
+    <value>Comments must not be placed before the first member access of a wrapped chain</value>
   </data>
   <data name="RH5048MessageFormat" xml:space="preserve">
-    <value>Comments must not be placed before the first call of a wrapped chain</value>
+    <value>Comments must not be placed before the first member access of a wrapped chain</value>
   </data>
   <data name="RH5049Title" xml:space="preserve">
     <value>Comments must not be placed after a binary operator</value>

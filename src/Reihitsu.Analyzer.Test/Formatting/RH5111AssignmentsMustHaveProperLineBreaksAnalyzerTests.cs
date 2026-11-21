@@ -2390,6 +2390,44 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies that the fix, which formats the assignment, joins the wrapped list of a conditional element access in the assigned
+    /// value, as it joins the list of an element access there
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-014")]
+    public async Task VerifyFixJoinsConditionalElementAccessListInTheValue(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[,] c)
+                                    {
+                                        int a;
+                                        {|RH5111:a
+                                            = c?[1,
+                                                 2] ?? 0|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[,] c)
+                                     {
+                                         int a;
+                                         a = c?[1, 2] ?? 0;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

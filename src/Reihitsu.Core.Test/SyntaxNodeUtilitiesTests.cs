@@ -509,6 +509,32 @@ public class SyntaxNodeUtilitiesTests
         Assert.IsFalse(SyntaxNodeUtilities.IsSingleLineExcludingAttributeLists(null));
     }
 
+    /// <summary>
+    /// Verifies that the bracketed argument list of an element access, of the element binding of a conditional element access, and of
+    /// an implicit element access holds an index
+    /// </summary>
+    /// <param name="member">Member declaration source text holding exactly one bracketed argument list</param>
+    [TestMethod]
+    [DataRow("int M(int[,] m) => m[1, 2];")]
+    [DataRow("int M(int[,] d) => d![1, 2];")]
+    [DataRow("int? M(int[,] c) => c?[1, 2];")]
+    [DataRow("object M() => new System.Collections.Generic.Dictionary<int, int> { [1] = 2 };")]
+    [Requirement("FMT-BREAK-014")]
+    public void IsIndexArgumentListReturnsTrueForIndexLists(string member)
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.IsIndexArgumentList(GetBracketedArgumentList(member)));
+    }
+
+    /// <summary>
+    /// Verifies that the bracketed argument list of a fixed-size buffer's declarator holds a size, not an index
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-014")]
+    public void IsIndexArgumentListReturnsFalseForFixedSizeBufferSize()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.IsIndexArgumentList(GetBracketedArgumentList("public fixed int b[3];")));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -583,6 +609,23 @@ public class SyntaxNodeUtilitiesTests
                                    .OfType<InvocationExpressionSyntax>()
                                    .First()
                                    .ArgumentList;
+    }
+
+    /// <summary>
+    /// Parses the member declaration inside a wrapping unsafe struct and returns its single bracketed argument list
+    /// </summary>
+    /// <param name="member">Member declaration source text</param>
+    /// <returns>The bracketed argument list</returns>
+    private static BracketedArgumentListSyntax GetBracketedArgumentList(string member)
+    {
+        var source = $$"""
+                       internal unsafe struct TestStruct
+                       {
+                       {{member}}
+                       }
+                       """;
+
+        return CoreSyntaxTestHelper.GetSingleNode<BracketedArgumentListSyntax>(source);
     }
 
     /// <summary>

@@ -30,7 +30,8 @@ internal enum RootConstruct
     ListElement = 4,
 
     /// <summary>
-    /// The root is the bracketed argument list of an element access or of an implicit element access
+    /// The root is a bracketed argument list that holds an index: the list of an element access, of an element binding,
+    /// or of an implicit element access
     /// </summary>
     ElementAccessArguments = 8,
 

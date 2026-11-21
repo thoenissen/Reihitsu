@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -613,6 +614,43 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat, 2));
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the rule's title names the first member access of a wrapped chain, not a call
+    /// </summary>
+    [TestMethod]
+    public void VerifyTitleNamesFirstMemberAccess()
+    {
+        var descriptor = new RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer().SupportedDiagnostics.Single();
+
+        Assert.AreEqual("Comments must not be placed before the first member access of a wrapped chain", descriptor.Title.ToString(CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a wrapped property read as the first link of a chain without any call is
+    /// reported with the message that names the first member access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeWrappedPropertyFirstLinkIsReportedWithMemberAccessMessage()
+    {
+        const string source = """
+                              internal sealed class Example
+                              {
+                                  private static object Run(dynamic order)
+                                  {
+                                      var city = order
+                                          {|#0:// customer|}
+                                          .Customer
+                                          .Address;
+
+                                      return city;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, "Comments must not be placed before the first member access of a wrapped chain"));
     }
 
     #endregion // Tests
