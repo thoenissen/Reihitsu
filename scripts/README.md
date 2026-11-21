@@ -100,7 +100,7 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 ### The line-count rows
 
-The analyzers the solution build loads from `binaries/` do not receive the root `reihitsu.json` (`Directory.Build.props`), so the repository's own line limits — RH2008 for a method, RH2111 for a type, with test code judged as test code — are judged only by the self-hosting scan, never by `scripts/build.sh` or the default run. A change that adds lines to a test file can therefore pass both locally and fail CI. The **line-count rows** are the self-hosting rows whose name contains `RH2008` or `RH2111`:
+The solution build passes the root `reihitsu.json` to the analyzers it loads from `binaries/` (`Directory.Build.props`), so a Release build — `scripts/build.sh`, and the default run, which builds in Release — fails on the repository's own line limits, RH2008 for a method and RH2111 for a type, with test code judged as test code, as the self-hosting scan does. The build runs the analyzers of the last version bump, the scan those built from source, so a change to either rule reaches the build only with the next rebuild of `binaries/`. The **line-count rows** are the self-hosting rows whose name contains `RH2008` or `RH2111`:
 
 ```bash
 scripts/test.sh --no-build --project selfhosting --filter "Name~RH2008|Name~RH2111"

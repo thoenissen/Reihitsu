@@ -13,9 +13,9 @@ namespace Reihitsu.SelfHosting.Test.Repository;
 
 /// <summary>
 /// Verifies how the repository's own build configures the Reihitsu analyzers it runs on its code: the limits of its
-/// root <c>reihitsu.json</c>, which the self-hosting scan passes to every project and the build does not pass until
-/// <c>binaries/</c> is rebuilt, and the MSBuild properties that tell the analyzers a
-/// test project from a production project, as the package's build files tell them to every other project
+/// root <c>reihitsu.json</c>, which the build and the self-hosting scan pass to every project, and the MSBuild
+/// properties that tell the analyzers a test project from a production project, as the package's build files tell
+/// them to every other project
 /// </summary>
 [TestClass]
 public sealed class BuildConfigurationTests
@@ -97,24 +97,28 @@ public sealed class BuildConfigurationTests
     }
 
     /// <summary>
-    /// Verifies that the repository's build does not pass its root configuration to the analyzers it loads from
-    /// <c>binaries/</c>: their configuration check predates the <c>design</c> section and would report the file, so
-    /// only the self-hosting scan, which runs the analyzers built from source, reads it
+    /// Verifies that the repository's build passes its root configuration to the analyzers it loads from
+    /// <c>binaries/</c> in every project and every configuration: the root build files add the root <c>reihitsu.json</c>
+    /// as one <c>AdditionalFiles</c> item, and neither the item nor an element around it carries a condition
     /// </summary>
     [TestMethod]
-    public void RepositoryBuildDoesNotPassRootConfigurationToTheBinaryAnalyzers()
+    public void RepositoryBuildPassesRootConfigurationToTheAnalyzers()
     {
         // Arrange
         var repositoryRoot = RepositoryRoot.Find();
+        var rootConfigurationPath = Path.GetFullPath(Path.Combine(repositoryRoot, ConfigurationFileName));
 
         // Act
-        var configurationItems = LoadRootBuildFiles(repositoryRoot).SelectMany(buildFile => buildFile.Document.Descendants(buildFile.Document.Root.Name.Namespace + "AdditionalFiles"))
-                                                                   .Select(item => item.Attribute("Include")?.Value ?? string.Empty)
-                                                                   .Where(include => include.EndsWith(ConfigurationFileName, StringComparison.OrdinalIgnoreCase))
+        var configurationItems = LoadRootBuildFiles(repositoryRoot).SelectMany(buildFile => buildFile.Document.Descendants(buildFile.Document.Root.Name.Namespace + "AdditionalFiles")
+                                                                                                              .Select(item => (Item: item, IncludePath: ResolveBuildFilePath(buildFile.Path, item.Attribute("Include")?.Value ?? string.Empty))))
+                                                                   .Where(entry => string.Equals(entry.IncludePath, rootConfigurationPath, StringComparison.Ordinal))
                                                                    .ToList();
+        var conditionedItems = configurationItems.Where(entry => entry.Item.AncestorsAndSelf().Any(element => element.Attribute("Condition") != null))
+                                                 .ToList();
 
         // Assert
-        Assert.IsEmpty(configurationItems, "The root build files must not add the root reihitsu.json as an AdditionalFiles item while binaries/ predate its design section.");
+        Assert.HasCount(1, configurationItems, $"The root build files must add {rootConfigurationPath} as one AdditionalFiles item.");
+        Assert.IsEmpty(conditionedItems, "The AdditionalFiles item of the root reihitsu.json must apply to every project and every configuration, so neither it nor an element around it may carry a condition.");
     }
 
     /// <summary>
@@ -201,6 +205,28 @@ public sealed class BuildConfigurationTests
                                                                            .Where(File.Exists)
                                                                            .Select(path => (path, XDocument.Load(path)))
                                                                            .ToList();
+    }
+
+    /// <summary>
+    /// Resolves an item path written in a root build file to a full path, expanding <c>$(MSBuildThisFileDirectory)</c>
+    /// to the build file's directory and reading a relative path from that directory, as MSBuild does
+    /// </summary>
+    /// <param name="buildFilePath">Path of the build file the item is written in</param>
+    /// <param name="itemPath">The item's path as written</param>
+    /// <returns>The full path, or an empty string when the path is empty</returns>
+    private static string ResolveBuildFilePath(string buildFilePath, string itemPath)
+    {
+        if (string.IsNullOrWhiteSpace(itemPath))
+        {
+            return string.Empty;
+        }
+
+        var buildFileDirectory = Path.GetDirectoryName(Path.GetFullPath(buildFilePath)) ?? string.Empty;
+        var expandedPath = itemPath.Replace("$(MSBuildThisFileDirectory)", buildFileDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+                                   .Replace('\\', Path.DirectorySeparatorChar)
+                                   .Replace('/', Path.DirectorySeparatorChar);
+
+        return Path.GetFullPath(Path.IsPathRooted(expandedPath) ? expandedPath : Path.Combine(buildFileDirectory, expandedPath));
     }
 
     /// <summary>
