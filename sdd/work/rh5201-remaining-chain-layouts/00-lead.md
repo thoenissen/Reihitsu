@@ -40,6 +40,8 @@ Batch 1 (before test implementer), answered "as recommended: 1A 2A 3A 4B 5A":
 - Spec author follow-up done (1986bc0, Status Accepted, lane confirmed). It changed RH5201-001's MUST NOT to carry out decision 4 → change doc item 6 is a visible change not covered by an answer.
 - Q6 answered A. Test implementer done (4b92d67): 28 RH5201 tests red as expected; two existing tests updated (covered by answer 2A).
 - Open worklist for a later spec-author pass: RH5201-006 example 2 and example `g` in the spec declare `C? Next`, which makes `c.Next?.Next` raise CS8602; tests use `C Next` + `C? Opt`. Spec example fixture to align (route with spec-checker findings).
-- NOW: implementer → 05-implementer.md (must follow decision 3: shared decision in FluentChain).
+- Implementer done (dde283b, e92a72b): all tests green; decision 3 via `FluentChain.IsRootLineShortOfFirstInvokedLink`; decision 4 via `IsBehindMultiLineCommentTail` moved to Core `SyntaxTokenPositionUtilities` (shared helper, 2 consumers; ~82+/50-).
+- Open for batch 2 (before auditor): Q7 — `/* x` ⏎ `*/ /* y */ .Next` (second comment between `*/` and link) is now reported by RH5201 (helper reads wider than RH5201-002's wording); formatter breaks there today.
+- NOW: cleaner → 06-cleaner.md. Then ask Q7, spec author pass (Q7 wording + CS8602 fixture item), spec checker, auditor.
 - Then: spec author follow-up (answers, decisions 4–5, Status Accepted), lane check, test implementer.
 - Old next: output-question batch from change doc visible output changes 1–7 + skeptic's questions, before test implementer.
