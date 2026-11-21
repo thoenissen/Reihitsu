@@ -20,7 +20,7 @@
 | 2 | skeptic | One owner for the stripped-indentation rewrite (FC-015) | The rewrite is stated once, in a shared helper used by both the formatter and the RH5202 fix (the skeptic names `RawStringLiteralUtilities`); implementer picks the exact place | Avoid two statements of one rule (architecture finding otherwise) | Internal structure | ed3d5e7 |
 | 3 | skeptic | RH5601-002 `Why:` cites FMT-TAB-003 keeping raw-string tabs, stale under FMT-RAW-010 | Spec author amends the `Why:` wording only; requirement unchanged | Keep the spec consistent; SHARED-DIAG-003 still keeps code rules out of literal text | Spec wording only | 422eebc |
 | 4 | spec author | AGENTS.md IndentationPhase row should name the rewrite | Spec author adds it in the amendment round (text only) | Phase-ownership table must name what the phase owns | Text only | 422eebc |
-| 5 | test implementer | A comment in `RH5202…HoleTests.GetFixAllScenario` says a raw literal can never nest in another (false for interpolated raw strings) | Adjacent fix: cleaner corrects the comment wording | Comment-only, in a file the run changes | Test comment only | pending |
+| 5 | test implementer | A comment in `RH5202…HoleTests.GetFixAllScenario` says a raw literal can never nest in another (false for interpolated raw strings) | Adjacent fix: cleaner corrects the comment wording | Comment-only, in a file the run changes | Test comment only | 24fd601 |
 | 6 | implementer | `RH5202…HoleTests.VerifyEveryFixApplicationConvergesWhenRawStringNestedInHoleIsIndentedWithTabs` expects one Fix All iteration; under RH5202-008 the outer fix is offered only after the nested fix, so Fix All needs two | Test is wrong: test implementer sets two Fix All iterations for that test; final output unchanged | RH5202-008's second example states the two-step sequence; convergence still holds | Only the iteration count changes; the final fixed output is the same | 4fb0363 |
 
 ## Follow-up candidates
@@ -35,5 +35,6 @@
 - Test implementer done (04-test-implementer.md, 1111881): 26 formatter + 19 analyzer tests red, all this run's; architecture green. Note: no RH5202 fix test for `$$` (markup limitation; formatter tests cover it).
 - Implementer done (05-implementer.md, ed3d5e7): all pass except one disputed test (decision 6).
 - Decision 6 done (06-test-implementer.md, 4fb0363).
-- Next: cleaner (07-cleaner.md) incl. decision 5, then spec checker, auditor, validator.
+- Cleaner done (07-cleaner.md, 24fd601): clean, 0 warnings.
+- Next: spec checker (08-spec-checker.md), then auditor, validator.
 - Next after answers: one fresh spec author round: answers into change doc `Decisions` + spec, Status Accepted, amendments of decisions 1, 3, 4. Then test implementer (tests to update named in 02-skeptic.md).
