@@ -1040,7 +1040,7 @@ class C
     void M()
     {
         Func<int> f = [A]
-            [B] () => 1;
+        [B] () => 1;
     }
 }
 ```

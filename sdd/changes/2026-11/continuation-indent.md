@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-INDENT-034 (new), FMT-INDENT-035 (new), FMT-INDENT-002, FMT-INDENT-013, FMT-INDENT-015, FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, SHARED-BLANK-008, SHARED-BODY-001, SHARED-ATTR-022, SHARED-USING-009, RH5111-004 |
+| Affected requirements | FMT-INDENT-034 (new), FMT-INDENT-035 (new), FMT-INDENT-002, FMT-INDENT-013, FMT-INDENT-015, FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, FMT-PIPE-024, SHARED-BLANK-008, SHARED-BODY-001, SHARED-USING-009, RH5111-004 |
 
 ## What
 
@@ -14,7 +14,9 @@ The lines that block indentation places by their scope are not continuations: a 
 
 The clauses of a query expression that start a line align with the query's first token everywhere, as they already did inside a list element (FMT-INDENT-035).
 
-FMT-INDENT-015 no longer keeps the lines of a wrapped list of omitted type arguments at the block column; they are continuation lines. The examples and texts of other specs that showed the old column are updated: FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, SHARED-BLANK-008, SHARED-BODY-001, SHARED-ATTR-022, SHARED-USING-009, and RH5111-004.
+FMT-INDENT-015 no longer keeps the lines of a wrapped list of omitted type arguments at the block column; they are continuation lines. The examples and texts of other specs that showed the old column are updated: FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, SHARED-BLANK-008, SHARED-BODY-001, SHARED-USING-009, and RH5111-004.
+
+A code fix that formats a node starting in the middle of its line measures a continuation line whose construct starts on that line from where the document begins the line. The node-level entry points pass that column as one more fact, the line-start column (FMT-PIPE-024), so the fix gives the line the column whole-document formatting gives it.
 
 This change covers thoenissen/Reihitsu#953, the continuation indent of a `return` value from thoenissen/Reihitsu#1852, thoenissen/Reihitsu#1896, and thoenissen/Reihitsu#1818. The join of an expression body across a blank line, the second question of thoenissen/Reihitsu#1852, has its own change doc, [expression-body-join-across-blank-line.md](expression-body-join-across-blank-line.md).
 
@@ -194,6 +196,30 @@ class C
 }
 ```
 
+### A pattern chain whose first operand starts a line (thoenissen/Reihitsu#953)
+
+Where the nearest construct differs from the statement in the other direction: `1 or 2` starts on the line of `1`, so `2` continues it, and `3` continues `(1 or 2) or 3`, which also starts there. Measuring from the statement's line would put all three in column 12. The same staircase appears for a curried lambda, `x =>⏎(y) =>⏎y`, where `y` lands one level deeper than `(y)`.
+
+Before:
+
+```csharp
+        var k = x is
+        1 or
+        2 or
+        3;
+```
+
+After:
+
+```csharp
+        var k = x is
+            1 or
+                2 or
+                3;
+```
+
+`case 1 or⏎2 or⏎3:` has no staircase: both `or` patterns start on the line of `case`, so `2` and `3` both take one level deeper than `case`.
+
 ### Declaration headers and clauses (thoenissen/Reihitsu#953)
 
 Before:
@@ -243,6 +269,54 @@ class D
     }
 }
 ```
+
+### Wrapped `for` and `foreach` headers (thoenissen/Reihitsu#953)
+
+The most common lines this change moves. A requirement that aligns them under the token behind `(` is a follow-up; until then they are continuation lines.
+
+Before:
+
+```csharp
+class C
+{
+    void M()
+    {
+        for (var i = 0;
+        i < 3;
+        i++)
+        {
+        }
+
+        foreach (var y in
+        new int[0])
+        {
+        }
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    void M()
+    {
+        for (var i = 0;
+            i < 3;
+            i++)
+        {
+        }
+
+        foreach (var y in
+            new int[0])
+        {
+        }
+    }
+}
+```
+
+`throw⏎new …`, `yield return⏎x`, `await⏎t`, a cast `(int)⏎x`, and `new⏎List<int>()` move from column 8 to column 12 in the same way.
 
 ### Lambda bodies and a `with` expression (thoenissen/Reihitsu#953)
 
@@ -464,27 +538,33 @@ Every code fix that lays out a node through the formatter gives a continuation l
 
   After: the `;` moves to column 12.
 
-- **RH5514** (an attribute list with several attributes split into lists, SHARED-ATTR-022): on a lambda, the list moved to the next line continues the lambda.
-
-  ```csharp
-  Func<int> f = [A, B] () => 1;
-  ```
-
-  Before:
-
-  ```csharp
-          Func<int> f = [A]
-          [B] () => 1;
-  ```
-
-  After:
-
-  ```csharp
-          Func<int> f = [A]
-              [B] () => 1;
-  ```
-
 - **RH7101** (a field split into one field per declaration, FMT-STRUCT-021): the line behind a line break in a field's head moves as for the formatter above.
+- **RH5302, RH5308** (a chain of `&&` and `||` operators, a conditional expression), whose fixes format a node that starts in the middle of its line: a continuation line whose construct starts on that line moves from four columns right of the node's first token to four columns right of where the document begins the line, the column whole-document formatting now gives it.
+
+  ```csharp
+          var r = o is
+          not null &&
+          x > 0;
+  ```
+
+  Before, RH5302 (whole-document formatting puts `not null` in column 8):
+
+  ```csharp
+          var r = o is
+                  not null
+                  && x > 0;
+  ```
+
+  After, RH5302 and whole-document formatting:
+
+  ```csharp
+          var r = o is
+              not null
+                  && x > 0;
+  ```
+
+  RH5308 on `var s = o is⏎not null ? 1 :⏎2;`: `not null` moves from column 16 (whole-document formatting: 8) to column 12; `? 1` and `: 2;` stay in column 20.
+
 - **RH5305** (a collection expression laid out one element per line): the body of a lambda element on its own line moves from column 24, the column of `[`, to one level deeper than the line of `() =>`, the column the CLI now gives it too.
 
 RH5111 keeps its result: its target keeps its document column (FMT-PIPE-017), and only the column the context's layout would give a later declarator changes, from 8 to 12, which the fix does not write.
@@ -496,6 +576,10 @@ No rule page changes: no rule page shows a continuation line that this change mo
 ### The construct a line continues is the nearest one that starts on an earlier line
 
 The maintainer's decision names the line on which the statement or member starts. For a continuation inside a construct laid out to the right — a switch-expression arm, an anonymous-object member, a parenthesized pattern, a lambda inside a collection expression — that line puts the continuation left of its own construct. The rule measures from the nearest node that contains the line's first token and starts on an earlier line; where that node starts on the statement's line, which holds for every example of the decision, both readings agree. Open for the maintainer (output question).
+
+### A node formatted on its own measures from where the document begins its line
+
+A code fix formats a node as a root of its own, and a phase reads nothing of the document outside it. When the node starts in the middle of its line and a continuation's construct starts on that line, the line's beginning is outside the root. The node-level entry points pass the column of the first token or comment on that line, as it stands in the document, as a fact (FMT-PIPE-024); the indentation phase measures from it. The fix keeps everything in front of the node as written, so this is a fact about the document, not a column a phase would compute. RH5302 and RH5308 already require their fixes to format as the formatter formats in place, so the output is decided by those requirements. Measuring from the node's first token instead was rejected: it gives column 20 where whole-document formatting gives 12.
 
 ### Lines that block indentation places by their scope are not continuations
 

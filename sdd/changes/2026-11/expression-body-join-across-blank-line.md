@@ -9,11 +9,11 @@
 
 ## What
 
-When the formatter converts an expression body to a block (FMT-STRUCT-004, FMT-STRUCT-005), an expression written on a later line than the arrow joins the created `return` keyword also when blank lines stand between the arrow and the expression. FMT-STRUCT-006 said that an expression "written on the line after the arrow" joins, which left the case of a blank line open: `main` keeps the line break behind the created `return`, while it already joins the same expression into a created expression statement. This change covers the second question of thoenissen/Reihitsu#1852.
+When the formatter converts an expression body to a block (FMT-STRUCT-004, FMT-STRUCT-005), an expression written on a later line than the arrow joins the created `return` keyword also when blank lines stand between the arrow and the expression. FMT-STRUCT-006 said that an expression "written on the line after the arrow" joins, which left the case of a blank line open: `main` keeps the line break behind the created `return`, while for a body converted to an expression statement the blank line already disappears: the expression starts the created statement on the line after `{`, and the blank line behind `{` is removed. This change covers the second question of thoenissen/Reihitsu#1852.
 
 ## Why
 
-The line break behind the arrow is layout and has no meaning inside a `return` statement; a blank line there separates nothing. A body converted to an expression statement already joins across it, so the conversion should not depend on the statement it creates, nor on a blank line the author left behind the arrow.
+The line break behind the arrow is layout and has no meaning inside a `return` statement; a blank line there separates nothing. For a body converted to an expression statement the blank line already disappears, so the result should not depend on the statement the conversion creates, nor on a blank line the author left behind the arrow.
 
 ## Visible output changes
 

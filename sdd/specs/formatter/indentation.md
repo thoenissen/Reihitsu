@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-037, FMT-BREAK-038, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001, FMT-UNSUP-009 |
+| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-037, FMT-BREAK-038, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001, FMT-UNSUP-009 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -2187,8 +2187,9 @@ The formatter MUST indent a continuation line that no other requirement of this 
 - **Construct it continues.** The construct a continuation line continues is the nearest node that contains the line's first token and whose first token stands on an earlier line. A node that starts on the line itself does not count, however far it reaches: the `2` of `case 1 or⏎2:` starts its own constant pattern, so the line continues the `or` pattern, which starts on the line of `case`.
 - **Its line.** The line of that construct is the line on which its first token stands. When that line begins inside text that started on a still earlier line — the text of a multi-line string literal or of a multi-line comment —, the line of the construct is the line on which that text starts.
 - **The column.** The column at which that line begins is the column the indentation phase gives the first token or comment on it, measured where the phase puts it (FMT-INDENT-030), so a continuation line of a continuation line is indented one more level.
+- **A root formatted on its own.** When a node-level entry point formats a node as a root of its own (FMT-PIPE-023) and the line of the construct is the line on which the root's first token stands, the column at which that line begins is the line-start column (FMT-PIPE-024): the column of the first token or comment on that line in the document, which may stand in front of the root. The entry point keeps everything in front of the root as written, so that line begins where the document has it, and the continuation line gets the column whole-document formatting gives it when the document's line begins where whole-document formatting puts it. `FormatNode`, which has no such fact, measures from the root's first token.
 
-Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an arm, a member of an anonymous object, or a parenthesized pattern to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column.
+Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an arm, a member of an anonymous object, or a parenthesized pattern to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column.
 
 Example — a value, an operand, and a pattern continue the statement, and the `2` continues the `or` pattern, which starts on the line of `case`:
 
@@ -2471,6 +2472,34 @@ class C
     }
 }
 ```
+
+Example — the RH5302 fix formats the `&&` expression as a root of its own, and that root starts behind `var r = ` in column 16. The `is` pattern expression that `not null` continues starts on the root's first line, which begins with `var` in column 8 in the document, so `not null` is indented to column 12 by the fix, as by whole-document formatting, and not to column 20, four columns right of the root's first token. The `&&` aligns with its left operand (FMT-INDENT-018):
+
+```csharp
+class C
+{
+    int M(object o, int x)
+    {
+        var r = o is
+        not null &&
+        x > 0;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(object o, int x)
+    {
+        var r = o is
+            not null
+                && x > 0;
+    }
+}
+```
+
+The RH5308 fix of `var s = o is⏎not null ? 1 :⏎2;` gives `not null` column 12 in the same way, with `? 1` and `: 2;` in column 20 (FMT-INDENT-020).
 
 Example — lines that block indentation places by their scope are not continuations and keep their columns: the attribute lists of a member and the token behind them, a label and its statement, `else`, and the `while` of a `do` statement:
 
