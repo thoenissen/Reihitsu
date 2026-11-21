@@ -27,6 +27,12 @@
 9. Skeptic B (`or` in switch arms / case labels): **B** — combinators in a switch arm's or case label's pattern score nothing; in `is` patterns and `when` clauses they count.
 10. Skeptic D (lambdas): leave lambdas out for now — a lambda's body is **not counted toward the method** that holds it at all, and a lambda is not judged on its own. Checking lambdas becomes a follow-up. This supersedes answers 4 and the lambda-nesting question (maintainer also answered that one B: a lambda adds no nesting) — with lambdas excluded, both are moot.
 11. Self-hosting mechanism: use the existing ignore list of the self-hosting scan (`AnalyzerViolationReport._ignoredDiagnosticIds`, currently empty) for RH2009 until the follow-up.
+13. Sonar Q1 (`#if`): **A** — only active code is scored; directives score nothing.
+14. Sonar Q2 (recursion, re-ask of answer 7): **A** — 1 once per member that calls itself directly; no indirect cycles. Supersedes answer 7.
+15. Sonar Q3 (`&`, `|`, `^` on bool): **A** — score nothing.
+16. Sonar Q4 (anonymous methods): **A** — treated like lambdas: not counted, not judged.
+17. Sonar Q5 (parenthesized chained `?:`): not answered yet; maintainer asked to see the departures from the paper as code with per-line point comments — re-asked in that form.
+18. A comprehensive documentation document explaining the whole scoring with examples is required. Placement asked (rule pages are short by convention).
 12. The maintainer asks to cross-check all decisions against the published definition (SonarSource white paper, https://www.sonarsource.com/docs/CognitiveComplexity.pdf; local copy in the session scratchpad). Comparison requested from a fresh skeptic; results go back to the maintainer before the test implementer.
 
 ## Decisions taken
