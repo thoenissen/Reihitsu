@@ -45,6 +45,7 @@
 
 ## Audited SHA
 
+0fc8dcb (audit 5, repair 3, pass; final audited tree — later commits Markdown only)
 0605942 (audit 4, repair 2; findings 8, 9)
 b63ec36 (audit 3, pass; final audited tree)
 b38dac5 (audit 2, repair 1; finding 7 open)
@@ -52,4 +53,4 @@ fcb82346886ea93149e5229451aa87a43b7438fb (audit 1, base main 1788f94)
 
 ## Next step
 
-Repair round 3 of 3 (last): test implementer (29) → implementer (30) → cleaner (31) → spec checker (32) → auditor repair-only (33) → validator (34) with browser re-measure. A block after this round is resolved by narrowing.
+Validator (35) on the final tree, with real-paste/keystroke measurement against Decision 9. Then publish (section 8).
