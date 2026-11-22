@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | SHARED-CASING |
 | Status | Active |
-| Code owners | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
-| Uses | SHARED-FIX-001, SHARED-FIX-002, SHARED-FIX-003 |
+| Code owners | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `CasingRenameSafetyUtilities`, `RecordPositionalParameterUtilities`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
+| Uses | SHARED-DIAG-002, SHARED-FIX-001, SHARED-FIX-002, SHARED-FIX-003 |
 
 This spec covers the rules that require one kind of name to be written in a naming style. It defines the styles, the accessibility groups of fields and properties, how a namespace name is checked, and the code fix that renames a reported name. Each rule that uses this spec states which declarations it checks, which style it requires, where its diagnostic is located, and any exceptions of its own.
 
@@ -16,14 +16,15 @@ This spec covers the rules that require one kind of name to be written in a nami
 - The naming style of type parameters — RH4121.
 - Names that must not be a single letter — RH4122 to RH4127.
 - Whether a type's name matches its file name — RH4001; which namespaces may be declared — RH4009.
+- The names of the parameters and type parameters of a member whose name SHARED-CASING-014 exempts: the compiler does not require an override or an implementation to repeat them, so RH4105 and RH4121 decide them like any other.
 
 ## Requirements
 
 ### SHARED-CASING-001 — PascalCase
 
-A name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` MUST be accepted as PascalCase exactly when its first character is an uppercase letter (category Lu) and every other character is a letter or a digit.
+A name whose characters all belong to the Unicode categories Lu, Ll, Lm, Lo, Nl, Mn, Mc, Nd, or Pc MUST be accepted as PascalCase exactly when its first character is an uppercase letter (category Lu) and no other character is `_`. A combining mark (Mn, Mc), a letter number (Nl), and connector punctuation other than `_` (Pc) are accepted wherever a letter or a digit is.
 
-Why: PascalCase is the .NET style for namespaces, types, and members that are visible outside their type. The uppercase letters inside the name mark its word boundaries, so a separator such as `_` adds nothing, and an acronym may stay uppercase.
+Why: PascalCase is the .NET style for namespaces, types, and members that are visible outside their type. The uppercase letters inside the name mark its word boundaries, so a separator such as `_` adds nothing, and an acronym may stay uppercase. A combining mark, a letter number, and connector punctuation other than `_` are characters C# allows inside an identifier; they have no case for the style to judge, and they belong to the word they stand in.
 
 Example — RH4002:
 
@@ -49,9 +50,25 @@ class {|RH4002:_Invoice|}
 }
 ```
 
+Example — a combining mark and a letter number, for RH4002, where `Café` is written as `Cafe` followed by U+0301 COMBINING ACUTE ACCENT, and `Ⅻ` is U+216B ROMAN NUMERAL TWELVE:
+
+```csharp
+class Café
+{
+}
+
+class ClassⅫ
+{
+}
+
+class {|RH4002:café|}
+{
+}
+```
+
 ### SHARED-CASING-002 — camelCase
 
-A name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` MUST be accepted as camelCase exactly when its first character is a lowercase letter (category Ll) and every other character is a letter or a digit.
+A name whose characters all belong to the categories that SHARED-CASING-001 names MUST be accepted as camelCase exactly when its first character is a lowercase letter (category Ll) and no other character is `_`. A combining mark, a letter number, and connector punctuation other than `_` are accepted wherever a letter or a digit is, as in SHARED-CASING-001.
 
 Why: camelCase is the .NET style for parameters and locals. It differs from PascalCase only in the first letter, so a parameter and the property it initializes can share their words.
 
@@ -68,7 +85,7 @@ class C
 
 ### SHARED-CASING-003 — `_camelCase`
 
-A name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` MUST be accepted as `_camelCase` exactly when it starts with `_` and is either just `_` or continues with a name that is camelCase as SHARED-CASING-002 defines it. Every other name MUST NOT be accepted, including a name with a second underscore or a digit after the prefix.
+A name whose characters all belong to the categories that SHARED-CASING-001 names MUST be accepted as `_camelCase` exactly when it starts with `_` and is either just `_` or continues with a name that is camelCase as SHARED-CASING-002 defines it. Every other name MUST NOT be accepted, including a name with a second underscore or a digit after the prefix.
 
 Why: The prefix tells a reader at the point of use that a name is state of the object, not a local or a parameter. What follows it is the camelCase name a local of the same meaning would have, so the prefix is the only difference between the two. `_` alone is the conventional name of an unused field.
 
@@ -189,13 +206,15 @@ namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
 
 ### SHARED-CASING-006 — The fix derives the new name from the words of the old one
 
-A rule's code fix MUST derive the new name from an old name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` as follows. It splits the old name into words at every `_`, and drops the underscores. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words, which gives the new name for a PascalCase target. For a camelCase target, the first character of the joined words is written in lowercase, and for a `_camelCase` target, that camelCase name gets a `_` in front.
+A rule's code fix MUST derive the new name from an old name whose characters all belong to the categories that SHARED-CASING-001 names, as follows. It splits the old name into words at every `_`, and drops the underscores; every other character belongs to its word and is kept, connector punctuation other than `_` included. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words, which gives the new name for a PascalCase target.
 
-This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter whose one-character uppercase and lowercase mappings, in the invariant culture, differ from each other. A first word that starts with a digit, with a letter without case such as `注`, or with a letter such as `ß` that has no one-character uppercase mapping, is not covered. For such an old name, SHARED-CASING-008 decides whether the fix is offered.
+For a camelCase target, it writes the leading run of uppercase letters of the first word, as the step above wrote it, in lowercase, before it joins the words. When that run has two or more letters and a lowercase letter of the same word follows it directly, the run's last letter keeps its case. The run never reaches into the second word: `A_B` gives `aB`, and `m_HTTPClient` gives `mHTTPClient`. For a `_camelCase` target, that camelCase name gets a `_` in front.
 
-For a camelCase or `_camelCase` target, it further covers only an old name whose first word does not start with two uppercase letters, or consists of uppercase letters only.
+In these steps, a combining mark (Mn, Mc) counts as part of the character in front of it: it is kept as written, it does not keep a word from consisting of uppercase letters, and it neither ends a run of uppercase letters nor is the lowercase letter that follows one. A letter number (Nl) and connector punctuation other than `_` count like a digit: they are kept as written, and they keep a word from consisting of uppercase letters and end a run of uppercase letters.
 
-Why: A separator such as `_`, or the `_` of a leading `m_`, is a word boundary in common naming styles. A word in uppercase letters only (`FIRST_NAME`, `URL`) is a shouted word, not an acronym inside a PascalCase name. Uppercase letters inside a word are kept, because they already mark the word boundaries of a PascalCase or camelCase name. Deriving the name mechanically keeps the result predictable across every rule.
+This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter whose one-character uppercase and lowercase mappings, in the invariant culture, differ from each other. A first word that starts with a digit, with a letter without case such as `注`, with a letter such as `ß` that has no one-character uppercase mapping, or with a letter number such as `Ⅻ`, is not covered. For such an old name, SHARED-CASING-008 decides whether the fix is offered.
+
+Why: A separator such as `_`, or the `_` of a leading `m_`, is a word boundary in common naming styles. A word in uppercase letters only (`FIRST_NAME`, `URL`) is a shouted word, not an acronym inside a PascalCase name. Uppercase letters inside a word are kept, because they already mark the word boundaries of a PascalCase or camelCase name, and a PascalCase name may keep an acronym (SHARED-CASING-001). A camelCase name starts with a lowercase word, so an acronym at its start is written in lowercase as a whole (`httpClient`, not `hTTPClient`); the last uppercase letter in front of a lowercase letter is the first letter of the next word (`Client`), and keeps its case. The run is taken from the first word only, so a word boundary the author marked with `_` is never merged into an acronym. A combining mark modifies the letter in front of it and has no case of its own, so `CAFÉ` is a word in uppercase letters whether `É` is one character or `E` with U+0301; the fix never drops a character, because a character the author wrote is part of the name. Deriving the name mechanically keeps the result predictable across every rule.
 
 Example — RH4110, PascalCase:
 
@@ -273,19 +292,164 @@ public class C
 }
 ```
 
+Example — a leading acronym, for RH4106, `_camelCase`:
+
+```csharp
+public class C
+{
+    private int {|RH4106:HTTPClient|};
+    private int {|RH4106:XMLParser|};
+    private int {|RH4106:IOStream|};
+    private int {|RH4106:HTTP2Client|};
+    private int {|RH4106:ABc|};
+    private int {|RH4106:URLs|};
+
+    public int Sum => HTTPClient + XMLParser + IOStream + HTTP2Client + ABc + URLs;
+}
+```
+
+```csharp
+public class C
+{
+    private int _httpClient;
+    private int _xmlParser;
+    private int _ioStream;
+    private int _http2Client;
+    private int _aBc;
+    private int _urLs;
+
+    public int Sum => _httpClient + _xmlParser + _ioStream + _http2Client + _aBc + _urLs;
+}
+```
+
+The leading run of `HTTP2Client` is `HTTP`: the digit ends it, so the whole run is written in lowercase. In `FirstName` above, the run `F` has one letter and is written in lowercase although a lowercase letter follows it. In `URLs`, the `s` follows the run `URL` directly, so its last letter keeps its case.
+
+Example — a leading run that ends with the first word, for RH4106, `_camelCase`:
+
+```csharp
+public class C
+{
+    private int {|RH4106:A_B|};
+    private int {|RH4106:A_B_Cd|};
+    private int {|RH4106:m_HTTPClient|};
+    private int {|RH4106:X_Y_Z|};
+    private int {|RH4106:XML_Parser|};
+
+    public int Sum => A_B + A_B_Cd + m_HTTPClient + X_Y_Z + XML_Parser;
+}
+```
+
+```csharp
+public class C
+{
+    private int _aB;
+    private int _aBCd;
+    private int _mHTTPClient;
+    private int _xYZ;
+    private int _xmlParser;
+
+    public int Sum => _aB + _aBCd + _mHTTPClient + _xYZ + _xmlParser;
+}
+```
+
+The first word of each name is `A`, `M`, `X`, or `Xml` after the first step, so the run is that word's leading uppercase letters alone; the words behind it keep their case. `_mHTTPClient` keeps the acronym of its second word, as a PascalCase name does.
+
+Example — a leading acronym, for RH4105, camelCase:
+
+```csharp
+class C
+{
+    int M(int {|RH4105:XMLParser|})
+    {
+        return XMLParser;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int xmlParser)
+    {
+        return xmlParser;
+    }
+}
+```
+
+Example — a leading acronym in a PascalCase target, for RH4110, which keeps it:
+
+```csharp
+public class C
+{
+    private const int {|RH4110:HTTPClient_timeout|} = 30;
+
+    public int Get() => HTTPClient_timeout;
+}
+```
+
+```csharp
+public class C
+{
+    private const int HTTPClientTimeout = 30;
+
+    public int Get() => HTTPClientTimeout;
+}
+```
+
+For a `_camelCase` target, the same old name becomes `_httpClientTimeout`.
+
+Example — characters that belong to their word, for RH4002 and RH4110, where `é` and `É` are written as `e` and `E` followed by U+0301 COMBINING ACUTE ACCENT, and `‿` is U+203F UNDERTIE (category Pc):
+
+```csharp
+class {|RH4002:café_bar|}
+{
+}
+
+class {|RH4002:order‿line|}
+{
+}
+
+public class C
+{
+    private const int {|RH4110:CAFÉ_NAME|} = 1;
+
+    public int Get() => CAFÉ_NAME;
+}
+```
+
+```csharp
+class CaféBar
+{
+}
+
+class Order‿line
+{
+}
+
+public class C
+{
+    private const int CaféName = 1;
+
+    public int Get() => CaféName;
+}
+```
+
+U+0301 is kept in its word, and it does not keep `CAFÉ` from being a word in uppercase letters. `‿` is not a separator: `order‿line` is one word.
+
 ### SHARED-CASING-007 — The fix renames the declaration and every reference
 
 The code fix MUST rename the reported declaration's symbol with the Roslyn renamer, so that the declaration and every reference to it in the active code of the solution change together. It MUST NOT be offered when the declared symbol cannot be resolved.
 
 The symbols that one such rename renames are the reported symbol's *rename cascade*: the symbol itself and every symbol the renamer renames with it, in whichever document or project of the solution that symbol is declared. Which symbols these are is the renamer's own determination, not a list of relations; for example, a member the symbol overrides, a member that overrides it, an interface member it implements, an implementation of it, and the other part of a partial method or a partial indexer together with its parameter at the same position, however that part spells it, and the other part of a partial method together with its type parameter of the same name, each of these in turn with the symbols the renamer renames with it. A member declared in a referenced assembly is not renamed and is not part of the cascade. Every other statement of this spec about the rename cascade refers to this one.
 
-This requirement covers an old name that SHARED-CASING-006 covers, and a derived name that is written without the verbatim prefix `@` at the declaration and at every reference: a name that is not a reserved C# keyword, and not `await` inside an async member. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are. It further covers only a rename for which both of the following hold:
+This requirement covers an old name that SHARED-CASING-006 covers. It further covers only a rename for which all of the following hold:
 
 - Neither the old name of a symbol of the rename cascade nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where a symbol of the rename cascade can be referred to. The old names are those of every symbol of the cascade that source can refer to by its name, not only the reported symbol's: a symbol of the cascade that is spelled differently from the reported one, such as the parameter of the other part of a partial method, adds its own spelling. A symbol whose name source never writes, such as a property's accessor or a type's constructor, adds no old name, and neither does a symbol outside the cascade, such as a type parameter of the other part of a partial method that this part spells differently, which the renamer leaves as it is. A document where no symbol of the cascade can be referred to is outside the region, even when its excluded code names an old name or the new name.
 - For no record does the rename change which parameters of its primary constructor have a member of the same name, declared in the record or inherited from its base type. The compiler declares a property for a positional parameter only when no such member exists, so a rename that changes the match adds or removes a public member.
 - Neither SHARED-CASING-011 nor SHARED-CASING-012 withholds the rename. Those requirements name renames that can change at run time which method a construct calls, or which expression text a parameter receives, without a compile error and without a reference the renamer could change.
+- SHARED-CASING-013 does not withhold the rename: the new name is written without the verbatim prefix `@` at the declaration and at every reference. Contextual keywords such as `value`, `var`, and `nameof` are covered and stay as they are.
 
-A rename outside this coverage is withheld where SHARED-FIX-003 withholds it, and always where SHARED-CASING-011 or SHARED-CASING-012 withholds it.
+A rename outside this coverage is withheld where SHARED-FIX-003 withholds it, and always where SHARED-CASING-011, SHARED-CASING-012, or SHARED-CASING-013 withholds it.
 
 Why: Renaming only the declaration would leave every use pointing at a name that no longer exists.
 
@@ -368,7 +532,7 @@ file class Leaf : Base
 }
 ```
 
-Both diagnostics are reported, and no code fix is offered for either: renaming `Leaf.process` renames `Base.process` with it, and `Base.process` can be referred to in the first document, whose excluded branch names `process`. That `Leaf` is file-local and cannot be referred to in the first document does not matter. The same holds when the overriding type is a private nested type, for an implementation of an interface method, and when `Base` is declared in another project of the solution. When the excluded branch names neither `process` nor `Process`, the fix is offered and renames both methods.
+Both diagnostics are reported, and no code fix is offered for either: renaming `Leaf.process` renames `Base.process` with it, and `Base.process` can be referred to in the first document, whose excluded branch names `process`. That `Leaf` is file-local and cannot be referred to in the first document does not matter. The same holds when the overriding type is a private nested type, and for an implementation of an interface method. When `Base` is declared in another project of the solution, `Leaf.process` is not reported (SHARED-CASING-014), and no code fix is offered for `Base.process`, whose rename renames `Leaf.process` with it. When the excluded branch names neither `process` nor `Process`, the fix is offered and renames both methods.
 
 Example — a name in excluded code reached through the other part of a partial method, for RH4121, in two documents:
 
@@ -658,14 +822,12 @@ namespace N
 Example — RH4103, for a member of another type of the rename cascade, with a referenced assembly that declares `public abstract class MetaBase { public abstract void process(); }`:
 
 ```csharp
-public class Middle : MetaBase
+public interface IWorker
 {
-    public override void process()
-    {
-    }
+    void {|RH4103:process|}();
 }
 
-public class Leaf : Middle
+public class Middle : MetaBase, IWorker
 {
     public override void process()
     {
@@ -673,7 +835,7 @@ public class Leaf : Middle
 }
 ```
 
-Where RH4103 reports `Leaf.process`, no code fix is offered: renaming it would rename `Middle.process` with it, and `Middle` would then fail to compile, because `MetaBase.process` keeps its name and `Middle.Process` overrides nothing. The same holds for a property or an event that overrides or implements a member declared in a referenced assembly through a type declared in source. When `MetaBase` is declared in source, the rename renames all three methods together, and the fix is offered.
+is reported, and no code fix is offered: renaming `IWorker.process` would rename its implementation `Middle.process` with it, and `Middle` would then fail to compile, because `MetaBase.process` keeps its name and `Middle.Process` overrides nothing. `Middle.process` itself is not reported (SHARED-CASING-014). The same holds for an interface property or event that a property or an event implements which overrides a member declared in a referenced assembly. When `MetaBase` is declared in source, the rename renames all three methods together, and the fix is offered.
 
 Example — RH4103, a rename that would win an extension-method call:
 
@@ -1395,3 +1557,219 @@ public static class GuardExtensions
 ```
 
 is reported, and no code fix is offered: the attribute is in the parameter list of a member of the block whose receiver is renamed, and after renaming `Condition` to `condition` it would name no parameter, so `(1 > 0).Check()` would return `null` instead of `"1 > 0"`. The same holds for `[CallerArgumentExpression(nameof(Condition))]` in that member's parameter list: the receiver is declared by another parameter list, so the argument is not exempt. Without a `CallerArgumentExpression` attribute in the block, or with one whose value is neither `"Condition"` nor `"condition"`, the fix is offered and renames the receiver to `condition`.
+
+### SHARED-CASING-013 — The fix is withheld when the new name needs the verbatim prefix
+
+The code fix MUST NOT be offered when the rename would write the new name with the verbatim prefix `@` at the declaration or at a reference: when the derived name (SHARED-CASING-008) is a reserved C# keyword, such as `class`, `object`, or `string`, and when it is a contextual keyword that is a keyword where the declaration or a reference stands, such as `await` inside an async method, local function, or lambda. A contextual keyword that is written without `@` at the declaration and at every reference, such as `var`, `value`, `nameof`, or `await` in a member that is not async, does not withhold the fix. The diagnostic is still reported.
+
+Why: The verbatim prefix turns a keyword into a name, but it is spelling the author did not write, and the name stays a keyword to every reader; a rule compares names by their value without the `@` (SHARED-DIAG-002), so the escaped name only looks corrected. Only a camelCase target can produce a keyword, because every keyword is lowercase; a `_camelCase` name starts with `_`, and the other styles with an uppercase letter. The cause, a `@` the rename would write, decides every contextual keyword alike, so no list of them has to follow the language.
+
+Example — RH4105:
+
+```csharp
+using System.Threading.Tasks;
+
+class C
+{
+    void M(int {|RH4105:Class|}, object {|RH4105:Object|})
+    {
+    }
+
+    async Task<int> N(int {|RH4105:Await|})
+    {
+        await Task.Yield();
+        return Await;
+    }
+}
+```
+
+is reported, and no code fix is offered for any parameter: `class` and `object` are reserved keywords, and inside the async method `N`, `await` is a keyword, so the rename would write `@class`, `@object`, and `@await`.
+
+Example — contextual keywords that need no `@`, for RH4105:
+
+```csharp
+class C
+{
+    int M(int {|RH4105:Var|}, int {|RH4105:Nameof|}, int {|RH4105:Await|})
+    {
+        return Var + Nameof + Await;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int var, int nameof, int await)
+    {
+        return var + nameof + await;
+    }
+}
+```
+
+### SHARED-CASING-014 — A name that another compilation or a native entry point dictates is not reported
+
+A member is *dictated* when it, or a member it overrides through any number of levels, overrides or implements — implicitly or explicitly — a member declared outside the compilation that declares it: in a referenced assembly, or in another project of the solution. A rule that uses this spec MUST NOT report:
+
+- the name of a dictated method, property, or event;
+- an element name of a tuple type in the signature of a dictated member — its return type, the types of its parameters, or the type of a property, indexer, or event —, wherever the tuple type stands in that type: as the type itself, as a type argument, as the element type of an array, or as an element of another tuple type;
+- the name of a method or local function declared with `[DllImport]`, or of a method declared with `[LibraryImport]`, whose attribute has no `EntryPoint` argument.
+
+A member implements an interface member only when its own type implements that interface. A member that becomes the implementation of an interface member only because a derived type names the interface in its base list, while the member's own type does not implement it, is not dictated by that interface member, and is reported as its rule states. A member that overrides or implements only members declared in its own compilation, through every level, is not dictated and is reported as its rule states. A method or local function whose `[DllImport]` or `[LibraryImport]` attribute has an `EntryPoint` argument is reported as its rule states, whatever the argument's value.
+
+Why: The author cannot choose these names. The compiler requires an override and an implicit implementation to repeat the name of the member it overrides or implements, and an override or implementation to repeat the tuple element names of that member's signature; only the declaration in the other compilation could change them, and a fix in this compilation cannot rename it. When the attribute names no entry point, the runtime looks the native function up by the method's name, so another name calls another function. A diagnostic that cannot be resolved without breaking the build or the native binding has no actionable outcome. The boundary is the compilation, not the solution: in the IDE another project of the solution is a compilation whose members are declared in source, and in a command-line build it is a referenced assembly, so deciding by the declaring compilation gives both the same diagnostics. A member that overrides a dictated member repeats its name as well, so the chain is followed through every level. The member that another project of the solution declares is reported in that project, and its fix renames the dictated members with it (SHARED-CASING-007). A member implements on behalf of a derived type only through that derived type, which the analyzer of the member's own type cannot always see, so only the member's own type decides; the fix of such a member stays withheld as SHARED-CASING-009 states. The tuple element names of a dictated member's signature are those of the member it overrides or implements after its type arguments are substituted; a name that a type argument written in this compilation supplies is reported where that type argument is written, so the author can still choose it, and is reported once.
+
+Example — RH4102, RH4103, RH4114, and RH4116, with a referenced assembly that declares:
+
+```csharp
+public abstract class MetaBase
+{
+    public abstract void process();
+
+    public abstract event System.EventHandler changed;
+
+    public abstract int count { get; }
+
+    public abstract (int first, int second) pair();
+}
+
+public interface IMeta
+{
+    void run();
+}
+```
+
+```csharp
+using System;
+
+public class Worker : MetaBase, IMeta
+{
+    public override void process()
+    {
+    }
+
+    public override event EventHandler changed;
+
+    public override int count => 0;
+
+    public override (int first, int second) pair() => default;
+
+    public void run()
+    {
+    }
+}
+
+public class Leaf : Worker
+{
+    public override void process()
+    {
+    }
+}
+```
+
+is not reported. `Leaf.process` overrides `Worker.process`, which is declared in source, but `Worker.process` overrides `MetaBase.process`. The same holds when `MetaBase` and `IMeta` are declared in another project of the solution, and for a property of the protected or internal group (RH4112, RH4113) that overrides a property declared there.
+
+Example — a chain inside the compilation, for RH4103:
+
+```csharp
+public class Base
+{
+    public virtual void {|RH4103:process|}()
+    {
+    }
+}
+
+public class Derived : Base
+{
+    public override void {|RH4103:process|}()
+    {
+    }
+}
+```
+
+Example — a tuple type in the signature of an explicit interface implementation, for RH4116, with the referenced assembly that declares `public interface IPairs { (int first, int second) get(); }`:
+
+```csharp
+public interface ILocal
+{
+    (int {|RH4116:low|}, int {|RH4116:high|}) range();
+}
+
+public class Pairs : IPairs, ILocal
+{
+    (int first, int second) IPairs.get() => default;
+
+    (int {|RH4116:low|}, int {|RH4116:high|}) ILocal.range() => default;
+}
+```
+
+The element names in the signature of `IPairs.get` are dictated by the referenced assembly; those of `ILocal.range` are dictated by `ILocal`, which is declared in source and reported there, so they keep their diagnostics. `ILocal.range` is reported by RH4103 too, which this example does not mark.
+
+Example — a method that implements a referenced-assembly interface member only for a derived type, for RH4103, with a referenced assembly that declares `public interface IMeta { void process(); }`:
+
+```csharp
+public class A
+{
+    public void {|RH4103:process|}()
+    {
+    }
+}
+
+public class B : A, IMeta
+{
+}
+```
+
+`A` does not implement `IMeta`, so `A.process` is not dictated and is reported; its fix is withheld (SHARED-CASING-009).
+
+Example — tuple element names that a type argument written in this compilation supplies, for RH4116:
+
+```csharp
+using System.Collections;
+using System.Collections.Generic;
+
+public class Pairs : IEnumerable<(string {|RH4116:key|}, int {|RH4116:value|})>
+{
+    public IEnumerator<(string key, int value)> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+```
+
+`GetEnumerator` implements `IEnumerable<T>.GetEnumerator`, which is declared outside the compilation, so the element names in its signature are not reported. The names are written in the base list, where they are reported.
+
+Example — native entry points, for RH4103 and RH4104:
+
+```csharp
+using System.Runtime.InteropServices;
+
+public static class Native
+{
+    [DllImport("libc")]
+    public static extern int getpid();
+
+    [DllImport("libc", EntryPoint = "getppid")]
+    public static extern int {|RH4103:parentId|}();
+
+    public static int M()
+    {
+        return getuid();
+
+        [DllImport("libc")]
+        static extern int getuid();
+    }
+
+    public static int N()
+    {
+        return localPid();
+
+        [DllImport("libc", EntryPoint = "getpid")]
+        static extern int {|RH4104:localPid|}();
+    }
+}
+```
+
+`getpid` and `getuid` are not reported; `parentId` and `localPid` name their entry point and are reported. The same holds for a `partial` method declared with `[LibraryImport("libc")]`, and for `[DllImport("libc", EntryPoint = nameof(getpid))]`, which has an `EntryPoint` argument and is reported.

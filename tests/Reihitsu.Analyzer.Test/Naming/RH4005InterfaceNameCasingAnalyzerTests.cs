@@ -526,8 +526,8 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
 
     /// <summary>
     /// Verifies, one name at a time, that an interface without a usable derived name is still reported but not fixed:
-    /// the name has no letter or digit, or a digit, a letter without case, or a letter without a one-character uppercase
-    /// mapping would follow the <c>I</c>
+    /// the name has no letter or digit, a digit, a letter without case, or a letter without a one-character uppercase
+    /// mapping would follow the <c>I</c>, or nothing is left behind an existing prefix
     /// </summary>
     /// <param name="oldName">The reported interface name</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -540,6 +540,12 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
     [DataRow("_2x")]
     [DataRow("注文")]
     [DataRow("ßx")]
+    [DataRow("I")]
+    [DataRow("i")]
+    [DataRow("I_")]
+    [DataRow("i_")]
+    [DataRow("i2Factory")]
+    [DataRow("i18nService")]
     public async Task NoFixIsOfferedWhenNoUsableNameCanBeDerived(string oldName)
     {
         var testCode = $$"""
@@ -618,6 +624,53 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
 
         const string fixedCode = """
                                  public interface IReader
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an existing prefix followed by <c>_</c> is kept once, and the underscores directly behind it are dropped
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-002")]
+    public async Task FixDropsTheUnderscoresBehindAnExistingPrefix()
+    {
+        const string testCode = """
+                                public interface {|RH4005:i_document|}
+                                {
+                                }
+
+                                public interface {|RH4005:I_reader|}
+                                {
+                                }
+
+                                public interface {|RH4005:I_O_Stream|}
+                                {
+                                }
+
+                                public interface {|RH4005:i__writer|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IDocument
+                                 {
+                                 }
+
+                                 public interface IReader
+                                 {
+                                 }
+
+                                 public interface IOStream
+                                 {
+                                 }
+
+                                 public interface IWriter
                                  {
                                  }
                                  """;

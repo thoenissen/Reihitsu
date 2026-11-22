@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Reihitsu.Core;
@@ -39,13 +40,13 @@ public static class CasingUtilities
             return input;
         }
 
-        var builder = ConvertToPascalCase(input);
+        var words = SplitIntoPascalCaseWords(input);
 
-        // Identifiers without letters or digits (for example "_", "__") produce an empty result, in which case the
-        // input is returned unchanged
-        return builder.Length == 0
+        // Identifiers without letters or digits (for example "_", "__") produce no word, in which case the input is
+        // returned unchanged
+        return words.Count == 0
                    ? input
-                   : builder.ToString();
+                   : string.Concat(words);
     }
 
     /// <summary>
@@ -79,24 +80,33 @@ public static class CasingUtilities
             return input;
         }
 
-        // A leading 't' or 'T' followed by an uppercase letter or a digit is treated as an existing prefix attempt
-        // (for example "tKey" or "t1"), so only the casing of the prefix is corrected instead of prepending a
-        // second 'T'
+        // A leading 't' or 'T' followed by an uppercase letter, a digit, or '_' is treated as an existing prefix attempt
+        // (for example "tKey", "t1", or "T_Key"), so only the casing of the prefix is corrected instead of prepending a
+        // second 'T'. The underscores directly behind the prefix separate it from the body and are dropped with it
         var hasPrefix = (input[0] == 'T'
                          || input[0] == 't')
                         && (input.Length == 1
                             || char.IsUpper(input[1])
-                            || char.IsDigit(input[1]));
+                            || char.IsDigit(input[1])
+                            || input[1] == '_');
 
-        if (hasPrefix
-            && input.Length == 1)
+        var bodyStart = hasPrefix
+                            ? 1
+                            : 0;
+
+        while (hasPrefix
+               && bodyStart < input.Length
+               && input[bodyStart] == '_')
+        {
+            bodyStart++;
+        }
+
+        if (bodyStart == input.Length)
         {
             return "T";
         }
 
-        var body = hasPrefix
-                       ? ToPascalCase(input.Substring(1))
-                       : ToPascalCase(input);
+        var body = ToPascalCase(input.Substring(bodyStart));
 
         // Identifiers without a PascalCase or digit representation (for example "_", "__") cannot be converted, in
         // which case the input is returned unchanged
@@ -158,18 +168,18 @@ public static class CasingUtilities
             return input;
         }
 
-        var builder = ConvertToPascalCase(input);
+        var words = SplitIntoPascalCaseWords(input);
 
-        // Identifiers without letters or digits (for example "_", "__") produce an empty result, in which case the
-        // input is returned unchanged
-        if (builder.Length == 0)
+        // Identifiers without letters or digits (for example "_", "__") produce no word, in which case the input is
+        // returned unchanged
+        if (words.Count == 0)
         {
             return input;
         }
 
-        builder.Replace(builder[0], char.ToLowerInvariant(builder[0]), 0, 1);
+        words[0] = LowercaseLeadingUppercaseRun(words[0]);
 
-        return builder.ToString();
+        return string.Concat(words);
     }
 
     /// <summary>
@@ -185,19 +195,18 @@ public static class CasingUtilities
             return input;
         }
 
-        var builder = ConvertToPascalCase(input);
+        var words = SplitIntoPascalCaseWords(input);
 
-        // Identifiers without letters or digits (for example "_", "__") produce an empty result, in which case the
-        // input is returned unchanged
-        if (builder.Length == 0)
+        // Identifiers without letters or digits (for example "_", "__") produce no word, in which case the input is
+        // returned unchanged
+        if (words.Count == 0)
         {
             return input;
         }
 
-        builder.Replace(builder[0], char.ToLowerInvariant(builder[0]), 0, 1);
-        builder.Insert(0, "_");
+        words[0] = LowercaseLeadingUppercaseRun(words[0]);
 
-        return builder.ToString();
+        return "_" + string.Concat(words);
     }
 
     #endregion // Public methods
@@ -218,10 +227,11 @@ public static class CasingUtilities
 
         if (isPascalCase)
         {
-            // All other characters must be letters or digits
+            // All other characters must be word characters: letters, digits, letter numbers, combining marks, or
+            // connector punctuation other than '_'
             foreach (var character in input.Slice(1))
             {
-                if (char.IsLetterOrDigit(character) == false)
+                if (IsWordCharacter(character) == false)
                 {
                     isPascalCase = false;
 
@@ -272,10 +282,11 @@ public static class CasingUtilities
 
         if (isCamelCase)
         {
-            // All other characters must be letters or digits
+            // All other characters must be word characters: letters, digits, letter numbers, combining marks, or
+            // connector punctuation other than '_'
             foreach (var character in input.Slice(1))
             {
-                if (char.IsLetterOrDigit(character) == false)
+                if (IsWordCharacter(character) == false)
                 {
                     isCamelCase = false;
 
@@ -288,53 +299,163 @@ public static class CasingUtilities
     }
 
     /// <summary>
-    /// Converts a string to PascalCase
+    /// Determines whether a character belongs to a word of a name: a letter, a decimal digit, a letter number, a
+    /// combining mark, or connector punctuation other than '_'
+    /// </summary>
+    /// <param name="character">The character to check</param>
+    /// <returns>True if the character belongs to a word, false otherwise</returns>
+    private static bool IsWordCharacter(char character)
+    {
+        if (character == '_')
+        {
+            return false;
+        }
+
+        if (char.IsLetterOrDigit(character))
+        {
+            return true;
+        }
+
+        return char.GetUnicodeCategory(character) is UnicodeCategory.LetterNumber
+                                                  or UnicodeCategory.NonSpacingMark
+                                                  or UnicodeCategory.SpacingCombiningMark
+                                                  or UnicodeCategory.ConnectorPunctuation;
+    }
+
+    /// <summary>
+    /// Determines whether a character is a combining mark, which counts as part of the character in front of it
+    /// </summary>
+    /// <param name="character">The character to check</param>
+    /// <returns>True if the character is a combining mark, false otherwise</returns>
+    private static bool IsCombiningMark(char character)
+    {
+        return char.GetUnicodeCategory(character) is UnicodeCategory.NonSpacingMark
+                                                  or UnicodeCategory.SpacingCombiningMark;
+    }
+
+    /// <summary>
+    /// Splits a name into the words of its PascalCase form: the name is split at every character that is no word
+    /// character, which drops it, the first character of each word is written in uppercase when it is a letter and kept
+    /// as written otherwise, and the other characters of a word are written in lowercase when they are all uppercase
+    /// letters, not counting combining marks, and kept otherwise
     /// </summary>
     /// <param name="input">Input string</param>
-    /// <returns>Converted string</returns>
-    private static StringBuilder ConvertToPascalCase(string input)
+    /// <returns>The words in PascalCase, in their order; empty when the name has no word character</returns>
+    private static List<string> SplitIntoPascalCaseWords(string input)
     {
-        var builder = new StringBuilder(input.Length);
-        var buffer = new List<char>();
-        var upperCharacter = true;
+        var words = new List<string>();
+        var start = 0;
 
-        void AddBuffer()
+        while (start < input.Length)
         {
-            var isUpperString = buffer.TrueForAll(char.IsUpper);
-
-            foreach (var character in buffer)
+            if (IsWordCharacter(input[start]) == false)
             {
-                builder.Append(isUpperString
-                                   ? char.ToLowerInvariant(character)
-                                   : character);
+                start++;
+
+                continue;
             }
 
-            buffer = [];
+            var end = start;
+
+            while (end < input.Length
+                   && IsWordCharacter(input[end]))
+            {
+                end++;
+            }
+
+            words.Add(ToPascalCaseWord(input, start, end));
+
+            start = end;
         }
 
-        foreach (var character in input)
+        return words;
+    }
+
+    /// <summary>
+    /// Writes one word in PascalCase: its first character in uppercase when it is a letter, otherwise as written, and the
+    /// other characters in lowercase when they are all uppercase letters, not counting combining marks, otherwise as
+    /// written. A letter number or a combining mark that starts a word is kept as written (SHARED-CASING-006)
+    /// </summary>
+    /// <param name="input">Input string</param>
+    /// <param name="start">Index of the word's first character</param>
+    /// <param name="end">Index behind the word's last character</param>
+    /// <returns>The word in PascalCase</returns>
+    private static string ToPascalCaseWord(string input, int start, int end)
+    {
+        var isUpperWord = true;
+
+        for (var index = start + 1; index < end; index++)
         {
-            if (char.IsLetterOrDigit(character) == false)
+            if (IsCombiningMark(input[index]) == false
+                && char.IsUpper(input[index]) == false)
             {
-                upperCharacter = true;
+                isUpperWord = false;
 
-                AddBuffer();
-            }
-            else if (upperCharacter)
-            {
-                builder.Append(char.ToUpperInvariant(character));
-
-                upperCharacter = false;
-            }
-            else
-            {
-                buffer.Add(character);
+                break;
             }
         }
 
-        AddBuffer();
+        var builder = new StringBuilder(end - start);
 
-        return builder;
+        builder.Append(char.IsLetter(input[start])
+                           ? char.ToUpperInvariant(input[start])
+                           : input[start]);
+
+        for (var index = start + 1; index < end; index++)
+        {
+            builder.Append(isUpperWord
+                               ? char.ToLowerInvariant(input[index])
+                               : input[index]);
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// Writes the leading run of uppercase letters of a word in lowercase, for the first word of a camelCase name. A
+    /// combining mark counts as part of the letter in front of it. When the run has two or more letters and a lowercase
+    /// letter follows it directly, the run's last letter is the first letter of the next word and keeps its case
+    /// </summary>
+    /// <param name="word">The first word, in PascalCase</param>
+    /// <returns>The word with its leading run of uppercase letters in lowercase</returns>
+    private static string LowercaseLeadingUppercaseRun(string word)
+    {
+        var runEnd = 0;
+        var letterCount = 0;
+        var lastLetterIndex = -1;
+
+        while (runEnd < word.Length)
+        {
+            if (char.IsUpper(word[runEnd]))
+            {
+                lastLetterIndex = runEnd;
+                letterCount++;
+            }
+            else if (letterCount == 0
+                     || IsCombiningMark(word[runEnd]) == false)
+            {
+                break;
+            }
+
+            runEnd++;
+        }
+
+        var lowercaseEnd = letterCount >= 2
+                           && runEnd < word.Length
+                           && char.IsLower(word[runEnd])
+                               ? lastLetterIndex
+                               : runEnd;
+
+        var builder = new StringBuilder(word.Length);
+
+        for (var index = 0; index < word.Length; index++)
+        {
+            builder.Append(index < lowercaseEnd
+                               ? char.ToLowerInvariant(word[index])
+                               : word[index]);
+        }
+
+        return builder.ToString();
     }
 
     #endregion // Private methods

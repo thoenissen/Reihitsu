@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
+using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -467,6 +468,60 @@ internal static class CasingRenameSafetyUtilities
     }
 
     /// <summary>
+    /// Determines whether the rename writes the new name where it is a keyword: with the verbatim prefix <c>@</c> at the
+    /// declaration or at a reference, or without it where the written text would read it as a keyword
+    /// </summary>
+    /// <param name="originalSolution">Solution before the rename</param>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="identifier">New name</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when a changed document holds more identifiers spelled <c>@</c> and the new name after the rename than before it, or its text reads such an identifier spelled as the new name as a keyword; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The renamer escapes the new name wherever it is a keyword at that position: a reserved keyword everywhere, and a
+    /// contextual keyword only where it is a keyword, such as <c>await</c> inside an async method or a name inside a query
+    /// expression. Where it leaves such a name unescaped, as for <c>await</c> inside an async local function, the renamed
+    /// tree holds an identifier that its own text reads as a keyword when it is parsed again.
+    /// Reading the renamer's result instead of a keyword list decides every such position alike (SHARED-CASING-013)
+    /// </remarks>
+    internal static async Task<bool> WritesNameAsKeywordAsync(Solution originalSolution,
+                                                              Solution renamedSolution,
+                                                              string identifier,
+                                                              CancellationToken cancellationToken)
+    {
+        var verbatimText = "@" + identifier;
+
+        foreach (var documentId in renamedSolution.GetChanges(originalSolution)
+                                                  .GetProjectChanges()
+                                                  .SelectMany(static changes => changes.GetChangedDocuments()))
+        {
+            var originalRoot = await originalSolution.GetDocument(documentId).GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var renamedTree = await renamedSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var renamedRoot = await renamedTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (CountVerbatimIdentifiers(renamedRoot, verbatimText) > CountVerbatimIdentifiers(originalRoot, verbatimText))
+            {
+                return true;
+            }
+
+            var renamedText = await renamedTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var reparsedRoot = await CSharpSyntaxTree.ParseText(renamedText, renamedTree.Options as CSharpParseOptions, renamedTree.FilePath, cancellationToken)
+                                                     .GetRootAsync(cancellationToken)
+                                                     .ConfigureAwait(false);
+
+            // An identifier the renamer wrote as the bare new name has to stay an identifier when its text is read again
+            if (renamedRoot.DescendantTokens()
+                           .Where(token => token.IsKind(SyntaxKind.IdentifierToken)
+                                           && string.Equals(token.Text, identifier, StringComparison.Ordinal))
+                           .Any(token => reparsedRoot.FindToken(token.SpanStart).IsKind(SyntaxKind.IdentifierToken) == false))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether Roslyn attached a conflict annotation to any changed document
     /// </summary>
     /// <param name="originalSolution">Solution before the rename</param>
@@ -493,6 +548,20 @@ internal static class CasingRenameSafetyUtilities
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Counts the identifier tokens of a syntax root that are spelled exactly as the given verbatim text
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="verbatimText">Identifier text with the verbatim prefix</param>
+    /// <returns>The number of such identifier tokens</returns>
+    private static int CountVerbatimIdentifiers(SyntaxNode root, string verbatimText)
+    {
+        return root == null
+                   ? 0
+                   : root.DescendantTokens().Count(token => token.IsKind(SyntaxKind.IdentifierToken)
+                                                            && string.Equals(token.Text, verbatimText, StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -598,11 +667,7 @@ internal static class CasingRenameSafetyUtilities
 
                 foreach (var parameter in record.ParameterList.Parameters)
                 {
-                    flags.Add(recordType != null
-                              && recordType.GetMembers(parameter.Identifier.ValueText)
-                                           .OfType<IPropertySymbol>()
-                                           .Any(property => property.DeclaringSyntaxReferences.Any(reference => reference.SyntaxTree == parameter.SyntaxTree
-                                                                                                                && parameter.Span.Contains(reference.Span))));
+                    flags.Add(RecordPositionalParameterUtilities.GetDeclaredProperty(recordType, parameter) != null);
                 }
             }
         }

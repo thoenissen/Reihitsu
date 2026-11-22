@@ -1051,6 +1051,112 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a combining mark and a letter number are accepted in a PascalCase class name, while a name that starts
+    /// with a lowercase letter is still reported and keeps its combining mark in the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-001")]
+    [Requirement("RH4002-001")]
+    public async Task CombiningMarksAndLetterNumbersAreAcceptedInPascalCase()
+    {
+        const string acute = "\u0301";
+        const string twelve = "\u216B";
+
+        const string testCode = $$"""
+                                  class Cafe{{acute}}
+                                  {
+                                  }
+
+                                  class Class{{twelve}}
+                                  {
+                                  }
+
+                                  class {|RH4002:re{{acute}}sume|}
+                                  {
+                                  }
+                                  """;
+
+        const string fixedCode = $$"""
+                                   class Cafe{{acute}}
+                                   {
+                                   }
+
+                                   class Class{{twelve}}
+                                   {
+                                   }
+
+                                   class Re{{acute}}sume
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that connector punctuation other than <c>_</c>, such as a fullwidth low line or an undertie, is accepted in a
+    /// PascalCase class name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-001")]
+    [Requirement("RH4002-001")]
+    public async Task ConnectorPunctuationOtherThanUnderscoreIsAcceptedInPascalCase()
+    {
+        const string fullwidthLowLine = "\uFF3F";
+        const string undertie = "\u203F";
+
+        const string testCode = $$"""
+                                  class First{{fullwidthLowLine}}Name
+                                  {
+                                  }
+
+                                  class Order{{undertie}}line
+                                  {
+                                  }
+                                  """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a combining mark and connector punctuation other than <c>_</c> in their word, and splits
+    /// words only at <c>_</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4002-002")]
+    public async Task FixKeepsCombiningMarksAndConnectorPunctuationInTheirWord()
+    {
+        const string acute = "\u0301";
+        const string undertie = "\u203F";
+
+        const string testCode = $$"""
+                                  class {|RH4002:cafe{{acute}}_bar|}
+                                  {
+                                  }
+
+                                  class {|RH4002:order{{undertie}}line|}
+                                  {
+                                  }
+                                  """;
+
+        const string fixedCode = $$"""
+                                   class Cafe{{acute}}Bar
+                                   {
+                                   }
+
+                                   class Order{{undertie}}line
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

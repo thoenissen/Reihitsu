@@ -408,13 +408,13 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
     }
 
     /// <summary>
-    /// Verifies that an <c>extern</c> local function declared with <c>DllImport</c> and no entry point keeps its diagnostic but gets no fix, because the runtime looks the native function up by its name
+    /// Verifies that an <c>extern</c> local function whose <c>DllImport</c> attribute names its entry point with <c>nameof</c> of the local function itself keeps its diagnostic but gets no fix, because the rename would change the entry point
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH4104-002")]
     [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedForAnExternLocalFunctionBoundByItsName()
+    public async Task NoFixIsOfferedForAnExternLocalFunctionWhoseEntryPointIsNameofItself()
     {
         const string testCode = """
                                 using System.Runtime.InteropServices;
@@ -425,7 +425,7 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
                                     {
                                         return getpid();
 
-                                        [DllImport("libc")]
+                                        [DllImport("libc", EntryPoint = nameof(getpid))]
                                         static extern int {|RH4104:getpid|}();
                                     }
                                 }
@@ -582,6 +582,65 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
                                          void Dispose()
                                          {
                                          }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>extern</c> local function declared with <c>DllImport</c> and no entry point is not reported, while
+    /// one whose attribute names a literal entry point is reported and renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4104-001")]
+    public async Task AnExternLocalFunctionIsReportedOnlyWhenItsAttributeNamesAnEntryPoint()
+    {
+        const string testCode = """
+                                using System.Runtime.InteropServices;
+
+                                public static class Native
+                                {
+                                    public static int M()
+                                    {
+                                        return getuid();
+
+                                        [DllImport("libc")]
+                                        static extern int getuid();
+                                    }
+
+                                    public static int N()
+                                    {
+                                        return localPid();
+
+                                        [DllImport("libc", EntryPoint = "getpid")]
+                                        static extern int {|RH4104:localPid|}();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.InteropServices;
+
+                                 public static class Native
+                                 {
+                                     public static int M()
+                                     {
+                                         return getuid();
+
+                                         [DllImport("libc")]
+                                         static extern int getuid();
+                                     }
+
+                                     public static int N()
+                                     {
+                                         return LocalPid();
+
+                                         [DllImport("libc", EntryPoint = "getpid")]
+                                         static extern int LocalPid();
                                      }
                                  }
                                  """;
