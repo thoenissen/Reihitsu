@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-SPACE-010, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH5111-004, RH7101-007 |
+| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-SPACE-010, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH2001-009, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH5111-004, RH7101-007 |
 | Depends on | [continuation-indent.md](continuation-indent.md) |
 
 ## What
@@ -714,7 +714,29 @@ Every code fix that lays out a node through the formatter joins these gaps in th
           public string Property { get; set; } = "test";
   ```
 
-- **RH2001, RH7101** (a private auto-property turned into a field; a field split into one field per declaration), whose fixes ask the formatter before they are offered: a comment, a directive, or disabled text in one of the gaps inside the field the RH2001 fix builds, such as `private Counter Value { get; } = new /* three */ Counter();`, or anywhere in the type the RH7101 fix formats, withholds the fix, where `main` offers it. A list of omitted type arguments with a comment does the same for RH7101 ([omitted-type-argument-comment-unsupported.md](omitted-type-argument-comment-unsupported.md)).
+- **RH2001, RH7101** (a private auto-property turned into a field; a field split into one field per declaration), whose fixes ask the formatter before they are offered: a comment, a directive, or disabled text in one of the gaps inside the field the RH2001 fix builds, such as `private Counter Value { get; } = new /* three */ Counter();`, or anywhere in the type the RH7101 fix formats, withholds the fix, where `main` offers it. A list of omitted type arguments with a comment does the same for RH7101 ([omitted-type-argument-comment-unsupported.md](omitted-type-argument-comment-unsupported.md)). For RH2001, this includes a directive between two modifiers that keep their order, and one between the last modifier and the type, which `main` leaves in its place in the field (RH2001-009):
+
+  ```csharp
+  class C
+  {
+      private
+  #pragma warning disable CS0169
+      static int Value { get; }
+  }
+  ```
+
+  Before (`main`):
+
+  ```csharp
+  class C
+  {
+      private
+  #pragma warning disable CS0169
+      static readonly int _value;
+  }
+  ```
+
+  After: reported, and no code fix is offered.
 
 No rule page changes: no rule page shows a gap this change joins or refuses, and rule pages never describe the formatter.
 
