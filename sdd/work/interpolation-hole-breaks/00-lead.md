@@ -68,4 +68,5 @@
 - Round 2: test implementer (24) done, mutation-checked.
 - Round 2: cleaner (25) clean.
 - Round 2: spec checker (26) consistent.
-- Next: auditor (27, delta vs 023c066) → validator. → validator.
+- Audit 27 pass. AUDITED SHA: b2f13f1e01363dcf98e026220120889752694d5d.
+- Next: validator (28) → lane check → issue manager (29) → note, delete sdd/work → trigger → PR. → validator.
