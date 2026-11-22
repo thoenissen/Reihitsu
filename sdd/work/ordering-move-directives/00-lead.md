@@ -34,7 +34,7 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 | 7 | Test implementer (04) | Where the #1668 refusal lives | In `ChangesMemberOrder` (skeptic's recommendation); Core tests `MoveRangeContainsDirectivesReturnsFalseWhen{Crossed,Moved}MemberBodyContainsBalancedConditional` stay `false` | One change serves all four fixes | Internal | – |
 | 8 | Test implementer (04) | No separate SHARED-ORDER-011 matrix for RH7102/RH7109 | Accepted: one shared call site `TypeMemberOrderingCodeFixProviderBase.IsMoveSafe` | Coverage first | Internal | – || 9 | Implementer (06) | RH7309: a group inside a kept block that moved blocks cross refuses the fix | Intended reading: crossed code counts (answer 1668-1 B); spec author adds a sentence to SHARED-ORDER-008 | Answer 1668-1 B names moved or crossed code | Covered by 1668-1 B | – |
 | 10 | Implementer (06) | `SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives` lost its last production caller in this run | Adjacent cleanup in the run: test implementer retargets its tests to `GetPositionSensitiveDirectives`, implementer deletes the method | Dead code the PR introduces; small, same component | Internal | – |
-| 11 | Implementer (06) | Reuse `DirectivePairSplitScan` for pairing | No: different question and ID normalization SHARED-ORDER-011 deliberately does not use | – | Internal | – |
+| 11 | Implementer (06) | Reuse `DirectivePairSplitScan` for pairing | No: different question and ID normalization SHARED-ORDER-011 deliberately does not use | – | Internal | – || 12 | Before auditor | Merge of origin/main 7975188 conflicted only in `sdd/specs/shared/code-fixes.md` (`Uses` row) | Spec author resolved keeping both sides; no cleaner run, since no C# file conflicted; Release build green after merge | Text-only conflict | Spec text only | 87e7b5e |
 
 ## Follow-up candidates
 
@@ -53,4 +53,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Test implementer 09 done (90d4243): 3 RH7309 tests, all pass on head.
 - Implementer 10 done (6acc442).
 - Cleaner 11 done (671fba3): clean.
-- Next: spec checker; then before-auditor steps.
+- Spec checker 12: consistent (c001645). Merge main 87e7b5e, 13-spec-author. Build green.
+- Next: auditor (first audit).
