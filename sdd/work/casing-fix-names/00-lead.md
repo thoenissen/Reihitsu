@@ -73,3 +73,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Repair round 3 (third and last) + structural repair 2: test implementer (finding 5 both sides, finding 7), implementer (decisions 6, 7), cleaner, spec checker, auditor on the repair, validator. A block after this round is resolved by narrowing.
 - Round 3 test implementer done (`a7305e2`, `22-test-implementer.md`): 3 failing (finding 5), 7 passing guards. Next: implementer (decisions 6, 7).
 - Round 3 implementer done (`e1c71ec`, `23-implementer.md`): new internal `RecordPositionalParameterUtilities`; default set green in Debug. Next: cleaner, spec checker, auditor on 8a39005^..HEAD (a85f8e0..HEAD).
+- Round 3 cleaner done (`0a77261`): clean. Next: spec checker.
