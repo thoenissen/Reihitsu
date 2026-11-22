@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-005, FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-003, FMT-STRUCT-030, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH5308-004, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
+| Uses | FMT-PIPE-005, FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-003, FMT-STRUCT-030, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH5308-004, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1351,7 +1351,7 @@ A code fix MUST NOT work out what another build configuration compiles in order 
 
 A fix that reads the text of an excluded branch MUST read it so that the reading can only withhold: what an excluded branch holds never makes the fix offer a change that it would not offer without that branch.
 
-- It reads only what the branch holds whole — whole member declarations, whole statements, whole attribute lists or accessors, or the names in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member that SHARED-ORDER-007 counts or a name that SHARED-FIX-003's RH4106 example looks for.
+- It reads only what the branch holds whole — whole member declarations, whole statements, whole attribute lists or accessors, or the names in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member next to a property that RH2001-010 reads or a name that SHARED-FIX-003's RH4106 example looks for.
 - When its safety would depend on what an excluded branch makes of code outside it — a modifier, a type, an initializer, an accessor, or a body that the branch shares with code outside it, a brace that the branch opens or closes for code outside it, or a conditional group that a branch of another group holds — the fix is withheld.
 
 A fix decides which conditional directives withhold it from where the directives stand in the syntax tree — the token whose leading trivia holds each directive, and the construct that token begins or ends — never from their conditions. A directive whose place that test does not classify withholds the fix.
@@ -1379,7 +1379,7 @@ public class C
 
 is reported, and no code fix is offered: whether `_b` has an initializer depends on the build, and the fix does not work it out, although no build would change here. Without the `#if` group, the fix moves `_c` in front of `_a`.
 
-Example — whole members in an excluded branch, for RH7109: the examples of SHARED-ORDER-007, where the fix counts each member of the branch as present and withholds or offers the move on that count.
+Example — whole members in an excluded branch next to a property, for RH2001: the examples of RH2001-010, where the fix reads each excluded branch as whole members and withholds the fix for a branch that does not read so. The member reordering fixes read no excluded branch: every conditional directive in the moved or the crossed span withholds them (SHARED-ORDER-008).
 
 ### SHARED-FIX-012 — No fix is offered in a document whose text another build compiles as code
 
