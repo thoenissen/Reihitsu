@@ -68,6 +68,18 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                           public int B { get; set; }
                                                       }
 
+                                                      class S
+                                                      {
+                                                          public int Length => 0;
+
+                                                          public object this[int index] => null;
+
+                                                          public object Slice(int start, int length)
+                                                          {
+                                                              return null;
+                                                          }
+                                                      }
+
                                                       class C
                                                       {
                                                           int M(object o)
@@ -77,10 +89,10 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                                   P { A: 1,
                                                                       B: 2 } or Q { A: 1,
                                                                       B: 2 } => 1,
-                                                                  not Q { A: 3,
-                                                                      B: 4 } => 2,
                                                                   null or P { A: 5,
-                                                                      B: 6 } => 3,
+                                                                      B: 6 } => 2,
+                                                                  not Q { A: 3,
+                                                                      B: 4 } => 3,
                                                                   _ => 0
                                                               };
                                                           }
@@ -97,7 +109,7 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                               };
                                                           }
 
-                                                          bool L(object[] a, int[] b)
+                                                          bool L(S a, S b)
                                                           {
                                                               return a is [1, not Q { A: 1,
                                                                   B: 2 }]
@@ -113,27 +125,27 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                           {
                                                               switch (o)
                                                               {
-                                                                  case not Q { A: 1,
+                                                                  case null or P { A: 1,
                                                                   B: 2 }:
                                                                       break;
 
-                                                                  case null or P { A: 1,
+                                                                  case not Q { A: 1,
                                                                   B: 2 }:
                                                                       break;
                                                               }
 
                                                               switch (i)
                                                               {
-                                                                  case not (1 or
-                                                                  2):
-                                                                      break;
-
                                                                   case > 5 and (< 10 or
                                                                   > 20):
                                                                       break;
 
                                                                   case 3 or (4 or
                                                                   5):
+                                                                      break;
+
+                                                                  case not (1 or
+                                                                  2):
                                                                       break;
                                                               }
                                                           }
@@ -159,6 +171,18 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                              public int B { get; set; }
                                                          }
 
+                                                         class S
+                                                         {
+                                                             public int Length => 0;
+
+                                                             public object this[int index] => null;
+
+                                                             public object Slice(int start, int length)
+                                                             {
+                                                                 return null;
+                                                             }
+                                                         }
+
                                                          class C
                                                          {
                                                              int M(object o)
@@ -175,16 +199,16 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                                                 A: 1,
                                                                                 B: 2
                                                                             } => 1,
-                                                                            not Q
-                                                                            {
-                                                                                A: 3,
-                                                                                B: 4
-                                                                            } => 2,
                                                                             null
                                                                             or P
                                                                             {
                                                                                 A: 5,
                                                                                 B: 6
+                                                                            } => 2,
+                                                                            not Q
+                                                                            {
+                                                                                A: 3,
+                                                                                B: 4
                                                                             } => 3,
                                                                             _ => 0
                                                                         };
@@ -204,7 +228,7 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                                         };
                                                              }
 
-                                                             bool L(object[] a, int[] b)
+                                                             bool L(S a, S b)
                                                              {
                                                                  return a is [
                                                                                  1,
@@ -244,14 +268,14 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                              {
                                                                  switch (o)
                                                                  {
-                                                                     case not Q {
+                                                                     case null
+                                                                          or P {
                                                                               A: 1,
                                                                               B: 2
                                                                           }:
                                                                          break;
 
-                                                                     case null
-                                                                          or P {
+                                                                     case not Q {
                                                                               A: 1,
                                                                               B: 2
                                                                           }:
@@ -260,13 +284,6 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
 
                                                                  switch (i)
                                                                  {
-                                                                     case not
-                                                                          (
-                                                                              1
-                                                                              or 2
-                                                                          ):
-                                                                         break;
-
                                                                      case > 5
                                                                           and
                                                                           (
@@ -280,6 +297,13 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                                           (
                                                                               4
                                                                               or 5
+                                                                          ):
+                                                                         break;
+
+                                                                     case not
+                                                                          (
+                                                                              1
+                                                                              or 2
                                                                           ):
                                                                          break;
                                                                  }
@@ -304,7 +328,7 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
         const string input = PropertyType + """
                                             class C
                                             {
-                                                int M(object o)
+                                                int M(P o)
                                                 {
                                                     return o switch
                                                     {
@@ -322,7 +346,7 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                         B: 2 }];
                                                 }
 
-                                                void N(object o)
+                                                void N(P o)
                                                 {
                                                     switch (o)
                                                     {
@@ -347,7 +371,7 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
         const string expected = PropertyType + """
                                                class C
                                                {
-                                                   int M(object o)
+                                                   int M(P o)
                                                    {
                                                        return o switch
                                                               {
@@ -378,7 +402,7 @@ public class PatternAnchorBehindWrapperTests : FormatterTestsBase
                                                                    ];
                                                    }
 
-                                                   void N(object o)
+                                                   void N(P o)
                                                    {
                                                        switch (o)
                                                        {
