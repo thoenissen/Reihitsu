@@ -245,10 +245,8 @@ public static class OrderingDeclarationUtilities
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> decides it. The move
     /// keeps the text in front of the target member, the moved member with its leading trivia, the text from the
     /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
-    /// member in front of the target member's leading trivia. Code that an <c>#if</c> branch excludes in the moved
-    /// member's leading trivia therefore moves with it, and such code from the target member up to the moved member
-    /// is crossed. The move counts as changing the order as well when the moved or crossed span holds a directive of
-    /// a conditional group that does not wrap whole units, and a type that a conditional directive in a declaration
+    /// member in front of the target member's leading trivia. The move counts as changing the order as well when the
+    /// moved or crossed span holds a conditional directive, and a type that a conditional directive in a declaration
     /// of it or in front of the spans may give a layout counts as one whose field order sets its layout
     /// (SHARED-ORDER-008)
     /// </summary>
@@ -266,14 +264,13 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a reorder of the type's body puts two members of the type into the other order where
     /// their order is behavior: two members of one context — both static or both instance — that each have a runtime
     /// initializer (SHARED-ORDER-007), or two instance fields of a type whose field order sets its layout, which the
-    /// type's symbol decides. Members in code that an <c>#if</c> branch excludes count as well, at the position of
-    /// that code, because another build configuration compiles them. The reorder counts as changing the order as
-    /// well when the reordered span holds a directive of a conditional group that does not wrap whole units. A type
-    /// counts as one whose field order sets its layout when a declaration of it, also another declaration of a
-    /// partial type, holds a conditional directive in front of its body, or when the reordered declaration's body
-    /// holds a group in front of the reordered span that does not wrap whole units (SHARED-ORDER-008). The reorder is given
-    /// as the rank, after the reorder, of the part of the body that holds a position; code within one part keeps its
-    /// order
+    /// type's symbol decides. Only the members the analyzed build compiles are counted. The reorder counts as changing
+    /// the order as well when a conditional directive stands in the body where the reorder moves code or moves code
+    /// across it. A type counts as one whose field order sets its layout when a declaration of it, also another
+    /// declaration of a partial type, holds a conditional directive in front of its body or in front of it, unless
+    /// that directive's group wraps the whole declaration, or when the reordered declaration's body holds a
+    /// conditional directive in front of the code the reorder moves (SHARED-ORDER-008). The reorder is given as the
+    /// rank, after the reorder, of the part of the body that holds a position; code within one part keeps its order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="typeSymbol">Symbol of the type, which decides whether the order of its instance fields sets its layout</param>
@@ -286,7 +283,7 @@ public static class OrderingDeclarationUtilities
 
     /// <summary>
     /// Determines whether every conditional group with a directive in the token's leading trivia wraps whole members
-    /// of the type body that holds the token (<see cref="ConditionalGroupUnitUtilities.WrapsWholeUnitsOf"/>), with no other conditional group
+    /// of the type body that holds the token (<see cref="ConditionalGroupUnitUtilities.WrapsWholeMembers"/>), with no other conditional group
     /// inside it (RH2001-010). A group that lies inside a branch of another group is decided by its own branches. The
     /// active branch is not read, and no condition is evaluated
     /// </summary>
@@ -301,7 +298,7 @@ public static class OrderingDeclarationUtilities
                     .OfType<DirectiveTriviaSyntax>()
                     .Where(ConditionalGroupUnitUtilities.IsConditionalDirective)
                     .All(directive => typeDeclaration != null
-                                      && ConditionalGroupUnitUtilities.WrapsWholeUnitsOf(directive.GetRelatedDirectives(), (typeDeclaration, false), true, out _));
+                                      && ConditionalGroupUnitUtilities.WrapsWholeMembers(directive.GetRelatedDirectives(), typeDeclaration));
     }
 
     /// <summary>
@@ -312,15 +309,16 @@ public static class OrderingDeclarationUtilities
     /// context that also carries an initializer can silently change observable values. The members are ranked as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
     /// ranks them, without the layout check that the type's symbol decides. The layout check still applies to a type
-    /// whose declaration holds a conditional directive in front of its body (<see cref="DeclarationHoldsConditionalDirective"/>),
-    /// or whose body holds a group in front of the spans that does not wrap whole units, so the move of an instance
-    /// field in such a type counts as changed as well. No code fix asks this question:
+    /// whose declaration holds a conditional directive in front of its body or in front of it
+    /// (<see cref="DeclarationHoldsConditionalDirective"/>), or whose body holds a conditional directive in front of the
+    /// spans, so the move of an instance field in such a type counts as changed as well, and a conditional directive in
+    /// the spans counts as a change. No code fix asks this question:
     /// a code fix asks <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, MemberDeclarationSyntax, MemberDeclarationSyntax)"/>
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive or whose body holds a group in front of the spans that does not wrap whole units</returns>
+    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive or whose body holds one in front of the spans, or if the spans hold a conditional directive</returns>
     internal static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
@@ -377,11 +375,11 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a reorder of the type's body puts two members of the type into the other order where
     /// their order is behavior, as
     /// <see cref="ChangesMemberOrder(TypeDeclarationSyntax, INamedTypeSymbol, Func{int, int})"/> describes, with the
-    /// layout check given as a flag. The reorder counts as changed as well when the reordered span holds a directive
-    /// of a conditional group that does not wrap whole units (<see cref="ConditionalGroupUnitUtilities.WrapsWholeUnits"/>, SHARED-ORDER-008). The
-    /// type counts as one whose field order sets its layout when its declaration holds a conditional directive in
-    /// front of its body (<see cref="DeclarationHoldsConditionalDirective"/>), or when its body holds a directive of
-    /// a group that does not wrap whole units in front of the reordered span; a group behind it is not read
+    /// layout check given as a flag. The reorder counts as changed as well when a conditional directive stands at a
+    /// position of the body that the reorder moves or moves code across (<see cref="GetCrossedPositions"/>,
+    /// SHARED-ORDER-008). The type counts as one whose field order sets its layout when its declaration holds a
+    /// conditional directive in front of its body or in front of it (<see cref="DeclarationHoldsConditionalDirective"/>),
+    /// or when its body holds a conditional directive in front of the first such position; one behind them is not read
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
@@ -389,35 +387,23 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if the reorder changes initializer execution order or the layout</returns>
     private static bool ChangesMemberOrder(TypeDeclarationSyntax typeDeclaration, bool fieldOrderSetsLayout, Func<int, int> getNewRank)
     {
-        var reorderedSpan = GetReorderedSpan(typeDeclaration, getNewRank);
+        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
+        var isCrossed = GetCrossedPositions(typeDeclaration, getNewRank);
+        var directiveOffsets = ConditionalGroupUnitUtilities.GetConditionalDirectives(typeDeclaration, new TextSpan(bodyStart, isCrossed.Length))
+                                                            .Select(directive => directive.SpanStart - bodyStart)
+                                                            .ToList();
 
-        IEnumerable<IReadOnlyList<DirectiveTriviaSyntax>> GetGroups(TextSpan span)
-        {
-            return typeDeclaration.DescendantTrivia(span)
-                                  .Where(trivia => span.Contains(trivia.SpanStart))
-                                  .Select(trivia => trivia.GetStructure())
-                                  .OfType<DirectiveTriviaSyntax>()
-                                  .Where(ConditionalGroupUnitUtilities.IsConditionalDirective)
-                                  .Select(directive => directive.GetRelatedDirectives())
-                                  .GroupBy(group => group[0].SpanStart, (_, sameGroups) => sameGroups.First());
-        }
-
-        if (GetGroups(reorderedSpan).Any(group => ConditionalGroupUnitUtilities.WrapsWholeUnits(typeDeclaration, group) == false))
+        if (directiveOffsets.Any(offset => isCrossed[offset]))
         {
             return true;
         }
 
-        var members = typeDeclaration.Members
-                                     .Select(member => (Position: member.SpanStart, Member: member))
-                                     .Concat(GetMembersOfDisabledText(typeDeclaration))
-                                     .ToList();
-
         bool ChangesOrder(Func<MemberDeclarationSyntax, bool> isOrdered)
         {
-            var writtenOrder = members.Where(member => isOrdered(member.Member))
-                                      .Select(member => member.Position)
-                                      .OrderBy(position => position)
-                                      .ToList();
+            var writtenOrder = typeDeclaration.Members
+                                              .Where(isOrdered)
+                                              .Select(member => member.SpanStart)
+                                              .ToList();
             var newOrder = writtenOrder.OrderBy(getNewRank)
                                        .ThenBy(position => position);
 
@@ -429,7 +415,7 @@ public static class OrderingDeclarationUtilities
                || (ChangesOrder(IsLayoutField)
                    && (fieldOrderSetsLayout
                        || DeclarationHoldsConditionalDirective(typeDeclaration)
-                       || GetGroups(TextSpan.FromBounds(typeDeclaration.OpenBraceToken.Span.End, reorderedSpan.Start)).Any(group => ConditionalGroupUnitUtilities.WrapsWholeUnits(typeDeclaration, group) == false)));
+                       || directiveOffsets.Any(offset => offset < Array.IndexOf(isCrossed, true))));
     }
 
     /// <summary>
@@ -537,78 +523,37 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the members declared in code that an <c>#if</c> branch excludes in the type's body, outside every member,
-    /// with the position of that code
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>The members of the excluded code</returns>
-    private static IEnumerable<(int Position, MemberDeclarationSyntax Member)> GetMembersOfDisabledText(TypeDeclarationSyntax typeDeclaration)
-    {
-        var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
-        var bodyEnd = typeDeclaration.CloseBraceToken.SpanStart;
-        var options = typeDeclaration.SyntaxTree.Options as CSharpParseOptions;
-
-        foreach (var trivia in typeDeclaration.DescendantTrivia())
-        {
-            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia) == false
-                || trivia.SpanStart < bodyStart
-                || trivia.SpanStart >= bodyEnd
-                || typeDeclaration.Members.Any(member => member.Span.Contains(trivia.SpanStart)))
-            {
-                continue;
-            }
-
-            var parsedType = ConditionalGroupUnitUtilities.ParseInTypeBody(trivia.ToFullString(), options)
-                                                          .Members
-                                                          .OfType<TypeDeclarationSyntax>()
-                                                          .FirstOrDefault();
-
-            if (parsedType == null)
-            {
-                continue;
-            }
-
-            foreach (var member in parsedType.Members)
-            {
-                yield return (trivia.SpanStart, member);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets the span of the type's body whose order the reorder changes: from the first position that a later
-    /// position goes in front of, up to the last position that goes in front of an earlier one. It covers the moved
-    /// and the crossed span (SHARED-ORDER-003)
+    /// Gets, for each position of the type's body from its opening brace up to its closing brace, whether the reorder
+    /// moves code across it or moves it across other code: an earlier position goes behind it, or a later position
+    /// goes in front of it. These positions are the moved and the crossed span (SHARED-ORDER-003); for a reorder of
+    /// region blocks, the blocks whose place changes, the blocks they cross, and the code between blocks they cross
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="getNewRank">Rank after the reorder of the part of the body that holds a position</param>
-    /// <returns>The reordered span; empty when the reorder changes nothing</returns>
-    private static TextSpan GetReorderedSpan(TypeDeclarationSyntax typeDeclaration, Func<int, int> getNewRank)
+    /// <returns>For each position of the body, counted from the end of the opening brace, whether it lies in the moved or the crossed span</returns>
+    private static bool[] GetCrossedPositions(TypeDeclarationSyntax typeDeclaration, Func<int, int> getNewRank)
     {
         var bodyStart = typeDeclaration.OpenBraceToken.Span.End;
         var ranks = Enumerable.Range(bodyStart, Math.Max(0, typeDeclaration.CloseBraceToken.SpanStart - bodyStart))
                               .Select(getNewRank)
                               .ToList();
-        var first = -1;
-        var last = -1;
+        var isCrossed = new bool[ranks.Count];
         var maximum = int.MinValue;
         var minimum = int.MaxValue;
 
         for (var index = 0; index < ranks.Count; index++)
         {
-            last = ranks[index] < maximum ? index : last;
+            isCrossed[index] = ranks[index] < maximum;
             maximum = Math.Max(maximum, ranks[index]);
         }
 
         for (var index = ranks.Count - 1; index >= 0; index--)
         {
-            first = ranks[index] > minimum ? index : first;
+            isCrossed[index] |= ranks[index] > minimum;
             minimum = Math.Min(minimum, ranks[index]);
         }
 
-        return first < 0
-                   ? new TextSpan(bodyStart, 0)
-                   : TextSpan.FromBounds(bodyStart + first, bodyStart + last + 1);
+        return isCrossed;
     }
 
     /// <summary>
@@ -628,14 +573,12 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether a declaration of the type holds a conditional directive in front of its body
-    /// (SHARED-ORDER-008), which can make the type's layout depend on the build, so that the type counts as one whose
+    /// Determines whether a declaration of the type holds a conditional directive in front of its body or in front of
+    /// it (SHARED-ORDER-008), which can make the type's layout depend on the build, so that the type counts as one whose
     /// field order sets its layout: one in the leading trivia of a token behind the declaration's first token, up to
     /// and including the opening brace, or, for a declaration that ends in <c>;</c> instead of a body, up to and
-    /// including that <c>;</c>, or one in the leading trivia of the first token whose group does not wrap
-    /// whole members in every excluded branch, read without the nesting check (<see cref="ConditionalGroupUnitUtilities.WrapsWholeUnitsOf"/>), or
-    /// whose excluded branch declares another declaration of the type with an attribute list
-    /// (<see cref="DeclaresTypeWithAttributes"/>)
+    /// including that <c>;</c>, or one in the leading trivia of the first token, unless its group wraps the whole
+    /// declaration (<see cref="WrapsWholeDeclaration"/>). No excluded branch is read
     /// </summary>
     /// <param name="typeDeclaration">Declaration of the type</param>
     /// <returns><see langword="true"/> if the declaration holds such a directive</returns>
@@ -652,28 +595,27 @@ public static class OrderingDeclarationUtilities
                               .Any(entry => entry.Directive != null
                                             && ConditionalGroupUnitUtilities.IsConditionalDirective(entry.Directive)
                                             && (entry.Token != firstToken
-                                                || ConditionalGroupUnitUtilities.WrapsWholeUnitsOf(entry.Directive.GetRelatedDirectives(), (typeDeclaration, false), false, out var branches) == false
-                                                || branches.Any(units => DeclaresTypeWithAttributes(units, typeDeclaration))));
+                                                || WrapsWholeDeclaration(entry.Directive, typeDeclaration) == false));
     }
 
     /// <summary>
-    /// Determines whether the parsed units of an excluded branch declare, at their outermost level, another
-    /// declaration of the type that carries an attribute list: a type declaration with the type's name, its number
-    /// of type parameters, and the <c>partial</c> modifier (SHARED-ORDER-008)
+    /// Determines whether the group of a conditional directive wraps the whole declaration (SHARED-ORDER-008): it is an
+    /// <c>#if</c> and its <c>#endif</c> with no <c>#elif</c> and no <c>#else</c>, the <c>#if</c> stands in the leading
+    /// trivia of the declaration's first token, and the <c>#endif</c> in the leading trivia of the token behind the
+    /// declaration's last token, also the end of the file. A build then compiles the declaration as written or not at all
     /// </summary>
-    /// <param name="units">The node that holds the parsed units of the branch</param>
+    /// <param name="directive">Conditional directive</param>
     /// <param name="typeDeclaration">Declaration of the type</param>
-    /// <returns><see langword="true"/> if the branch declares such a declaration</returns>
-    private static bool DeclaresTypeWithAttributes(SyntaxNode units, TypeDeclarationSyntax typeDeclaration)
+    /// <returns><see langword="true"/> if the directive's group wraps the whole declaration</returns>
+    private static bool WrapsWholeDeclaration(DirectiveTriviaSyntax directive, TypeDeclarationSyntax typeDeclaration)
     {
-        var arity = typeDeclaration.TypeParameterList?.Parameters.Count ?? 0;
+        var group = directive.GetRelatedDirectives();
 
-        return units.ChildNodes()
-                    .OfType<TypeDeclarationSyntax>()
-                    .Any(declaration => declaration.AttributeLists.Count > 0
-                                        && declaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-                                        && declaration.Identifier.ValueText == typeDeclaration.Identifier.ValueText
-                                        && (declaration.TypeParameterList?.Parameters.Count ?? 0) == arity);
+        return group.Count == 2
+               && group[0] is IfDirectiveTriviaSyntax
+               && group[1] is EndIfDirectiveTriviaSyntax
+               && group[0].ParentTrivia.Token == typeDeclaration.GetFirstToken()
+               && group[1].ParentTrivia.Token == typeDeclaration.GetLastToken().GetNextToken(includeZeroWidth: true);
     }
 
     #endregion // Methods

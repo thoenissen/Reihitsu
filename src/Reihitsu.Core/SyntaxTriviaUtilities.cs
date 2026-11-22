@@ -445,11 +445,24 @@ public static class SyntaxTriviaUtilities
             return true;
         }
 
+        return GetPositionSensitiveDirectives(root, span).Any();
+    }
+
+    /// <summary>
+    /// Gets the preprocessor directives that start inside the specified span and whose effect is bound to where they
+    /// sit, as <see cref="ContainsPositionSensitiveDirectives"/> counts them: every directive that is neither a
+    /// region nor a conditional directive, a malformed one included
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>The position sensitive directives, in the order of the text</returns>
+    public static IEnumerable<SyntaxTrivia> GetPositionSensitiveDirectives(SyntaxNode root, TextSpan span)
+    {
         return root.DescendantTrivia(span, descendIntoTrivia: true)
-                   .Any(trivia => span.Contains(trivia.SpanStart)
-                                  && trivia.IsDirective
-                                  && IsRegionDirective(trivia) == false
-                                  && IsConditionalDirective(trivia) == false);
+                   .Where(trivia => span.Contains(trivia.SpanStart)
+                                    && trivia.IsDirective
+                                    && IsRegionDirective(trivia) == false
+                                    && IsConditionalDirective(trivia) == false);
     }
 
     /// <summary>
