@@ -78,3 +78,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Round 3 spec checker (`323123c`, `25-spec-checker.md`): one low finding (decision 9). Next: spec author, spec checker, auditor on a85f8e0..HEAD.
 - Round 3 spec author done (`f143857`): type listed as SHARED-CASING owner. Next: spec checker, auditor.
 - Round 3 spec checker re-check done (`033d24b`): consistent. Build green. Next: auditor on a85f8e0..HEAD.
+- Audit 4 done (`c487ffd`, `28-auditor.md`): PASS for all four issues. Audited SHA e63741f8e577c9029fa0e188ccaaaddbff0c5d46. Next: validator, then publish (lane check, issue manager for RH4120, note, delete sdd/work, trigger commit, PR body).
