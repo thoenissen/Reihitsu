@@ -492,10 +492,12 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted above a multi-line comment glued to the closing bracket of a list pattern
+    /// Verifies that no blank line is inserted above a multi-line comment glued to the closing bracket of a list pattern, and
+    /// that the comment's first line takes the column of the pattern's elements while its other line stays where it is
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
+    [Requirement("FMT-INDENT-006")]
     public void InsertsNoBlankLineAboveMultiLineCommentGluedToListPatternBracket()
     {
         const string input = """
@@ -510,16 +512,29 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    bool M(int[] a)
+                                    {
+                                        return a is [
+                                                        1
+                                                        /* y
+                                                    */ ];
+                                    }
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
     /// Verifies that the author's blank line above a multi-line comment glued to the closing bracket of a list pattern is
-    /// removed
+    /// removed, and that the comment's first line takes the column of the pattern's elements
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesAuthorBlankLineAboveMultiLineCommentGluedToListPatternBracket()
     {
         const string input = """
@@ -542,7 +557,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                     {
                                         return a is [
                                                         1
-                                                    /* y
+                                                        /* y
                                                     */ ];
                                     }
                                 }
