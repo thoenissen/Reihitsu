@@ -25,7 +25,7 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Start | Split the batch (escalation 8)? #1434 changes reporting, the others the fix's name derivation, and #1434 names six rules. | Keep one run. | All four sit in the shared casing component: the rules all derive from `CasingAnalyzerBase`, the fixes share `CasingUtilities`, and all change `sdd/specs/shared/casing.md`. The maintainer composed the batch. | Process only. | claim |
-| 2 | Implementer | Disputed test `RH4106…FixAllSkipsAFieldWithALeadingAcronymThatCollidesWithAnotherField`: the framework demands no Fix All action when Fix All changes nothing. | Test implementer adds a non-colliding field so Fix All changes something; the asserted skip of both colliding fields stays. | The asserted output (both colliding fields skipped, SHARED-CASING-010) is unchanged; only the test shape changes. Offering no Fix All action broke 7 RH4115 tests. | SHARED-CASING-010 decides the output; nothing visible changes. | (test repair) |
+| 2 | Implementer | Disputed test `RH4106…FixAllSkipsAFieldWithALeadingAcronymThatCollidesWithAnotherField`: the framework demands no Fix All action when Fix All changes nothing. | Test implementer adds a non-colliding field so Fix All changes something; the asserted skip of both colliding fields stays. | The asserted output (both colliding fields skipped, SHARED-CASING-010) is unchanged; only the test shape changes. Offering no Fix All action broke 7 RH4115 tests. | SHARED-CASING-010 decides the output; nothing visible changes. | 4022a0c |
 
 ## Follow-up candidates
 
@@ -45,4 +45,5 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Answers received (all A). Spec author follow-up done (`f1a2cff`, `03-spec-author.md`): answers recorded, change docs Accepted, SHARED-CASING-006/014 amended for Q10–Q12.
 - Test implementer done (`e33eea6`, `d76fdcb`, `04-test-implementer.md`): 58 analyzer + 39 core tests fail on unchanged code, exactly the new/rewritten ones; architecture green.
 - Implementer done (`bc565c2`, `05-implementer.md`): all tests pass but one disputed (decision 2). Full suites green otherwise; self-hosting scan not run.
-- Next: test implementer repair (decision 2), then cleaner.
+- Test repair done (`4022a0c`, `06-test-implementer.md`): disputed test passes.
+- Next: cleaner.
