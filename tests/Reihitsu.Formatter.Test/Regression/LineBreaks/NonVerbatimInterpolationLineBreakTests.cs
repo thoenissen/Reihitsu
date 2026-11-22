@@ -913,6 +913,20 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an <c>if</c> statement in a non-verbatim interpolated string nested in an interpolation of a verbatim one
+    /// still gets its braces on the line of the interpolation under C# 10 when only the verbatim interpolation holds a
+    /// delimited documentation comment, outside the non-verbatim string
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void IfStatementInNonVerbatimStringNestedInVerbatimInterpolationGetsBracesWhenOnlyTheVerbatimInterpolationHoldsDocumentationCommentInCSharp10()
+    {
+        AssertResult("var s = $@\"a {$\"x {F(() => { if (b) return 1; return 2; })}\" /** d */} b\";",
+                     "var s = $@\"a {$\"x {F(() => { if (b) {return 1; }return 2; })}\" /** d */} b\";",
+                     "bool b");
+    }
+
+    /// <summary>
     /// Verifies that nested <c>if</c> bodies in an interpolation that holds no documentation comment still get their braces
     /// on the line of the interpolation under C# 10
     /// </summary>
