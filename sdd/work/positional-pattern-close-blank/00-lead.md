@@ -38,4 +38,5 @@
 - Done: test implementer (04, f651f95/b65151b): 14 formatter + 2 RH3202 runs fail as intended, 4 pin unchanged behavior.
 - Done: implementer (05, 3a0c01e/215e75d): all tests pass.
 - Done: cleaner (06, e39b1b9): clean.
-- Next: spec checker (07).
+- Done: spec checker (07, bfee443): consistent.
+- Next: auditor (08).
