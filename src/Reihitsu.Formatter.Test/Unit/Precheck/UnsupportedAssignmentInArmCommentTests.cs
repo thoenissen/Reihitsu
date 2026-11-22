@@ -58,14 +58,22 @@ public class UnsupportedAssignmentInArmCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the specification example of the other side: a comment behind an assignment operator in a statement and in a
-    /// collection element, a comment in front of the operator, and one inside the value of an anonymous-object member do not
-    /// refuse the input
+    /// collection element, a comment in front of the operator, one inside the value of an anonymous-object member, and one behind
+    /// the <c>=</c> of an object-initializer, a <c>with</c>-initializer, and an index-initializer member outside an arm and a
+    /// member do not refuse the input
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-019")]
     public void SpecExampleCommentsOutsideTheShapeAreSupported()
     {
         const string input = """
+                             using System.Collections.Generic;
+
+                             record R
+                             {
+                                 public int A { get; set; }
+                             }
+
                              class C
                              {
                                  object M(int x, int y)
@@ -81,8 +89,11 @@ public class UnsupportedAssignmentInArmCommentTests : FormatterTestsBase
                                                  A = x /* c3 */ += 3,
                                                  B = x += M2(/* c4 */ 1)
                                              };
+                                     var o = new R { A = /* c5 */ 3 };
+                                     var p = o with { A = /* c6 */ 4 };
+                                     var d = new Dictionary<int, int> { [0] = /* c7 */ 1 };
 
-                                     return z.Length + w.A;
+                                     return z.Length + w.A + p.A + d.Count;
                                  }
 
                                  int M2(int v)
@@ -93,6 +104,82 @@ public class UnsupportedAssignmentInArmCommentTests : FormatterTestsBase
                              """;
 
         AssertSupported(input);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the members of an object initializer, of a <c>with</c> initializer, and of an index
+    /// initializer are assignments, so a comment behind their <c>=</c> inside an anonymous-object member or a switch arm refuses
+    /// the input, which is returned unchanged, and the first comment, which starts in line 14, column 38, is reported
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-019")]
+    public void SpecExampleInitializerMembersInsideAnArmOrAMemberAreUnsupported()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             record R
+                             {
+                                 public int A { get; set; }
+                             }
+
+                             class C
+                             {
+                                 object M(int y, R r)
+                                 {
+                                     var w = new
+                                             {
+                                                 B = r with { A = /* c1 */ 3 }
+                                             };
+
+                                     return y switch
+                                            {
+                                                1 => new R { A = /* c2 */ 3 },
+                                                2 => new Dictionary<int, int> { [0] = /* c3 */ 1 },
+                                                _ => w,
+                                            };
+                                 }
+                             }
+                             """;
+
+        AssertUnsupportedFor(AssignmentInArmCommentReason, input, "/* c1 */");
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        Assert.AreEqual(new LinePosition(13, 37), ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Unsupported.Location.GetLineSpan().StartLinePosition);
+    }
+
+    /// <summary>
+    /// Verifies that each member of an object initializer, of a <c>with</c> initializer, and of an index initializer refuses the
+    /// input on its own, inside a switch arm and inside an anonymous-object member
+    /// </summary>
+    /// <param name="statement">The statement that holds the initializer</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-019")]
+    [DataRow("        var q = y switch\n                {\n                    1 => new R { A = /* c */ 3 },\n                    _ => null,\n                };", DisplayName = "Object-initializer member in an arm")]
+    [DataRow("        var q = y switch\n                {\n                    1 => r with { A = /* c */ 3 },\n                    _ => null,\n                };", DisplayName = "With-initializer member in an arm")]
+    [DataRow("        var q = y switch\n                {\n                    1 => new Dictionary<int, int> { [0] = /* c */ 1 },\n                    _ => null,\n                };", DisplayName = "Index-initializer member in an arm")]
+    [DataRow("        var q = new { B = new R { A = /* c */ 3 } };", DisplayName = "Object-initializer member in an anonymous-object member")]
+    [DataRow("        var q = new { B = r with { A = /* c */ 3 } };", DisplayName = "With-initializer member in an anonymous-object member")]
+    [DataRow("        var q = new { B = new Dictionary<int, int> { [0] = /* c */ 1 } };", DisplayName = "Index-initializer member in an anonymous-object member")]
+    public void EachInitializerMemberInsideAnArmOrAMemberIsUnsupported(string statement)
+    {
+        AssertUnsupportedFor(AssignmentInArmCommentReason, WrapInMethodWithInitializers(statement), "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies the other side: the same initializer members outside a switch arm and an anonymous-object member do not refuse
+    /// the input
+    /// </summary>
+    /// <param name="statement">The statement that holds the initializer</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-019")]
+    [DataRow("        var q = new R { A = /* c */ 3 };", DisplayName = "Object-initializer member in a declaration")]
+    [DataRow("        var q = r with { A = /* c */ 3 };", DisplayName = "With-initializer member in a declaration")]
+    [DataRow("        var q = new Dictionary<int, int> { [0] = /* c */ 1 };", DisplayName = "Index-initializer member in a declaration")]
+    public void InitializerMemberOutsideAnArmOrAMemberIsSupported(string statement)
+    {
+        AssertSupported(WrapInMethodWithInitializers(statement));
     }
 
     /// <summary>
@@ -216,6 +303,17 @@ public class UnsupportedAssignmentInArmCommentTests : FormatterTestsBase
     private static string WrapInMethod(string statements)
     {
         return $"class C\n{{\n    object M(int x, int y, object o)\n    {{\n{statements}\n\n        return null;\n    }}\n\n    int M2(int v)\n    {{\n        return v;\n    }}\n}}";
+    }
+
+    /// <summary>
+    /// Wraps statements in a method of a class, with a record <c>R</c>, a parameter <c>r</c> of that type, and the namespace of
+    /// <c>Dictionary</c>, which the initializers use
+    /// </summary>
+    /// <param name="statements">The statements, indented by eight spaces</param>
+    /// <returns>The source text</returns>
+    private static string WrapInMethodWithInitializers(string statements)
+    {
+        return $"using System.Collections.Generic;\n\nrecord R\n{{\n    public int A {{ get; set; }}\n}}\n\nclass C\n{{\n    object M(int y, R r)\n    {{\n{statements}\n\n        return q;\n    }}\n}}";
     }
 
     #endregion // Methods

@@ -970,6 +970,43 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a <c>not</c> pattern target that a <c>case</c> label introduces joins the brace of its multi-line property
+    /// pattern onto the <c>not</c>, as document-level formatting does: the target has no parent in the tree the phases receive,
+    /// so the case-label pattern fact the entry point captures from the document decides that FMT-BREAK-022 leaves the brace in
+    /// place, and FMT-BREAK-041 joins it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BREAK-041")]
+    public async Task CaseLabelNotPatternTargetJoinsTheBraceOfItsPropertyPatternOntoNot()
+    {
+        const string input = "class P\n{\n    public int A { get; set; }\n}\n\nclass C\n{\n    void M(object o)\n    {\n        switch (o)\n        {\n            case not\n            {\n                A: 1\n            }:\n                break;\n        }\n    }\n}";
+        const string expected = "class P\n{\n    public int A { get; set; }\n}\n\nclass C\n{\n    void M(object o)\n    {\n        switch (o)\n        {\n            case not {\n                         A: 1\n                     }:\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<UnaryPatternSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the counterpart with the brace written behind the <c>not</c>: a <c>not</c> pattern target that a <c>case</c>
+    /// label introduces keeps the brace on the <c>not</c>'s line and lays out the property pattern as document-level formatting
+    /// does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-024")]
+    [Requirement("FMT-BREAK-022")]
+    public async Task CaseLabelNotPatternTargetKeepsTheBraceWrittenBehindNot()
+    {
+        const string input = "class P\n{\n    public int A { get; set; }\n}\n\nclass C\n{\n    void M(object o)\n    {\n        switch (o)\n        {\n            case not {\n            A: 1\n            }:\n                break;\n        }\n    }\n}";
+        const string expected = "class P\n{\n    public int A { get; set; }\n}\n\nclass C\n{\n    void M(object o)\n    {\n        switch (o)\n        {\n            case not {\n                         A: 1\n                     }:\n                break;\n        }\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<UnaryPatternSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>

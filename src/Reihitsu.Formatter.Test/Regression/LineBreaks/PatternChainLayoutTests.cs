@@ -412,5 +412,161 @@ public class PatternChainLayoutTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the specification example: in a <c>case</c> label, the brace of a multi-line property pattern without a type
+    /// that stands on the line behind its combinator joins the combinator, because FMT-BREAK-022 leaves it on the line it is
+    /// written on there, while behind <c>is</c> the brace keeps its own line below the combinator
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-017")]
+    public void SpecExampleBraceOfAPropertyPatternInACaseLabelJoinsItsCombinator()
+    {
+        // Arrange
+        const string input = """
+                             class P
+                             {
+                                 public int A { get; set; }
+                             }
+
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case P and
+                                         {
+                                         A: 1
+                                         }:
+                                             break;
+
+                                         case 1 or
+                                         {
+                                         A: 2
+                                         }:
+                                             break;
+                                     }
+
+                                     return o is P and
+                                     {
+                                     A: 3
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    bool M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case P
+                                                 and {
+                                                         A: 1
+                                                     }:
+                                                break;
+
+                                            case 1
+                                                 or {
+                                                        A: 2
+                                                    }:
+                                                break;
+                                        }
+
+                                        return o is P
+                                                 and
+                                                 {
+                                                     A: 3
+                                                 };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example's statement that the same input with each brace written behind its combinator gives
+    /// the same output: one tree has one layout, wherever the author broke the line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-017")]
+    public void SpecExampleBraceWrittenBehindItsCombinatorGivesTheSameOutput()
+    {
+        // Arrange
+        const string input = """
+                             class P
+                             {
+                                 public int A { get; set; }
+                             }
+
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case P and {
+                                         A: 1
+                                         }:
+                                             break;
+
+                                         case 1 or {
+                                         A: 2
+                                         }:
+                                             break;
+                                     }
+
+                                     return o is P and {
+                                     A: 3
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    bool M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case P
+                                                 and {
+                                                         A: 1
+                                                     }:
+                                                break;
+
+                                            case 1
+                                                 or {
+                                                        A: 2
+                                                    }:
+                                                break;
+                                        }
+
+                                        return o is P
+                                                 and
+                                                 {
+                                                     A: 3
+                                                 };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

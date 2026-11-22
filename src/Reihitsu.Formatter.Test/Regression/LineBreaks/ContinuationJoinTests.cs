@@ -691,6 +691,234 @@ public class ContinuationJoinTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example: behind the <c>not</c> of a pattern a <c>case</c> label introduces, directly or behind
+    /// a combinator, the brace of a multi-line property pattern without a type joins the <c>not</c>, because FMT-BREAK-022 leaves
+    /// it on the line it is written on there, while behind <c>is not</c> the brace keeps its own line below the <c>not</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-041")]
+    public void SpecExampleBraceOfAPropertyPatternBehindNotInACaseLabelJoinsTheNot()
+    {
+        // Arrange
+        const string input = """
+                             class P
+                             {
+                                 public int A { get; set; }
+                             }
+
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case not
+                                         {
+                                         A: 1
+                                         }:
+                                             break;
+
+                                         case 1 or not
+                                         {
+                                         A: 2
+                                         }:
+                                             break;
+                                     }
+
+                                     return o is not
+                                     {
+                                     A: 3
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    bool M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case not {
+                                                         A: 1
+                                                     }:
+                                                break;
+
+                                            case 1
+                                                 or not {
+                                                            A: 2
+                                                        }:
+                                                break;
+                                        }
+
+                                        return o is not
+                                                 {
+                                                     A: 3
+                                                 };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example's statement that the same input with each brace written behind its <c>not</c> gives
+    /// the same output: one tree has one layout, wherever the author broke the line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-041")]
+    public void SpecExampleBraceWrittenBehindNotGivesTheSameOutput()
+    {
+        // Arrange
+        const string input = """
+                             class P
+                             {
+                                 public int A { get; set; }
+                             }
+
+                             class C
+                             {
+                                 bool M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case not {
+                                         A: 1
+                                         }:
+                                             break;
+
+                                         case 1 or not {
+                                         A: 2
+                                         }:
+                                             break;
+                                     }
+
+                                     return o is not {
+                                     A: 3
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    bool M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case not {
+                                                         A: 1
+                                                     }:
+                                                break;
+
+                                            case 1
+                                                 or not {
+                                                            A: 2
+                                                        }:
+                                                break;
+                                        }
+
+                                        return o is not
+                                                 {
+                                                     A: 3
+                                                 };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the case-label condition with the line break behind the <c>not</c>: the pattern behind the
+    /// <c>is</c> of a <c>when</c> clause and a subpattern are not introduced by the <c>case</c> label, so the brace of their
+    /// multi-line property pattern keeps its own line below the <c>not</c>, as when it is written behind the <c>not</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-041")]
+    [Requirement("FMT-BREAK-022")]
+    public void BraceBehindNotOfAPatternTheCaseLabelDoesNotIntroduceKeepsItsOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class P
+                             {
+                                 public int A { get; set; }
+
+                                 public P B { get; set; }
+                             }
+
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case P p when p.B is not
+                                         {
+                                         A: 3
+                                         }:
+                                             break;
+
+                                         case P { B: not
+                                         {
+                                         A: 4
+                                         } }:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public int A { get; set; }
+
+                                    public P B { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case P p when p.B is not
+                                                              {
+                                                                  A: 3
+                                                              }:
+                                                break;
+
+                                            case P {
+                                                     B: not
+                                                     {
+                                                         A: 4
+                                                     }
+                                                 }:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Wraps statements in an async method of a class, with the parameters the statements use
     /// </summary>
     /// <param name="statements">The statements, indented by eight spaces</param>
