@@ -62,3 +62,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Round 2 spec checker done (`73fc031`): consistent. Next: auditor on the repair (396887f..HEAD).
 - Audit 2 done (`f1f2644`, `16-auditor.md`, audited c94249b): findings 1 and 2 closed; finding 3 (high, repeats 1 → architecture finding, decision 4); finding 4 (comment, decision 5). Hint (not a finding): explicit interface specifier repeating a tuple type argument reports names twice — pre-existing, not taken.
 - Next: structural repair — test implementer (tests for finding 3, both sides), implementer, cleaner (+ finding 4 comment), spec checker, auditor on the repair, validator.
+- Structural repair: test implementer done (`a2f386b`, `17-test-implementer.md`): 6 failing, 1 passing as intended. Next: implementer (decision 4).
