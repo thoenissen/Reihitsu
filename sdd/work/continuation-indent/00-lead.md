@@ -119,4 +119,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Spec author 11 done (f6969fe).
 - Test implementer 12 done (bfc3e5e, 07c5558): formatter 7086/0, analyzer 11912/0, architecture 198/0.
 - Spec author 13 done (145c4de).
-- Next: test implementer (14) adds the RH2001-009 third-property no-fix test; cleaner (15) incl. the two stale code comments 13 names; spec checker; auditor; validator.
+- Test implementer 14 done (7c223e0, eda4506).
+- Next: cleaner (15) incl. the two stale code comments 13 names; spec checker; auditor; validator.
