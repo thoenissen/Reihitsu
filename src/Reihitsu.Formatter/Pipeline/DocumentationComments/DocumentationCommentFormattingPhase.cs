@@ -150,7 +150,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RegisterRelocation(root, trivia, sourceText, owningRelocations, previousTokenRelocationCounts);
+            RegisterRelocation(root, trivia, sourceText, context.LanguageVersion, owningRelocations, previousTokenRelocationCounts);
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
@@ -189,6 +189,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="root">Root node</param>
     /// <param name="trivia">Trivia candidate</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="languageVersion">The language version the source targets</param>
     /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
     /// <param name="previousTokenRelocationCounts">
     /// Line breaks to append to previous tokens, each of which first loses the whitespace that ends its trailing trivia;
@@ -197,11 +198,19 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     private static void RegisterRelocation(SyntaxNode root,
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
+                                           LanguageVersion languageVersion,
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
         if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false
             || DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false)
+        {
+            return;
+        }
+
+        // An interpolation that cannot hold a line break in the target language version keeps the comment where it was
+        // written (FMT-BREAK-044)
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(trivia.Token.Parent, languageVersion))
         {
             return;
         }

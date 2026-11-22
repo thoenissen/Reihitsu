@@ -52,15 +52,18 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// needs to parse back to the block (FMT-STRUCT-026): a line break behind the opening brace when a comment leads the
     /// statement, a line break behind a single-line comment that ends the statement's trailing trivia without one, and a line
     /// break behind the closing brace when a comment or a directive leads the token that follows it. The statement keeps the
-    /// comments around it together with the whitespace and line breaks the author wrote in front of and between them
+    /// comments around it together with the whitespace and line breaks the author wrote in front of and between them. Where
+    /// no line break may be written, a statement whose braces would need one stays unbraced (FMT-BREAK-044)
     /// </summary>
     /// <param name="statement">The statement to inspect</param>
     /// <param name="nextToken">The token that follows the inserted closing brace, read from the original tree, whose leading trivia decides whether the closing brace needs a line break behind it; <see langword="default"/> when another inserted closing brace follows it</param>
     /// <param name="endOfLine">The end-of-line sequence of a separator line break</param>
-    /// <returns>The braced statement</returns>
+    /// <param name="forbidsLineBreak">Whether the statement stands in an interpolation that cannot hold a line break in the target language version</param>
+    /// <returns>The braced statement, or the statement as written when it is not wrapped</returns>
     private static StatementSyntax WrapWithBraces(StatementSyntax statement,
                                                   SyntaxToken nextToken,
-                                                  string endOfLine)
+                                                  string endOfLine,
+                                                  bool forbidsLineBreak)
     {
         if (CanWrap(statement) == false)
         {
@@ -84,6 +87,12 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         var closeBraceTrailingTrivia = StartsWithCommentOrDirective(nextToken.LeadingTrivia)
                                            ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
                                            : default;
+
+        if (forbidsLineBreak
+            && (openBraceTrailingTrivia.Count > 0 || closeBraceTrailingTrivia.Count > 0))
+        {
+            return statement;
+        }
 
         // The braces are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
         return SyntaxFactory.Block(SyntaxFactory.Token(default, SyntaxKind.OpenBraceToken, openBraceTrailingTrivia),
@@ -187,6 +196,10 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
                                 ? GetTokenBehindInsertedCloseBrace(node.Else.Statement)
                                 : default;
 
+        // The interpolation is read from the original tree as well; a body whose braces would need a line break in an
+        // interpolation that cannot hold one stays unbraced (FMT-BREAK-044)
+        var forbidsLineBreak = StringInterpolationUtilities.IsInsideSingleLineInterpolation(node, _context.LanguageVersion);
+
         node = (IfStatementSyntax)base.VisitIfStatement(node);
 
         if (node == null)
@@ -194,11 +207,11 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return null;
         }
 
-        node = node.WithStatement(WrapWithBraces(node.Statement, statementNextToken, _context.EndOfLine));
+        node = node.WithStatement(WrapWithBraces(node.Statement, statementNextToken, _context.EndOfLine, forbidsLineBreak));
 
         if (node.Else is { Statement: not null and not BlockSyntax and not IfStatementSyntax } elseClause)
         {
-            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, elseNextToken, _context.EndOfLine)));
+            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, elseNextToken, _context.EndOfLine, forbidsLineBreak)));
         }
 
         return node;

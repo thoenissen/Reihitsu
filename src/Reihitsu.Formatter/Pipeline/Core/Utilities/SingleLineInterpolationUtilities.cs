@@ -68,13 +68,18 @@ internal static class SingleLineInterpolationUtilities
     /// <summary>
     /// Annotates the outermost interpolations that cannot hold a line break in the target language version: each
     /// interpolation of a non-verbatim interpolated string that stands in no other such interpolation. Each one gets an
-    /// annotation of its own
+    /// annotation of its own. From C# 11 on, every interpolation can hold a line break, so the tree is not walked
     /// </summary>
     /// <param name="root">The root node</param>
     /// <param name="languageVersion">The language version the source targets</param>
     /// <returns>The root with the interpolations annotated</returns>
     private static SyntaxNode Annotate(SyntaxNode root, LanguageVersion languageVersion)
     {
+        if (StringInterpolationUtilities.CanInterpolationsHoldLineBreaks(languageVersion))
+        {
+            return root;
+        }
+
         var interpolations = root.DescendantNodes()
                                  .OfType<InterpolationSyntax>()
                                  .Where(interpolation => StringInterpolationUtilities.IsInsideSingleLineInterpolation(interpolation, languageVersion)
