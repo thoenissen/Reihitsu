@@ -77,3 +77,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Round 3 cleaner done (`0a77261`): clean. Next: spec checker.
 - Round 3 spec checker (`323123c`, `25-spec-checker.md`): one low finding (decision 9). Next: spec author, spec checker, auditor on a85f8e0..HEAD.
 - Round 3 spec author done (`f143857`): type listed as SHARED-CASING owner. Next: spec checker, auditor.
+- Round 3 spec checker re-check done (`033d24b`): consistent. Build green. Next: auditor on a85f8e0..HEAD.
