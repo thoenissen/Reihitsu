@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.CodeFixes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.Package", "src\Reihitsu.Analyzer.Package\Reihitsu.Analyzer.Package.csproj", "{F84C1FEB-DA12-4DFD-8145-CBB2DF90A783}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.Test", "src\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj", "{5B04607B-ED64-4C9D-BF8E-6C18BD15C336}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.Test", "tests\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj", "{5B04607B-ED64-4C9D-BF8E-6C18BD15C336}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{87152437-0D8A-494D-B340-D9C15D2732E7}"
 	ProjectSection(SolutionItems) = preProject
@@ -386,11 +386,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Formatter", "src\Reihitsu.Formatter\Reihitsu.Formatter.csproj", "{E0C1F14C-6D72-4719-998B-F076CFCD665C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Formatter.Test", "src\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj", "{C55DE3AC-3027-4B8B-AE2A-12FDBBB3B908}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Formatter.Test", "tests\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj", "{C55DE3AC-3027-4B8B-AE2A-12FDBBB3B908}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Cli", "src\Reihitsu.Cli\Reihitsu.Cli.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Cli.Test", "src\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj", "{CEFCDC4D-1738-4B47-8212-CB37FF659773}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Cli.Test", "tests\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj", "{CEFCDC4D-1738-4B47-8212-CB37FF659773}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{5EEF23E5-D408-4949-9A9B-42D96B35882D}"
 EndProject
@@ -402,19 +402,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Formatter", "Formatter", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Core", "src\Reihitsu.Core\Reihitsu.Core.csproj", "{654A9D3D-F9A9-4A71-B330-C981AEA955FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Core.Test", "src\Reihitsu.Core.Test\Reihitsu.Core.Test.csproj", "{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Core.Test", "tests\Reihitsu.Core.Test\Reihitsu.Core.Test.csproj", "{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.ArchitectureTests", "src\Reihitsu.ArchitectureTests\Reihitsu.ArchitectureTests.csproj", "{CD8AE0B3-3956-40F2-9FD8-04C8FA0D1C7C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.ArchitectureTests", "tests\Reihitsu.ArchitectureTests\Reihitsu.ArchitectureTests.csproj", "{CD8AE0B3-3956-40F2-9FD8-04C8FA0D1C7C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Tooling", "src\Reihitsu.Tooling\Reihitsu.Tooling.csproj", "{5D673D38-E4D0-48BC-A709-302B0E834CF7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Tooling.Test", "src\Reihitsu.Tooling.Test\Reihitsu.Tooling.Test.csproj", "{8E2A91DF-98CE-40F4-86CE-AC7A497C8132}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Tooling.Test", "tests\Reihitsu.Tooling.Test\Reihitsu.Tooling.Test.csproj", "{8E2A91DF-98CE-40F4-86CE-AC7A497C8132}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Playground", "src\Reihitsu.Playground\Reihitsu.Playground.csproj", "{E53EAB45-618A-4296-BFF6-5C5501F3CCB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Playground.Test", "src\Reihitsu.Playground.Test\Reihitsu.Playground.Test.csproj", "{6F9919FB-D673-4747-8BD5-6B5332E8DE95}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Playground.Test", "tests\Reihitsu.Playground.Test\Reihitsu.Playground.Test.csproj", "{6F9919FB-D673-4747-8BD5-6B5332E8DE95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.SelfHosting.Test", "src\Reihitsu.SelfHosting.Test\Reihitsu.SelfHosting.Test.csproj", "{4CB7F7DF-CD2F-4899-A5A0-3538368A13A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.SelfHosting.Test", "tests\Reihitsu.SelfHosting.Test\Reihitsu.SelfHosting.Test.csproj", "{4CB7F7DF-CD2F-4899-A5A0-3538368A13A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

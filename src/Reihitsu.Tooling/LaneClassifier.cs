@@ -72,7 +72,8 @@ public static class LaneClassifier
             return PathCategory.Tooling;
         }
 
-        if (path.StartsWith("src/", StringComparison.OrdinalIgnoreCase))
+        if (path.StartsWith("src/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("tests/", StringComparison.OrdinalIgnoreCase))
         {
             return ClassifySourcePath(path, isTextOnlyProven);
         }
@@ -232,7 +233,7 @@ public static class LaneClassifier
     }
 
     /// <summary>
-    /// Classifies a path below <c>src/</c> that is neither tooling nor a build setting; the two resource files that
+    /// Classifies a path below <c>src/</c> or <c>tests/</c> that is neither tooling nor a build setting; the two resource files that
     /// hold the diagnostic and code-fix texts are wording whatever the proof found
     /// </summary>
     /// <param name="path">Repository-relative path with forward slashes</param>
@@ -251,11 +252,7 @@ public static class LaneClassifier
             return PathCategory.Text;
         }
 
-        var segments = path.Split('/');
-
-        if (segments.Length > 2
-            && (segments[1].EndsWith(".Test", StringComparison.OrdinalIgnoreCase)
-                || segments[1].Equals("Reihitsu.ArchitectureTests", StringComparison.OrdinalIgnoreCase)))
+        if (path.StartsWith("tests/", StringComparison.OrdinalIgnoreCase))
         {
             return PathCategory.Test;
         }

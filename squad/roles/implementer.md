@@ -62,7 +62,7 @@ Verdict: tests pass | test disputed | new rule needed | blocked
 <for each policy the change touches: the rg command and every owner it found>
 
 ## Production diff size
-<`git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'` and any new type; in a repair round, also the delta of the round>
+<`git diff --shortstat origin/main...HEAD -- src` and any new type; in a repair round, also the delta of the round>
 
 ## Deleted special cases
 <when the run declares a shape unsupported: each deleted symbol or condition and the change-doc entry it fulfills, and any further one you found; otherwise _N/A._>
