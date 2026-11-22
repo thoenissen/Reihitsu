@@ -1468,6 +1468,230 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
+    /// Verifies that a conditional group inside a block that keeps its place withholds the fix when the reorder moves
+    /// blocks across that block, while every diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalPairInsideAKeptBlockThatMovedBlocksCrossWithholdsTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Object|}
+
+                                    public override string ToString()
+                                    {
+                                #if DEBUG
+                                        Console.WriteLine();
+                                #endif
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group in the code between two pairs of blocks that are each reordered on their own
+    /// side does not withhold the fix: no block is moved across that code, so the group stays where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalGroupBetweenTwoPairsReorderedOnTheirOwnSideDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class Base
+                                 {
+                                 }
+
+                                 public class C : Base, IDisposable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     public override string ToString()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     #endregion // Object
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region Base
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Base
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the same conditional group, in the code between the first two blocks of a type whose two pairs of
+    /// blocks are each reordered on their own side, withholds the fix: the reorder moves a block across that code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalGroupInCodeThatAMovedBlockCrossesBetweenTwoReorderedPairsWithholdsTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
     /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309: a group of whole
     /// members in front of the first region block makes the class count as one whose field order sets its layout, so no
     /// code fix is offered for a reorder that puts <c>_a</c> in front of <c>_handle</c>
