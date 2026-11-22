@@ -379,7 +379,8 @@ public static class OrderingDeclarationUtilities
     /// position of the body that the reorder moves or moves code across (<see cref="GetCrossedPositions"/>,
     /// SHARED-ORDER-008). The type counts as one whose field order sets its layout when its declaration holds a
     /// conditional directive in front of its body or in front of it (<see cref="DeclarationHoldsConditionalDirective"/>),
-    /// or when its body holds a conditional directive in front of the first such position; one behind them is not read
+    /// or when its body holds a conditional directive in front of the last instance field of the type's layout
+    /// (<see cref="IsLayoutField"/>) that stands at such a position; one behind it is not read
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>
     /// <param name="fieldOrderSetsLayout">Whether the order of the type's instance fields sets its layout (<see cref="FieldOrderSetsLayout"/>)</param>
@@ -410,12 +411,19 @@ public static class OrderingDeclarationUtilities
             return writtenOrder.SequenceEqual(newOrder) == false;
         }
 
+        var lastCrossedLayoutFieldOffset = typeDeclaration.Members
+                                                          .Where(IsLayoutField)
+                                                          .Select(member => member.SpanStart - bodyStart)
+                                                          .Where(offset => isCrossed[offset])
+                                                          .DefaultIfEmpty(-1)
+                                                          .Max();
+
         return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
                || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
                || (ChangesOrder(IsLayoutField)
                    && (fieldOrderSetsLayout
                        || DeclarationHoldsConditionalDirective(typeDeclaration)
-                       || directiveOffsets.Any(offset => offset < Array.IndexOf(isCrossed, true))));
+                       || directiveOffsets.Any(offset => offset < lastCrossedLayoutFieldOffset)));
     }
 
     /// <summary>
