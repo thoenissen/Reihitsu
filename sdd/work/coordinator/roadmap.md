@@ -29,7 +29,7 @@ Known dependencies: registry files (`*.resx`, rulesets, spec index) make the ana
 Theme: T11 part A (line-break joins, extension blocks, switch arms, one-owner refactors); T7 clarity/design/performance/organization rule scope; Playground.
 
 Runs, in order:
-- **Formatter/LineBreakPhase one-owner refactors, first in their files:** `#1517 #1519 #1654 #862`.
+- **Formatter/LineBreakPhase one-owner refactors, first in their files:** `#1517 #1519 #1654 #862 #1937` (#1937 after #1935 and 1.6.0's indentation runs).
 - **Formatter/unowned joins (one OQ round):** `#1639 #1645 #1646 #1648 #1652 #1653 #1829 #1830 #1927` → after #953 (1.6.0). #1645 may already be shipped by #1920: check and close first. #1927's inputs are run before its output question.
 - **Formatter/extension blocks (owner set once, OQ):** `#1636 #1785 #1446 #1845`.
 - **Formatter/lists and switch arms:** `#956` (narrowed, OQ) `#955 #1442` (#956 before #1739 in 1.10.0).

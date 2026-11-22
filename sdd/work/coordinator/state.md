@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-22 · #1935 #1936 #1937 #1939 #1943 · triage "as you recommend": #1935 #1936 #1939 #1943 → 1.6.0, #1937 → 1.7.0; #1935 A (blank line before positional `)` removed), #1939 A (dictated positional parameter not reported), #1943 A (RH2001 fix withheld for an adjacent `#if` group); #1936 rides with #1472.
 - 2026-11-22 · #1924 #1925 #1926 #1927 #1928 #1929 #1930 #1931 · placements as proposed (1A): #1924 #1925 #1926 #1929 → 1.6.0; #1927 → 1.7.0; #1928 → 1.9.0; #1930 #1931 → 1.10.0.
 - 2026-11-22 · #1925 · RH5202 reports and fixes raw strings aligned behind tabs (A).
 - 2026-11-22 · #1926 · declare unsupported, change of its own (A, re-confirmed).
@@ -37,6 +38,7 @@ Notes for the runs (on the evidence of the batch check, not decided): #1685 like
 
 ## Status
 
+Status 2026-11-22 (k): triage of #1935–#1943 applied as recommended (`inventory/triage-2026-11-22b.md`); milestones set; commented on all five. Batch next in the same session.
 Status 2026-11-22 (j): batch — merges #1920 #1921 #1922 #1923 #1932 read; graph rebuilt; start-now set given (13 runs).
 Status 2026-11-22 (i): triage answered "as recommended" (1A, 2A, 3A, 4A); milestones set; commented on #1925 #1926 #1928 #1929.
 Status 2026-11-22 (h): triage of #1924–#1931 (assessment `inventory/triage-2026-11-22.md`). Asked: 1 placements — #1924 → 1.6.0 own tooling run, start now; #1925 → 1.6.0 own RH5202 run, start now; #1926 → 1.6.0 own precheck run after the list/pattern run (`indentation.md`); #1929 → 1.6.0 joins `#1633 #1634 #1647 #1685 #1542`; #1927 → 1.7.0 unowned joins; #1928 → 1.9.0 spacing; #1930 → 1.10.0 counterpart rules; #1931 → 1.10.0 RH51xx list scope (1A apply / 1B change rows; rec. 1A). 2 #1925 RH5202 tab-aligned raw string (A report+fix, B not reported; rec. A). 3 #1926 re-confirm declare unsupported, own change (A declare, B keep continuation indent; rec. A). 4 #1928 `case (` space (A space, B keep; rec. A). Output questions of #1927, #1930, #1931 deferred to their runs (unverified Before / asked with their run's sibling questions). Side find: #1645 may be shipped by #1920, judged in its 1.7.0 run.
