@@ -15,7 +15,13 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and 02-skeptic.md. The maintainer answered "as recommended":
+- 970-1: A — any `#pragma warning` in front of the moved code withholds the fix, whatever IDs it names (unless 970-3 pairing applies).
+- 970-2: A — RH7309 is included.
+- 970-3: B — a closed pair in front of the move does not withhold the fix; unpaired directives in front still do.
+- 970-4: B — RH7309: pairs in any block / between blocks are checked alike; "in front" = in front of the first block.
+- 1668-1: B — any `#if` block in moved or crossed code withholds RH7102/RH7103/RH7109/RH7309 fixes; excluded-text parse dropped for these fixes.
+- 1668-2: A — any `#if` block in the class in front of the moved fields, or in front of the class, withholds an instance-field reorder; exception: an `#if` without `#else` wrapping the whole class keeps main's result.
 
 ## Decisions taken
 
@@ -33,4 +39,5 @@
 
 - Skeptic done (c72272a): extra Q 970-3, 970-4; spec wording fixes pending for spec author after answers (RH7309 clause wording, intro paragraph naming RH7309 for SHARED-ORDER-011, RH7103 split-pair example → state for RH7107; SHARED-ORDER-006 Why sentence on `#if DEBUG` bodies if 1668-1 B); test implementer must update three existing tests (02-skeptic.md).
 - Last step: spec author (88ae496): #970 spec + change doc written; #1668 draft change doc, spec waits for answer. Open output questions 970-1, 970-2, 1668-1, 1668-2.
-- Next: WAITING for maintainer answers to batch 1 (970-1..4, 1668-1, 1668-2), then spec author (amend + Accepted), then test implementer.
+- Batch 1 answered (see Maintainer answers).
+- Next: spec author (fresh) — apply answers, skeptic wording fixes, #1668 spec, Accepted; then test implementer.
