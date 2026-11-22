@@ -4,7 +4,7 @@
 - Branch: `claude/squad-1939-81sm3x`; draft PR #1947
 - Lane: behavior-change — the issue asks for changed analyzer behavior (RH4120 stops reporting a positional record parameter whose generated property implements a property declared in a referenced assembly), which needs a spec change and production code.
 - Roles: spec author → skeptic → test implementer → implementer → cleaner (11, clean, 30fbe13) → spec checker (12, consistent, 5abf165) → auditor (13, findings: #3 test gap, 04f83a5).
-- Repair round 2 of 3 (test-only): test implementer (14, done 0a03a29/d9d34ca, 4 tests, 45/45 pass) → cleaner (15, clean, 46e90bf) → spec checker (16, consistent, 04d655f) → auditor (17, repair only) → auditor → validator; issue manager before publishing if follow-up candidates exist. None skipped.
+- Repair round 2 of 3 (test-only): test implementer (14, done 0a03a29/d9d34ca, 4 tests, 45/45 pass) → cleaner (15, clean, 46e90bf) → spec checker (16, consistent, 04d655f) → auditor (17, pass, deef008) → validator (18) → publish auditor → validator; issue manager before publishing if follow-up candidates exist. None skipped.
 
 ## Maintainer answers
 
@@ -33,6 +33,7 @@
 
 ## Audited SHA
 
+c08deac2c12f1c4d5a78f4b91b4f9780bdaf00b3 (audit 3, repair 2: PASS — final audited SHA)
 7c131eba4d5ce6011b2838d4a3b59308d532ad42 (audit 2, repair 1, finding #3 test gap)
 3b066662dc49e2abcd3964664c6937adf78bed0c (audit 1, findings)
 
@@ -50,4 +51,4 @@
 - Spec checker done (07, f32e03b): consistent, no findings.
 - Auditor done (08, 57ab48d) at audited SHA 3b066662: findings (1: accessibility in GetMember, 2: untested field branch).
 - Repair round 1 of 3: test implementer (09, done 2bf27de/670609e: 3 tests, 2 fail as intended) → implementer (10, done c66496d/0838d20) → cleaner (11, clean, 30fbe13) → spec checker (12, consistent, 5abf165) → auditor (13, findings: #3 test gap, 04f83a5).
-- Repair round 2 of 3 (test-only): test implementer (14, done 0a03a29/d9d34ca, 4 tests, 45/45 pass) → cleaner (15, clean, 46e90bf) → spec checker (16, consistent, 04d655f) → auditor (17, repair only) → auditor (repair only) → validator.
+- Repair round 2 of 3 (test-only): test implementer (14, done 0a03a29/d9d34ca, 4 tests, 45/45 pass) → cleaner (15, clean, 46e90bf) → spec checker (16, consistent, 04d655f) → auditor (17, pass, deef008) → validator (18) → publish auditor (repair only) → validator.
