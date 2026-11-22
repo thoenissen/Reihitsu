@@ -57,4 +57,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Audit 1 at 5a0472e (e919198): #970 pass; #1668 finding #1 high PR-introduced (layout clause reads only in front of the first crossed position; RH7309 two runs). Classified same requirement → repair round 1.
 - Repair 1: spec author 15 (db9eed8), test implementer 16 (c0569af).
 - Test implementer 16 addendum (41b60ec): 2 red, 2 guards green.
-- Next: implementer; cleaner; spec checker; auditor (repair only); validator.
+- Implementer 17 (883b9a9): green.
+- Next: cleaner; spec checker; auditor (repair only, audited base 5a0472e); validator.
