@@ -60,4 +60,5 @@ Issue comments relevant to the run (summarized):
 - Test implementer 06 done (b4d741a tests, f2e5cb2 handover): 35 formatter + 2 analyzer tests fail as intended.
 - Implementer 07 done (39fc4b0, e55c8ff): 5 disputed older tests (decision 7).
 - Test implementer 08 done (bea3bb6, 7186a1c): formatter project green.
-- Next: cleaner (09).
+- Cleaner 09 clean (1aa5871).
+- Next: spec checker (10).
