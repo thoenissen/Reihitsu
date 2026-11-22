@@ -55,4 +55,5 @@ Issue comments relevant to the run (summarized):
 - Spec author 03 done (fbf4bae): decisions 3–6 carried out; #1634 change doc deleted; FMT-INDENT-036/037/038 retired.
 - Batch 1 answered: all A.
 - Spec author 05 done (52e40b7): change docs Accepted.
-- Next: test implementer (06).
+- Test implementer 06 done (b4d741a tests, f2e5cb2 handover): 35 formatter + 2 analyzer tests fail as intended.
+- Next: implementer (07).
