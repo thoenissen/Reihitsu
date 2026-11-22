@@ -35,6 +35,8 @@
 | 18 | Auditor (round 1 audit) | Finding #4: summaries of `DocumentationCommentFormattingPhase` and `RelocateOffPositionDocumentationComments` say "every documentation comment" | Cleaner fixes the comments after the implementer | Code comments | Text only | (cleaner) |
 | 19 | Spec author (decision 17) | Which interpolation counts for "holds a documentation comment" | Any non-verbatim interpolation that contains the body | Wider refusal, by the cause; matches the any-depth predicate | Rare class left as written | 7babdbe |
 | 20 | Spec author (decision 17) | Doc comment only in a sibling hole of the same string | Does not refuse the wrap (example `w`) | The comment is outside every interpolation containing the body | Rare class; unchanged requirements | 7babdbe |
+| 21 | Auditor (decision-17 audit) | Finding #5: `IsInsideSingleLineInterpolation` condition in the brace refusal untested on its false side (doc comment in a `$@"` interpolation outside the `$"` hole) | Repair round 2, test only: holding test for the auditor's input | Same requirement; no production change | Pins today's output, which unchanged requirements decide | (round 2) |
+| 22 | Auditor (decision-17 audit) | Hint: a comment in an interpolation alignment clause loses its following space (main too) | Dropped, not a follow-up: rare input class, pre-existing | Lead playbook, Follow-ups: candidates serving only a rare class are dropped | — | — |
 
 ## Follow-up candidates
 
@@ -62,4 +64,5 @@
 - Implementer (20) done, 45c7597, all green.
 - Cleaner (21) done, clean, #4 fixed.
 - Spec checker (22) consistent.
-- Next: auditor (delta of decision 17 vs 15526cc) → validator. → validator.
+- Audit (23-auditor.md, audited 023c066): #3, #4 closed; #5 (missing test).
+- Repair round 2: test implementer (24) → cleaner (25) → spec checker (26) → auditor (27, delta vs 023c066) → validator. → validator.
