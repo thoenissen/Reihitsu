@@ -34,7 +34,7 @@ class P
 
 class C
 {
-    int M(object o)
+    int M(P o)
     {
         return o switch
         {
@@ -52,7 +52,7 @@ class C
             B: 2 }];
     }
 
-    void N(object o)
+    void N(P o)
     {
         switch (o)
         {
@@ -87,7 +87,7 @@ class P
 
 class C
 {
-    int M(object o)
+    int M(P o)
     {
         return o switch
                {
@@ -118,7 +118,7 @@ class C
                     ];
     }
 
-    void N(object o)
+    void N(P o)
     {
         switch (o)
         {
@@ -155,7 +155,7 @@ class P
 
 class C
 {
-    int M(object o)
+    int M(P o)
     {
         return o switch
                {
@@ -186,7 +186,7 @@ class C
                     ];
     }
 
-    void N(object o)
+    void N(P o)
     {
         switch (o)
         {
@@ -236,6 +236,18 @@ class Q
     public int B { get; set; }
 }
 
+class S
+{
+    public int Length => 0;
+
+    public object this[int index] => null;
+
+    public object Slice(int start, int length)
+    {
+        return null;
+    }
+}
+
 class C
 {
     int M(object o)
@@ -245,10 +257,10 @@ class C
             P { A: 1,
                 B: 2 } or Q { A: 1,
                 B: 2 } => 1,
-            not Q { A: 3,
-                B: 4 } => 2,
             null or P { A: 5,
-                B: 6 } => 3,
+                B: 6 } => 2,
+            not Q { A: 3,
+                B: 4 } => 3,
             _ => 0
         };
     }
@@ -265,7 +277,7 @@ class C
         };
     }
 
-    bool L(object[] a, int[] b)
+    bool L(S a, S b)
     {
         return a is [1, not Q { A: 1,
             B: 2 }]
@@ -281,27 +293,27 @@ class C
     {
         switch (o)
         {
-            case not Q { A: 1,
+            case null or P { A: 1,
             B: 2 }:
                 break;
 
-            case null or P { A: 1,
+            case not Q { A: 1,
             B: 2 }:
                 break;
         }
 
         switch (i)
         {
-            case not (1 or
-            2):
-                break;
-
             case > 5 and (< 10 or
             > 20):
                 break;
 
             case 3 or (4 or
             5):
+                break;
+
+            case not (1 or
+            2):
                 break;
         }
     }
@@ -325,6 +337,18 @@ class Q
     public int B { get; set; }
 }
 
+class S
+{
+    public int Length => 0;
+
+    public object this[int index] => null;
+
+    public object Slice(int start, int length)
+    {
+        return null;
+    }
+}
+
 class C
 {
     int M(object o)
@@ -341,17 +365,17 @@ class C
                           A: 1,
                           B: 2
                       } => 1,
-                   not Q
-                       {
-                           A: 3,
-                           B: 4
-                       } => 2,
                    null
                    or P
                       {
                           A: 5,
                           B: 6
-                      } => 3,
+                      } => 2,
+                   not Q
+                       {
+                           A: 3,
+                           B: 4
+                       } => 3,
                    _ => 0
                };
     }
@@ -370,7 +394,7 @@ class C
                };
     }
 
-    bool L(object[] a, int[] b)
+    bool L(S a, S b)
     {
         return a is [
                         1,
@@ -410,29 +434,22 @@ class C
     {
         switch (o)
         {
-            case not Q {
-                         A: 1,
-                         B: 2
-                     }:
-                break;
-
             case null
                  or P {
                         A: 1,
                         B: 2
                     }:
                 break;
+
+            case not Q {
+                         A: 1,
+                         B: 2
+                     }:
+                break;
         }
 
         switch (i)
         {
-            case not
-                (
-                    1
-                    or 2
-                ):
-                break;
-
             case > 5
                  and
                 (
@@ -446,6 +463,13 @@ class C
                 (
                     4
                     or 5
+                ):
+                break;
+
+            case not
+                (
+                    1
+                    or 2
                 ):
                 break;
         }
@@ -470,6 +494,18 @@ class Q
     public int B { get; set; }
 }
 
+class S
+{
+    public int Length => 0;
+
+    public object this[int index] => null;
+
+    public object Slice(int start, int length)
+    {
+        return null;
+    }
+}
+
 class C
 {
     int M(object o)
@@ -486,16 +522,16 @@ class C
                        A: 1,
                        B: 2
                    } => 1,
-                   not Q
-                   {
-                       A: 3,
-                       B: 4
-                   } => 2,
                    null
                    or P
                    {
                        A: 5,
                        B: 6
+                   } => 2,
+                   not Q
+                   {
+                       A: 3,
+                       B: 4
                    } => 3,
                    _ => 0
                };
@@ -515,7 +551,7 @@ class C
                };
     }
 
-    bool L(object[] a, int[] b)
+    bool L(S a, S b)
     {
         return a is [
                         1,
@@ -555,14 +591,14 @@ class C
     {
         switch (o)
         {
-            case not Q {
+            case null
+                 or P {
                      A: 1,
                      B: 2
                  }:
                 break;
 
-            case null
-                 or P {
+            case not Q {
                      A: 1,
                      B: 2
                  }:
@@ -571,13 +607,6 @@ class C
 
         switch (i)
         {
-            case not
-                 (
-                     1
-                     or 2
-                 ):
-                break;
-
             case > 5
                  and
                  (
@@ -591,6 +620,13 @@ class C
                  (
                      4
                      or 5
+                 ):
+                break;
+
+            case not
+                 (
+                     1
+                     or 2
                  ):
                 break;
         }
@@ -618,7 +654,7 @@ Patterns whose first token is unchanged keep their columns: the left operand of 
 
 RH5206's fix formats the switch expression it anchors, so the arms move with it: on `return o switch⏎    {⏎        P and { A: 1,⏎            B: 2 } => 1, …`, the `{` and `}` go to column 16 on `main` (observed with `scripts/apply-fix.sh`) and to column 19, under the `P`, after this change.
 
-The typed members move with it: on `return o switch⏎    {⏎        P { A: 1,⏎            B: 2 } or Q { A: 1 } => 1,⏎        not Q { A: 3,⏎            A: 4 } => 2, …`, the braces of `not Q` go to column 19, under the `not`, after this change (observed with `scripts/apply-fix.sh`), where they stood under the `Q` (23) on `main`. No other code fix formats a pattern behind a wrapper on its own: RH5306 formats a list pattern, whose elements anchor as in the whole document.
+The typed members move with it: on `return o switch⏎    {⏎        P { A: 1,⏎            B: 2 } or Q { A: 1 } => 1,⏎        not Q { A: 3,⏎            B: 4 } => 2, …`, the braces of `not Q` go to column 19, under the `not`, after this change (observed with `scripts/apply-fix.sh`), where they stood under the `Q` (23) on `main`. No other code fix formats a pattern behind a wrapper on its own: RH5306 formats a list pattern, whose elements anchor as in the whole document.
 
 No rule page changes.
 

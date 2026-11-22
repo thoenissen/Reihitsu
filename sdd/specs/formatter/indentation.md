@@ -1537,7 +1537,7 @@ Example:
 ```csharp
 class C
 {
-    bool M(object value)
+    bool M(string value)
     {
         return value is
             (
@@ -1552,7 +1552,7 @@ class C
 ```csharp
 class C
 {
-    bool M(object value)
+    bool M(string value)
     {
         return value is
                      (
@@ -1610,7 +1610,7 @@ class P
 
 class C
 {
-    int M(object o)
+    int M(P o)
     {
         return o switch
         {
@@ -1628,7 +1628,7 @@ class C
             B: 2 }];
     }
 
-    void N(object o)
+    void N(P o)
     {
         switch (o)
         {
@@ -1661,7 +1661,7 @@ class P
 
 class C
 {
-    int M(object o)
+    int M(P o)
     {
         return o switch
                {
@@ -1692,7 +1692,7 @@ class C
                     ];
     }
 
-    void N(object o)
+    void N(P o)
     {
         switch (o)
         {
@@ -1734,6 +1734,18 @@ class Q
     public int B { get; set; }
 }
 
+class S
+{
+    public int Length => 0;
+
+    public object this[int index] => null;
+
+    public object Slice(int start, int length)
+    {
+        return null;
+    }
+}
+
 class C
 {
     int M(object o)
@@ -1743,10 +1755,10 @@ class C
             P { A: 1,
                 B: 2 } or Q { A: 1,
                 B: 2 } => 1,
-            not Q { A: 3,
-                B: 4 } => 2,
             null or P { A: 5,
-                B: 6 } => 3,
+                B: 6 } => 2,
+            not Q { A: 3,
+                B: 4 } => 3,
             _ => 0
         };
     }
@@ -1763,7 +1775,7 @@ class C
         };
     }
 
-    bool L(object[] a, int[] b)
+    bool L(S a, S b)
     {
         return a is [1, not Q { A: 1,
             B: 2 }]
@@ -1779,27 +1791,27 @@ class C
     {
         switch (o)
         {
-            case not Q { A: 1,
+            case null or P { A: 1,
             B: 2 }:
                 break;
 
-            case null or P { A: 1,
+            case not Q { A: 1,
             B: 2 }:
                 break;
         }
 
         switch (i)
         {
-            case not (1 or
-            2):
-                break;
-
             case > 5 and (< 10 or
             > 20):
                 break;
 
             case 3 or (4 or
             5):
+                break;
+
+            case not (1 or
+            2):
                 break;
         }
     }
@@ -1821,6 +1833,18 @@ class Q
     public int B { get; set; }
 }
 
+class S
+{
+    public int Length => 0;
+
+    public object this[int index] => null;
+
+    public object Slice(int start, int length)
+    {
+        return null;
+    }
+}
+
 class C
 {
     int M(object o)
@@ -1837,16 +1861,16 @@ class C
                        A: 1,
                        B: 2
                    } => 1,
-                   not Q
-                   {
-                       A: 3,
-                       B: 4
-                   } => 2,
                    null
                    or P
                    {
                        A: 5,
                        B: 6
+                   } => 2,
+                   not Q
+                   {
+                       A: 3,
+                       B: 4
                    } => 3,
                    _ => 0
                };
@@ -1866,7 +1890,7 @@ class C
                };
     }
 
-    bool L(object[] a, int[] b)
+    bool L(S a, S b)
     {
         return a is [
                         1,
@@ -1906,14 +1930,14 @@ class C
     {
         switch (o)
         {
-            case not Q {
+            case null
+                 or P {
                      A: 1,
                      B: 2
                  }:
                 break;
 
-            case null
-                 or P {
+            case not Q {
                      A: 1,
                      B: 2
                  }:
@@ -1922,13 +1946,6 @@ class C
 
         switch (i)
         {
-            case not
-                 (
-                     1
-                     or 2
-                 ):
-                break;
-
             case > 5
                  and
                  (
@@ -1942,6 +1959,13 @@ class C
                  (
                      4
                      or 5
+                 ):
+                break;
+
+            case not
+                 (
+                     1
+                     or 2
                  ):
                 break;
         }
