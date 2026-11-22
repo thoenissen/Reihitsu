@@ -4324,7 +4324,7 @@ class C
 
 When the language version is C# 10 or earlier (FMT-PIPE-008), the formatter MUST NOT write a line break between two tokens that stand, at any depth, between the braces of an interpolation of an interpolated string that is not verbatim — one whose `InterpolatedStringExpressionSyntax` starts with `$"`, not with `$@"` or `@$"`. This takes precedence over every other requirement of this spec that would break a line there, such as the braces of a lambda or an anonymous method (FMT-BREAK-002), the statements of its block (FMT-BREAK-006), or an object initializer (FMT-BREAK-021). It binds every other phase that writes a line break as well, and takes precedence over that phase's requirements:
 
-- *Structural transforms*: a transform that would write a line break there — the separator FMT-STRUCT-026 writes between a token the transform creates and a comment behind it that leads the next token, such as the `{` or `}` that the brace transform of FMT-STRUCT-001 inserts in front of a delimited documentation comment — is not applied to that construct, which stays as written. The transform still rewrites every construct for which it writes no line break there, so `if (b) return 1;` is still braced.
+- *Structural transforms*: the brace transform of FMT-STRUCT-001 wraps no `if` or `else` body that stands there when an interpolation of a non-verbatim interpolated string that contains the body holds a documentation comment anywhere between its braces; such a body stays as written, at every depth of nesting, also when the comment stands nowhere near it. The condition is the comment in the interpolation, not a brace next to it: the separator FMT-STRUCT-026 writes between an inserted `{` or `}` and a comment behind it that leads the next token is a line break, and for a body nested in another body that next token depends on whether the outer body is wrapped, so the transform does not decide it brace by brace. Where no such interpolation holds a documentation comment, the body is braced as FMT-STRUCT-001 states, so `if (b) return 1;` is still braced there — also when only another interpolation of the same string holds one, and when the interpolation holds only ordinary comments. Any other transform that would write a line break there is not applied to that construct, which stays as written.
 - *Documentation-comment phase*: it moves no documentation comment onto a new line there (FMT-DOC-001); the comment stays where it was written.
 - *Switch-case brace phase*: it braces no switch there (FMT-SWITCH-017).
 - *Blank-line phase*: since a blank line is written with a line break, it inserts no blank line there, and this takes precedence over every blank-line requirement that would insert one, such as the blank line in front of a `return` that is not the first statement of its block (FMT-BLANK-001), so `F(() => { var a = 1; return a; })` keeps its line.
@@ -4337,7 +4337,7 @@ This requirement is the one statement of the structural, documentation-comment, 
 
 This requirement only withholds line breaks; a line break the input already holds in such an interpolation is not its subject.
 
-Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break, at any depth (CS8967), and the parser does not report it as a syntax error, so a line break written there turns a compiling file into one that does not compile (FMT-PIPE-003). The interpolations of a verbatim interpolated string accept line breaks in every language version. Code that compiles before C# 11 already has each such interpolation on one line, so the phase never has to join one. In such an interpolation, a documentation comment is the only trivia that can lead a token on the line: an ordinary delimited comment trails the token in front of it, and a single-line comment, a directive, or disabled text would end the line. A `/** … */` comment there is a rare input, so the structural and documentation-comment phases leave the construct as written rather than model a layout for it.
+Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break, at any depth (CS8967), and the parser does not report it as a syntax error, so a line break written there turns a compiling file into one that does not compile (FMT-PIPE-003). The interpolations of a verbatim interpolated string accept line breaks in every language version. Code that compiles before C# 11 already has each such interpolation on one line, so the phase never has to join one. In such an interpolation, a documentation comment is the only trivia that can lead a token on the line: an ordinary delimited comment trails the token in front of it, and a single-line comment, a directive, or disabled text would end the line. A `/** … */` comment there is a rare input, so the structural and documentation-comment phases leave the construct as written rather than model a layout for it; the brace transform refuses the whole interpolation by that one cheap check, instead of deciding each brace from the comment next to it.
 
 Example — the same input under C# 10 and under C# 11:
 
@@ -4452,14 +4452,17 @@ class C
         var x = $"a {F(() => { var a = 1; /** d */ return a; })} b";
         var y = $"a {F(() => { if (b) /** d */ return 1; return 2; })} b";
         var z = $"a {F(() => { if (b) return 1; /** d */ return 2; })} b";
-        var w = $"a {F(() => { if (b) return 1; return 2; })} b";
+        var u = $"a {F(() => { if (b) if (!b) return 1; /** d */ return 2; })} b";
+        var v = $"a {F(() => { if (b) return 1; return 2; }) /** d */} b";
+        var t = $"a {F(() => { if (b) return 1; /* c */ return 2; })} b";
+        var w = $"a {F(() => { if (b) return 1; return 2; })} {/** d */ 1} b";
 
-        return x + y + z + w;
+        return x + y + z + u + v + t + w;
     }
 }
 ```
 
-C# 10 — the comment of `x` stays behind `var a = 1;`, and the `if` of `y` and of `z` stays unbraced, because its braces would need a line break in front of the comment; the `if` of `w` needs none and is braced, with the spacing that FMT-SPACE-002 and FMT-SPACE-009 give inside the interpolation:
+C# 10 — the comment of `x` stays behind `var a = 1;`. Every `if` of `y`, `z`, `u`, and `v` stays unbraced, because its interpolation holds a documentation comment: in `y` and `z` the comment stands next to a brace the transform would insert, in `u` next to the closing brace of the inner body, and in `v` next to no brace at all. The `if` of `t`, whose interpolation holds only an ordinary comment, and of `w`, where only another interpolation of the string holds one, is braced, with the spacing that FMT-SPACE-002 and FMT-SPACE-009 give inside the interpolation:
 
 ```csharp
 using System;
@@ -4476,9 +4479,12 @@ class C
         var x = $"a {F(() => { var a = 1; /** d */ return a; })} b";
         var y = $"a {F(() => { if (b) /** d */ return 1; return 2; })} b";
         var z = $"a {F(() => { if (b) return 1; /** d */ return 2; })} b";
-        var w = $"a {F(() => { if (b) {return 1; }return 2; })} b";
+        var u = $"a {F(() => { if (b) if (!b) return 1; /** d */ return 2; })} b";
+        var v = $"a {F(() => { if (b) return 1; return 2; }) /** d */} b";
+        var t = $"a {F(() => { if (b) {return 1; /* c */ }return 2; })} b";
+        var w = $"a {F(() => { if (b) {return 1; }return 2; })} {/** d */ 1} b";
 
-        return x + y + z + w;
+        return x + y + z + u + v + t + w;
     }
 }
 ```
@@ -4521,6 +4527,36 @@ class C
 
                            /** d */ return 2;
                        })} b";
+        var u = $"a {F(() =>
+                       {
+                           if (b)
+                           {
+                               if (!b)
+                               {
+                                   return 1;
+                               }
+                           }
+
+                           /** d */ return 2;
+                       })} b";
+        var v = $"a {F(() =>
+                       {
+                           if (b)
+                           {
+                               return 1;
+                           }
+
+                           return 2;
+                       }) /** d */} b";
+        var t = $"a {F(() =>
+                       {
+                           if (b)
+                           {
+                               return 1; /* c */
+                           }
+
+                           return 2;
+                       })} b";
         var w = $"a {F(() =>
                        {
                            if (b)
@@ -4529,9 +4565,9 @@ class C
                            }
 
                            return 2;
-                       })} b";
+                       })} {/** d */ 1} b";
 
-        return x + y + z + w;
+        return x + y + z + u + v + t + w;
     }
 }
 ```
