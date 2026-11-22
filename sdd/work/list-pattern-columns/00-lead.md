@@ -66,4 +66,5 @@ Issue comments relevant to the run (summarized):
 - Spec checker 10 consistent (4439857). Main not ahead; build green.
 - Auditor 11 (69fd99b) on audited SHA 9caef701739028a807c8e7cf8387d23d007c9255: #1929 high finding — undecided output: typed property pattern behind and/or/not, and parenthesized pattern behind a wrapper in a case label, move with PatternAnchor change.
 - Q9 answered A.
-- Repair round 1 in progress — spec author (change doc members), test implementer (members incl. 8A followers: `or (`/`and (` arm, `not (` list element/slice), no implementer (head already does A); then cleaner, spec checker, auditor (repair only), validator.
+- Repair round 1: spec author 12 (7f41ed4, e9b6e21), test implementer 13 (ff7330f) and 14 (637b531) done.
+- Next: cleaner 15, spec checker 16, auditor 17 (repair only, previous audited SHA 9caef70), validator 18.
