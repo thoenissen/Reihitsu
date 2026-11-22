@@ -58,4 +58,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Repair 1: spec author 15 (db9eed8), test implementer 16 (c0569af).
 - Test implementer 16 addendum (41b60ec): 2 red, 2 guards green.
 - Implementer 17 (883b9a9): green.
-- Next: cleaner; spec checker; auditor (repair only, audited base 5a0472e); validator.
+- Cleaner 18 clean (35b6eaf); spec checker 19 consistent (e6834af).
+- Next: auditor (repair only, since 5a0472e); validator.
