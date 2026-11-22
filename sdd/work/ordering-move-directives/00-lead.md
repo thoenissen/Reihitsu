@@ -29,7 +29,8 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | Architecture finding: the rule for which position-sensitive directives a move may carry is stated twice (`OrderingMoveSafety.RelocationChangesDirectiveScope` and RH7309's `ContainsUnsafeDirectives`) | Change the structure in this run: SHARED-ORDER-011 is implemented once and RH7309 uses the shared check; routed to the implementer | The narrow fix would otherwise add a second copy of the new pairing rule; both components are already changed by the run | Internal structure; outputs decided by SHARED-ORDER-011 and the answers | – |
 | 2 | Skeptic | Declaring a shape unsupported | Not an option for either issue (ordering fixes do not use the formatter for the guarded text; no formatter special case deleted) — no escalation 10 | skeptic handover | – | – |
-| 3 | Skeptic | Stale goals of #970: remove an open-question non-goal that does not exist on `main`; bug-fix lane; RH7309 missing from ID list | Drop the non-goal goal; lane is behavior-change; RH7309 decided by 970-2 | agent-filed goals are proposals | No visible output; RH7309 goes to the maintainer as 970-2 | – |
+| 3 | Skeptic | Stale goals of #970: remove an open-question non-goal that does not exist on `main`; bug-fix lane; RH7309 missing from ID list | Drop the non-goal goal; lane is behavior-change; RH7309 decided by 970-2 | agent-filed goals are proposals | No visible output; RH7309 goes to the maintainer as 970-2 | – || 4 | Spec author (03) | Reading of 1668-2 A "in front of the class declaration" | The leading trivia of the first token of each declaration of the type (where `main` reads); groups elsewhere earlier in the file stay unread | Covers both shown inputs (the earlier type's `#endif` lands on the class's first token); a wider reading would add machinery | The shown outputs of 1668-2 A all hold | b6390d6 |
+| 5 | Spec author (03) | Stale `Uses` entries in RH7102 and code-fixes.md | Fixed in passing | adjacent text fix | spec text only | b6390d6 |
 
 ## Follow-up candidates
 
@@ -40,4 +41,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Skeptic done (c72272a): extra Q 970-3, 970-4; spec wording fixes pending for spec author after answers (RH7309 clause wording, intro paragraph naming RH7309 for SHARED-ORDER-011, RH7103 split-pair example → state for RH7107; SHARED-ORDER-006 Why sentence on `#if DEBUG` bodies if 1668-1 B); test implementer must update three existing tests (02-skeptic.md).
 - Last step: spec author (88ae496): #970 spec + change doc written; #1668 draft change doc, spec waits for answer. Open output questions 970-1, 970-2, 1668-1, 1668-2.
 - Batch 1 answered (see Maintainer answers).
-- Next: spec author (fresh) — apply answers, skeptic wording fixes, #1668 spec, Accepted; then test implementer.
+- Spec author follow-up done (b6390d6): answers applied, both change docs Accepted.
+- Next: test implementer (reads 03-spec-author.md, 02-skeptic.md).
