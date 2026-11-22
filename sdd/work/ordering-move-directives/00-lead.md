@@ -59,4 +59,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Test implementer 16 addendum (41b60ec): 2 red, 2 guards green.
 - Implementer 17 (883b9a9): green.
 - Cleaner 18 clean (35b6eaf); spec checker 19 consistent (e6834af).
-- Next: auditor (repair only, since 5a0472e); validator.
+- Audit 2 (repair) at 0a5c616 (ad11eab): pass, text cleanup — #2 comments (cleaner), #3 RH7309.md:609 (spec author). AUDITED SHA: 0a5c616.
+- Next: cleaner + spec author text fixes; verify-text-only --base 0a5c616; validator; publish.
