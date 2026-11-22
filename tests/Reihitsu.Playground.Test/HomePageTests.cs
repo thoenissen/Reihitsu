@@ -175,6 +175,24 @@ public class HomePageTests
     }
 
     /// <summary>
+    /// Verifies that assistive technology announces the input as "Input" and the output as "Formatted output": each pane's
+    /// accessible name is the text of its label, given by <c>aria-labelledby</c>, by <c>aria-label</c>, or by a label for a
+    /// labelable element
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-002")]
+    public void PanesAreNamedByTheirLabels()
+    {
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
+
+            Assert.AreEqual("Input", GetAccessibleName(page, page.Find("#playground-input")), "The input must be named by its label.");
+            Assert.AreEqual("Formatted output", GetAccessibleName(page, page.Find("#playground-output")), "The output must be named by its label.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that the page opens with the example in the input and the formatted example in the output
     /// </summary>
     [TestMethod]
@@ -400,6 +418,44 @@ public class HomePageTests
             Assert.AreEqual(input, PlaygroundMarkup.GetOutputText(page));
             Assert.AreEqual(SyntaxErrorMessage, PlaygroundMarkup.GetMessageLines(page)[0]);
         }
+    }
+
+    /// <summary>
+    /// Gets the accessible name of an element from the attributes and labels a name is computed from: the text of the elements
+    /// <c>aria-labelledby</c> names, else <c>aria-label</c>, else the text of a <c>label</c> whose <c>for</c> names the element
+    /// when the element is labelable
+    /// </summary>
+    /// <param name="page">The rendered page</param>
+    /// <param name="element">The element</param>
+    /// <returns>The accessible name, or an empty string when it has none</returns>
+    private static string GetAccessibleName(IRenderedComponent<Home> page, IElement element)
+    {
+        var labelledBy = element.GetAttribute("aria-labelledby");
+
+        if (string.IsNullOrWhiteSpace(labelledBy) == false)
+        {
+            return string.Join(" ",
+                               labelledBy.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+                                         .Select(id => NormalizeWhitespace(page.Find($"[id='{id}']").TextContent)));
+        }
+
+        var label = element.GetAttribute("aria-label");
+
+        if (string.IsNullOrWhiteSpace(label) == false)
+        {
+            return NormalizeWhitespace(label);
+        }
+
+        var labelable = element.LocalName is "button" or "input" or "meter" or "output" or "progress" or "select" or "textarea";
+
+        if (labelable && string.IsNullOrEmpty(element.Id) == false)
+        {
+            var labels = page.FindAll($"label[for='{element.Id}']");
+
+            return string.Join(" ", labels.Select(item => NormalizeWhitespace(item.TextContent)));
+        }
+
+        return string.Empty;
     }
 
     /// <summary>

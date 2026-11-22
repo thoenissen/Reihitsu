@@ -89,8 +89,10 @@ public class InputHighlightingTests
     }
 
     /// <summary>
-    /// Verifies that the text area and its coloured copy compute to the same font, size, line height, and tab size in both
-    /// colour schemes, so the colours lie under the characters they colour
+    /// Verifies that the text area and its coloured copy compute to the same font, size, line height, and tab size, and start
+    /// their text at the same place, in both colour schemes, so the colours lie under the characters they colour. The box
+    /// properties that place the text must be declared on both, because a browser gives a text area and a <c>pre</c>
+    /// different default margins, borders, and paddings
     /// </summary>
     [TestMethod]
     [Requirement("PLAY-011")]
@@ -111,6 +113,14 @@ public class InputHighlightingTests
                 foreach (var property in new[] { "font-family", "font-size", "line-height", "letter-spacing", "tab-size" })
                 {
                     Assert.AreEqual(PlaygroundStyles.GetComputed(document, input, property), PlaygroundStyles.GetComputed(document, copy, property), $"'{property}' must be the same for the text area and its coloured copy.");
+                }
+
+                foreach (var property in new[] { "box-sizing", "margin-top", "margin-left", "border-top-width", "border-left-width", "padding-top", "padding-left" })
+                {
+                    var inputValue = PlaygroundStyles.GetComputed(document, input, property);
+
+                    Assert.IsFalse(string.IsNullOrEmpty(inputValue), $"'{property}' must be declared for the text area.");
+                    Assert.AreEqual(inputValue, PlaygroundStyles.GetComputed(document, copy, property), $"'{property}' must be the same for the text area and its coloured copy.");
                 }
             }
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,8 @@ namespace Reihitsu.Playground.Test;
 
 /// <summary>
 /// Applies the Playground's stylesheet <c>wwwroot/css/app.css</c> to rendered markup, so a test can read the style an
-/// element computes to in the light or the dark colour scheme. Media rules other than <c>prefers-color-scheme</c> are left
-/// out, which gives the wide layout
+/// element computes to in the light or the dark colour scheme, on a wide or a narrow screen. A media rule that applies is
+/// unwrapped in its place, so it keeps its position in the cascade, and every other media rule is left out
 /// </summary>
 internal static class PlaygroundStyles
 {
@@ -60,10 +61,11 @@ internal static class PlaygroundStyles
     /// </summary>
     /// <param name="markup">The rendered markup</param>
     /// <param name="dark">Whether the dark colour scheme applies</param>
+    /// <param name="narrow">Whether the screen is narrow, so that the <c>max-width</c> media rules apply</param>
     /// <returns>The document, whose default view computes styles</returns>
-    internal static IDocument CreateDocument(string markup, bool dark)
+    internal static IDocument CreateDocument(string markup, bool dark, bool narrow = false)
     {
-        var html = $"<!DOCTYPE html><html><head><style>{CreateSchemeStyleSheet(dark)}</style></head><body>{markup}</body></html>";
+        var html = $"<!DOCTYPE html><html><head><style>{CreateSchemeStyleSheet(dark, narrow)}</style></head><body>{markup}</body></html>";
         var device = new DefaultRenderDevice
                      {
                          DeviceWidth = 1280,
@@ -89,12 +91,57 @@ internal static class PlaygroundStyles
     }
 
     /// <summary>
-    /// Creates the stylesheet of one colour scheme: the rules of a <c>prefers-color-scheme</c> media rule of that scheme
-    /// in place of the media rule, without the other scheme's and every other media rule
+    /// Checks whether a computed colour is red: an opaque colour whose red channel is at least half the maximum and at least
+    /// twice its green and its blue channel
+    /// </summary>
+    /// <param name="colour">The computed colour, as <c>rgb(…)</c>, <c>rgba(…)</c>, or <c>#rrggbb</c></param>
+    /// <returns><see langword="true"/> when the colour is red</returns>
+    internal static bool IsRed(string colour)
+    {
+        int red;
+        int green;
+        int blue;
+        var alpha = 1.0;
+
+        if (colour.StartsWith('#') && colour.Length == 7)
+        {
+            red = Convert.ToInt32(colour.Substring(1, 2), 16);
+            green = Convert.ToInt32(colour.Substring(3, 2), 16);
+            blue = Convert.ToInt32(colour.Substring(5, 2), 16);
+        }
+        else if (colour.StartsWith("rgb", StringComparison.Ordinal))
+        {
+            var channels = colour.Substring(colour.IndexOf('(') + 1).TrimEnd(')').Split(',', StringSplitOptions.TrimEntries);
+
+            red = int.Parse(channels[0], CultureInfo.InvariantCulture);
+            green = int.Parse(channels[1], CultureInfo.InvariantCulture);
+            blue = int.Parse(channels[2], CultureInfo.InvariantCulture);
+
+            if (channels.Length > 3)
+            {
+                alpha = double.Parse(channels[3], CultureInfo.InvariantCulture);
+            }
+        }
+        else
+        {
+            return false;
+        }
+
+        return alpha >= 1.0
+               && red >= 128
+               && green * 2 <= red
+               && blue * 2 <= red;
+    }
+
+    /// <summary>
+    /// Creates the stylesheet of one colour scheme and screen width: the rules of a <c>prefers-color-scheme</c> media rule of
+    /// that scheme, and on a narrow screen the rules of a <c>max-width</c> media rule, each in place of its media rule, without
+    /// every other media rule
     /// </summary>
     /// <param name="dark">Whether the dark colour scheme applies</param>
+    /// <param name="narrow">Whether the screen is narrow</param>
     /// <returns>The stylesheet's text</returns>
-    private static string CreateSchemeStyleSheet(bool dark)
+    private static string CreateSchemeStyleSheet(bool dark, bool narrow)
     {
         var sheet = new CssParser().ParseStyleSheet(ReadStyleSheet());
         var builder = new StringBuilder();
@@ -106,7 +153,8 @@ internal static class PlaygroundStyles
             {
                 var condition = media.ConditionText.Replace(" ", string.Empty, StringComparison.Ordinal);
 
-                if (condition.Contains("prefers-color-scheme:" + scheme, StringComparison.Ordinal))
+                if (condition.Contains("prefers-color-scheme:" + scheme, StringComparison.Ordinal)
+                    || (narrow && condition.Contains("max-width:", StringComparison.Ordinal)))
                 {
                     foreach (var inner in media.Rules)
                     {

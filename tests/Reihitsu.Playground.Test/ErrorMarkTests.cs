@@ -1,5 +1,4 @@
-using System;
-using System.Linq;
+﻿using System.Linq;
 
 using Bunit;
 
@@ -88,6 +87,50 @@ public class ErrorMarkTests
     public void EmptySpanInFrontOfAQuoteMarksTheQuote()
     {
         AssertMarks("class C { string s = \"abc\n; }", "21:\"");
+    }
+
+    /// <summary>
+    /// Verifies that an empty span in front of a character written as a surrogate pair marks the whole character, both of its
+    /// UTF-16 code units, so the mark does not split it; the missing semicolon behind it marks the <c>}</c> that follows
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-014")]
+    public void EmptySpanInFrontOfASurrogatePairMarksTheWholeCharacter()
+    {
+        AssertMarks("class C { void M() { int x = 1\U0001F600 } }", "30:\U0001F600", "33:}");
+    }
+
+    /// <summary>
+    /// Verifies that an empty span at a line separator (U+2028), which the parser counts as a line break, is marked behind the
+    /// line's last character, and the line separator is not marked
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-014")]
+    public void EmptySpanAtALineSeparatorIsMarkedBehindTheLastCharacterOfTheLine()
+    {
+        AssertMarks("class C\u2028{\u2028    int x\u2028}\u2028", "19:");
+    }
+
+    /// <summary>
+    /// Verifies that an empty span at a paragraph separator (U+2029), which the parser counts as a line break, is marked behind
+    /// the line's last character, and the paragraph separator is not marked
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-014")]
+    public void EmptySpanAtAParagraphSeparatorIsMarkedBehindTheLastCharacterOfTheLine()
+    {
+        AssertMarks("class C\u2029{\u2029    int x\u2029}\u2029", "19:");
+    }
+
+    /// <summary>
+    /// Verifies that an empty span at a next-line character (U+0085), which the parser counts as a line break, is marked behind
+    /// the line's last character, and the next-line character is not marked
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-014")]
+    public void EmptySpanAtANextLineCharacterIsMarkedBehindTheLastCharacterOfTheLine()
+    {
+        AssertMarks("class C\u0085{\u0085    int x\u0085}\u0085", "19:");
     }
 
     /// <summary>
@@ -278,17 +321,32 @@ public class ErrorMarkTests
     }
 
     /// <summary>
-    /// Verifies that the marks are drawn with a wavy underline: a rule of the stylesheet that names the mark's class declares
-    /// a wavy line
+    /// Verifies that a mark around characters is drawn as a red wavy underline in both colour schemes: its computed text
+    /// decoration is an underline, its style wavy, and its colour red
     /// </summary>
     [TestMethod]
     [Requirement("PLAY-014")]
-    public void MarksAreDrawnAsAWavyUnderline()
+    public void MarksAreDrawnAsARedWavyUnderline()
     {
-        var rules = PlaygroundStyles.GetRulesNaming("playground-mark");
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
 
-        Assert.IsNotEmpty(rules, "The stylesheet must style the marks.");
-        Assert.Contains(rule => rule.Contains("wavy", StringComparison.Ordinal), rules, $"The marks must be a wavy underline: {string.Join(" ", rules)}");
+            PlaygroundMarkup.Format(page, MissingSemicolonAndBraceSource);
+
+            foreach (var dark in new[] { false, true })
+            {
+                var document = PlaygroundStyles.CreateDocument(page.Markup, dark);
+                var mark = document.QuerySelectorAll(".playground-mark").First(element => element.TextContent.Length > 0);
+                var line = PlaygroundStyles.GetComputed(document, mark, "text-decoration-line");
+                var style = PlaygroundStyles.GetComputed(document, mark, "text-decoration-style");
+                var colour = PlaygroundStyles.GetComputed(document, mark, "text-decoration-color");
+
+                Assert.Contains("underline", line, $"The mark must be underlined (dark: {dark}).");
+                Assert.AreEqual("wavy", style, $"The mark's underline must be wavy (dark: {dark}).");
+                Assert.IsTrue(PlaygroundStyles.IsRed(colour), $"The mark's underline must be red, not '{colour}' (dark: {dark}).");
+            }
+        }
     }
 
     /// <summary>
