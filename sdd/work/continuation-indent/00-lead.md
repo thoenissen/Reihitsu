@@ -80,6 +80,8 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 | 24 | 10 implementer | Special cases `CreateReturnStatement` and the `ListElementAligner` zero-width guard were reshaped, not deleted | Spec author corrects the change docs' Special cases accounting (checked and kept / changed, with reason) | Accounting must match the code | Internal | f6969fe |
 | 25 | 12 test impl. | FMT-BLANK-018 example stale (column 8 under FMT-INDENT-034); RH2001-009 still says a directive between modifiers does not withhold the fix | Spec author amends both to match FMT-INDENT-034 and FMT-UNSUP-017/SHARED-FIX-010 (answers 1d A, 3 A) | Specs must agree with the accepted change | Covered by maintainer answers | 145c4de |
 | 26 | 12 test impl. | `[Obsolete]⏎return _value;` becomes a continuation line (statement attribute lists not a scope part in FMT-INDENT-034) | Keep as specified; no amendment | Spec decides it; attributes on statements are rare and not valid C# outside local functions | Decided by the accepted spec | — |
+| 27 | 16 spec checker | Repair round 1 (two minor findings) | Spec author 17 lists FMT-BLANK-018 and RH2001-004; test implementer 18 keeps the FMT-UNSUP-013 tag and records it. Cleaner skipped (no code changed); fresh spec checker re-checks | Text/handover-only repair | Internal | 6a4b12e, d4926b3 |
+| 28 | section 6 | Escalation 10 (S5) is open and the maintainer is unavailable for hours | Post it now; run the auditor and validator meanwhile on the recommendation (do not declare — nothing in the tree changes); do not mark the PR ready until answered | Declaring is the maintainer's decision; the recommended answer needs no work | Declaration not made | — |
 | 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
 ## Follow-up candidates
@@ -121,4 +123,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Spec author 13 done (145c4de).
 - Test implementer 14 done (7c223e0, eda4506).
 - Cleaner 15 done (a62f8d2): clean, 0 warnings.
-- Next: spec checker (16); then section 6 steps; auditor (17); validator.
+- Spec checker 16: two minor findings -> repair round 1 (17 spec author, 18 test implementer) done.
+- Next: fresh spec checker (19) on the repair; escalation 10 posted to the maintainer; auditor (20); validator (21); wait for the escalation-10 answer before marking ready.
