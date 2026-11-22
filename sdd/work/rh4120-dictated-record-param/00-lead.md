@@ -13,6 +13,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Where does the exemption live? | As a bullet of SHARED-CASING-014 referenced from RH4120-001, no new requirement ID | One statement of what makes a name dictated | Spec structure only | 243da8d |
+| 2 | Spec author | Parameter of a derived record that inherits a dictated property (`Derived(string name) : Person(name)`) | Stays reported (no property is declared for it) | Today's behavior; only the compiler-declared property decides | Unchanged output | 243da8d |
 
 ## Follow-up candidates
 
@@ -24,4 +26,6 @@
 
 ## Open worklist / next step
 
-- Next: spec author (01).
+- Spec author done (01, 243da8d): change doc `sdd/changes/2026-11/record-parameter-dictated-name.md` (Draft).
+- Open output question for the batch before the test implementer: the override case (`record Item(string title) : MetaRecord` where `MetaRecord.title` is an abstract property of a referenced assembly) — the maintainer's answer names only "implements"; a case the answer does not name is a new question.
+- Next: skeptic (02).
