@@ -1269,6 +1269,30 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
+    /// Verifies that a directive between the last modifier and the type of a property that gets no <c>readonly</c> withholds
+    /// the fix: the field the fix builds would hold the directive behind a modifier, which the formatter refuses
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoFixIsOfferedForADirectiveBetweenTheLastModifierAndTheTypeWithoutReadonly(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static
+                                #pragma warning disable CS0169
+                                    int {|RH2001:Third|} { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that Fix All replaces the property whose modifiers the fix reorders and leaves the property with a
     /// comment that a reordered modifier would cross reported without a fix
     /// </summary>
