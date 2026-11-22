@@ -91,6 +91,8 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 
 ## Follow-up candidates
 
+- Maintainer answer (escalation 10, B): declare unsupported, in a change of its own, a comment or directive that keeps a line apart behind an assignment `=` (e.g. `x = // reset⏎y + 1;`, `int[] G { get; } = // values⏎{ 1, 2 };`) and behind a switch arm's `=>` (`1 => // one⏎2,`); until then those lines keep the FMT-INDENT-034 continuation indent. Carries the maintainer's answer; filed regardless of rarity.
+
 - Comment on open issues #1633, #1634, #1905, #1542: their "Before" output changes under FMT-INDENT-034; an alignment chosen there later takes precedence (01-spec-author.md).
 - ~~Whether a wrapped `for` header should align under the token after `(`~~ — dropped: `for` headers are now joined (04-spec-author.md).
 - #1633: its case no longer exists because the base list `:` joins the type's line (04-spec-author.md).
@@ -99,7 +101,9 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Switch-arm multi-line property pattern without a type behind a combinator: the brace lands left of its pattern (`PatternAnchor.GetColumn` falls back to the original pattern's first token); FMT-INDENT-026 reads as the arm's column (28-auditor.md).
 - `case (⏎…⏎):` puts `case` alone on its line on `main` — looks wrong, outside the run (04-spec-author.md).
 
-## Open escalation 10 (ask before publishing)
+Escalation 10 (S5) answer: B — declare a comment or directive behind an assignment `=` (outside switch arms/anonymous members, already FMT-UNSUP-019) and behind a switch arm's `=>` unsupported, in a change of its own, not in this run. This run keeps the continuation indent for those lines meanwhile. -> follow-up issue carrying the answer.
+
+## Open escalation 10 (answered: B, see Maintainer answers)
 
 - S5 (10-implementer): declaring the remaining comment-held continuation lines unsupported. Lead recommendation: do not declare in this run (6A answered a continuation indent for the directive case). Ask before publishing (section 8 step 3).
 
@@ -135,6 +139,6 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Cleaner 21 clean on merged tree (f434b0b). Auditor 22 spawned against main ab547b7, head f434b0b.
 - Repair round 2 complete: cleaner 26, spec checker 27, auditor 28 pass.
 - Validator 29 pass at 796ac0d (all projects green, self-hosting line-count rows 18/18).
-- Waiting for the maintainer's escalation-10 answer (posted after spec checker 19). Then: issue manager (follow-ups incl. the answer if B), note, delete sdd/work, trigger commit, PR body, ready.
+- Escalation 10 answered (B -> follow-up). Next: issue manager (follow-ups incl. the answer if B), note, delete sdd/work, trigger commit, PR body, ready.
 - Auditor 22: findings F1-F4 on #953; #1852/#1896/#1818 pass. Repair round 2: spec author (23) -> test implementer (24) -> implementer (25) -> cleaner (26) -> spec checker (27) -> auditor on the repair (28) -> validator (29).
 - (old) auditor verdict; validator (23); wait for the escalation-10 answer before marking ready.
