@@ -78,7 +78,7 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 | 22 | 10 implementer | S3: six new types, ~1,380 production lines | Accept; not escalation 9 — it is the issues' own fix (README escalation 9 exempts it) | The code implements the run's own requirements | Internal | e2d55dd |
 | 23 | 10 implementer | S4: node-level root treated as a container | Spec author states it in FMT-INDENT-034 | Spec should say what the code relies on | Internal | f6969fe |
 | 24 | 10 implementer | Special cases `CreateReturnStatement` and the `ListElementAligner` zero-width guard were reshaped, not deleted | Spec author corrects the change docs' Special cases accounting (checked and kept / changed, with reason) | Accounting must match the code | Internal | f6969fe |
-| 25 | 12 test impl. | FMT-BLANK-018 example stale (column 8 under FMT-INDENT-034); RH2001-009 still says a directive between modifiers does not withhold the fix | Spec author amends both to match FMT-INDENT-034 and FMT-UNSUP-017/SHARED-FIX-010 (answers 1d A, 3 A) | Specs must agree with the accepted change | Covered by maintainer answers | (pending) |
+| 25 | 12 test impl. | FMT-BLANK-018 example stale (column 8 under FMT-INDENT-034); RH2001-009 still says a directive between modifiers does not withhold the fix | Spec author amends both to match FMT-INDENT-034 and FMT-UNSUP-017/SHARED-FIX-010 (answers 1d A, 3 A) | Specs must agree with the accepted change | Covered by maintainer answers | 145c4de |
 | 26 | 12 test impl. | `[Obsolete]⏎return _value;` becomes a continuation line (statement attribute lists not a scope part in FMT-INDENT-034) | Keep as specified; no amendment | Spec decides it; attributes on statements are rare and not valid C# outside local functions | Decided by the accepted spec | — |
 | 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
@@ -118,4 +118,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Implementer 10 done (e2d55dd, 1217fad): tests pass except 3 disputed rows + 54 existing tests pinning old output.
 - Spec author 11 done (f6969fe).
 - Test implementer 12 done (bfc3e5e, 07c5558): formatter 7086/0, analyzer 11912/0, architecture 198/0.
-- Next: spec author (13) for row 25; then cleaner (14); spec checker; auditor; validator.
+- Spec author 13 done (145c4de).
+- Next: test implementer (14) adds the RH2001-009 third-property no-fix test; cleaner (15) incl. the two stale code comments 13 names; spec checker; auditor; validator.
