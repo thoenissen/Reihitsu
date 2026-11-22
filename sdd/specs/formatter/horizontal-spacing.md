@@ -5,7 +5,7 @@
 | ID prefix | FMT-SPACE |
 | Status | Active |
 | Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `AttributeTargetColonSpacingRule`, `ArrowSpacingRule`, `ConditionalOperatorSpacingRule`, `NameColonSpacingRule`, `WhenSpacingRule`, `DeclaredNameSpacingRule`, `AccessorListSpacingRule`, `RelationalPatternSpacingRule`, `PrefixKeywordSpacingRule`, `WithSpacingRule`, `LambdaReturnTypeSpacingRule`, `FunctionPointerCallingConventionSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
-| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-BREAK-037, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, FMT-UNSUP-014, SHARED-BLANK-008 |
+| Uses | FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-BREAK-037, FMT-BREAK-041, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, FMT-UNSUP-014, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.
 
@@ -360,9 +360,9 @@ class C : B
 
 ### FMT-SPACE-010 — One space around binary and assignment operators
 
-The formatter MUST put exactly one space on both sides of a binary operator, an assignment or compound assignment operator, the `=` of a variable, parameter, or property initializer, and the `=` of a name-equals clause (using alias, attribute argument, anonymous-object member).
+The formatter MUST put exactly one space on both sides of a binary operator, an assignment or compound assignment operator, the `=` of a variable, parameter, or property initializer, the `=` of a name-equals clause (using alias, attribute argument, anonymous-object member), the `=` of a `let` clause, the combinator of a binary pattern (`and`, `or`), and the `is` of an `is` pattern expression. The `is` of a type test (`o is string`) is a binary operator already.
 
-Why: Operands run together with their operator (`a+b`) are hard to read, and extra spaces used for alignment break on the next edit. The rule decides the gap on both sides because either token of the pair may be the operator.
+Why: Operands run together with their operator (`a+b`) are hard to read, and extra spaces used for alignment break on the next edit. The rule decides the gap on both sides because either token of the pair may be the operator. A pattern combinator, the `is` of a pattern, and the `=` of a `let` clause are written like a binary operator and the `=` of a name-equals clause, and the joins of the line-break phase put them next to their operands with the minimal separator (FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-041, FMT-BREAK-031), so without this rule `x is 1 or⏎(2)` would become `x is 1 or(2)`.
 
 Example:
 
@@ -406,6 +406,40 @@ class C
 
         var b = a == 1 && a < 2;
         var q = a ?? 1;
+    }
+}
+```
+
+Example — the `is` of a pattern, the combinators, and the `=` of a `let` clause get one space on both sides, also next to a parenthesis, a bracket, a literal, or a parenthesized expression:
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(object o, int[] arr)
+    {
+        var a = o is(1);
+        var b = arr is[1 or(2), _];
+        var c = (o)is"s";
+        var d = o is(1)and(2);
+        var e = from x in arr let y=x select y;
+    }
+}
+```
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(object o, int[] arr)
+    {
+        var a = o is (1);
+        var b = arr is [1 or (2), _];
+        var c = (o) is "s";
+        var d = o is (1) and (2);
+        var e = from x in arr let y = x select y;
     }
 }
 ```

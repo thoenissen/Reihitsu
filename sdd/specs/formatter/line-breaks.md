@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | FMT-BREAK |
 | Status | Active |
-| Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-019, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `ContinuationJoinRewriter`, `JoinedGap`, `JoinedGapUtilities`, `PatternLineStartUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-019, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -3565,6 +3565,8 @@ The pattern behind `is` or `not` is not joined where FMT-BREAK-022 starts its fi
 
 The join writes the minimal separator (FMT-BREAK-031). It never meets a comment, a directive, or disabled text: the formatter refuses an input that holds one in these gaps (FMT-UNSUP-011, FMT-UNSUP-017), so FMT-BREAK-001 never has to refuse this join. The join applies wherever the gap stands, also inside a list element (FMT-BREAK-015), and in a node-level root as in a whole document.
 
+The join removes only the line breaks of the gap. The construct around it is then laid out by the requirements that lay it out when it is written on one line, which this requirement does not override: the initializer behind a joined `with` starts its own line (FMT-BREAK-021), the block of an anonymous method behind a joined modifier has its braces and statements on lines of their own (FMT-BREAK-002, FMT-BREAK-006), and an empty type behind a joined modifier becomes a semicolon declaration (FMT-STRUCT-017).
+
 Why: The token behind each of these gaps belongs to the token in front of it: a `return` and its value, an `await` and the loop or `using` it makes asynchronous, a `new` and what it creates, a pattern or a type and its `is`, a `not` and its pattern, an arm and its guard and arrow, a type and its base list, a modifier and the declaration it modifies, a catch clause and its filter, the three parts of a `for` header, a `foreach` loop and the collection it iterates, a cast and its operand, a lambda and its body, an expression and the `with` that copies it. A line break there carries no meaning, and the line it leaves reads as a new statement or needs a column of its own; joining it makes the construct read as one, as the maintainer decided for every gap of the list. A blank line there separates nothing, so it goes with the join, as for every join of this phase (FMT-BREAK-030). The opening delimiter of a multi-line property or parenthesized pattern starts its own line so that its content reads as a block below the `is` (FMT-INDENT-026); joining it onto the `is` would undo that layout.
 
 Example:
@@ -3737,6 +3739,52 @@ record R
 {
     void M(R r)
     {
+        var w = r with
+                  {
+                  };
+    }
+}
+```
+
+Example — after the join, the requirements that lay out the construct on one line decide its shape: the initializer behind `with` starts its own line, the block of the anonymous method spans several lines, and the empty type becomes a semicolon declaration:
+
+```csharp
+using System;
+
+record R;
+
+static class C
+{
+    public
+    class N
+    {
+    }
+
+    static void M(R r)
+    {
+        Func<int> g = static
+            delegate { return 1; };
+        var w = r
+            with { };
+    }
+}
+```
+
+```csharp
+using System;
+
+record R;
+
+static class C
+{
+    public class N;
+
+    static void M(R r)
+    {
+        Func<int> g = static delegate
+        {
+            return 1;
+        };
         var w = r with
                   {
                   };

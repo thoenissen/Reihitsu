@@ -66,6 +66,8 @@ No rule page changes.
 
 - **The zero-width anchor guard in `ListElementAligner.AlignToFirstElement`** — it left a list whose first element is an omitted type argument to block indentation, because that element has no column. With the shape refused and FMT-BREAK-014 joining every other such list, no list of omitted type arguments reaches the indentation phase wrapped, and the other callers pass attribute lists, whose first element always has text. The redundant skip of an empty first token in `ListElementAligner.AlignContinuations` goes with it: an omitted element holds no token other than its own.
 
+  Both were reshaped rather than removed outright: the guard also kept a list on one line (`typeof(Dictionary<,>)`) away from the column lookup, which fails for the empty token that `GetFirstToken()` returns for an omitted argument. Both methods now take the first element's own token, zero-width tokens included, as the anchor. That is one way of reading the anchor for every list, not a case for a class of inputs; such a list has nothing on a later line to align, so the anchor's column decides nothing.
+
 ### Checked and kept
 
 - **`LineBreakTriviaUtilities.CollapseTokenToSameLine`'s reach back behind a token without text** — it serves the join of a list of omitted type arguments that holds no comment (`typeof(Dictionary<⏎,>)`), which FMT-BREAK-014 still makes, and the join behind an omitted array size.

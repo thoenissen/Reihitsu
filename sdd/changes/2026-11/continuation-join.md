@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH7101-007 |
+| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-SPACE-010, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH5111-004, RH7101-007 |
 | Depends on | [continuation-indent.md](continuation-indent.md) |
 
 ## What
@@ -259,6 +259,81 @@ class C
 ```
 
 A blank line in a joined gap goes with the join: `return⏎⏎x;` gives `return x;`.
+
+The join removes only the line breaks of the gap; the construct around it then takes the shape it has on `main` when written on one line. Input:
+
+```csharp
+using System;
+
+record R;
+
+static class C
+{
+    public
+    class N
+    {
+    }
+
+    static void M(R r)
+    {
+        Func<int> g = static
+            delegate { return 1; };
+        var w = r
+            with { };
+    }
+}
+```
+
+Before (`main`): the gaps keep their line breaks; the same rules already shape the type, the block, and the initializer:
+
+```csharp
+using System;
+
+record R;
+
+static class C
+{
+    public
+    class N;
+
+    static void M(R r)
+    {
+        Func<int> g = static
+        delegate
+        {
+            return 1;
+        };
+        var w = r
+        with
+        {
+        };
+    }
+}
+```
+
+After: the empty type becomes a semicolon declaration (FMT-STRUCT-017), the anonymous method's block spans several lines (FMT-BREAK-002, FMT-BREAK-006), and the initializer behind `with` starts its own line (FMT-BREAK-021):
+
+```csharp
+using System;
+
+record R;
+
+static class C
+{
+    public class N;
+
+    static void M(R r)
+    {
+        Func<int> g = static delegate
+        {
+            return 1;
+        };
+        var w = r with
+                  {
+                  };
+    }
+}
+```
 
 The opening parenthesis of a multi-line parenthesized pattern keeps its own line below the `is`, as on `main`:
 
@@ -610,17 +685,98 @@ Every code fix that lays out a node through the formatter joins these gaps in th
 
   Before: no fix for `Q`; `P` becomes `public /* c */ int P => 1;`. After: `Q` becomes `public int Q => 2;`, and no fix is offered for `P`. The diagnostic is reported for both, before and after.
 
+- **RH5111** (an assignment, an initializer, or a default value laid out with its `=`), whose fix formats the whole declaration (RH5111-004): a line break behind a modifier of a property is joined, and the property's accessor list then takes its one-line form (FMT-BREAK-024), as whole-document formatting gives it.
+
+  ```csharp
+          public
+          string Property
+          {
+              get;
+              set;
+          }
+          = "test";
+  ```
+
+  Before:
+
+  ```csharp
+          public
+          string Property
+          {
+              get;
+              set;
+          } = "test";
+  ```
+
+  After:
+
+  ```csharp
+          public string Property { get; set; } = "test";
+  ```
+
 - **RH2001, RH7101** (a private auto-property turned into a field; a field split into one field per declaration), whose fixes ask the formatter before they are offered: a comment, a directive, or disabled text in one of the gaps inside the field the RH2001 fix builds, such as `private Counter Value { get; } = new /* three */ Counter();`, or anywhere in the type the RH7101 fix formats, withholds the fix, where `main` offers it. A list of omitted type arguments with a comment does the same for RH7101 ([omitted-type-argument-comment-unsupported.md](omitted-type-argument-comment-unsupported.md)).
 
 No rule page changes: no rule page shows a gap this change joins or refuses, and rule pages never describe the formatter.
+
+### 5. One space around the `is` of a pattern, a pattern combinator, and the `=` of a `let` clause
+
+The joins put these tokens next to their operands with the minimal separator, and no spacing rule covered them on `main`, so `x is 1 or⏎(2)` would have become `x is 1 or(2)`. FMT-SPACE-010 now gives them one space on both sides, like a binary operator. This also changes code written on one line, wherever such a token touches the token next to it — a parenthesis, a bracket, a literal, or a parenthesized expression; a gap that holds whitespace already became one space on `main`, and the `not` of a negated pattern, the `{` of a property pattern, and the `is` of a type test were spaced on `main` already.
+
+Input (also the output of `main`):
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(object o, int[] arr)
+    {
+        var a = o is(1);
+        var b = arr is[1 or(2), _];
+        var c = (o)is"s";
+        var d = o is(1)and(2);
+        var e = from x in arr let y=x select y;
+        var f = o switch
+                {
+                    (1)or(2) => 1,
+                    _ => 0,
+                };
+    }
+}
+```
+
+After:
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(object o, int[] arr)
+    {
+        var a = o is (1);
+        var b = arr is [1 or (2), _];
+        var c = (o) is "s";
+        var d = o is (1) and (2);
+        var e = from x in arr let y = x select y;
+        var f = o switch
+                {
+                    (1) or (2) => 1,
+                    _ => 0,
+                };
+    }
+}
+```
+
+The combinator of a `case` label gets its spaces the same way (`case(1)or(2):` gives `case(1) or (2):`); the gap behind `case` keeps what it has, as on `main`. Every code fix that formats a node holding such a token writes the same spaces. No analyzer reports these gaps, so no diagnostic changes, and no rule page changes.
 
 ## Special cases
 
 ### Deleted
 
-- **The kept line break in `ExpressionBodyToBlockConverter.CreateReturnStatement`** — the conversion drops the expression's leading trivia when it holds only whitespace and keeps it when it holds a line break, so that `=>⏎⏎2` became `return⏎2`. The line-break phase now joins every `return` and its value across line breaks and blank lines (FMT-BREAK-041), and FMT-UNSUP-012 and FMT-UNSUP-017 leave no comment, directive, or disabled text in that gap, so the conversion needs no case of its own for the expression's leading trivia: whatever whitespace and line breaks it carries, the join removes them. Only the check that keeps `return` and an expression from reading as one token (`return42`) remains.
+- **The decision by the expression's leading trivia in `ExpressionBodyToBlockConverter.CreateReturnStatement`** — the conversion dropped the expression's leading trivia when it held only whitespace and kept it when it held a line break, so that `=>⏎⏎2` became `return⏎2`. That condition is gone. It could not go without a replacement: for `=>⏎    42` the line break belongs to the arrow's trailing trivia, which the conversion discards, so without a case no line break would be left for the join, and the expression's indentation would stand behind `return` (`return         42`). The conversion now builds the `return` with the arrow's trailing trivia minus its whitespace, and the expression keeps its leading trivia unchanged; this is one filter applied to every conversion, not a case for an input class. The line-break phase then joins the `return` and its value across every line break and blank line (FMT-BREAK-041), and FMT-UNSUP-012 and FMT-UNSUP-017 leave no comment, directive, or disabled text in that gap. The check that keeps `return` and an expression from reading as one token (`return42`) remains, now also conditioned on the arrow leaving no line break.
 
-This is the one existing case the declaration deletes. The joins themselves are new, and none of them carries a refusal of its own: FMT-BREAK-001's check is the one every join of the phase shares, and with the declaration no gap these joins close ever holds what it refuses, so no join, the combinator join of FMT-BREAK-017 included, needs it, and no line behind such a gap is left for FMT-INDENT-034 to place. Without the declaration, each new join would run that check and leave a continuation line behind every comment it met; that is the alternative the maintainer rejected, not code the change removes.
+This is the one existing case the declaration deletes, reshaped as stated. The joins themselves are new, and none of them carries a refusal of its own: FMT-BREAK-001's check is the one every join of the phase shares, and with the declaration no gap these joins close ever holds what it refuses, so no join, the combinator join of FMT-BREAK-017 included, needs it, and no line behind such a gap is left for FMT-INDENT-034 to place. Without the declaration, each new join would run that check and leave a continuation line behind every comment it met; that is the alternative the maintainer rejected, not code the change removes.
 
 ### Checked and kept
 
