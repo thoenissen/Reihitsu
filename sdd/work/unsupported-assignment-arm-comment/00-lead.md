@@ -16,12 +16,15 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | One requirement or two (assignment `=` vs. switch-arm `=>`) | Two: FMT-UNSUP-020 and FMT-UNSUP-021, each with its own reason | Separate gaps, separate reasons for the CLI report | The maintainer's answer covers both shapes; requirement split is internal | 4046a07 |
+| 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
 
-(none yet)
+- Escalation 10 (asked in the next batch): a comment/directive behind a variable declarator's `=` (directive case), an enum member's `=`, or a parameter default's `=` — still kept on a continuation line. From `01-spec-author.md`.
 
 ## State
 
-- Last step: claim and lane.
-- Next: spec author.
+- Open output questions for batch 1: OQ1 compound assignment operators (`01-spec-author.md`); escalation 10 for the neighbouring `=` gaps.
+- Last step: spec author (01).
+- Next: skeptic, then batch 1 of output questions before the test implementer.
