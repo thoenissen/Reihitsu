@@ -1036,6 +1036,144 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
         await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
+    /// <summary>
+    /// Verifies that a positional record parameter is not reported when it matches an inherited dictated property, and an intermediate source record between them declares a private field or a private property of the parameter's name, which the record cannot access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterMatchingAnInheritedDictatedPropertyBehindAnInaccessibleMemberOfAnIntermediateRecordIsNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Person(string name) : INamed;
+
+                                public record MidField(string Other) : Person(Other)
+                                {
+                                    private string name = "";
+
+                                    public string PeekField() => name;
+                                }
+
+                                public record MidProperty(string Other) : Person(Other)
+                                {
+                                    private string name { get; } = "";
+
+                                    public string PeekProperty() => name;
+                                }
+
+                                public record BehindField(string name) : MidField(name);
+
+                                public record BehindProperty(string name) : MidProperty(name);
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter is not reported when it matches an inherited dictated property, and an intermediate record of another project of the solution declares a private or an internal field of the parameter's name, which the record cannot access
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterMatchingAnInheritedDictatedPropertyBehindAnInaccessibleMemberOfAnIntermediateRecordOfAnotherProjectIsNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string libraryCode = """
+                                   using Meta;
+
+                                   public record Person(string name) : INamed;
+
+                                   public record MidPrivate(string Other) : Person(Other)
+                                   {
+                                       private string name = "";
+
+                                       public string PeekPrivate() => name;
+                                   }
+
+                                   public record MidInternal(string Other) : Person(Other)
+                                   {
+                                       internal string name = "";
+                                   }
+                                   """;
+
+        const string testCode = """
+                                public record BehindPrivate(string name) : MidPrivate(name);
+
+                                public record BehindInternal(string name) : MidInternal(name);
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Library"].Sources.Add(("/Library/Library.cs", libraryCode));
+                         test.TestState.AdditionalProjects["Library"].AdditionalReferences.Add(reference);
+                         test.TestState.AdditionalProjectReferences.Add("Library");
+                         test.TestState.AdditionalReferences.Add(reference);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter is still reported when the record declares a field of its name, which the compiler matches instead of the inherited dictated property the field hides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterMatchingADeclaredFieldThatHidesAnInheritedDictatedPropertyIsReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Person(string name) : INamed;
+
+                                public record WithField(string {|RH4120:name|}) : Person(name)
+                                {
+                                    public new string name = name;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
