@@ -30,4 +30,5 @@
 ## State
 
 - Last step: test implementer amendment (04-test-implementer.md).
-- Next: implementer + spec author (switch-case brace spec states decision 6) in parallel.
+- Spec author done (06-spec-author.md, FMT-SWITCH-017). Open: test needs tag FMT-SWITCH-017 (test implementer, after the implementer).
+- Next: wait for implementer (05).
