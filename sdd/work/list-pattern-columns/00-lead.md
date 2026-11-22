@@ -29,6 +29,7 @@ Issue comments relevant to the run (summarized):
 ## Maintainer answers
 
 - Batch 1 (Q1, Q3, Q6, Q7, Q7b, Q8 as in 03-spec-author.md): maintainer answered "as recommended" → 1A, 3A, 6A, 7A, 7bA, 8A.
+- Question 9 (auditor finding #1929: typed property pattern behind and/or/not, parenthesized pattern behind a wrapper in a case label): maintainer answered "as recommended" → 9A (every member anchored to the first token of the arm / label pattern / list element, as the head does).
 
 ## Decisions taken
 
@@ -63,5 +64,5 @@ Issue comments relevant to the run (summarized):
 - Cleaner 09 clean (1aa5871).
 - Spec checker 10 consistent (4439857). Main not ahead; build green.
 - Auditor 11 (69fd99b) on audited SHA 9caef701739028a807c8e7cf8387d23d007c9255: #1929 high finding — undecided output: typed property pattern behind and/or/not, and parenthesized pattern behind a wrapper in a case label, move with PatternAnchor change.
-- WAITING: output question 9 (A = outermost first token for every member, current head; B = only where main had no column of its own) posted.
-- Next after answer: repair round 1 — spec author (change doc members), test implementer (members incl. 8A followers: `or (`/`and (` arm, `not (` list element/slice), implementer if B; then cleaner, spec checker, auditor (repair only), validator.
+- Q9 answered A.
+- Repair round 1 in progress — spec author (change doc members), test implementer (members incl. 8A followers: `or (`/`and (` arm, `not (` list element/slice), no implementer (head already does A); then cleaner, spec checker, auditor (repair only), validator.
