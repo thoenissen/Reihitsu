@@ -98,7 +98,7 @@ The fix is withheld the same way, where `main` offers it, for:
 - a group of whole accessors, such as `#if DEBUG` / `set { }` / `#endif` behind `get;`, on a moved or a crossed property;
 - a group of whole members in the body of a crossed nested type;
 - a group of whole members in front of a constant that RH7102 moves (RH7102-006's example), and in front of a field that RH7109 moves, where `main` moved the excluded code along when no crossed member had an initializer;
-- the same groups in a region block whose place RH7309 changes, or in the code between blocks that such a block crosses (RH7309-005's examples). A group in a block that keeps its place keeps the fix, as on `main`.
+- the same groups in a region block or in the code between blocks that RH7309's reorder moves a block across — a block whose place the fix changes, and also a block that keeps its place while other blocks are moved across it, such as `B` in blocks `A B C` reordered to `C B A` (RH7309-005's examples). A group in a block, or in code between blocks, that no block is moved across keeps the fix, as on `main`, such as one between `B` and `C` in blocks `A B C D` reordered to `B A D C`.
 
 A conditional group outside both spans keeps the move, as on `main`.
 
