@@ -46,11 +46,10 @@ Issue comments relevant to the run (summarized):
 
 ## Follow-up candidates
 
-- FMT-BLANK-019/020 (`BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression`) leaves out a positional pattern's `)`, now laid out like a list pattern's `]` — 07-implementer.md
-
-- Qualified name wrapped behind its dot in a member's type is not joined (joined in a constraint) — 01-spec-author.md
-- FMT-INDENT-021 `Why:` contradicts its own example (spec wording) — 01-spec-author.md
-- Qualified names wrapped behind their dot without a comment are not joined in using aliases, namespace names, explicit interface names, casts, typeof, default, new, member types (whole class) — 02-skeptic.md
+1. FMT-BLANK-019/020 (`BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression`) leave out a positional pattern's `)`, now laid out like a list pattern's `]`: `o is P(⏎1,⏎2⏎⏎)` keeps the blank line in front of `)`, a list pattern loses it — 07-implementer.md, 11-auditor.md
+2. Qualified names wrapped behind their dot without a comment are not joined in using aliases, namespace names, explicit interface names, casts, typeof, default, new, and member types, while the same wrap in a constraint is joined (whole class) — 01-spec-author.md, 02-skeptic.md
+3. FMT-INDENT-021 `Why:` contradicts its own example (spec wording) — 01-spec-author.md
+4. Structural: FMT-INDENT-025 (one subpattern/element per line inside delimiters) is implemented in three near-identical per-construct contributors, and FMT-BREAK-022's multi-line sequence in three `LineBreakInitializerRewriter` methods; this run added the positional copies — 11-auditor.md (hint)
 
 ## Worklist / next step
 
@@ -68,4 +67,5 @@ Issue comments relevant to the run (summarized):
 - Q9 answered A.
 - Repair round 1: spec author 12 (7f41ed4, e9b6e21), test implementer 13 (ff7330f) and 14 (637b531) done.
 - Cleaner 15 clean, spec checker 16 consistent, auditor 17 pass (279cbfb). AUDITED SHA: 5314ea2843baa33a046b9a37e693ff27eff6576a.
-- Next: validator 18, then publish (section 8).
+- Validator 18 pass (e2059cc). Lane check on head confirmed.
+- Next: issue manager (19), then note, delete sdd/work, trigger commit, PR text.
