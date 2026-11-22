@@ -4,13 +4,13 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-ORDER-008 (changed: every conditional directive in either span refuses the move, and every conditional directive in front of the spans or of a declaration of the type makes the type count as one whose field order sets its layout, except a group that wraps the whole declaration; the whole-unit test is retired), SHARED-ORDER-007 (changed: no member of excluded code is counted, because excluded code in either span already refuses the move), SHARED-ORDER-006 (changed: its conditional-pair example and *Why* hold for the accessor fixes; a member move keeps only region pairs and SHARED-ORDER-011 pairs), RH7102-006, RH7103-007, RH7309-005 (changed: the whole-unit groups no longer keep the fix), SHARED-FIX-009 (clarified: its excluded-members example points to RH2001-010 instead of SHARED-ORDER-007). |
+| Affected requirements | SHARED-ORDER-008 (changed: every conditional directive in either span refuses the move, and every conditional directive in the reordered body in front of the last instance field of the spans, or in front of a declaration of the type, makes the type count as one whose field order sets its layout, except a group that wraps the whole declaration; the whole-unit test is retired), SHARED-ORDER-007 (changed: no member of excluded code is counted, because excluded code in either span already refuses the move), SHARED-ORDER-006 (changed: its conditional-pair example and *Why* hold for the accessor fixes; a member move keeps only region pairs and SHARED-ORDER-011 pairs), RH7102-006, RH7103-007, RH7309-005 (changed: the whole-unit groups no longer keep the fix), SHARED-FIX-009 (clarified: its excluded-members example points to RH2001-010 instead of SHARED-ORDER-007). |
 
 ## What
 
 The member reordering fixes — RH7102, RH7103, RH7109, and RH7309 — no longer offer a move when the moved span or the crossed span (SHARED-ORDER-003) holds any `#if`, `#elif`, `#else`, or `#endif`, whatever the group wraps. Today they keep a move when the group wraps whole units — whole members, whole attribute lists, whole accessors, or whole statements of a member's body — and refuse it otherwise (SHARED-ORDER-008).
 
-With every group in the spans refused, no member of excluded code can move or be crossed, so SHARED-ORDER-007 no longer counts members of excluded code. The type-layout clause of SHARED-ORDER-008 changes with it: today a conditional group in the leading trivia of a declaration's first token, or in the reordered body in front of the spans, makes the type count as one whose field order sets its layout only when an excluded branch does not read as whole units. Now such a group counts whatever it holds, except a group of an `#if` and its `#endif`, with no `#elif` and no `#else`, that wraps the whole declaration. A conditional directive in a declaration in front of its body counts as on `main`.
+With every group in the spans refused, no member of excluded code can move or be crossed, so SHARED-ORDER-007 no longer counts members of excluded code. The type-layout clause of SHARED-ORDER-008 changes with it: today a conditional group in the leading trivia of a declaration's first token, or in the reordered body in front of the moved fields, makes the type count as one whose field order sets its layout only when an excluded branch does not read as whole units. Now such a group counts whatever it holds, except a group of an `#if` and its `#endif`, with no `#elif` and no `#else`, that wraps the whole declaration. A conditional directive in a declaration in front of its body counts as on `main`.
 
 The accessor fixes (RH7107, RH7108) are not changed: they move accessors, which carry no initializer and no field order, and SHARED-ORDER-008 never applied to them. RH2001's fix keeps its own reading of excluded members (RH2001-010), which is now the only reading of excluded branches as members among the code fixes.
 
@@ -189,6 +189,38 @@ After: RH7109 is reported on `_b`, and no code fix is offered. The same holds fo
 
 The same reading applies to every other declaration of a `partial` type that the analyzed build compiles.
 
+For RH7309, the body in front of the moved fields reaches up to the last instance field of the spans, so a group in code that no block is moved across counts when blocks behind it reorder instance fields. Blocks `Object`, `Methods`, `IDisposable`, `Base` reordered to `Methods`, `Object`, `Base`, `IDisposable`, with a group of whole members between `Methods` and `IDisposable`:
+
+```csharp
+public class C : Base, IDisposable
+{
+    #region Object
+    public override string ToString() => string.Empty;
+    #endregion // Object
+
+    #region Methods
+    public void M() { }
+    #endregion // Methods
+
+#if DEBUG
+    public void Trace() { }
+#endif
+
+    #region IDisposable
+    private int _d;
+    public void Dispose() { }
+    #endregion // IDisposable
+
+    #region Base
+    private int _b;
+    #endregion // Base
+}
+```
+
+Before (`main`): the blocks are reordered, `_b` in front of `_d`.
+
+After: RH7309 is reported on `Methods` and `Base`, and no code fix is offered (RH7309-005). With the instance fields in the `Object` and `Methods` blocks instead, the group stands behind every instance field of the spans, and the fix reorders the blocks as on `main`.
+
 ### Code fixes that format the affected node
 
 None besides the fixes named above. The moves are text moves of whole lines (SHARED-ORDER-009); no formatter output changes.
@@ -206,7 +238,11 @@ On `main`, the check of which groups are harmless reads every excluded branch as
 
 ### Where the type-layout check reads, stated by the token that holds the directive
 
-Each of the three places is a token range of the syntax tree: the tokens of a declaration of the type behind its first token up to its body's opening brace (or its `;`), the declaration's first token, and the reordered body between its opening brace and the start of the spans. A group elsewhere in the document — around another type, not reaching the leading trivia of a declaration of the reordered type — is not read, as on `main`. "In front of the class declaration" in the answer to 1668-2 is read as the leading trivia of the declaration's first token, the place `main` already read, applied to every declaration of a `partial` type as `main`'s type-layout clause was.
+Each of the three places is a token range of the syntax tree: the tokens of a declaration of the type behind its first token up to its body's opening brace (or its `;`), the declaration's first token, and the reordered body between its opening brace and the last member of the spans that counts as an instance field, outside the spans. A group elsewhere in the document — around another type, not reaching the leading trivia of a declaration of the reordered type — is not read, as on `main`. "In front of the class declaration" in the answer to 1668-2 is read as the leading trivia of the declaration's first token, the place `main` already read, applied to every declaration of a `partial` type as `main`'s type-layout clause was.
+
+### "In front of the moved fields" is read up to the last instance field of the spans
+
+The answer to 1668-2 withholds a fix that reorders instance fields for a group in front of the moved fields. A member move moves and crosses one stretch, so a group in front of its fields and outside the spans stands in front of the crossed span. An RH7309 reorder can move and cross several stretches, with code between them that no block is moved across; a group there that stands in front of instance fields of a later stretch counts, and one behind every instance field of the spans does not. Reading only in front of the first stretch would let through a group that can close the type and open a struct whose fields the later stretch's fields become, which `main` refuses; reading up to the end of the spans would also refuse a group behind every moved field, which the answer keeps.
 
 ### The exception is a check of where the group's two directives stand
 
