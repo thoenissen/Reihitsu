@@ -120,4 +120,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Test implementer 12 done (bfc3e5e, 07c5558): formatter 7086/0, analyzer 11912/0, architecture 198/0.
 - Spec author 13 done (145c4de).
 - Test implementer 14 done (7c223e0, eda4506).
-- Next: cleaner (15) incl. the two stale code comments 13 names; spec checker; auditor; validator.
+- Cleaner 15 done (a62f8d2): clean, 0 warnings.
+- Next: spec checker (16); then section 6 steps; auditor (17); validator.
