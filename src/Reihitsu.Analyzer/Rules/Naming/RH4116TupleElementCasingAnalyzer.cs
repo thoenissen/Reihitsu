@@ -42,6 +42,21 @@ public class RH4116TupleElementCasingAnalyzer : CasingAnalyzerBase
     #region Methods
 
     /// <summary>
+    /// Gets the types in the signature of a method, operator, or conversion operator: its return type, or the type a
+    /// conversion operator converts to, and the types of its parameters
+    /// </summary>
+    /// <param name="method">The method, operator, or conversion operator declaration</param>
+    /// <param name="returnType">The return type, or the type a conversion operator converts to</param>
+    /// <returns>The signature types</returns>
+    private static IEnumerable<TypeSyntax> GetSignatureTypes(BaseMethodDeclarationSyntax method, TypeSyntax returnType)
+    {
+        return method.ParameterList
+                     .Parameters
+                     .Select(static parameter => parameter.Type)
+                     .Prepend(returnType);
+    }
+
+    /// <summary>
     /// Gets the parameters of a property-like declaration: those of an indexer, and none otherwise
     /// </summary>
     /// <param name="property">The property, indexer, or event declaration</param>
@@ -74,15 +89,18 @@ public class RH4116TupleElementCasingAnalyzer : CasingAnalyzerBase
     /// <inheritdoc/>
     /// <remarks>
     /// A tuple type is in the signature of a member when it stands, at any depth, in the member's return type, the type
-    /// of one of its parameters, or the type of a property, indexer, or event; the element names there are dictated when
-    /// the member is (SHARED-CASING-014)
+    /// of one of its parameters, or the type of a property, indexer, or event, and a method, operator, or conversion
+    /// operator has such a signature; the element names there are dictated when the member is, and the type of an event
+    /// field is in the signature of each of its declarators, so it is dictated when any of them is (SHARED-CASING-014)
     /// </remarks>
     private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         var member = node.Ancestors().FirstOrDefault(static ancestor => ancestor is MemberDeclarationSyntax);
         var signatureTypes = member switch
                              {
-                                 MethodDeclarationSyntax method => method.ParameterList.Parameters.Select(static parameter => parameter.Type).Prepend(method.ReturnType),
+                                 MethodDeclarationSyntax method => GetSignatureTypes(method, method.ReturnType),
+                                 OperatorDeclarationSyntax operatorDeclaration => GetSignatureTypes(operatorDeclaration, operatorDeclaration.ReturnType),
+                                 ConversionOperatorDeclarationSyntax conversionOperator => GetSignatureTypes(conversionOperator, conversionOperator.Type),
                                  BasePropertyDeclarationSyntax property => GetParameters(property).Select(static parameter => parameter.Type).Prepend(property.Type),
                                  EventFieldDeclarationSyntax eventField => [eventField.Declaration.Type],
                                  _ => []
@@ -93,12 +111,14 @@ public class RH4116TupleElementCasingAnalyzer : CasingAnalyzerBase
             return false;
         }
 
-        var declaration = member is EventFieldDeclarationSyntax eventFieldDeclaration
-                              ? eventFieldDeclaration.Declaration.Variables.FirstOrDefault()
-                              : member;
+        if (member is EventFieldDeclarationSyntax eventFieldDeclaration)
+        {
+            return eventFieldDeclaration.Declaration
+                                        .Variables
+                                        .Any(declarator => IsDictatedMember(semanticModel.GetDeclaredSymbol(declarator, cancellationToken)));
+        }
 
-        return declaration != null
-               && IsDictatedMember(semanticModel.GetDeclaredSymbol(declaration, cancellationToken));
+        return IsDictatedMember(semanticModel.GetDeclaredSymbol(member, cancellationToken));
     }
 
     #endregion // CasingAnalyzerBase

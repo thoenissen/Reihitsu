@@ -372,8 +372,9 @@ public static class CasingUtilities
     }
 
     /// <summary>
-    /// Writes one word in PascalCase: its first character in uppercase, and the other characters in lowercase when they
-    /// are all uppercase letters, not counting combining marks, otherwise as written
+    /// Writes one word in PascalCase: its first character in uppercase when it is a letter, otherwise as written, and the
+    /// other characters in lowercase when they are all uppercase letters, not counting combining marks, otherwise as
+    /// written. A letter number or a combining mark that starts a word is kept as written (SHARED-CASING-006)
     /// </summary>
     /// <param name="input">Input string</param>
     /// <param name="start">Index of the word's first character</param>
@@ -396,7 +397,9 @@ public static class CasingUtilities
 
         var builder = new StringBuilder(end - start);
 
-        builder.Append(char.ToUpperInvariant(input[start]));
+        builder.Append(char.IsLetter(input[start])
+                           ? char.ToUpperInvariant(input[start])
+                           : input[start]);
 
         for (var index = start + 1; index < end; index++)
         {
