@@ -52,4 +52,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Spec author 07 done (c0e555b); test implementer 08 done (443fee2).
 - Test implementer 09 done (90d4243): 3 RH7309 tests, all pass on head.
 - Implementer 10 done (6acc442).
-- Next: cleaner (note MSTEST0037 in SyntaxTriviaUtilitiesTests.cs:524); then spec checker.
+- Cleaner 11 done (671fba3): clean.
+- Next: spec checker; then before-auditor steps.
