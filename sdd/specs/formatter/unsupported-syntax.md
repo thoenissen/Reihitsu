@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-021, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-BREAK-041, FMT-INDENT-013, FMT-INDENT-015, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-021, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-BREAK-041, FMT-INDENT-013, FMT-INDENT-015, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, RH5111-005, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -621,7 +621,7 @@ Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or dis
 
 The reason the formatter gives for this shape is `a comment or directive between a binary operator and its right operand`, and its location is the span of the first comment, directive, or disabled text in that place.
 
-Why: The line-break phase moves a binary operator at the end of a line to the start of the next line and joins the right operand behind it, and it joins the type behind the `is` of a type test onto the `is` (FMT-BREAK-017, FMT-BREAK-041). A comment or a directive behind the operator kept the right operand off the operator's line, so the phase refused the join (FMT-BREAK-001), left the operator at the end of the line, and the right operand started a line that no requirement places, in the column of the enclosing statement; RH5302's fix carried a copy of that refusal. RH5049 already reports a comment behind a binary operator, so the comment is rare by the repository's definition. No rule reports a directive or disabled text there; they are rare in practice, because a conditional operand is written behind a trailing operator only where the operators are not written at the line starts, as the formatter writes them (FMT-BREAK-017), and written with leading operators, the same code is formatted. A comment that explains an operand belongs in front of the operator — on the line above the operator's line or behind the left operand — where the phases carry it as they do for every wrapped operator. Directives and disabled text are part of the shape because the join refuses them alike: with comments alone, the refusal would have to stay. The shape is the same on one line, as it is for a conditional's operators (FMT-UNSUP-008), so the boundary is a place in the syntax tree, not a question of line breaks. The operator and its right operand belong to one binary expression, so a node-level input that holds the operator holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the join carries only whitespace into it (FMT-UNSUP-005). The precheck reads syntax only, so whether an `is` is a type test is the parser's reading, the reading the line-break phase joins by; whether the name behind it denotes a type or a constant needs a semantic model the precheck does not have. The gap behind the `is` of a pattern match and the gap behind a pattern combinator are FMT-UNSUP-017's, which declares them with the other gaps the line-break phase joins, with reasons that name them. The assignment operators are laid out by FMT-BREAK-016, whose refusal for a comment behind the operator stays: a comment there keeps the value on a continuation line (FMT-INDENT-034), except inside a switch-expression arm or an anonymous-object member, where FMT-UNSUP-019 refuses it. A comment in an attribute argument of a declaration, and a directive in a field declaration with several declarators, were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
+Why: The line-break phase moves a binary operator at the end of a line to the start of the next line and joins the right operand behind it, and it joins the type behind the `is` of a type test onto the `is` (FMT-BREAK-017, FMT-BREAK-041). A comment or a directive behind the operator kept the right operand off the operator's line, so the phase refused the join (FMT-BREAK-001), left the operator at the end of the line, and the right operand started a line that no requirement places, in the column of the enclosing statement; RH5302's fix carried a copy of that refusal. RH5049 already reports a comment behind a binary operator, so the comment is rare by the repository's definition. No rule reports a directive or disabled text there; they are rare in practice, because a conditional operand is written behind a trailing operator only where the operators are not written at the line starts, as the formatter writes them (FMT-BREAK-017), and written with leading operators, the same code is formatted. A comment that explains an operand belongs in front of the operator — on the line above the operator's line or behind the left operand — where the phases carry it as they do for every wrapped operator. Directives and disabled text are part of the shape because the join refuses them alike: with comments alone, the refusal would have to stay. The shape is the same on one line, as it is for a conditional's operators (FMT-UNSUP-008), so the boundary is a place in the syntax tree, not a question of line breaks. The operator and its right operand belong to one binary expression, so a node-level input that holds the operator holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the join carries only whitespace into it (FMT-UNSUP-005). The precheck reads syntax only, so whether an `is` is a type test is the parser's reading, the reading the line-break phase joins by; whether the name behind it denotes a type or a constant needs a semantic model the precheck does not have. The gap behind the `is` of a pattern match and the gap behind a pattern combinator are FMT-UNSUP-017's, which declares them with the other gaps the line-break phase joins, with reasons that name them. The assignment operators are laid out by FMT-BREAK-016, whose refusal for a comment behind the operator stays: a comment behind a compound assignment operator keeps the value on a continuation line (FMT-INDENT-034), except inside a switch-expression arm or an anonymous-object member, where FMT-UNSUP-019 refuses it, and a comment behind the `=` of an assignment is refused by FMT-UNSUP-020. A comment in an attribute argument of a declaration, and a directive in a field declaration with several declarators, were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
 
 Example — each binary expression is refused, and the input that holds it is returned unchanged:
 
@@ -747,7 +747,7 @@ Where FMT-UNSUP-010 refuses the same directive or disabled text — behind the `
 
 The reason the formatter gives for this shape is `a comment or directive between the arrow of an expression body and its expression`, and its location is the span of the first comment, directive, or disabled text in that place.
 
-Why: The conversion of an expression body into a block (FMT-STRUCT-004, FMT-STRUCT-005) removes the arrow, and a comment behind it had no owner: the conversion carried it onto the new opening brace, in front of the created statement, or behind the created `return`, each a case of its own, and it kept the body for a directive there (FMT-STRUCT-007), because the created `return` cannot share a directive's line. A property, an indexer, and an accessor keep their expression body (FMT-STRUCT-008); there the line-break phase refused the join of FMT-BREAK-026 behind a comment or directive (FMT-BREAK-001), the expression started a line that no requirement places, in the member's own column, and the lift of a get-only accessor list to the member kept the list (FMT-STRUCT-015). RH5040 already reports a comment around the arrow of a member or an accessor, and RH3202, RH3203, RH3205, RH3206, RH3207, and RH3208 report every expression-bodied method, constructor, operator, conversion operator, finalizer, and local function as a whole, so a comment behind the arrow is rare by the repository's definition, also behind a local function's arrow, which RH5040 leaves to other rules (RH5040-002). A local function's conversion runs through the same code as a method's, so leaving it out would keep every case for it alone. Directives and disabled text are part of the shape because the join refusal and the seam check of the get-only lift test them alike: with comments alone, both would have to stay. A comment that describes the body belongs above the member, where the phases carry it as they do for every member. The shape is the same on one line, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: the boundary is a place in the syntax tree, not a question of line breaks. The `=>` and its expression belong to one arrow clause, so a node-level input that holds the `=>` holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the conversions that create an arrow (FMT-STRUCT-009, FMT-STRUCT-014) create it with nothing behind it, and the join of FMT-BREAK-026 carries only whitespace (FMT-UNSUP-005). The `=>` of a lambda and of a switch-expression arm belongs to an expression, which no transform converts and FMT-BREAK-026 does not join, so declaring it here would delete nothing; the gap behind a lambda's `=>` is FMT-UNSUP-017's, because FMT-BREAK-041 joins it. A directive in a field declaration with several declarators was refused under FMT-UNSUP-010 before this requirement existed, and keeps the reason it gave.
+Why: The conversion of an expression body into a block (FMT-STRUCT-004, FMT-STRUCT-005) removes the arrow, and a comment behind it had no owner: the conversion carried it onto the new opening brace, in front of the created statement, or behind the created `return`, each a case of its own, and it kept the body for a directive there (FMT-STRUCT-007), because the created `return` cannot share a directive's line. A property, an indexer, and an accessor keep their expression body (FMT-STRUCT-008); there the line-break phase refused the join of FMT-BREAK-026 behind a comment or directive (FMT-BREAK-001), the expression started a line that no requirement places, in the member's own column, and the lift of a get-only accessor list to the member kept the list (FMT-STRUCT-015). RH5040 already reports a comment around the arrow of a member or an accessor, and RH3202, RH3203, RH3205, RH3206, RH3207, and RH3208 report every expression-bodied method, constructor, operator, conversion operator, finalizer, and local function as a whole, so a comment behind the arrow is rare by the repository's definition, also behind a local function's arrow, which RH5040 leaves to other rules (RH5040-002). A local function's conversion runs through the same code as a method's, so leaving it out would keep every case for it alone. Directives and disabled text are part of the shape because the join refusal and the seam check of the get-only lift test them alike: with comments alone, both would have to stay. A comment that describes the body belongs above the member, where the phases carry it as they do for every member. The shape is the same on one line, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: the boundary is a place in the syntax tree, not a question of line breaks. The `=>` and its expression belong to one arrow clause, so a node-level input that holds the `=>` holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the conversions that create an arrow (FMT-STRUCT-009, FMT-STRUCT-014) create it with nothing behind it, and the join of FMT-BREAK-026 carries only whitespace (FMT-UNSUP-005). The `=>` of a lambda and of a switch-expression arm belongs to an expression, which no transform converts and FMT-BREAK-026 does not join, so declaring it here would delete nothing; the gap behind a lambda's `=>` is FMT-UNSUP-017's, because FMT-BREAK-041 joins it, and the gap behind a switch arm's `=>` is FMT-UNSUP-021's, declared on the maintainer's answer. A directive in a field declaration with several declarators was refused under FMT-UNSUP-010 before this requirement existed, and keeps the reason it gave.
 
 Example — each expression body is refused, and the input that holds it is returned unchanged:
 
@@ -1267,7 +1267,7 @@ An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, i
 
 The conditions, each with both sides:
 
-- **These gaps only.** A comment, a directive, or disabled text next to the same tokens but outside the gap does not refuse the input under this requirement: in front of `return` (`// c⏎return x;`), behind the operand or the expression (`return x; // c`, `await t /* c */;`), inside the expression or the pattern behind its first token (`return M(/* c */ 1);`, `o is { Length: /* c */ 2 }`), in front of a combinator (`x is 1 /* c */ or 2`), behind the `=>` of a switch arm (`1 => /* c */ 2`), behind a base list's `:` (`class D : /* c */ B`), in front of the first modifier (`/* c */ public int M()`), behind a catch filter's `when` (`when /* c */ (e != null)`), behind the `(` of a `for` header or in front of its `)` (`for (/* c */ ;;)`), in front of the `in` of a `foreach` statement (`foreach (var y /* c */ in a)`), inside a cast's parentheses (`(int /* c */) x`), in front of a lambda's `=>` (`() /* c */ => 1`), behind the `=>` of a lambda with a block body (`() => // c⏎{ }`), behind `with` (`r with /* c */ { }`), and between `return` or `throw` and the `;` of a statement without an expression (`return /* c */;`, `throw /* c */;`). Neither does the `new` of an anonymous object (`new /* c */ { A = 1 }`), whose opening brace starts its own line (FMT-BREAK-021); the `new` of an implicit object creation, whose argument list FMT-UNSUP-014 decides (`new /* c */ ()`); the `is` of a type test, which FMT-UNSUP-011 decides (`o is /* c */ string`); or the `=>` of an expression body of a member, which FMT-UNSUP-012 and FMT-UNSUP-013 decide.
+- **These gaps only.** A comment, a directive, or disabled text next to the same tokens but outside the gap does not refuse the input under this requirement: in front of `return` (`// c⏎return x;`), behind the operand or the expression (`return x; // c`, `await t /* c */;`), inside the expression or the pattern behind its first token (`return M(/* c */ 1);`, `o is { Length: /* c */ 2 }`), in front of a combinator (`x is 1 /* c */ or 2`), behind the `=>` of a switch arm (`1 => /* c */ 2`), which FMT-UNSUP-021 refuses, behind a base list's `:` (`class D : /* c */ B`), in front of the first modifier (`/* c */ public int M()`), behind a catch filter's `when` (`when /* c */ (e != null)`), behind the `(` of a `for` header or in front of its `)` (`for (/* c */ ;;)`), in front of the `in` of a `foreach` statement (`foreach (var y /* c */ in a)`), inside a cast's parentheses (`(int /* c */) x`), in front of a lambda's `=>` (`() /* c */ => 1`), behind the `=>` of a lambda with a block body (`() => // c⏎{ }`), behind `with` (`r with /* c */ { }`), and between `return` or `throw` and the `;` of a statement without an expression (`return /* c */;`, `throw /* c */;`). Neither does the `new` of an anonymous object (`new /* c */ { A = 1 }`), whose opening brace starts its own line (FMT-BREAK-021); the `new` of an implicit object creation, whose argument list FMT-UNSUP-014 decides (`new /* c */ ()`); the `is` of a type test, which FMT-UNSUP-011 decides (`o is /* c */ string`); or the `=>` of an expression body of a member, which FMT-UNSUP-012 and FMT-UNSUP-013 decide.
 - **On any line.** Whether the gap holds a line break does not matter: `return /* c */ x;` on one line is refused like `return // c⏎x;` and like a comment on a line of its own between `return` and `x`.
 - **Every such gap.** Each gap is checked wherever it stands — at statement level, inside a list element, an interpolation hole, a lambda, a switch expression, or any other construct. A token in disabled text is no token of the input: a gap inside disabled text is not checked. A modifier that a conditional group makes conditional is a modifier of the build that compiles it: in `#if X⏎public⏎#else⏎internal⏎#endif⏎static int M()`, the `#else` and the disabled text behind `public` stand behind a modifier where `X` is defined, and the `#endif` stands behind `internal` where it is not, so the input is refused in every build; in `#if X⏎public⏎#endif⏎int M()`, `#endif` stands behind `public` where `X` is defined and in front of the first token where it is not, so the input is refused only where `X` is defined. The same holds for a type declaration (`#if X⏎public⏎#else⏎internal⏎#endif⏎class Foo` is refused in every build).
 
@@ -1473,7 +1473,7 @@ An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, i
 
 The conditions, each with both sides:
 
-- **An assignment expression.** The operator is `=` or a compound assignment operator (`+=`, `-=`, `??=`, and every other) of an assignment expression: `A = x += // c⏎3` and `1 => x = /* c */ 2` are refused. The members of an object initializer, of the initializer of a `with` expression, and of an index initializer are assignment expressions too, whose left operand is the member or the index: `1 => new R { A = /* c */ 3 }`, `1 => r with { A = /* c */ 3 }`, `1 => new Dictionary<int, int> { [0] = /* c */ 1 }`, and `B = r with { A = /* c */ 3 }` in an anonymous-object member are refused, while the same initializers outside an arm or a member (`var o = new R { A = /* c */ 3 };`) are formatted (the third condition). The `=` of a variable declarator, a property initializer, an enum member, a parameter's default value, an anonymous-object member declarator, or a `let` clause is not an assignment expression: the anonymous-object member's own `=` and the `=` of a `let` clause are FMT-UNSUP-017's (`new { A = /* c */ 1 }`).
+- **An assignment expression.** The operator is `=` or a compound assignment operator (`+=`, `-=`, `??=`, and every other) of an assignment expression: `A = x += // c⏎3` and `1 => x = /* c */ 2` are refused. The members of an object initializer, of the initializer of a `with` expression, and of an index initializer are assignment expressions too, whose left operand is the member or the index: `1 => new R { A = /* c */ 3 }`, `1 => r with { A = /* c */ 3 }`, `1 => new Dictionary<int, int> { [0] = /* c */ 1 }`, and `B = r with { A = /* c */ 3 }` in an anonymous-object member are refused, while the same initializers outside an arm or a member (`var o = new R { A = /* c */ 3 };`) are not refused under this requirement (the third condition), but under FMT-UNSUP-020, which refuses a comment behind every `=` of an assignment. The `=` of a variable declarator, a property initializer (FMT-UNSUP-020's), an enum member, a parameter's default value, an anonymous-object member declarator, or a `let` clause is not an assignment expression: the anonymous-object member's own `=` and the `=` of a `let` clause are FMT-UNSUP-017's (`new { A = /* c */ 1 }`).
 - **Behind the operator.** Only the gap between the operator and the right operand's first token counts. A comment in front of the operator (`A = x /* c */ += 3`) or inside the right operand behind its first token (`A = x += M(/* c */ 1)`) does not refuse the input.
 - **Inside a switch arm or an anonymous-object member.** The assignment counts when the nearest switch-expression arm, anonymous-object member declarator, statement, or member declaration that contains it is an arm or a member declarator — in the arm's `when` clause or expression, or in the member's value, also nested in an argument, a collection expression, or a lambda with an expression body inside it. An assignment in a statement does not count, also when the statement stands in a lambda's block inside an arm (`1 => () => { x += // c⏎3; }`), and neither does one anywhere outside an arm or a member: `x += // c⏎3;`, `M(x += // c⏎3)`, and `int[] z = [y += // c⏎2];` are formatted, and FMT-INDENT-034 places the line behind the comment.
 - **On any line.** Whether the gap holds a line break does not matter: `A = x += /* c */ 3` on one line is refused like `A = x += // c⏎3`.
@@ -1542,7 +1542,7 @@ class C
 
 The location is the span of `/* c1 */`, which starts in line 14, column 38.
 
-Example — the other side: none of these comments refuses the input under this requirement, also not those behind the `=` of an initializer member outside an arm and a member (`c5`, `c6`, `c7`):
+Example — the other side: none of these comments refuses the input under this requirement, also not those behind the `=` of an initializer member outside an arm and a member (`c5`, `c6`, `c7`), which FMT-UNSUP-020 refuses:
 
 ```csharp
 using System.Collections.Generic;
@@ -1577,6 +1577,197 @@ class C
     int M2(int v)
     {
         return v;
+    }
+}
+```
+
+### FMT-UNSUP-020 — Comments and directives behind the `=` of an assignment or a property initializer are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the `=` of a simple assignment expression and its right operand, or between the `=` of a property declaration's initializer and the initializer's value: in the trailing trivia of the `=`, or in the leading trivia of the first token of the right operand or the value.
+
+The conditions, each with both sides:
+
+- **The `=` of a simple assignment or of a property initializer.** A simple assignment expression is one whose operator is `=`, wherever it stands — at statement level, in an argument, in a lambda, in an initializer value: `x = // c⏎y + 1;`, `M(x = /* c */ 1)`, the deconstruction `(a, b) = /* c */ t;`, and the ref assignment `r = /* c */ ref y;` are refused. The members of an object initializer, of the initializer of a `with` expression, and of an index initializer are simple assignment expressions too: `new R { A = /* c */ 3 }`, `r with { A = /* c */ 3 }`, and `new Dictionary<int, int> { [0] = /* c */ 1 }` are refused. A property's initializer is refused like an assignment: `int[] G { get; } = // c⏎{ 1, 2 };`. A compound assignment operator (`+=`, `-=`, `??=`, and every other) is not part of this shape: `x += // c⏎3;` is formatted, and FMT-INDENT-034 places the line behind the comment; inside a switch arm or an anonymous-object member, FMT-UNSUP-019 refuses it. Neither is the `=` of a variable declarator — FMT-UNSUP-004 refuses a comment there, and a directive or disabled text there is formatted —, of an enum member, of a parameter's default value, or of an attribute argument (`[A(Name = /* c */ 1)]`); the `=` of an anonymous-object member declarator and of a `let` clause are FMT-UNSUP-017's.
+- **Behind the `=`.** Only the gap between the `=` and the first token of the right operand or the value counts. A comment in front of the `=` (`x /* c */ = 1;`, `int P { get; } /* c */ = 1;`) or inside the right operand or the value behind its first token (`x = y /* c */ + 1;`, `x = ref /* c */ y;`) does not refuse the input under this requirement.
+- **On any line.** Whether the gap holds a line break does not matter: `x = /* c */ 1;` on one line is refused like `x = // c⏎1;`.
+- **Every such `=`.** Each assignment and each property is checked with its own `=`, wherever it stands. A token in disabled text is no token of the input.
+
+The `=` of an assignment belongs to the assignment expression, so a node-level input that holds the `=` holds the whole gap. The `=` of a property initializer belongs to an equals-value clause, which a variable declarator, an enum member, and a parameter use as well; the shape counts only where the property declaration is part of the input, so an input that holds the equals-value clause without the property does not hold the shape (FMT-UNSUP-003).
+
+Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after every other. So FMT-UNSUP-019 keeps its reason for a `=` inside a switch arm or an anonymous-object member (`1 => x = /* c */ 2`), and FMT-UNSUP-010 for a directive in a field declaration with several declarators.
+
+The reason the formatter gives for this shape is `a comment or directive behind the = of an assignment or a property initializer`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: The maintainer decided to declare this shape unsupported, in a change of its own (escalation 10). A comment or a directive behind the `=` keeps the value off the `=`'s line, because the join of FMT-BREAK-016 does not cross it (FMT-BREAK-001), and the value starts a continuation line (FMT-INDENT-034). RH5111 already reports a value kept below its `=` by a comment or a directive (RH5111-005). A comment that explains the value belongs above the statement or the property, where the phases carry it as they do for every statement and member. Directives and disabled text are part of the shape because the join refuses them alike. The shape is the same on one line, as for the other shapes of this spec, so the boundary is a place in the syntax tree. The members of an initializer are assignment expressions in the syntax tree, as FMT-UNSUP-019 counts them as well, so the same line is not supported in one syntax and refused in the other. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): the join of FMT-BREAK-016 carries only whitespace into it. The shape deletes the refusal of FMT-BREAK-001 in the join of a collection initializer assigned to a member (`A = // c⏎{ 1, 2 }`), which only a simple assignment reaches; the refusal in the other joins of FMT-BREAK-016 stays, because they serve the compound assignment operators and the other equals-value clauses as well.
+
+Example — each `=` is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class C
+{
+    int[] G { get; } = // values
+        { 1, 2 };
+
+    int M(int x, int y)
+    {
+        x = // reset
+            y + 1;
+
+        return x;
+    }
+}
+```
+
+The location is the span of `// values`, which starts in line 3, column 24.
+
+Example — the members of an initializer are assignments, and a comment on one line is refused as well; the input is returned unchanged:
+
+```csharp
+using System.Collections.Generic;
+
+record R
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    object M(int x, R r)
+    {
+        x = /* one */ 1;
+
+        var o = new R
+                {
+                    A = /* c1 */ 3
+                };
+        var p = r with
+                  {
+                      A = /* c2 */ 4
+                  };
+        var d = new Dictionary<int, int>
+                {
+                    [0] = /* c3 */ 1
+                };
+
+        return x + o.A + p.A + d.Count;
+    }
+}
+```
+
+The location is the span of `/* one */`, which starts in line 12, column 13.
+
+Example — a directive behind the `=` is refused, and the input is returned unchanged; the location is the span of `#if DEBUG`, which starts in line 6, column 1:
+
+```csharp
+class C
+{
+    int M(int x)
+    {
+        x =
+#if DEBUG
+            1;
+#else
+            2;
+#endif
+
+        return x;
+    }
+}
+```
+
+Example — the other side: none of these comments refuses the input under this requirement:
+
+```csharp
+enum E
+{
+    A = // c1
+        1
+}
+
+class C
+{
+    int P { get; } /* c2 */ = 1;
+
+    int M(int x, int y = /* c3 */ 1)
+    {
+        x /* c4 */ = 1;
+        x += // c5
+            2;
+        x = y /* c6 */ + 1;
+
+        return x;
+    }
+}
+```
+
+### FMT-UNSUP-021 — Comments and directives behind the arrow of a switch arm are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the `=>` of a switch-expression arm and the first token of the arm's expression: in the trailing trivia of the `=>`, or in the leading trivia of the expression's first token.
+
+The conditions, each with both sides:
+
+- **A switch-expression arm.** Only the `=>` of an arm of a switch expression counts: `1 => // c⏎2` is refused. The `=>` of a lambda is not part of this shape — behind a lambda's `=>`, FMT-UNSUP-017 refuses a comment in front of an expression body, and a comment in front of a block body (`() => // c⏎{ }`) is formatted —, and neither is the `=>` of a member's or an accessor's expression body, which FMT-UNSUP-012 decides. A `case` label of a switch statement has no `=>`: `case 1: // c` is formatted.
+- **Behind the `=>`.** Only the gap between the `=>` and the first token of the arm's expression counts. A comment in front of the `=>` is FMT-UNSUP-017's (`1 /* c */ => 2`). A comment inside the expression behind its first token (`1 => M(/* c */ 2)`) or behind the expression (`1 => 2, // c`) does not refuse the input under this requirement.
+- **On any line.** Whether the gap holds a line break does not matter: `1 => /* c */ 2` on one line is refused like `1 => // c⏎2`.
+- **Every arm.** Each arm is checked with its own `=>`, also in a nested switch expression. A token in disabled text is no token of the input.
+
+A line break alone behind the `=>` is formatted: no requirement joins it (FMT-BREAK-041), and the expression's line is a continuation line (FMT-INDENT-034).
+
+The `=>` belongs to the arm, so a node-level input that holds the `=>` holds the whole gap.
+
+Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after every other.
+
+The reason the formatter gives for this shape is `a comment or directive behind the => of a switch arm`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: The maintainer decided to declare this shape unsupported, in a change of its own (escalation 10). A comment behind the `=>` stands on the line the arm's expression would start on; a comment that explains the arm belongs above the arm or behind its comma, where the phases carry it as they do for every arm. Directives and disabled text are part of the shape alike. The shape is the same on one line, so the boundary is a place in the syntax tree. No requirement joins the gap behind the `=>`, so the declaration deletes no special case: the line behind the `=>` is a continuation line with or without a comment, and the shape is declared on the maintainer's explicit answer. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): no phase moves trivia across an arm's `=>`.
+
+Example — each arm is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class C
+{
+    int M(int v)
+    {
+        return v switch
+               {
+                   1 => // one
+                       2,
+                   2 => /* two */ 3,
+                   _ => 0
+               };
+    }
+}
+```
+
+The location is the span of `// one`, which starts in line 7, column 25.
+
+Example — the other side: none of these comments refuses the input under this requirement, and the line break alone behind `1 =>` is formatted:
+
+```csharp
+using System;
+
+class C
+{
+    int M(int v)
+    {
+        var r = v switch
+                {
+                    1 =>
+                        2, // c1
+                    2 => 3 /* c2 */,
+                    _ => 0
+                };
+        Action a = () => // c3
+                   {
+                   };
+
+        switch (v)
+        {
+            case 1: // c4
+                break;
+        }
+
+        return r;
     }
 }
 ```
