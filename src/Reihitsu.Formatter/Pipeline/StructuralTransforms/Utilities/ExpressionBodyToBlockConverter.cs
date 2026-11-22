@@ -34,7 +34,7 @@ internal static class ExpressionBodyToBlockConverter
                                             SyntaxToken arrowToken,
                                             SyntaxToken semicolonToken)
     {
-        var statement = CreateStatement(expression, statementForm, semicolonToken);
+        var statement = CreateStatement(expression, statementForm, arrowToken, semicolonToken);
 
         // The created tokens are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
         var openBrace = SyntaxFactory.Token(arrowToken.LeadingTrivia, SyntaxKind.OpenBraceToken, default);
@@ -49,17 +49,17 @@ internal static class ExpressionBodyToBlockConverter
     /// always becomes a <see cref="ThrowStatementSyntax"/> regardless of the requested form, because
     /// <c>return throw ...;</c> does not compile (CS8115). Any comment or directive in the semicolon
     /// token's leading trivia that would otherwise be lost with the discarded token is carried in
-    /// front of the newly created semicolon token instead. A <c>return</c> statement drops the
-    /// expression's leading indentation when no line break is left in front of the expression, so an
-    /// expression written on the line after the arrow joins the keyword exactly like one written on the
-    /// arrow's line
+    /// front of the newly created semicolon token instead. A <c>return</c> statement takes over the
+    /// gap behind the arrow (<see cref="CreateReturnStatement"/>)
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="statementForm">The statement form</param>
+    /// <param name="arrowToken">The arrow token being replaced</param>
     /// <param name="semicolonToken">The semicolon token being replaced</param>
     /// <returns>The wrapping statement</returns>
     private static StatementSyntax CreateStatement(ExpressionSyntax expression,
                                                    ExpressionBodyStatementForm statementForm,
+                                                   SyntaxToken arrowToken,
                                                    SyntaxToken semicolonToken)
     {
         var newSemicolonToken = SyntaxFactory.Token(ExtractSignificantTrivia(semicolonToken.LeadingTrivia), SyntaxKind.SemicolonToken, default);
@@ -74,32 +74,28 @@ internal static class ExpressionBodyToBlockConverter
             return SyntaxFactory.ExpressionStatement(expression, newSemicolonToken);
         }
 
-        return CreateReturnStatement(expression, newSemicolonToken);
+        return CreateReturnStatement(expression, arrowToken, newSemicolonToken);
     }
 
     /// <summary>
-    /// Wraps the expression in a <c>return</c> statement that the expression joins on the keyword's line. When the
-    /// expression's leading trivia holds no line break, it is the indentation of an expression that started its own line
-    /// after the arrow: the line break itself belonged to the discarded arrow token, and the indentation is dropped. Leading
-    /// trivia that carries a line break is kept, because the layout it describes is then the author's. Otherwise the keyword
-    /// gets one space behind it only when nothing separates it from the expression and the two would read as one token, as
-    /// the lexer decides for <c>return42</c>
+    /// Wraps the expression in a <c>return</c> statement that takes over the line breaks of the gap behind the arrow: the
+    /// arrow's trailing line breaks become the keyword's, and the expression keeps its leading trivia. The gap holds no
+    /// comment, no directive, and no disabled text (FMT-UNSUP-012), and the line-break phase joins the <c>return</c> and its
+    /// value across every line break and blank line (FMT-BREAK-041); the spaces of the gap are the horizontal-spacing phase's.
+    /// The keyword gets one space behind it only when nothing separates it from the expression and the two would read as one
+    /// token, as the lexer decides for <c>return42</c>
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
+    /// <param name="arrowToken">The arrow token being replaced</param>
     /// <param name="semicolonToken">The semicolon token of the created statement</param>
     /// <returns>The <c>return</c> statement</returns>
-    private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
+    private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken arrowToken, SyntaxToken semicolonToken)
     {
-        var returnKeyword = SyntaxFactory.Token(default, SyntaxKind.ReturnKeyword, default);
-        var leadingTrivia = expression.GetLeadingTrivia();
+        var lineBreaks = SyntaxFactory.TriviaList(arrowToken.TrailingTrivia.Where(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false));
+        var returnKeyword = SyntaxFactory.Token(default, SyntaxKind.ReturnKeyword, lineBreaks);
 
-        if (leadingTrivia.Count > 0
-            && leadingTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
-        {
-            expression = expression.WithLeadingTrivia(default(SyntaxTriviaList));
-        }
-
-        if (expression.GetLeadingTrivia().FullSpan.Length == 0
+        if (lineBreaks.Count == 0
+            && expression.GetLeadingTrivia().FullSpan.Length == 0
             && TokenSeparationUtilities.WouldMergeIntoOneToken(returnKeyword, expression.GetFirstToken()))
         {
             returnKeyword = returnKeyword.WithTrailingTrivia(SyntaxFactory.Space);

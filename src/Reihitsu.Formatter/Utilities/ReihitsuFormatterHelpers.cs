@@ -184,6 +184,36 @@ internal static class ReihitsuFormatterHelpers
         return column;
     }
 
+    /// <summary>
+    /// Computes the line-start column of a token (FMT-PIPE-024): the column, in its document, of the first token or comment on
+    /// the line on which the token stands, counted as <see cref="ComputeDocumentColumn"/> counts the column of a token
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns>The column at which the token's line begins in the document</returns>
+    internal static int ComputeDocumentLineStartColumn(SyntaxToken token)
+    {
+        var text = token.SyntaxTree.GetText();
+        var line = text.Lines.GetLineFromPosition(token.SpanStart);
+        var position = line.Start;
+
+        while (position < token.SpanStart
+               && (text[position] == ' ' || text[position] == '\t' || text[position] == '\uFEFF'))
+        {
+            position++;
+        }
+
+        var column = position - line.Start;
+
+        if (line.Start == 0
+            && column > 0
+            && text[0] == '\uFEFF')
+        {
+            column--;
+        }
+
+        return column;
+    }
+
     #endregion // Methods
 
     #region Private methods

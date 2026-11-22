@@ -220,6 +220,34 @@ internal sealed class LayoutModel
     }
 
     /// <summary>
+    /// Sets the layout of a continuation line (FMT-INDENT-034): it places the line only while no other alignment contributor
+    /// has placed it, neither through <see cref="Set"/> nor through <see cref="SetUnlessPlaced"/>, so every other requirement
+    /// that places the line takes it over, also in a later sweep. The continuation contributor runs first in every sweep, so a
+    /// contributor that places the line later in the same sweep overrides it, and the continuation layout no longer writes the
+    /// line in the sweeps after it
+    /// </summary>
+    /// <param name="lineNumber">The 0-based line number</param>
+    /// <param name="layout">The continuation layout</param>
+    public void SetContinuation(int lineNumber, TokenLayout layout)
+    {
+        if (_alignmentContributors.ContainsKey(lineNumber)
+            || (_fallbackContributors.TryGetValue(lineNumber, out var fallbackContributor) && fallbackContributor != AlignmentContributor?.GetType())
+            || AcceptsWrite(lineNumber) == false)
+        {
+            return;
+        }
+
+        RecordPlacement(lineNumber);
+
+        if (AlignmentContributor != null)
+        {
+            _fallbackContributors[lineNumber] = AlignmentContributor.GetType();
+        }
+
+        _layouts[lineNumber] = ToLayoutBeforeRawStringShift(layout.Column, layout.Source, GetRawStringShift(lineNumber));
+    }
+
+    /// <summary>
     /// Gets the alignment contributors that placed the line while the alignment sweeps ran: the contributors whose
     /// <see cref="Set"/> placed it, or, when none did, the contributor whose fallback (<see cref="SetUnlessPlaced"/>) placed
     /// it. A contributor that only moved the line with a range (<see cref="ShiftRange"/>) is not counted

@@ -1,8 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
@@ -87,7 +90,53 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes binary operator position by moving end-of-line trivia to the left operand, unless a line break already
+    /// Collects the binary patterns of a pattern chain in text order: the pattern itself and every binary pattern that is its
+    /// left or right operand, directly and not through a parenthesized pattern, and so on down (FMT-BREAK-017)
+    /// </summary>
+    /// <param name="pattern">The pattern</param>
+    /// <param name="chain">The binary patterns collected so far</param>
+    private static void CollectChain(PatternSyntax pattern, List<BinaryPatternSyntax> chain)
+    {
+        if (pattern is not BinaryPatternSyntax binary)
+        {
+            return;
+        }
+
+        CollectChain(binary.Left, chain);
+        chain.Add(binary);
+        CollectChain(binary.Right, chain);
+    }
+
+    /// <summary>
+    /// Gets the current replacement of a token, or the token itself when it has none
+    /// </summary>
+    /// <param name="replacements">The replacements so far</param>
+    /// <param name="token">The original token</param>
+    /// <returns>The token as currently rewritten</returns>
+    private static SyntaxToken GetCurrent(Dictionary<SyntaxToken, SyntaxToken> replacements, SyntaxToken token)
+    {
+        return replacements.TryGetValue(token, out var replaced)
+                   ? replaced
+                   : token;
+    }
+
+    /// <summary>
+    /// Determines whether a pattern chain is wrapped: a line break stands next to one of its combinators, or an operand next to
+    /// one of its combinators is a property, list, or parenthesized pattern that spans several lines (FMT-BREAK-017)
+    /// </summary>
+    /// <param name="chain">The binary patterns of the chain</param>
+    /// <returns><see langword="true"/> if the chain is wrapped; otherwise, <see langword="false"/></returns>
+    private static bool IsWrappedChain(List<BinaryPatternSyntax> chain)
+    {
+        return chain.Any(static binary => TokenGapUtilities.HasLineBreakBetween(binary.Left.GetLastToken(), binary.OperatorToken)
+                                          || TokenGapUtilities.HasLineBreakBetween(binary.OperatorToken, binary.Right.GetFirstToken())
+                                          || IsMultiLineDelimitedPattern(RightmostLeaf(binary.Left))
+                                          || IsMultiLineDelimitedPattern(LeftmostLeaf(binary.Right)));
+    }
+
+    /// <summary>
+    /// Normalizes binary operator position by moving end-of-line trivia to the left operand. The <c>is</c> of a type test keeps
+    /// its place: the type behind it joins it (FMT-BREAK-041), and an <c>is</c> that starts its line stays there, unless a line break already
     /// separates the left operand from the operator, which then stays the gap's only one (FMT-BREAK-030). The operator and the right
     /// operand are joined with the minimal separator (FMT-BREAK-031), so an operand such as <c>-a</c> behind <c>-</c> stays
     /// a separate token; the spaces of the joined gap are the horizontal-spacing phase's
@@ -98,7 +147,8 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     {
         var operatorToken = node.OperatorToken;
 
-        if (LineBreakTriviaUtilities.HasTrailingEndOfLine(operatorToken) == false)
+        if (node.IsKind(SyntaxKind.IsExpression)
+            || LineBreakTriviaUtilities.HasTrailingEndOfLine(operatorToken) == false)
         {
             return node;
         }
@@ -128,27 +178,53 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Places a pattern combinator (<c>and</c>/<c>or</c>) on its own line when the pattern wraps
-    /// across multiple lines, so the operator aligns with the introducing construct
+    /// Lays out a wrapped pattern chain (FMT-BREAK-017): every combinator starts its own line, and the right pattern of each
+    /// combinator joins it, except where FMT-BREAK-022 starts the right pattern's first token on a line of its own
+    /// (<see cref="PatternLineStartUtilities.StartsOwnLine"/>). A chain that is not wrapped keeps its layout. No gap behind a
+    /// combinator holds a comment, a directive, or disabled text: the precheck refuses an input that holds one there
+    /// (FMT-UNSUP-017)
     /// </summary>
-    /// <param name="node">The binary pattern node</param>
-    /// <returns>The binary pattern with the combinator on its own line</returns>
-    private BinaryPatternSyntax NormalizePatternOperatorPosition(BinaryPatternSyntax node)
+    /// <param name="node">The outermost binary pattern of the chain</param>
+    /// <returns>The binary pattern with its chain laid out</returns>
+    private BinaryPatternSyntax NormalizePatternChain(BinaryPatternSyntax node)
     {
-        // Only break the combinator onto its own line when one of the adjacent operands is a
-        // delimited pattern that wraps; simple operands keep the conventional "or operand" layout
-        if (IsMultiLineDelimitedPattern(RightmostLeaf(node.Left)) == false
-            && IsMultiLineDelimitedPattern(LeftmostLeaf(node.Right)) == false)
+        var chain = new List<BinaryPatternSyntax>();
+
+        CollectChain(node, chain);
+
+        if (IsWrappedChain(chain) == false)
         {
             return node;
         }
 
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(node.OperatorToken) == false)
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var binary in chain)
         {
-            node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, node.OperatorToken, _context.EndOfLine);
+            var leftLastToken = binary.Left.GetLastToken();
+            var operatorToken = binary.OperatorToken;
+            var rightFirstToken = binary.Right.GetFirstToken();
+
+            if (TokenGapUtilities.HasLineBreakBetween(leftLastToken, operatorToken) == false)
+            {
+                var currentLeft = GetCurrent(replacements, leftLastToken);
+
+                replacements[leftLastToken] = currentLeft.WithTrailingTrivia(LineBreakTriviaUtilities.EndLineInFrontOf(currentLeft, operatorToken, _context.EndOfLine));
+            }
+
+            if (PatternLineStartUtilities.StartsOwnLine(rightFirstToken) == false
+                && TokenGapUtilities.HasLineBreakBetween(operatorToken, rightFirstToken))
+            {
+                var currentOperator = GetCurrent(replacements, operatorToken);
+
+                replacements[operatorToken] = currentOperator.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(currentOperator, rightFirstToken));
+                replacements[rightFirstToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetCurrent(replacements, rightFirstToken));
+            }
         }
 
-        return node;
+        return replacements.Count == 0
+                   ? node
+                   : node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
     }
 
     #endregion // Methods
@@ -175,6 +251,8 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        var isChainRoot = node.Parent is not BinaryPatternSyntax;
+
         node = (BinaryPatternSyntax)base.VisitBinaryPattern(node);
 
         if (node == null)
@@ -182,7 +260,9 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        return NormalizePatternOperatorPosition(node);
+        return isChainRoot
+                   ? NormalizePatternChain(node)
+                   : node;
     }
 
     #endregion // CSharpSyntaxVisitor

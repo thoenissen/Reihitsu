@@ -43,17 +43,9 @@ internal static class ListElementAligner
             return;
         }
 
-        var anchorToken = elements[0].GetFirstToken();
-
-        // An omitted type argument's token is zero-width (an unbound generic such as
-        // "Dictionary<,>"), so it carries no real column to anchor to. Leave this list to the
-        // block-indentation fallback pass 1 already computed, rather than align to a degenerate
-        // position
-        if (anchorToken.Span.IsEmpty)
-        {
-            return;
-        }
-
+        // The first element's own token is the anchor, also when it has no text, such as the omitted type argument of a list
+        // that stands on one line (Dictionary<,>); such a list never reaches this phase wrapped (FMT-BREAK-014, FMT-UNSUP-018)
+        var anchorToken = elements[0].GetFirstToken(includeZeroWidth: true);
         var anchorColumn = LayoutComputer.GetAdjustedColumn(anchorToken, model);
 
         for (var elementIndex = 1; elementIndex < elements.Count; elementIndex++)
@@ -90,8 +82,8 @@ internal static class ListElementAligner
     /// Aligns every line that starts inside an element at a token other than the element's first token with that
     /// first token. A line inside a construct that lays out its own lines - as
     /// <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names them, the same constructs whose interior
-    /// wraps the line-break phase keeps - is left to that construct, except that every clause after a query's first
-    /// <c>from</c>, including the clauses of an <c>into</c> continuation, is aligned with the query's first token. The
+    /// wraps the line-break phase keeps - is left to that construct; the clauses of a query are the query clause
+    /// contributor's (FMT-INDENT-035), and a line inside a clause is a continuation line of that clause (FMT-INDENT-034). The
     /// alignment is a fallback (<see cref="LayoutModel.SetUnlessPlaced"/>): a construct inside the element whose contributor
     /// places the line, such as a wrapped binary operator, a conditional, or a chain link, is the line's only owner
     /// </summary>
@@ -103,12 +95,7 @@ internal static class ListElementAligner
     {
         foreach (var element in elements)
         {
-            var firstToken = element.GetFirstToken();
-
-            if (firstToken.Span.IsEmpty)
-            {
-                continue;
-            }
+            var firstToken = element.GetFirstToken(includeZeroWidth: true);
 
             foreach (var token in element.DescendantTokens())
             {
@@ -118,19 +105,12 @@ internal static class ListElementAligner
                     continue;
                 }
 
-                var anchorToken = firstToken;
-                var owningConstruct = ListElementInteriorUtilities.FindOwningConstruct(token, element);
-
-                if (owningConstruct is QueryBodySyntax queryBody)
-                {
-                    anchorToken = queryBody.FirstAncestorOrSelf<QueryExpressionSyntax>().GetFirstToken();
-                }
-                else if (owningConstruct != null)
+                if (ListElementInteriorUtilities.FindOwningConstruct(token, element) != null)
                 {
                     continue;
                 }
 
-                model.SetUnlessPlaced(LayoutComputer.GetLine(token), new TokenLayout(LayoutComputer.GetAdjustedColumn(anchorToken, model), "ListElementContinuation"));
+                model.SetUnlessPlaced(LayoutComputer.GetLine(token), new TokenLayout(LayoutComputer.GetAdjustedColumn(firstToken, model), "ListElementContinuation"));
             }
         }
     }

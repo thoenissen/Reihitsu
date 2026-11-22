@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Enumerations;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Precheck;
 
@@ -75,6 +77,98 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// binding and its member name (FMT-UNSUP-016)
     /// </summary>
     internal const string LinkDotNameCommentReason = "a comment or directive between a . and its member name";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between <c>return</c>, <c>throw</c>, <c>await</c>, or
+    /// <c>new</c> and what follows it (FMT-UNSUP-017)
+    /// </summary>
+    internal const string KeywordOperandCommentReason = "a comment or directive between return, throw, await, or new and what follows it";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between the <c>is</c> of a pattern match and its pattern
+    /// (FMT-UNSUP-017)
+    /// </summary>
+    internal const string IsPatternCommentReason = "a comment or directive between is and its pattern";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between <c>and</c>, <c>or</c>, or <c>not</c> and its
+    /// pattern (FMT-UNSUP-017)
+    /// </summary>
+    internal const string PatternCombinatorCommentReason = "a comment or directive between and, or, or not and its pattern";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of the <c>when</c> of a switch arm (FMT-UNSUP-017)
+    /// </summary>
+    internal const string SwitchArmWhenCommentReason = "a comment or directive in front of the when of a switch arm";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of the <c>=&gt;</c> of a switch arm (FMT-UNSUP-017)
+    /// </summary>
+    internal const string SwitchArmArrowCommentReason = "a comment or directive in front of the => of a switch arm";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of the <c>:</c> of a base list (FMT-UNSUP-017)
+    /// </summary>
+    internal const string BaseListCommentReason = "a comment or directive in front of the : of a base list";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind a modifier (FMT-UNSUP-017)
+    /// </summary>
+    internal const string ModifierCommentReason = "a comment or directive behind a modifier";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of the <c>when</c> of a catch clause (FMT-UNSUP-017)
+    /// </summary>
+    internal const string CatchFilterCommentReason = "a comment or directive in front of the when of a catch clause";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind a <c>;</c> of a <c>for</c> header (FMT-UNSUP-017)
+    /// </summary>
+    internal const string ForHeaderCommentReason = "a comment or directive behind a ; of a for header";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind the <c>in</c> of a <c>foreach</c> statement
+    /// (FMT-UNSUP-017)
+    /// </summary>
+    internal const string ForEachExpressionCommentReason = "a comment or directive behind the in of a foreach statement";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between a cast and its operand (FMT-UNSUP-017)
+    /// </summary>
+    internal const string CastCommentReason = "a comment or directive between a cast and its operand";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind the <c>=&gt;</c> of a lambda (FMT-UNSUP-017)
+    /// </summary>
+    internal const string LambdaArrowCommentReason = "a comment or directive behind the => of a lambda";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of <c>with</c> (FMT-UNSUP-017)
+    /// </summary>
+    internal const string WithCommentReason = "a comment or directive in front of with";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of or behind the <c>=</c> of an anonymous-object
+    /// member (FMT-UNSUP-017)
+    /// </summary>
+    internal const string AnonymousMemberEqualsCommentReason = "a comment or directive in front of or behind the = of an anonymous-object member";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text in front of or behind the <c>=</c> of a <c>let</c> clause
+    /// (FMT-UNSUP-017)
+    /// </summary>
+    internal const string LetClauseEqualsCommentReason = "a comment or directive in front of or behind the = of a let clause";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text inside a list of omitted type arguments (FMT-UNSUP-018)
+    /// </summary>
+    internal const string OmittedTypeArgumentCommentReason = "a comment or directive inside a list of omitted type arguments";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind an assignment operator inside a switch arm or an
+    /// anonymous-object member (FMT-UNSUP-019)
+    /// </summary>
+    internal const string AssignmentInArmCommentReason = "a comment or directive behind an assignment operator inside a switch arm or an anonymous-object member";
 
     #endregion // Constants
 
@@ -154,7 +248,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // FMT-UNSUP-014 is listed after them, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive in
         // the gap of an attached part that they refuse as well. FMT-UNSUP-015 and FMT-UNSUP-016 are listed last, so FMT-UNSUP-004
         // and FMT-UNSUP-010 keep their reason for a comment or directive inside a link operator or between a link's dot and its
-        // member name that they refuse as well
+        // member name that they refuse as well. FMT-UNSUP-017, FMT-UNSUP-018, and FMT-UNSUP-019 are listed after every other
+        // shape, so FMT-UNSUP-004, FMT-UNSUP-009, and FMT-UNSUP-010 keep their reason for a comment or directive they refuse as well
         var candidates = CreateDeclarationCandidates(isDeclaratorComma, firstComment, firstSeparatorTrivia, firstFieldDirective);
 
         candidates.AddRange([
@@ -166,6 +261,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
                                 (firstLinkOperatorTrivia, LinkOperatorCommentReason),
                                 (firstLinkDotNameTrivia, LinkDotNameCommentReason)
                             ]);
+
+        AddLastCandidates(node, candidates);
 
         return CreateFirstUnsupportedSyntax(node, candidates);
     }
@@ -495,6 +592,194 @@ internal sealed class PrecheckPhase : IFormattingPhase
 
         return FindFirstUnsupportedOperatorTrivia(dotToken.TrailingTrivia)
                    ?? FindFirstUnsupportedOperatorTrivia(name.GetFirstToken().LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text in a gap the line-break phase joins (FMT-UNSUP-017,
+    /// <see cref="JoinedGapUtilities.GetGap"/>): in the trailing trivia of the token in front of the gap or in the leading trivia
+    /// of the token behind it. The gap behind the <c>is</c> of a type test is FMT-UNSUP-011's and is not looked at here. The gap
+    /// lies between two tokens, so a gap whose token in front lies outside the node is not looked at (FMT-UNSUP-003). The node's
+    /// tokens are walked once in text order
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <returns>The first such trivia and the reason of its gap, or <see langword="null"/></returns>
+    private static (SyntaxTrivia? Trivia, string Reason) FindTriviaInJoinedGap(SyntaxNode node)
+    {
+        SyntaxToken previousToken = default;
+
+        foreach (var token in node.DescendantTokens())
+        {
+            if (token.Span.IsEmpty)
+            {
+                continue;
+            }
+
+            if (previousToken != default)
+            {
+                var reason = GetJoinedGapReason(JoinedGapUtilities.GetGap(previousToken, token));
+
+                if (reason != null)
+                {
+                    var trivia = FindFirstUnsupportedOperatorTrivia(previousToken.TrailingTrivia)
+                                     ?? FindFirstUnsupportedOperatorTrivia(token.LeadingTrivia);
+
+                    if (trivia != null)
+                    {
+                        return (trivia, reason);
+                    }
+                }
+            }
+
+            previousToken = token;
+        }
+
+        return (null, null);
+    }
+
+    /// <summary>
+    /// Gets the reason the precheck gives for a joined gap (FMT-UNSUP-017)
+    /// </summary>
+    /// <param name="gap">The gap</param>
+    /// <returns>The reason, or <see langword="null"/> for a gap FMT-UNSUP-017 does not refuse</returns>
+    private static string GetJoinedGapReason(JoinedGap gap)
+    {
+        return gap switch
+               {
+                   JoinedGap.KeywordOperand => KeywordOperandCommentReason,
+                   JoinedGap.IsPattern => IsPatternCommentReason,
+                   JoinedGap.PatternCombinator => PatternCombinatorCommentReason,
+                   JoinedGap.SwitchArmWhen => SwitchArmWhenCommentReason,
+                   JoinedGap.SwitchArmArrow => SwitchArmArrowCommentReason,
+                   JoinedGap.BaseList => BaseListCommentReason,
+                   JoinedGap.Modifier or JoinedGap.ParameterModifier => ModifierCommentReason,
+                   JoinedGap.CatchFilter => CatchFilterCommentReason,
+                   JoinedGap.ForHeader => ForHeaderCommentReason,
+                   JoinedGap.ForEachExpression => ForEachExpressionCommentReason,
+                   JoinedGap.Cast => CastCommentReason,
+                   JoinedGap.LambdaArrow => LambdaArrowCommentReason,
+                   JoinedGap.With => WithCommentReason,
+                   JoinedGap.AnonymousMemberEquals => AnonymousMemberEqualsCommentReason,
+                   JoinedGap.LetClauseEquals => LetClauseEqualsCommentReason,
+                   _ => null
+               };
+    }
+
+    /// <summary>
+    /// Adds the candidates of the shapes listed after every other shape: a gap the line-break phase joins (FMT-UNSUP-017), a
+    /// list of omitted type arguments (FMT-UNSUP-018), and an assignment inside a switch arm or an anonymous-object member
+    /// (FMT-UNSUP-019)
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <param name="candidates">The candidates in their order of precedence</param>
+    private static void AddLastCandidates(SyntaxNode node, List<(SyntaxTrivia? Trivia, string Reason)> candidates)
+    {
+        var (firstJoinedGapTrivia, joinedGapReason) = FindTriviaInJoinedGap(node);
+        var (firstOmittedTypeArgumentTrivia, firstAssignmentInArmTrivia) = FindTriviaInOmittedTypeArgumentListOrBehindAssignmentInArm(node);
+
+        candidates.AddRange([
+                                (firstJoinedGapTrivia, joinedGapReason),
+                                (firstOmittedTypeArgumentTrivia, OmittedTypeArgumentCommentReason),
+                                (firstAssignmentInArmTrivia, AssignmentInArmCommentReason)
+                            ]);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text inside a list of omitted type arguments (FMT-UNSUP-018), and the
+    /// first one behind an assignment operator inside a switch arm or an anonymous-object member (FMT-UNSUP-019), in one walk
+    /// over the node
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <returns>The first trivia of each shape, or <see langword="null"/> for a shape the node does not hold</returns>
+    private static (SyntaxTrivia? OmittedTypeArgumentTrivia, SyntaxTrivia? AssignmentInArmTrivia) FindTriviaInOmittedTypeArgumentListOrBehindAssignmentInArm(SyntaxNode node)
+    {
+        SyntaxTrivia? firstOmittedTypeArgumentTrivia = null;
+        SyntaxTrivia? firstAssignmentInArmTrivia = null;
+
+        foreach (var descendant in node.DescendantNodesAndSelf())
+        {
+            switch (descendant)
+            {
+                case TypeArgumentListSyntax typeArgumentList:
+                    {
+                        firstOmittedTypeArgumentTrivia = SelectFirst(firstOmittedTypeArgumentTrivia, FindTriviaInOmittedTypeArgumentList(typeArgumentList));
+                    }
+                    break;
+
+                case AssignmentExpressionSyntax assignment:
+                    {
+                        firstAssignmentInArmTrivia = SelectFirst(firstAssignmentInArmTrivia, FindTriviaBehindAssignmentInArm(node, assignment));
+                    }
+                    break;
+            }
+        }
+
+        return (firstOmittedTypeArgumentTrivia, firstAssignmentInArmTrivia);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text inside a type argument list whose every argument is omitted
+    /// (FMT-UNSUP-018): in the trailing trivia of its <c>&lt;</c> or of a comma, or in the leading trivia of a comma or of its
+    /// <c>&gt;</c>
+    /// </summary>
+    /// <param name="typeArgumentList">The type argument list</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaInOmittedTypeArgumentList(TypeArgumentListSyntax typeArgumentList)
+    {
+        if (typeArgumentList.Arguments.All(static argument => argument is OmittedTypeArgumentSyntax) == false)
+        {
+            return null;
+        }
+
+        foreach (var token in typeArgumentList.DescendantTokens())
+        {
+            var trivia = (token == typeArgumentList.LessThanToken ? null : FindFirstUnsupportedOperatorTrivia(token.LeadingTrivia))
+                             ?? (token == typeArgumentList.GreaterThanToken ? null : FindFirstUnsupportedOperatorTrivia(token.TrailingTrivia));
+
+            if (trivia != null)
+            {
+                return trivia;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between the operator of an assignment expression and its right
+    /// operand when the assignment stands inside a switch-expression arm or an anonymous-object member declarator (FMT-UNSUP-019):
+    /// the nearest arm, member declarator, statement, or member declaration around the assignment is an arm or a member
+    /// declarator, and it lies inside the node (FMT-UNSUP-003)
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <param name="assignment">The assignment expression</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaBehindAssignmentInArm(SyntaxNode node, AssignmentExpressionSyntax assignment)
+    {
+        var trivia = FindFirstUnsupportedOperatorTrivia(assignment.OperatorToken.TrailingTrivia)
+                         ?? FindFirstUnsupportedOperatorTrivia(assignment.Right.GetFirstToken().LeadingTrivia);
+
+        if (trivia == null)
+        {
+            return null;
+        }
+
+        for (SyntaxNode current = assignment; current != node && current != null;)
+        {
+            current = current.Parent;
+
+            switch (current)
+            {
+                case SwitchExpressionArmSyntax:
+                case AnonymousObjectMemberDeclaratorSyntax:
+                    return trivia;
+
+                case StatementSyntax:
+                case MemberDeclarationSyntax:
+                    return null;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

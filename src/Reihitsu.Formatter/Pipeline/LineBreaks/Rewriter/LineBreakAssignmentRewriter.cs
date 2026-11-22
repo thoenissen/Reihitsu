@@ -301,9 +301,85 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
                    : NormalizeOperatorPlacement(node, node.EqualsValue.EqualsToken);
     }
 
+    /// <summary>
+    /// Moves the value behind an <c>=</c> onto the line of the <c>=</c>, whatever the value is (FMT-BREAK-016). No gap it joins
+    /// holds a comment, a directive, or disabled text: the precheck refuses an input that holds one behind the <c>=</c> of an
+    /// anonymous-object member or of a <c>let</c> clause (FMT-UNSUP-017)
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the <c>=</c> and the value</typeparam>
+    /// <param name="node">The node to normalize</param>
+    /// <param name="equalsToken">The <c>=</c></param>
+    /// <param name="value">The value behind it</param>
+    /// <returns>The updated node</returns>
+    private static TNode NormalizeValuePlacement<TNode>(TNode node, SyntaxToken equalsToken, ExpressionSyntax value)
+        where TNode : SyntaxNode
+    {
+        var valueFirstToken = value.GetFirstToken();
+
+        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(equalsToken, valueFirstToken) == false)
+        {
+            return node;
+        }
+
+        return LineBreakTriviaUtilities.JoinGaps(node, [(equalsToken, valueFirstToken)]);
+    }
+
+    /// <summary>
+    /// Keeps the name, the <c>=</c>, and the value of an anonymous-object member declarator on one line (FMT-BREAK-016)
+    /// </summary>
+    /// <param name="node">The anonymous-object member declarator to normalize</param>
+    /// <returns>The updated anonymous-object member declarator</returns>
+    private static AnonymousObjectMemberDeclaratorSyntax NormalizeAnonymousObjectMember(AnonymousObjectMemberDeclaratorSyntax node)
+    {
+        if (node.NameEquals == null)
+        {
+            return node;
+        }
+
+        node = NormalizeOperatorPlacement(node, node.NameEquals.EqualsToken);
+
+        return NormalizeValuePlacement(node, node.NameEquals.EqualsToken, node.Expression);
+    }
+
+    /// <summary>
+    /// Keeps the identifier, the <c>=</c>, and the value of a <c>let</c> clause on one line (FMT-BREAK-016)
+    /// </summary>
+    /// <param name="node">The <c>let</c> clause to normalize</param>
+    /// <returns>The updated <c>let</c> clause</returns>
+    private static LetClauseSyntax NormalizeLetClause(LetClauseSyntax node)
+    {
+        node = NormalizeOperatorPlacement(node, node.EqualsToken);
+
+        return NormalizeValuePlacement(node, node.EqualsToken, node.Expression);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (AnonymousObjectMemberDeclaratorSyntax)base.VisitAnonymousObjectMemberDeclarator(node);
+
+        return node == null
+                   ? null
+                   : NormalizeAnonymousObjectMember(node);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitLetClause(LetClauseSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (LetClauseSyntax)base.VisitLetClause(node);
+
+        return node == null
+                   ? null
+                   : NormalizeLetClause(node);
+    }
 
     /// <inheritdoc/>
     public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
