@@ -67,4 +67,5 @@ Issue comments relevant to the run (summarized):
 - Auditor 11 (69fd99b) on audited SHA 9caef701739028a807c8e7cf8387d23d007c9255: #1929 high finding — undecided output: typed property pattern behind and/or/not, and parenthesized pattern behind a wrapper in a case label, move with PatternAnchor change.
 - Q9 answered A.
 - Repair round 1: spec author 12 (7f41ed4, e9b6e21), test implementer 13 (ff7330f) and 14 (637b531) done.
-- Next: cleaner 15, spec checker 16, auditor 17 (repair only, previous audited SHA 9caef70), validator 18.
+- Cleaner 15 clean, spec checker 16 consistent, auditor 17 pass (279cbfb). AUDITED SHA: 5314ea2843baa33a046b9a37e693ff27eff6576a.
+- Next: validator 18, then publish (section 8).
