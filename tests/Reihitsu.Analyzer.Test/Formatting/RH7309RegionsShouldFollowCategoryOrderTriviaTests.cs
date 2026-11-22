@@ -1733,6 +1733,134 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309 when the fix reorders
+    /// two separate runs of blocks: a group between the runs, which closes the class and opens a struct in another
+    /// build, stands in front of the instance fields the second run reorders, so no code fix is offered for a reorder
+    /// that puts <c>_b</c> in front of <c>_d</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFieldsThatOpensAStruct()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if X
+                                }
+
+                                public struct S
+                                {
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _d;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    private int _b;
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309 when the fix reorders
+    /// two separate runs of blocks: a group of whole members between the runs stands in front of the instance fields the
+    /// second run reorders, so no code fix is offered for a reorder that puts <c>_b</c> in front of <c>_d</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupOfMembersBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFields()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    private int _trace;
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _d;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    private int _b;
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
     /// Verifies the exception of SHARED-ORDER-008 for RH7309: a group of an <c>#if</c> and its <c>#endif</c> that wraps
     /// the whole type keeps a reorder of instance fields, and the fix moves <c>Fields</c> in front of
     /// <c>IDisposable</c>
