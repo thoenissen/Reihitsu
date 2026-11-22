@@ -216,8 +216,9 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : ReihitsuCod
     /// directives around them mean. The fix swaps whole region texts, which is unsafe in two ways: a
     /// conditional directive that is not paired inside the block it belongs to gets separated from its partner,
     /// and a position sensitive directive such as <c>#pragma warning</c>, <c>#nullable</c> or <c>#line</c> ends
-    /// up covering different code than before. Both are checked for every swapped block and for the text
-    /// between two blocks
+    /// up covering different code than before, unless it is a <c>#pragma warning</c> or <c>#nullable</c> pair that
+    /// ends its own effect inside one member, with every directive of its kind in front of the first block closed
+    /// as well (SHARED-ORDER-011). Both are checked for every block and for the text between two blocks
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
     /// <param name="regions">Top-level region pairs of the type</param>
@@ -231,6 +232,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : ReihitsuCod
         }
 
         var previousBlockEnd = -1;
+        var firstBlockStart = GetRegionBlockSpan(sourceText, regions[0]).Start;
 
         foreach (var region in regions)
         {
@@ -238,12 +240,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : ReihitsuCod
 
             if (previousBlockEnd >= 0
                 && previousBlockEnd < span.Start
-                && ContainsUnsafeDirectives(typeDeclaration, TextSpan.FromBounds(previousBlockEnd, span.Start)))
+                && ContainsUnsafeDirectives(typeDeclaration, TextSpan.FromBounds(previousBlockEnd, span.Start), firstBlockStart))
             {
                 return false;
             }
 
-            if (ContainsUnsafeDirectives(typeDeclaration, span))
+            if (ContainsUnsafeDirectives(typeDeclaration, span, firstBlockStart))
             {
                 return false;
             }
@@ -255,15 +257,18 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : ReihitsuCod
     }
 
     /// <summary>
-    /// Determines whether the span holds a directive that must not be relocated by the region swap
+    /// Determines whether the span holds a directive that must not be relocated by the region swap: an unbalanced
+    /// conditional directive, or a position sensitive directive that the members of the span do not carry
+    /// (<see cref="OrderingMoveSafety.ContainsPositionSensitiveDirectivesThatBlockRelocation"/>)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
     /// <param name="span">Span to inspect</param>
+    /// <param name="firstBlockStart">Start of the first region block; the directives in front of it are read in the whole document</param>
     /// <returns><see langword="true"/> if the span must not be moved</returns>
-    private static bool ContainsUnsafeDirectives(TypeDeclarationSyntax typeDeclaration, TextSpan span)
+    private static bool ContainsUnsafeDirectives(TypeDeclarationSyntax typeDeclaration, TextSpan span, int firstBlockStart)
     {
         return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, span)
-               || SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(typeDeclaration, span);
+               || OrderingMoveSafety.ContainsPositionSensitiveDirectivesThatBlockRelocation(typeDeclaration, span, typeDeclaration.Members, firstBlockStart);
     }
 
     /// <summary>

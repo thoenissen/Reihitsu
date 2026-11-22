@@ -352,6 +352,109 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
+    /// Verifying that a <c>#pragma warning</c> pair inside the body of the crossed <c>remove</c> accessor keeps the fix:
+    /// the pair ends its own effect inside the accessor and stays with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairInTheCrossedRemoveAccessorBodyKeepsTheFix()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed
+                                  {
+                                      remove
+                                      {
+                              #pragma warning disable CS0168
+                                          int unused;
+                              #pragma warning restore CS0168
+                                          _handlers -= value;
+                                      }
+
+                                      {|RH7108:add|}
+                                      {
+                                          _handlers += value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action Changed
+                                       {
+                                           add
+                                           {
+                                               _handlers += value;
+                                           }
+
+                                           remove
+                                           {
+                                   #pragma warning disable CS0168
+                                               int unused;
+                                   #pragma warning restore CS0168
+                                               _handlers -= value;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a pair split across a conditional branch inside the body of the crossed <c>remove</c> accessor
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task NoCodeFixWhenAWarningPairInTheCrossedRemoveAccessorBodyIsSplitAcrossAConditionalBranch()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed
+                                  {
+                                      remove
+                                      {
+                              #pragma warning disable CS0168
+                                          int unused;
+                              #if DEBUG
+                              #pragma warning restore CS0168
+                              #endif
+                                          _handlers -= value;
+                                      }
+
+                                      {|RH7108:add|}
+                                      {
+                                          _handlers += value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies that a comment the formatter refuses in the remove accessor no longer withholds the fix for the reported add
     /// accessor, which moves the accessor without formatting the event
     /// </summary>

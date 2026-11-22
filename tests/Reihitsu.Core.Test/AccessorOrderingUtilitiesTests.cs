@@ -165,11 +165,12 @@ public class AccessorOrderingUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a position sensitive directive inside the body of a crossed accessor is detected.
-    /// <c>#pragma</c> applies from its own position onwards, so the guard cannot prove the move keeps its coverage
+    /// Verifies that a <c>#pragma warning</c> pair that ends its own effect inside the body of a crossed accessor does not
+    /// block the move: the pair stays with the accessor it lies in
     /// </summary>
     [TestMethod]
-    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedAccessorBodyContainsDirective()
+    [Requirement("SHARED-ORDER-011")]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenCrossedAccessorBodyContainsClosedWarningPair()
     {
         var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
                                                                                   internal class Sample
@@ -181,6 +182,41 @@ public class AccessorOrderingUtilitiesTests
                                                                                   #pragma warning disable CS0219
                                                                                               var unused = value;
                                                                                   #pragma warning restore CS0219
+                                                                                          }
+
+                                                                                          get
+                                                                                          {
+                                                                                              return 0;
+                                                                                          }
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var result = AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, getAccessor, setAccessor);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable disable</c> inside the body of a crossed accessor that the opposite setting closes,
+    /// instead of <c>#nullable restore</c>, blocks the move
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-011")]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedAccessorBodyContainsNullableDisableClosedByEnable()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                          set
+                                                                                          {
+                                                                                  #nullable disable
+                                                                                              string text = null;
+                                                                                  #nullable enable
                                                                                           }
 
                                                                                           get

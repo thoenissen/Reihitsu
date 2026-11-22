@@ -282,12 +282,14 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
-    /// Verifies that regions are still reordered when a conditional directive pair sits completely inside one region
+    /// Verifies that a conditional directive pair that sits completely inside a region whose place the fix changes
+    /// withholds the fix, while the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7309-005")]
-    public async Task VerifyCodeFixReordersRegionsContainingBalancedConditionalDirectives()
+    [Requirement("SHARED-ORDER-008")]
+    public async Task VerifyNoCodeFixWhenAMovedRegionContainsBalancedConditionalDirectives()
     {
         const string testData = """
                                 internal interface IWidget
@@ -305,7 +307,7 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
 
                                     #endregion // IWidget
 
-                                    {|#0:#region Methods|}
+                                    {|RH7309:#region Methods|}
 
                                 #if DEBUG
                                     public void Refresh()
@@ -316,44 +318,19 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
                                     #endregion // Methods
                                 }
                                 """;
-        const string fixedData = """
-                                 internal interface IWidget
-                                 {
-                                     void Render();
-                                 }
 
-                                 internal class Widget : IWidget
-                                 {
-                                     #region Methods
-
-                                 #if DEBUG
-                                     public void Refresh()
-                                     {
-                                     }
-                                 #endif
-
-                                     #endregion // Methods
-
-                                     #region IWidget
-
-                                     public void Render()
-                                     {
-                                     }
-
-                                     #endregion // IWidget
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that regions are still reordered when a conditional directive pair sits completely between two regions
+    /// Verifies that a conditional directive pair that sits completely between two regions, in code that a moved region
+    /// crosses, withholds the fix, while the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7309-005")]
-    public async Task VerifyCodeFixReordersRegionsWithBalancedConditionalDirectivesBetweenThem()
+    [Requirement("SHARED-ORDER-008")]
+    public async Task VerifyNoCodeFixWhenAMovedRegionCrossesBalancedConditionalDirectivesBetweenRegions()
     {
         const string testData = """
                                 internal interface IWidget
@@ -377,7 +354,7 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
                                     }
                                 #endif
 
-                                    {|#0:#region Methods|}
+                                    {|RH7309:#region Methods|}
 
                                     public void Refresh()
                                     {
@@ -386,39 +363,8 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
                                     #endregion // Methods
                                 }
                                 """;
-        const string fixedData = """
-                                 internal interface IWidget
-                                 {
-                                     void Render();
-                                 }
 
-                                 internal class Widget : IWidget
-                                 {
-                                     #region Methods
-
-                                     public void Refresh()
-                                     {
-                                     }
-
-                                     #endregion // Methods
-
-                                 #if DEBUG
-                                     public void Trace()
-                                     {
-                                     }
-                                 #endif
-
-                                     #region IWidget
-
-                                     public void Render()
-                                     {
-                                     }
-
-                                     #endregion // IWidget
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -646,12 +592,14 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
-    /// Verifies that a conditional pair that lies wholly inside one block does not withhold the code fix
+    /// Verifies the RH7309-005 example: a conditional pair that lies wholly inside a block whose place the fix changes
+    /// withholds the fix, while the diagnostic is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7309-005")]
-    public async Task BalancedConditionalPairInsideABlockDoesNotWithholdTheFix()
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalPairInsideABlockWhosePlaceChangesWithholdsTheFix()
     {
         const string testData = """
                                 using System;
@@ -679,33 +627,7 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
                                 }
                                 """;
 
-        const string fixedData = """
-                                 using System;
-
-                                 public class C : IDisposable
-                                 {
-                                     #region Methods
-
-                                     public void M()
-                                     {
-                                     }
-
-                                     #endregion // Methods
-
-                                     #region IDisposable
-
-                                     public void Dispose()
-                                     {
-                                 #if DEBUG
-                                         Console.WriteLine();
-                                 #endif
-                                     }
-
-                                     #endregion // IDisposable
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -1371,6 +1293,1299 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
         var expected = NormalizeToCarriageReturnLineFeed(fixedSource).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
 
         Assert.AreEqual(expected, await ApplyCodeFixAsync(input));
+    }
+
+    /// <summary>
+    /// Verifies the RH7309-005 example of a conditional pair inside a block that keeps its place: the pair in
+    /// <c>IComparable</c> does not withhold the fix, which moves <c>Methods</c> in front of <c>IDisposable</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalPairInsideABlockThatKeepsItsPlaceDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable, IComparable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    #region IComparable
+
+                                    public int CompareTo(object obj)
+                                    {
+                                #if DEBUG
+                                        Console.WriteLine();
+                                #endif
+                                        return 0;
+                                    }
+
+                                    #endregion // IComparable
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable, IComparable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+
+                                     #region IComparable
+
+                                     public int CompareTo(object obj)
+                                     {
+                                 #if DEBUG
+                                         Console.WriteLine();
+                                 #endif
+                                         return 0;
+                                     }
+
+                                     #endregion // IComparable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group in code between two blocks that no moved block crosses does not withhold the
+    /// fix: the group stays between the second and the third block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalGroupBetweenBlocksThatNoMovedBlockCrossesDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable, IComparable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IComparable
+
+                                    public int CompareTo(object obj)
+                                    {
+                                        return 0;
+                                    }
+
+                                    #endregion // IComparable
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable, IComparable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region IComparable
+
+                                     public int CompareTo(object obj)
+                                     {
+                                         return 0;
+                                     }
+
+                                     #endregion // IComparable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group inside a block that keeps its place withholds the fix when the reorder moves
+    /// blocks across that block, while every diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalPairInsideAKeptBlockThatMovedBlocksCrossWithholdsTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Object|}
+
+                                    public override string ToString()
+                                    {
+                                #if DEBUG
+                                        Console.WriteLine();
+                                #endif
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group in the code between two pairs of blocks that are each reordered on their own
+    /// side does not withhold the fix: no block is moved across that code, so the group stays where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalGroupBetweenTwoPairsReorderedOnTheirOwnSideDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class Base
+                                 {
+                                 }
+
+                                 public class C : Base, IDisposable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     public override string ToString()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     #endregion // Object
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region Base
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Base
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the same conditional group, in the code between the first two blocks of a type whose two pairs of
+    /// blocks are each reordered on their own side, withholds the fix: the reorder moves a block across that code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task ConditionalGroupInCodeThatAMovedBlockCrossesBetweenTwoReorderedPairsWithholdsTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the moved fields for RH7309: a group of whole
+    /// members in front of the first region block makes the class count as one whose field order sets its layout, so no
+    /// code fix is offered for a reorder that puts <c>_a</c> in front of <c>_handle</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupInFrontOfTheFirstBlockPrecedesAReorderOfInstanceFields()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                #if DEBUG
+                                    private int _trace;
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _handle;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the moved fields for RH7309 when the fix reorders
+    /// two separate runs of blocks: a group between the runs, which closes the class and opens a struct in another
+    /// build, stands in front of the instance fields the second run reorders, so no code fix is offered for a reorder
+    /// that puts <c>_b</c> in front of <c>_d</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFieldsThatOpensAStruct()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if X
+                                }
+
+                                public struct S
+                                {
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _d;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    private int _b;
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the moved fields for RH7309 when the fix reorders
+    /// two separate runs of blocks, the RH7309-005 example: a group of a whole method between the runs stands in front of
+    /// the instance fields the second run reorders, so no code fix is offered for a reorder that puts <c>_b</c> in front
+    /// of <c>_d</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupOfMembersBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFields()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _d;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    private int _b;
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the opposite side of the RH7309-005 example: the instance fields <c>_o</c> and <c>_m</c> lie in the first
+    /// run of reordered blocks, so the group of a whole method between the runs stands behind every instance field of the
+    /// spans, and the fix reorders the blocks with <c>_m</c> now in front of <c>_o</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixReordersInstanceFieldsOfTheFirstRunInFrontOfAGroupBetweenTwoReorderedRuns()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    private int _o;
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    private int _m;
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class Base
+                                 {
+                                 }
+
+                                 public class C : Base, IDisposable
+                                 {
+                                     #region Methods
+
+                                     private int _m;
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     private int _o;
+
+                                     public override string ToString()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     #endregion // Object
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region Base
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Base
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a group between two reordered runs of blocks, in front of an instance field of the spans, does not
+    /// withhold the fix when the reorder keeps the order of the instance fields: <c>_o</c> stays in front of <c>_d</c>,
+    /// and SHARED-ORDER-008 refuses for the type's layout only a move that reorders instance fields
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixReordersTheBlocksWhenAGroupBetweenTwoReorderedRunsPrecedesAnInstanceFieldWhoseOrderStays()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    private int _o;
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _d;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class Base
+                                 {
+                                 }
+
+                                 public class C : Base, IDisposable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     private int _o;
+
+                                     public override string ToString()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     #endregion // Object
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region Base
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Base
+
+                                     #region IDisposable
+
+                                     private int _d;
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the exception of SHARED-ORDER-008 for RH7309: a group of an <c>#if</c> and its <c>#endif</c> that wraps
+    /// the whole type keeps a reorder of instance fields, and the fix moves <c>Fields</c> in front of
+    /// <c>IDisposable</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task GroupThatWrapsTheWholeTypeKeepsAReorderOfInstanceFields()
+    {
+        const string testData = """
+                                #if !DEBUG
+                                public class C : System.IDisposable
+                                {
+                                    #region IDisposable
+
+                                    private int _handle;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                #endif
+                                """;
+
+        const string fixedData = """
+                                 #if !DEBUG
+                                 public class C : System.IDisposable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     #region IDisposable
+
+                                     private int _handle;
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 #endif
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the RH7309-005 example of a <c>#pragma warning</c> pair inside a member of a moved block: the pair does
+    /// not withhold the fix and moves with its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairInsideAMemberOfAMovedBlockDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                #pragma warning restore CS0168
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                 #pragma warning disable CS0168
+                                         int unused;
+                                 #pragma warning restore CS0168
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the RH7309-005 example of a <c>#pragma warning</c> pair inside a member of a block that keeps its place:
+    /// the pair does not withhold the fix, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairInsideAMemberOfABlockThatKeepsItsPlaceDoesNotWithholdTheFix(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable, IComparable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+
+                                    #region IComparable
+
+                                    public int CompareTo(object obj)
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                #pragma warning restore CS0168
+                                        return 0;
+                                    }
+
+                                    #endregion // IComparable
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable, IComparable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+
+                                     #region IComparable
+
+                                     public int CompareTo(object obj)
+                                     {
+                                 #pragma warning disable CS0168
+                                         int unused;
+                                 #pragma warning restore CS0168
+                                         return 0;
+                                     }
+
+                                     #endregion // IComparable
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning</c> pair inside a member in the code between two blocks, which a moved block
+    /// crosses, does not withhold the fix: the pair ends its own effect inside the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairInsideAMemberBetweenTheBlocksDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    public void Reset()
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                #pragma warning restore CS0168
+                                    }
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     public void Reset()
+                                     {
+                                 #pragma warning disable CS0168
+                                         int unused;
+                                 #pragma warning restore CS0168
+                                     }
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable disable</c> closed by <c>#nullable restore</c> inside a member of a moved block does
+    /// not withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task NullablePairInsideAMemberOfAMovedBlockDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                #nullable disable
+                                        string text = null;
+                                #nullable restore
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                 #nullable disable
+                                         string text = null;
+                                 #nullable restore
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a lone <c>#pragma warning disable</c> inside a member of a block withholds the fix: no
+    /// <c>restore</c> closes it inside the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task NoCodeFixWhenAMemberOfABlockHoldsALoneWarningDisable()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that for RH7309 the text in front of the spans is the text in front of the type's first region block: an
+    /// unclosed <c>#pragma warning disable</c> there withholds the fix across a pair inside a member of a block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task NoCodeFixWhenAnUnclosedWarningDirectiveStandsInFrontOfTheFirstBlock()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                #pragma warning disable CS1591
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                #pragma warning restore CS0168
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a closed pair in front of the type's first region block keeps the fix across a pair inside a member
+    /// of a moved block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task ClosedWarningPairInFrontOfTheFirstBlockDoesNotWithholdTheFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    public void Log()
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                #pragma warning restore CS0168
+                                    }
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                #pragma warning disable CS0168
+                                        int unused;
+                                #pragma warning restore CS0168
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     public void Log()
+                                     {
+                                 #pragma warning disable CS0168
+                                         int unused;
+                                 #pragma warning restore CS0168
+                                     }
+
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion // Fields
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                 #pragma warning disable CS0168
+                                         int unused;
+                                 #pragma warning restore CS0168
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     #endregion // Tests
