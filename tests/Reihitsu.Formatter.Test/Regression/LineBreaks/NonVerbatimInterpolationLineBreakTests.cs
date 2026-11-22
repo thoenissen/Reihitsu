@@ -563,6 +563,297 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a delimited documentation comment in front of a statement that follows another statement in the
+    /// interpolation stays on its line under C# 10: the documentation-comment phase starts no new line there
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfStatementInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { var a = 1; /** d */ return a; })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a declaration statement that follows another statement
+    /// in the interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfDeclarationStatementInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { var a = 1; /** d */ var b = 2; return a + b; })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a statement that follows a local function's block in the
+    /// interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentBehindLocalFunctionBlockInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { int G() { return 1; } /** d */ return G(); })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a local function that follows a statement in the
+    /// interpolation stays on its line under C# 10, while the local function still gets its block body
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfLocalFunctionInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertResult("var s = $\"a {F(() => { var a = 1; /** d */ int G() => a; return G(); })} b\";",
+                     "var s = $\"a {F(() => { var a = 1; /** d */ int G() {return a; } return G(); })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of an object-initializer member that follows a comma in the
+    /// interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfObjectInitializerMemberInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {new P { A = 1, /** d */ B = 2 }.A} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of an anonymous-object member that follows a comma in the
+    /// interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfAnonymousObjectMemberInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {new { A = 1, /** d */ B = 2 }.A} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of an argument that follows a comma in the interpolation
+    /// stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfArgumentInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {K(1, /** d */ 2)} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a switch label that follows a section in the
+    /// interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfSwitchLabelInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { switch (x) { case 1: return 1; /** d */ default: return 2; } })} b\";", parameters: "int x");
+    }
+
+    /// <summary>
+    /// Verifies that an <c>if</c> body led by a delimited documentation comment in the interpolation stays unbraced and on
+    /// its line under C# 10: the inserted <c>{</c> would need a line break in front of the comment, which the interpolation
+    /// cannot hold
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void IfBodyLedByDocumentationCommentInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { if (b) /** d */ return 1; return 2; })} b\";", parameters: "bool b");
+    }
+
+    /// <summary>
+    /// Verifies that an <c>else</c> body led by a delimited documentation comment in the interpolation stays unbraced and on
+    /// its line under C# 10, while the <c>if</c> body, which no comment leads, still gets its braces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void ElseBodyLedByDocumentationCommentInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertResult("var s = $\"a {F(() => { if (b) return 1; else /** d */ return 2; })} b\";",
+                     "var s = $\"a {F(() => { if (b) {return 1; }else /** d */ return 2; })} b\";",
+                     "bool b");
+    }
+
+    /// <summary>
+    /// Verifies that an <c>if</c> body followed by a statement led by a delimited documentation comment in the interpolation
+    /// stays unbraced and on its line under C# 10: the inserted <c>}</c> would need a line break in front of the comment,
+    /// which the interpolation cannot hold
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void IfBodyFollowedByDocumentationCommentInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { if (b) return 1; /** d */ return 2; })} b\";", parameters: "bool b");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment directly behind the opening brace of a lambda block in the
+    /// interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentBehindOpeningBraceInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { /** d */ return 1; })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment directly behind the opening brace of an object initializer in the
+    /// interpolation stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentBehindInitializerBraceInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {new P { /** d */ A = 1 }.A} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of the closing brace of a lambda block in the interpolation
+    /// stays on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfClosingBraceInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { return 1; /** d */ })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of the closing brace of the interpolation stays on its line
+    /// under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfInterpolationEndKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {K(1, 2) /** d */} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a binary operator in the interpolation stays on its line
+    /// under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfBinaryOperatorInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {x /** d */ + 1} b\";", parameters: "int x");
+    }
+
+    /// <summary>
+    /// Verifies that an <c>if</c> body behind an ordinary delimited comment in the interpolation gets its braces on its line
+    /// under C# 10, since the comment trails the <c>)</c> and needs no line break
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void IfBodyBehindOrdinaryCommentInInterpolationGetsBracesOnItsLineInCSharp10()
+    {
+        AssertResult("var s = $\"a {F(() => { if (b) /* c */ return 1; return 2; })} b\";",
+                     "var s = $\"a {F(() => { if (b) /* c */ {return 1; }return 2; })} b\";",
+                     "bool b");
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary delimited comment between two statements in the interpolation stays on its line under
+    /// C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void OrdinaryCommentBetweenStatementsInInterpolationKeepsItsLineInCSharp10()
+    {
+        AssertKept("var s = $\"a {F(() => { var a = 1; /* c */ var b = 2; return a + b; })} b\";");
+    }
+
+    /// <summary>
+    /// Verifies that a braced <c>if</c> body followed by a statement behind an ordinary delimited comment in the
+    /// interpolation gets its braces on its line under C# 10
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void IfBodyFollowedByOrdinaryCommentInInterpolationGetsBracesOnItsLineInCSharp10()
+    {
+        AssertResult("var s = $\"a {F(() => { if (b) return 1; /* c */ return 2; })} b\";",
+                     "var s = $\"a {F(() => { if (b) {return 1; /* c */ }return 2; })} b\";",
+                     "bool b");
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment in front of a statement that follows another statement in an
+    /// interpolation of a non-verbatim interpolated string starts a new line under C# 11
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void DocumentationCommentInFrontOfStatementInInterpolationIsBrokenInCSharp11()
+    {
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    int F(Func<int> f)
+                                    {
+                                        return f();
+                                    }
+
+                                    string M()
+                                    {
+                                        var s = $"a {F(() =>
+                                                       {
+                                                           var a = 1;
+
+                                                           /** d */ return a;
+                                                       })} b";
+
+                                        return s;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(Build("var s = $\"a {F(() => { var a = 1; /** d */ return a; })} b\";", string.Empty), expected, At(LanguageVersion.CSharp11));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>if</c> body led by a delimited documentation comment in an interpolation of a non-verbatim
+    /// interpolated string gets its braces on lines of their own under C# 11
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public void IfBodyLedByDocumentationCommentInInterpolationIsBracedInCSharp11()
+    {
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    int F(Func<int> f)
+                                    {
+                                        return f();
+                                    }
+
+                                    string M(bool b)
+                                    {
+                                        var s = $"a {F(() =>
+                                                       {
+                                                           if (b)
+                                                           {
+                                                               /** d */ return 1;
+                                                           }
+
+                                                           return 2;
+                                                       })} b";
+
+                                        return s;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(Build("var s = $\"a {F(() => { if (b) /** d */ return 1; return 2; })} b\";", "bool b"), expected, At(LanguageVersion.CSharp11));
+    }
+
+    /// <summary>
     /// Verifies that a lambda block in an interpolation of a non-verbatim interpolated string is broken under C# 11
     /// </summary>
     [TestMethod]
