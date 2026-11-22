@@ -21,14 +21,19 @@
 | 4 | Skeptic | Architecture finding: RH5417's private `IsInsideSingleLineInterpolation` and the formatter fix would state the same rule twice | Structural change in this run: the rule is stated once in `Reihitsu.Core` (next to `StringInterpolationUtilities`), used by the formatter and by RH5417, whose behavior stays unchanged | Narrow fix would add a second statement of the rule; small, within Core which the formatter uses | RH5417 behavior unchanged (refactor) | (implementer) |
 | 5 | Skeptic | Declare unsupported? | Not an option: depends on language version, which the precheck cannot read from tokens/trivia; deletes no special case | — | — | — |
 | 6 | Test implementer | Multi-statement switch section inside a non-verbatim interpolation below C# 11 (FMT-SWITCH-001/015 vs FMT-BREAK-044) | Rare input class: the switch-case brace phase leaves such a switch as written (no braces inserted) below C# 11; the test pins the exact output | AGENTS.md Code-fix coverage — leaving a construct as written for a rare class; inserting braces on their own lines would be CS8967 | Leaving a construct as written for a rare class puts nothing in question; PR names the class under Review notes | (test implementer, implementer) |
+| 7 | Implementer | Four tests expect a space after a `{` the structural phase inserts inside a C# 10 hole (if, local function ×3) | Correct the expected outputs to what unchanged FMT-STRUCT-026, FMT-SPACE-009 and FMT-SPACE-002 give | Rare input class; no new spacing rule for it; output compiles | Unchanged requirements decide the output | (test implementer) |
+| 8 | Implementer | `UsingStatementInInterpolationGetsBracesOnItsLineInCSharp10` expects braces on a using body | Correct: expected output is the input unchanged; no requirement braces a using body | Test was wrong | Unchanged FMT-STRUCT-001 decides | (test implementer) |
+| 9 | Implementer | Scope: blank-line phase and lambda alignment also changed, new internal type | Accept; widen decision 3 to the blank-line phase; spec author names the blank-line phase where its spec needs it (FMT-BREAK-044 already says "the formatter") | Needed for the fix; new type is the issue's own fix, not escalation 9 | Output decided by FMT-BREAK-044/FMT-PIPE-003 | (spec author) |
+| 10 | Implementer | `FormatNodeInDocumentAsync` target itself inside a `$"` hole still breaks | Not in this run; added to follow-up candidate 1 (reached only via RH5301/RH5303/RH5206 fixes) | Belongs with the analyzer follow-up | — | — |
 
 ## Follow-up candidates
 
-1. Seven layout rules (RH5301, RH5303, RH5206, RH5103, RH5008, RH5513, RH5104) report inside non-verbatim interpolation holes below C# 11 a line break or blank line that CS8967 forbids (SHARED-DIAG-011); RH5301/RH5303/RH5206 fixes go through the formatter — one analyzer follow-up (01-skeptic.md).
+1. Seven layout rules (RH5301, RH5303, RH5206, RH5103, RH5008, RH5513, RH5104) report inside non-verbatim interpolation holes below C# 11 a line break or blank line that CS8967 forbids (SHARED-DIAG-011); RH5301/RH5303/RH5206 fixes go through the formatter — one analyzer follow-up (01-skeptic.md). Also: `FormatNodeInDocumentAsync` on a target that itself sits inside a `$"` hole still breaks the hole below C# 11, since the enclosing string is out of view (05-implementer.md).
 2. Tooling: `scripts/apply-fix.sh` and `scripts/trace.sh` cannot take a language version (01-skeptic.md).
 
 ## State
 
 - Last step: test implementer amendment (04-test-implementer.md).
 - Spec author done (06-spec-author.md, FMT-SWITCH-017). Open: test needs tag FMT-SWITCH-017 (test implementer, after the implementer).
-- Next: wait for implementer (05).
+- Implementer done (05-implementer.md, ef49b5e): 5 disputed tests.
+- Next: test implementer (tag FMT-SWITCH-017, decisions 7, 8) + spec author (decision 9) in parallel → implementer check → cleaner.
