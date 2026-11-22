@@ -19,7 +19,10 @@
 |---|---|---|---|---|---|---|
 | 1 | Spec author | Where does the exemption live? | As a bullet of SHARED-CASING-014 referenced from RH4120-001, no new requirement ID | One statement of what makes a name dictated | Spec structure only | 243da8d |
 | 3 | Skeptic | RH4120-001 claims to cover only parameters the compiler turns into a property, but the code and existing tests report every positional parameter | Widen RH4120-001's coverage statement to every positional parameter (minus the exemptions), describing today's code; route to the spec author with the answers | Spec matches existing behavior and tests | Describes unchanged output | 8d09179 |
-| 2 | Spec author | Parameter of a derived record that inherits a dictated property (`Derived(string name) : Person(name)`) | Stays reported (no property is declared for it) | Today's behavior; only the compiler-declared property decides | Unchanged output | 243da8d |
+| 2 | Spec author | Parameter of a derived record that inherits a dictated property (`Derived(string name) : Person(name)`) | Stays reported (no property is declared for it) — SUPERSEDED by maintainer answer 2B (not reported when the matching member is dictated) | Today's behavior; only the compiler-declared property decides | Unchanged output | 243da8d, superseded by 8d09179 |
+
+| 4 | Auditor (08) | Architecture finding (FC-044): `GetMember` ignores accessibility when finding the inherited member a parameter matches | Fix narrowly within the run: skip a candidate the record cannot access, reading the compiler's accessibility result (one cheap condition, no new type); repair round 1 — test implementer adds the private/internal intermediate-member cases and the `new` field case (finding 2), implementer repairs | Reads a compiler result instead of modelling it; refusing (reporting) would contradict answer 2B for these inputs | Brings code to the unchanged requirement SHARED-CASING-014 as answered (2B); rare inputs | (pending) |
+| 5 | Auditor (08) | RH4116 does not apply 2B to tuple element names (auditor hint, uncertain) | Dropped: outside the run, auditor judged probably correct, no defect shown | No evidence of a defect | Nothing changes | — |
 
 ## Follow-up candidates
 
@@ -27,7 +30,7 @@
 
 ## Audited SHA
 
-(none yet)
+3b066662dc49e2abcd3964664c6937adf78bed0c (audit 1, findings)
 
 ## Open worklist / next step
 
@@ -41,4 +44,5 @@
 - Implementer done (05, 28a5103 prod, 926139b handover): +43/-1, no new type.
 - Cleaner done (06, 1cb0e2a): clean, 0 warnings.
 - Spec checker done (07, f32e03b): consistent, no findings.
-- Next: auditor (08).
+- Auditor done (08, 57ab48d) at audited SHA 3b066662: findings (1: accessibility in GetMember, 2: untested field branch).
+- Repair round 1 of 3: test implementer (09) → implementer (10) → cleaner → spec checker → auditor (repair only) → validator.
