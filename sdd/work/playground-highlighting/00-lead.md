@@ -35,6 +35,7 @@
 | 7 | repair 1 (13) | Spec gap: PLAY-012 does not state the keyboard reachability the output test asserts | Spec author adds one sentence to PLAY-012 (no new ID) | Test tag must be backed by spec text | On `main` the output is a focusable text area; the sentence keeps that existing reachability | 7bead9d |
 | 8 | audit 2 (16) | Finding 7 (output `pre` named via `aria-labelledby` without a nameable role) repeats finding 4's class | Handled as an architecture finding by its cause, not as a repair round: the test helper decides the name by the ARIA rule that a role-less `pre`/`div`/`span` cannot be named, and the output pane gets a role that may be named; also correct the `Parse` summary (hint) | The cause is the element's role, not the one attribute; fixing the helper's rule stops the next member | Restores the name PLAY-002 already gives the pane; no new visible output | 9dbe708 |
 | 9 | validation (21) | Repair round 2 worklist | V1: panes grow to their content width instead of scrolling inside (violates PLAY-012; caret off screen) → test implementer (a test that fails on it, at the strongest level the harness allows) + implementer. V2: pasting/typing large input is far too slow (300-line fill 27 s, 1000 lines > 120 s) → implementer finds the cause and fixes it; acceptance bar set by the lead: pasting a 1000-line file re-colours in about 2 s or less and a keystroke at 1000 lines stays under about 100 ms in Release, measured by the validator; test implementer adds a deterministic test only if one can pin the fix without timing | Both PR-introduced; main's text areas neither grow nor re-render | V1 restores PLAY-012 as written; V2 is responsiveness, not output | 7791652 |
+| 10 | audit 4 (28) | Repair round 3 worklist | F8: NUL becomes U+FFFD through the markup path → refuse by cause: text that holds NUL never goes through the markup path (text frames; the implementer picks the cheapest variant that keeps every character), correct the `AppendEncoded` summary, page test with a pasted NUL; F9: lone CR at the end of `app.css` → implementer | Rare input class; refusal is a cheap check, not modelling | Restores PLAY-010's 'no character changed'; colours on such a line may be lost, a rare-class refusal | pending |
 | 5 | audit 1 (09) | Pre-existing `@media (max-width: 700px)` pane height overridden by the later base rule in `app.css` | Adjacent fix in this run, with a stylesheet test | A few lines in a file the run already rewrites; restores the narrow-screen height the stylesheet already intends | Restores the stylesheet's own stated layout; styling is a spec non-goal | 9bf2670 |
 
 ## Follow-up candidates
@@ -43,10 +44,11 @@
 
 ## Audited SHA
 
+0605942 (audit 4, repair 2; findings 8, 9)
 b63ec36 (audit 3, pass; final audited tree)
 b38dac5 (audit 2, repair 1; finding 7 open)
 fcb82346886ea93149e5229451aa87a43b7438fb (audit 1, base main 1788f94)
 
 ## Next step
 
-Maintainer answered A (answer 8). Spec author (24: code owners for PlaygroundHighlighting, PlaygroundHighlightedLine) and test implementer (25: equivalence test after edits) in parallel → cleaner (26) → spec checker (27) → auditor repair-only (28) → validator (29) with real-paste measurement.
+Repair round 3 of 3 (last): test implementer (29) → implementer (30) → cleaner (31) → spec checker (32) → auditor repair-only (33) → validator (34) with browser re-measure. A block after this round is resolved by narrowing.
