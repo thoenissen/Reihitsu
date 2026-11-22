@@ -68,12 +68,12 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : ReihitsuCodeFixPro
     /// <summary>
     /// Determines whether moving the member before the target member preserves the meaning of the code, in every build
     /// configuration. The move is refused when it would relocate a preprocessor directive away from the code it
-    /// governs, while a directive pair contained completely in the moved or the crossed half travels intact and is
-    /// allowed (SHARED-ORDER-003 to SHARED-ORDER-006). It is refused as well when it would put two members of one
-    /// context that each have a runtime initializer, or two instance fields of a type whose field order sets its
-    /// layout, into the other order, counting the members that code excluded by an <c>#if</c> branch declares
-    /// (SHARED-ORDER-007), and when the moved or the crossed span holds a directive of a conditional group that does not
-    /// wrap whole units (SHARED-ORDER-008). Every member reordering fix applies both guards, because every one of them moves the
+    /// governs, while a region pair contained completely in the moved or the crossed half, or a <c>#pragma warning</c>
+    /// or <c>#nullable</c> pair that ends its own effect inside one member, travels intact and is allowed
+    /// (SHARED-ORDER-003 to SHARED-ORDER-006, SHARED-ORDER-011). It is refused as well when it would put two members of
+    /// one context that each have a runtime initializer, or two instance fields of a type whose field order sets its
+    /// layout, into the other order (SHARED-ORDER-007), and when the moved or the crossed span holds a conditional
+    /// directive (SHARED-ORDER-008). Every member reordering fix applies both guards, because every one of them moves the
     /// member together with its leading trivia
     /// </summary>
     /// <param name="semanticModel">Semantic model of the document</param>

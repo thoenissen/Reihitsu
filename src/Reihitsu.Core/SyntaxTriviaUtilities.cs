@@ -354,8 +354,8 @@ public static class SyntaxTriviaUtilities
     /// directive lies outside the span. Rewrites that relocate a span as one block — for example a member reorder
     /// that lifts a declaration over its neighbours — would carry such a directive away from its partner, leaving
     /// the surrounding declarations in a different region than the author wrote.
-    /// <see cref="ContainsPositionSensitiveDirectives"/> deliberately ignores region directives because a region
-    /// reorder relocates them on purpose; a member reorder must not, so it pairs that predicate with this one.
+    /// <see cref="GetPositionSensitiveDirectives"/> deliberately ignores region directives because a region
+    /// reorder relocates them on purpose; a member reorder must not, so it pairs that check with this one.
     /// Unlike the conditional variant there is no detached-branch case to refuse, because regions have no
     /// <c>#elif</c>/<c>#else</c> equivalent
     /// </summary>
@@ -380,7 +380,7 @@ public static class SyntaxTriviaUtilities
     /// start its own line, so a rewrite that re-hosts the trivia of this span into the middle of a line cannot
     /// keep one. Callers that only relocate a span as a whole want the narrower
     /// <see cref="ContainsUnbalancedConditionalDirectives"/>, <see cref="ContainsUnbalancedRegionDirectives"/> or
-    /// <see cref="ContainsPositionSensitiveDirectives"/> instead
+    /// <see cref="GetPositionSensitiveDirectives"/> instead
     /// </summary>
     /// <param name="root">Syntax node containing the span</param>
     /// <param name="span">Span to inspect</param>
@@ -423,33 +423,24 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified span contains a preprocessor directive whose effect is bound to where it
-    /// sits rather than to the block around it. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
+    /// Gets the preprocessor directives that start inside the specified span and whose effect is bound to where they
+    /// sit rather than to the block around them. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
     /// apply from their own position onwards, so a rewrite that relocates the surrounding block silently changes
     /// which code they cover. <c>#region</c>/<c>#endregion</c> are excluded because a region reorder moves them
     /// deliberately, and conditional directives are excluded because their pairing is checked by
     /// <see cref="ContainsUnbalancedConditionalDirectives"/>; every other directive kind — including a malformed
-    /// one — counts, so the predicate stays safe for directives it does not know about
+    /// one — counts, so callers stay safe for directives this method does not know about
     /// </summary>
     /// <param name="root">Syntax node containing the span</param>
     /// <param name="span">Span to inspect</param>
-    /// <returns>
-    /// <see langword="true"/> if the span contains a position sensitive directive, or when
-    /// <paramref name="root"/> is <see langword="null"/> and the span therefore cannot be inspected; otherwise,
-    /// <see langword="false"/>
-    /// </returns>
-    public static bool ContainsPositionSensitiveDirectives(SyntaxNode root, TextSpan span)
+    /// <returns>The position sensitive directives, in the order of the text</returns>
+    public static IEnumerable<SyntaxTrivia> GetPositionSensitiveDirectives(SyntaxNode root, TextSpan span)
     {
-        if (root == null)
-        {
-            return true;
-        }
-
         return root.DescendantTrivia(span, descendIntoTrivia: true)
-                   .Any(trivia => span.Contains(trivia.SpanStart)
-                                  && trivia.IsDirective
-                                  && IsRegionDirective(trivia) == false
-                                  && IsConditionalDirective(trivia) == false);
+                   .Where(trivia => span.Contains(trivia.SpanStart)
+                                    && trivia.IsDirective
+                                    && IsRegionDirective(trivia) == false
+                                    && IsConditionalDirective(trivia) == false);
     }
 
     /// <summary>
@@ -460,7 +451,7 @@ public static class SyntaxTriviaUtilities
     /// text the parser disabled can become active and follow that element without a separator. The predicate
     /// is deliberately textual: it does not evaluate which branch is reachable, because that case-by-case
     /// reasoning about symbol configurations is what let the unsafe removal through in the first place.
-    /// <see cref="ContainsPositionSensitiveDirectives"/> and <see cref="ContainsRegionDirectives"/> are excluded on
+    /// <see cref="GetPositionSensitiveDirectives"/> and <see cref="ContainsRegionDirectives"/> are excluded on
     /// purpose — neither a region directive nor <c>#pragma</c>/<c>#nullable</c>/<c>#line</c> can introduce a
     /// further list element under any symbol configuration, so a caller that used them here would withhold a
     /// safe removal
