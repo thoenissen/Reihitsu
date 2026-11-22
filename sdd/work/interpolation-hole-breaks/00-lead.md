@@ -29,5 +29,5 @@
 
 ## State
 
-- Last step: test implementer (03-test-implementer.md, reproduced; 31 formatter + 1 CLI fail).
-- Next: fresh test implementer pins decision 6 exactly → implementer.
+- Last step: test implementer amendment (04-test-implementer.md).
+- Next: implementer + spec author (switch-case brace spec states decision 6) in parallel.
