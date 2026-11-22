@@ -50,4 +50,5 @@
 - Round 1: spec author done (12-spec-author.md; brace wrap withheld for the class, as written).
 - Round 1: test implementer done (13-test-implementer.md; 11 failing as expected).
 - Round 1: implementer done (14-implementer.md, a0888e4; all green).
-- Next: → cleaner → spec checker → auditor → validator.
+- Round 1: cleaner done (15-cleaner.md, clean).
+- Next: spec checker → auditor → validator.
