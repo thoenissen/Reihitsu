@@ -1174,6 +1174,156 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
         await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
+    /// <summary>
+    /// Verifies that a positional record parameter is reported when an intermediate source record declares a protected field of its name, which the record can access, so the compiler matches that field instead of the inherited dictated property behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterMatchingAProtectedFieldOfAnIntermediateRecordInFrontOfAnInheritedDictatedPropertyIsReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Person(string name) : INamed;
+
+                                public record MidProtected(string Other) : Person(Other)
+                                {
+                                    protected new string name = "";
+                                }
+
+                                public record BehindProtected(string {|RH4120:name|}) : MidProtected(name);
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter is reported when an intermediate record of the same project declares an internal field of its name, which the record can access, so the compiler matches that field instead of the inherited dictated property behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterMatchingAnInternalFieldOfAnIntermediateRecordOfTheSameProjectInFrontOfAnInheritedDictatedPropertyIsReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Person(string name) : INamed;
+
+                                public record MidInternal(string Other) : Person(Other)
+                                {
+                                    internal new string name = "";
+                                }
+
+                                public record BehindInternal(string {|RH4120:name|}) : MidInternal(name);
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a positional parameter of a nested record is reported when its enclosing base record declares a private field of the parameter's name, which the nested record can access, so the compiler matches that field instead of the inherited dictated property behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterOfANestedRecordMatchingAPrivateFieldOfItsEnclosingBaseRecordInFrontOfAnInheritedDictatedPropertyIsReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Person(string name) : INamed;
+
+                                public record Outer(string Other) : Person(Other)
+                                {
+                                    private new string name = "";
+
+                                    public string PeekOuter() => name;
+
+                                    public record Nested(string {|RH4120:name|}) : Outer(name);
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter is reported when the record declares a private field of its name, which the compiler matches instead of the inherited dictated property the field hides
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4120-001")]
+    public async Task ParameterMatchingADeclaredPrivateFieldThatHidesAnInheritedDictatedPropertyIsReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          string name { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Person(string name) : INamed;
+
+                                public record WithPrivateField(string {|RH4120:name|}) : Person(name)
+                                {
+                                    private new string name = name;
+
+                                    public string PeekField() => name;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
