@@ -25,6 +25,27 @@ public static class StringInterpolationUtilities
     }
 
     /// <summary>
+    /// Determines whether the node is, or stands at any depth inside, an interpolation of an interpolated string that is
+    /// not verbatim (one that starts with <c>$"</c>) while the code is compiled with C# 10 or earlier. Such an
+    /// interpolation cannot contain a line break before C# 11 (CS8967), so nothing inside it may be broken onto another line
+    /// </summary>
+    /// <param name="node">Node to inspect</param>
+    /// <param name="languageVersion">Effective language version the code is compiled with</param>
+    /// <returns><see langword="true"/> when no line break may be written inside the node; otherwise, <see langword="false"/></returns>
+    public static bool IsInsideSingleLineInterpolation(SyntaxNode node, LanguageVersion languageVersion)
+    {
+        if (languageVersion >= LanguageVersion.CSharp11)
+        {
+            return false;
+        }
+
+        return node.AncestorsAndSelf()
+                   .OfType<InterpolationSyntax>()
+                   .Any(interpolation => interpolation.Parent is InterpolatedStringExpressionSyntax interpolatedString
+                                         && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken));
+    }
+
+    /// <summary>
     /// Reconstructs the interpolated string expression without $ markers by removing them from the start token
     /// </summary>
     /// <param name="interpolatedString">The interpolated string expression</param>

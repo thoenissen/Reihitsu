@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -65,15 +66,8 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer : Diagn
     /// <returns><see langword="true"/> when the braces cannot be placed on their own lines; otherwise, <see langword="false"/></returns>
     private static bool IsInsideSingleLineInterpolation(BlockSyntax block)
     {
-        if (block.SyntaxTree.Options is not CSharpParseOptions { LanguageVersion: < LanguageVersion.CSharp11 })
-        {
-            return false;
-        }
-
-        return block.Ancestors()
-                    .OfType<InterpolationSyntax>()
-                    .Any(interpolation => interpolation.Parent is InterpolatedStringExpressionSyntax interpolatedString
-                                          && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken));
+        return block.SyntaxTree.Options is CSharpParseOptions parseOptions
+               && StringInterpolationUtilities.IsInsideSingleLineInterpolation(block, parseOptions.LanguageVersion);
     }
 
     /// <summary>

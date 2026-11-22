@@ -6,13 +6,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
 /// Blank line management — inserts required blank lines before and after
 /// statements and comments, removes blank lines after opening braces, and
-/// collapses excessive consecutive blank lines
+/// collapses excessive consecutive blank lines. Before C# 11, the phase leaves every interpolation of a
+/// non-verbatim interpolated string as written, because such an interpolation cannot hold a line break there (CS8967)
 /// </summary>
 internal sealed class BlankLinePhase : IFormattingPhase
 {
@@ -46,16 +48,7 @@ internal sealed class BlankLinePhase : IFormattingPhase
     /// <inheritdoc/>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        var current = root;
-
-        foreach (var rewriter in CreateRewriters(context, cancellationToken))
-        {
-            current = rewriter.Visit(current);
-
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        return current;
+        return SingleLineInterpolationUtilities.RunKeepingSingleLineInterpolations(root, context.LanguageVersion, CreateRewriters(context, cancellationToken), cancellationToken);
     }
 
     #endregion // IFormattingPhase
