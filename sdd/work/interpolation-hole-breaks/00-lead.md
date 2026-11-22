@@ -45,4 +45,5 @@
 - Spec checker done (10-spec-checker.md, consistent). Main merged: up to date. Build green.
 - Auditor done (11-auditor.md, audited d53c0dd, base 1788f94): findings #1 (high), #2 (low).
 - Repair round 1: spec author (12) + test implementer (13) in parallel → implementer (14) → cleaner → spec checker → auditor (repair only).
-- Next: → validator.
+- Round 1: spec author done (12-spec-author.md; brace wrap withheld for the class, as written).
+- Next: wait for test implementer (13) → implementer → cleaner → spec checker → auditor → validator.
