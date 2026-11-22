@@ -39,9 +39,10 @@
 
 ## Audited SHA
 
+b63ec36 (audit 3, pass; final audited tree)
 b38dac5 (audit 2, repair 1; finding 7 open)
 fcb82346886ea93149e5229451aa87a43b7438fb (audit 1, base main 1788f94)
 
 ## Next step
 
-Decision 8 (architecture finding, not a round): test implementer (17) → implementer (18) → cleaner (19) → auditor on it (20) → validator (21). Repair rounds used: 1 of 3.
+Validator (21) on final tree, incl. browser checks from 04/05/09/16/20. Then lane check, usage, note, delete sdd/work, trigger commit, PR.
