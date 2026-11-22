@@ -3,7 +3,8 @@
 - Issue: thoenissen/Reihitsu#1939 — `agent-filed` (goals are proposals; the visible output was decided by the maintainer, see below)
 - Branch: `claude/squad-1939-81sm3x`; draft PR #1947
 - Lane: behavior-change — the issue asks for changed analyzer behavior (RH4120 stops reporting a positional record parameter whose generated property implements a property declared in a referenced assembly), which needs a spec change and production code.
-- Roles: spec author → skeptic → test implementer → implementer → cleaner (11, clean, 30fbe13) → spec checker (12, consistent, 5abf165) → auditor (13, repair only) → auditor → validator; issue manager before publishing if follow-up candidates exist. None skipped.
+- Roles: spec author → skeptic → test implementer → implementer → cleaner (11, clean, 30fbe13) → spec checker (12, consistent, 5abf165) → auditor (13, findings: #3 test gap, 04f83a5).
+- Repair round 2 of 3 (test-only): test implementer (14) → cleaner (15) → spec checker (16) → auditor (17, repair only) → auditor → validator; issue manager before publishing if follow-up candidates exist. None skipped.
 
 ## Maintainer answers
 
@@ -23,6 +24,8 @@
 
 | 4 | Auditor (08) | Architecture finding (FC-044): `GetMember` ignores accessibility when finding the inherited member a parameter matches | Fix narrowly within the run: skip a candidate the record cannot access, reading the compiler's accessibility result (one cheap condition, no new type); repair round 1 — test implementer adds the private/internal intermediate-member cases and the `new` field case (finding 2), implementer repairs | Reads a compiler result instead of modelling it; refusing (reporting) would contradict answer 2B for these inputs | Brings code to the unchanged requirement SHARED-CASING-014 as answered (2B); rare inputs | c66496d |
 | 5 | Auditor (08) | RH4116 does not apply 2B to tuple element names (auditor hint, uncertain) | Dropped: outside the run, auditor judged probably correct, no defect shown | No evidence of a defect | Nothing changes | — |
+| 6 | Auditor (13) | Finding #3 repeats the class of #2 (test gap on GetMember's guard: accessible non-public intermediate members not pinned) — architecture signal | Decided as an architecture finding: the guard already reads the compiler's accessibility result (no model to refuse), so no structural change or refusal; the class is closed by pinning it in tests — the test implementer adds the accessible-non-public members the auditor probed (protected, internal same project, nested record over an enclosing private field, own private field). Run as repair round 2, test-only | Code is correct; only coverage is missing | Tests pin unchanged output (reported) | (pending) |
+| 7 | Auditor (13) hint | SHARED-CASING-014 "declares or inherits" vs. C# meaning of inherited private members | Not changed: the Why paragraph resolves it and the spec checker found it consistent | Wording only | Spec text only | — |
 
 ## Follow-up candidates
 
@@ -30,6 +33,7 @@
 
 ## Audited SHA
 
+7c131eba4d5ce6011b2838d4a3b59308d532ad42 (audit 2, repair 1, finding #3 test gap)
 3b066662dc49e2abcd3964664c6937adf78bed0c (audit 1, findings)
 
 ## Open worklist / next step
@@ -45,4 +49,5 @@
 - Cleaner done (06, 1cb0e2a): clean, 0 warnings.
 - Spec checker done (07, f32e03b): consistent, no findings.
 - Auditor done (08, 57ab48d) at audited SHA 3b066662: findings (1: accessibility in GetMember, 2: untested field branch).
-- Repair round 1 of 3: test implementer (09, done 2bf27de/670609e: 3 tests, 2 fail as intended) → implementer (10, done c66496d/0838d20) → cleaner (11, clean, 30fbe13) → spec checker (12, consistent, 5abf165) → auditor (13, repair only) → auditor (repair only) → validator.
+- Repair round 1 of 3: test implementer (09, done 2bf27de/670609e: 3 tests, 2 fail as intended) → implementer (10, done c66496d/0838d20) → cleaner (11, clean, 30fbe13) → spec checker (12, consistent, 5abf165) → auditor (13, findings: #3 test gap, 04f83a5).
+- Repair round 2 of 3 (test-only): test implementer (14) → cleaner (15) → spec checker (16) → auditor (17, repair only) → auditor (repair only) → validator.
