@@ -26,7 +26,7 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 |---|---|---|---|---|---|---|
 | 1 | Start | Split the batch (escalation 8)? #1434 changes reporting, the others the fix's name derivation, and #1434 names six rules. | Keep one run. | All four sit in the shared casing component: the rules all derive from `CasingAnalyzerBase`, the fixes share `CasingUtilities`, and all change `sdd/specs/shared/casing.md`. The maintainer composed the batch. | Process only. | claim |
 | 2 | Implementer | Disputed test `RH4106…FixAllSkipsAFieldWithALeadingAcronymThatCollidesWithAnotherField`: the framework demands no Fix All action when Fix All changes nothing. | Test implementer adds a non-colliding field so Fix All changes something; the asserted skip of both colliding fields stays. | The asserted output (both colliding fields skipped, SHARED-CASING-010) is unchanged; only the test shape changes. Offering no Fix All action broke 7 RH4115 tests. | SHARED-CASING-010 decides the output; nothing visible changes. | 4022a0c |
-| 3 | Audit 1 | Auditor finding 2 (`ToPascalCaseWord` upper-cases a non-letter first character, e.g. U+0345 → U+0399): repair or restate spec? | Repair the code to the unchanged SHARED-CASING-006 text (kept as written), with tests. | The spec already decides it; the derivation is a cheap check on the character's category. | An unchanged requirement demands the output. | (repair round 2) |
+| 3 | Audit 1 | Auditor finding 2 (`ToPascalCaseWord` upper-cases a non-letter first character, e.g. U+0345 → U+0399): repair or restate spec? | Repair the code to the unchanged SHARED-CASING-006 text (kept as written), with tests. | The spec already decides it; the derivation is a cheap check on the character's category. | An unchanged requirement demands the output. | 96f8123 |
 
 ## Follow-up candidates
 
@@ -55,3 +55,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Auditor 1 done (`b0074e4`, `11-auditor.md`), audited HEAD 396887f: #971 pass, #1072 pass, #1451 finding 2 (low), #1434 finding 1 (RH4116 operators / conversion operators / multi-declarator events). Both same requirement.
 - Repair round 2 (round 1 was the spec-checker code-owner repair): test implementer (tests for findings 1 and 2), then implementer, cleaner, spec checker, auditor on the repair, validator.
 - Round 2 test implementer done (`d90597e`, `ff266a7`, `12-test-implementer.md`): 5 RH4116 + 12 core + 2 code-fix tests fail on current code. Next: implementer.
+- Round 2 implementer done (`96f8123`, `13-implementer.md`): all green in Debug. Note for the run note: the implementer used `git stash` (no parallel role was running). Next: cleaner, spec checker, auditor on the repair.
