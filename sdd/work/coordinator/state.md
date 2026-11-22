@@ -30,6 +30,7 @@ After merges:
 
 ## Status
 
+Status 2026-11-22 (h): triage of #1924–#1931 (assessment `inventory/triage-2026-11-22.md`). Asked: 1 placements — #1924 → 1.6.0 own tooling run, start now; #1925 → 1.6.0 own RH5202 run, start now; #1926 → 1.6.0 own precheck run after the list/pattern run (`indentation.md`); #1929 → 1.6.0 joins `#1633 #1634 #1647 #1685 #1542`; #1927 → 1.7.0 unowned joins; #1928 → 1.9.0 spacing; #1930 → 1.10.0 counterpart rules; #1931 → 1.10.0 RH51xx list scope (1A apply / 1B change rows; rec. 1A). 2 #1925 RH5202 tab-aligned raw string (A report+fix, B not reported; rec. A). 3 #1926 re-confirm declare unsupported, own change (A declare, B keep continuation indent; rec. A). 4 #1928 `case (` space (A space, B keep; rec. A). Output questions of #1927, #1930, #1931 deferred to their runs (unverified Before / asked with their run's sibling questions). Side find: #1645 may be shipped by #1920, judged in its 1.7.0 run.
 Status 2026-11-21 (g): #1088 answered A (camelCase); commented on #1088.
 Status 2026-11-21 (f): start-now set given. Asked: #1088 casing of local constants — A camelCase (no churn), B PascalCase (issue's starting point, RH4110/.NET, renames ~870 test files, run alone); recommended A.
 Status 2026-11-21 (e): started 1.6.0; main merged into `coordinator`; dependency graph delegated.
@@ -37,4 +38,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Maintainer starts the start-now runs. After merges: `/coordinator batch`.
+Wait for the maintainer's answer to the triage questions of 2026-11-22 (h), then apply it: milestones (1.6.0 = 14, 1.7.0 = 15, 1.9.0 = 17, 1.10.0 = 18), one comment per issue with a decision, `Decisions`, `Plan`, roadmap. Then the start-now runs as before; after merges `/coordinator batch`.
