@@ -586,6 +586,75 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a switch expression whose arms hold a multi-line property pattern behind <c>and</c> or
+    /// <c>not</c> puts the braces of that pattern under the arm's first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-003")]
+    [Requirement("FMT-INDENT-026")]
+    public async Task VerifyFixPutsBracesOfPropertyPatternBehindAndOrNotUnderTheArmsFirstToken()
+    {
+        const string testData = """
+                                internal class P
+                                {
+                                    public int A { get; set; }
+
+                                    public int B { get; set; }
+                                }
+
+                                internal class Example
+                                {
+                                    private static int M(P o)
+                                    {
+                                        return {|#0:o switch
+                                            {
+                                                P and { A: 1,
+                                                    B: 2 } => 1,
+                                                not { A: 3,
+                                                    B: 4 } => 2,
+                                                _ => 0
+                                            }|};
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class P
+                                  {
+                                      public int A { get; set; }
+
+                                      public int B { get; set; }
+                                  }
+
+                                  internal class Example
+                                  {
+                                      private static int M(P o)
+                                      {
+                                          return o switch
+                                                 {
+                                                     P
+                                                     and
+                                                     {
+                                                         A: 1,
+                                                         B: 2
+                                                     } => 1,
+                                                     not
+                                                     {
+                                                         A: 3,
+                                                         B: 4
+                                                     } => 2,
+                                                     _ => 0
+                                                 };
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

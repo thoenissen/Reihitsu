@@ -855,13 +855,13 @@ public class LineBreakRequirementTests : FormatterTestsBase
                                         {
                                             case P
                                                  and {
-                                                         A: 1
-                                                     }:
+                                                     A: 1
+                                                 }:
                                                 break;
 
                                             case not {
-                                                         A: 2
-                                                     }:
+                                                     A: 2
+                                                 }:
                                                 break;
 
                                             case P p when p.B is not

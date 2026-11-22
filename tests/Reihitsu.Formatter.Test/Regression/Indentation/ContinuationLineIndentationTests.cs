@@ -676,5 +676,223 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the condition of a <c>case</c> label's <c>when</c> clause, wrapped behind <c>when</c>,
+    /// continues the label, which starts on the line of <c>case</c>, so it is indented one level deeper than <c>case</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-034")]
+    public void SpecExampleWhenConditionWrappedBehindWhenIsIndentedOneLevelDeeperThanCase()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1 when
+                                         Check(value):
+                                             break;
+                                     }
+                                 }
+
+                                 bool Check(int v)
+                                 {
+                                     return v > 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1 when
+                                                Check(value):
+                                                break;
+                                        }
+                                    }
+
+                                    bool Check(int v)
+                                    {
+                                        return v > 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>when</c> condition written left of the <c>case</c> keyword, and one written further right behind a
+    /// combined pattern, both take the column one level deeper than <c>case</c>, and that an already indented condition stays
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-034")]
+    public void WhenConditionWrappedBehindWhenTakesTheContinuationColumnWhereverItIsWritten()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1 when
+                                             Check(value):
+                                             break;
+
+                                         case 2 when
+                             Check(value):
+                                             break;
+
+                                         case > 4 and < 10 when
+                                                 Check(value):
+                                             break;
+                                     }
+                                 }
+
+                                 bool Check(int v)
+                                 {
+                                     return v > 0;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1 when
+                                                Check(value):
+                                                break;
+
+                                            case 2 when
+                                                Check(value):
+                                                break;
+
+                                            case > 4 and < 10 when
+                                                Check(value):
+                                                break;
+                                        }
+                                    }
+
+                                    bool Check(int v)
+                                    {
+                                        return v > 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a first base type below the colon, a first type argument below <c>&lt;</c>, and the
+    /// right part of a qualified name below its <c>.</c>, each kept there by a comment, are continuation lines, and the later
+    /// base type aligns under the first
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-034")]
+    public void SpecExampleLinesACommentKeepsInsideABaseListATypeArgumentListOrAQualifiedNameAreContinuationLines()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             interface I1;
+
+                             interface I2;
+
+                             class C : // c
+                             I1,
+                             I2
+                             {
+                                 List< // c
+                                 int> P => null;
+
+                                 void N<T>()
+                                     where T : System. // c
+                                     IDisposable
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                interface I1;
+
+                                interface I2;
+
+                                class C : // c
+                                    I1,
+                                    I2
+                                {
+                                    List< // c
+                                        int> P => null;
+
+                                    void N<T>()
+                                        where T : System. // c
+                                            IDisposable
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first element a comment keeps below the opening bracket of a type parameter list, a function-pointer
+    /// parameter list, and a type argument list in a base type is a continuation line, as below a type argument list's
+    /// <c>&lt;</c> in a member type
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-034")]
+    public void FirstElementACommentKeepsBelowTheOpeningBracketOfOtherAngleBracketListsIsAContinuationLine()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             class D< // c
+                             T>
+                             {
+                                 unsafe void P(delegate*< // c
+                                 int, void> f)
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class D< // c
+                                    T>
+                                {
+                                    unsafe void P(delegate*< // c
+                                                  int, void> f)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

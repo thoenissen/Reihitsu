@@ -125,7 +125,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                                                         var b = o is [
                                                                                          1
 
-                                                                                     // end pattern
+                                                                                         // end pattern
                                                                                      ];
                                                                         var s = a switch
                                                                                 {

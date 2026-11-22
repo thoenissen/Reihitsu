@@ -468,14 +468,14 @@ public class PatternChainLayoutTests : FormatterTestsBase
                                         {
                                             case P
                                                  and {
-                                                         A: 1
-                                                     }:
+                                                     A: 1
+                                                 }:
                                                 break;
 
                                             case 1
                                                  or {
-                                                        A: 2
-                                                    }:
+                                                     A: 2
+                                                 }:
                                                 break;
                                         }
 
@@ -544,14 +544,14 @@ public class PatternChainLayoutTests : FormatterTestsBase
                                         {
                                             case P
                                                  and {
-                                                         A: 1
-                                                     }:
+                                                     A: 1
+                                                 }:
                                                 break;
 
                                             case 1
                                                  or {
-                                                        A: 2
-                                                    }:
+                                                     A: 2
+                                                 }:
                                                 break;
                                         }
 
