@@ -739,6 +739,35 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix of an empty class whose base list is wrapped behind its colon gives the formatter's layout, with the
+    /// first base type on the colon's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5412-001")]
+    [Requirement("FMT-BREAK-042")]
+    public async Task VerifyFixOfClassWithBaseListWrappedBehindItsColonJoinsTheFirstBaseType()
+    {
+        const string testData = """
+                                internal interface I1;
+
+                                internal class {|#0:Example|} :
+                                    I1
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal interface I1;
+
+                                 internal class Example : I1;
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods

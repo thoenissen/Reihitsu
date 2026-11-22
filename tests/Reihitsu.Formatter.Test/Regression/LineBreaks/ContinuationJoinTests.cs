@@ -624,7 +624,7 @@ public class ContinuationJoinTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the other side: a gap next to the same tokens but outside the list keeps its line break, under LF and CRLF —
-    /// behind a switch arm's <c>=&gt;</c>, behind a base list's <c>:</c>, behind the <c>(</c> of a <c>for</c> header, in front of
+    /// behind a switch arm's <c>=&gt;</c>, behind the <c>(</c> of a <c>for</c> header, in front of
     /// the <c>in</c> of a <c>foreach</c>, behind the <c>=&gt;</c> of a lambda with a block body, behind <c>with</c>, between
     /// <c>return</c> or <c>throw</c> and the <c>;</c> of a statement without an expression, and behind the <c>new</c> of an
     /// anonymous object
@@ -643,16 +643,6 @@ public class ContinuationJoinTests : FormatterTestsBase
     public void GapsOutsideTheListKeepTheirLineBreak(string statement, string front, string behind)
     {
         AssertLineBreakIsKept(WrapInMethod(statement), front, behind);
-    }
-
-    /// <summary>
-    /// Verifies the other side of the base list gap: a line break behind the <c>:</c> of a base list is kept
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-041")]
-    public void LineBreakBehindTheColonOfABaseListIsKept()
-    {
-        AssertLineBreakIsKept("class B;\n\nclass D :\n    B\n{\n}", "class D :", "B");
     }
 
     /// <summary>
@@ -745,14 +735,14 @@ public class ContinuationJoinTests : FormatterTestsBase
                                         switch (o)
                                         {
                                             case not {
-                                                         A: 1
-                                                     }:
+                                                     A: 1
+                                                 }:
                                                 break;
 
                                             case 1
                                                  or not {
-                                                            A: 2
-                                                        }:
+                                                     A: 2
+                                                 }:
                                                 break;
                                         }
 
@@ -819,14 +809,14 @@ public class ContinuationJoinTests : FormatterTestsBase
                                         switch (o)
                                         {
                                             case not {
-                                                         A: 1
-                                                     }:
+                                                     A: 1
+                                                 }:
                                                 break;
 
                                             case 1
                                                  or not {
-                                                            A: 2
-                                                        }:
+                                                     A: 2
+                                                 }:
                                                 break;
                                         }
 

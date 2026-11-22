@@ -183,15 +183,17 @@ public class CollectionExpressionClosingBracketCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment in front of the <c>]</c> of a list pattern, which FMT-INDENT-006 does not name, stays in the
-    /// bracket's column
+    /// Verifies that a comment in front of the <c>]</c> of a list pattern is indented one level deeper than the bracket, to the
+    /// column of the pattern's elements
     /// </summary>
     [TestMethod]
-    public void CommentBeforeClosingBracketOfListPatternStaysInBracketColumn()
+    [Requirement("FMT-INDENT-006")]
+    public void CommentBeforeClosingBracketOfListPatternIsIndented()
     {
         var input = InMethod("        if (v is [\n                     1,\n\n                 // last\n                 ])\n        {\n        }\n\n        return v;");
+        var expected = InMethod("        if (v is [\n                     1,\n\n                     // last\n                 ])\n        {\n        }\n\n        return v;");
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Tests
