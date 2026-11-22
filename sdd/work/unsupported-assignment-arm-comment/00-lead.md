@@ -17,14 +17,17 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | spec author | One requirement or two (assignment `=` vs. switch-arm `=>`) | Two: FMT-UNSUP-020 and FMT-UNSUP-021, each with its own reason | Separate gaps, separate reasons for the CLI report | The maintainer's answer covers both shapes; requirement split is internal | 4046a07 |
+| 3 | skeptic | Initializer members (object/`with`/index) as assignments | Count them (as the spec author wrote) | They are assignment expressions, as FMT-UNSUP-019 already counts them | Covered by the maintainer's answer ("the `=` of an assignment") | 4046a07 |
+| 4 | skeptic | Issue goals "a CLI test per input" / "a code-fix test per input" | One precheck test per input (CLI path already pinned by CLI-019 end-to-end tests); one test per affected fix plus the must-stay-offered cases | Coverage first | Tests only | — |
 | 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
 
+- Open question outside the issue (from `02-skeptic.md`): `int P { get; } /** c */ = 1;` — `main` moves the `/** */` onto its own line behind a blank line, leaving `/** c */ = 1;`; stable but looks wrong. Follow-up carrying the output question.
 - Escalation 10 (asked in the next batch): a comment/directive behind a variable declarator's `=` (directive case), an enum member's `=`, or a parameter default's `=` — still kept on a continuation line. From `01-spec-author.md`.
 
 ## State
 
-- Open output questions for batch 1: OQ1 compound assignment operators (`01-spec-author.md`); escalation 10 for the neighbouring `=` gaps.
-- Last step: spec author (01).
-- Next: skeptic, then batch 1 of output questions before the test implementer.
+- Batch 1 asked (waiting): Q1 compound assignment operators; Q2 deconstruction declaration; Q3 escalation 10 for enum-member `=`, parameter-default `=`, directive behind a declarator `=`.
+- After the answers: one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
+- Last step: skeptic (02).
