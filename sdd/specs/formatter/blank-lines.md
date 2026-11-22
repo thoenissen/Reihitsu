@@ -12,7 +12,7 @@ This spec covers `BlankLinePhase`: where the formatter inserts a blank line (bef
 ## Non-goals
 
 - Blank lines between type members. The phase neither inserts nor removes them; it only collapses runs (FMT-BLANK-014) and separates comments (FMT-BLANK-011).
-- Line breaks that are not blank lines — braces, statements, switch sections, and members on their own lines are FMT-BREAK. This phase writes no line break that ends the line of a statement or a switch section: every blank line it inserts goes between lines that the line-break phase has already broken (FMT-PIPE-025).
+- Line breaks that are not blank lines — braces, statements, switch sections, and members on their own lines are FMT-BREAK. This phase writes no line break that ends the line of a statement or a switch section: every blank line it inserts goes between lines that the line-break phase has already broken (FMT-PIPE-025). Where FMT-BREAK-044 forbids a line break — inside an interpolation of a non-verbatim interpolated string before C# 11 — this phase inserts no blank line either; that requirement states this phase's part and takes precedence over the requirements of this spec.
 - Moving documentation comments written behind code, single-line or delimited, onto a new line (FMT-DOC-001) and deciding which of them document nothing (FMT-DOC-003). This phase inserts no line break in front of a documentation comment; it only decides the blank lines around one that starts its line.
 - The node-level preservation of a target's surrounding trivia (FMT-PIPE-010).
 
