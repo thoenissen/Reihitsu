@@ -46,8 +46,9 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     /// token of a node formatted on its own has no previous token in its tree, so its comments are aligned as if no token
     /// stood in front of the node. The column is the one the token's line has in the output of
     /// the indentation phase, after the phase moved the lines of multi-line raw string literals
-    /// (<see cref="LayoutModel.TryGetPlacedColumn"/>). A comment in front of a closing brace or of the closing bracket of a
-    /// collection expression is indented one level deeper than that token, inside the scope it closes
+    /// (<see cref="LayoutModel.TryGetPlacedColumn"/>). A comment in front of a closing brace, of the closing bracket of a
+    /// collection expression or a list pattern, or of the closing parenthesis of a positional or parenthesized pattern is
+    /// indented one level deeper than that token, inside the content it closes
     /// </summary>
     /// <param name="token">The token whose leading trivia to inspect</param>
     /// <param name="model">The layout model</param>
@@ -60,10 +61,12 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
             return;
         }
 
-        // Comments before a closing brace, or before the closing bracket of a collection expression, are indented inside
-        // the scope the token closes, in the column of its contents (FMT-INDENT-006, FMT-PIPE-014)
+        // Comments before a closing delimiter whose content is indented one level deeper than the delimiter are indented
+        // into that content: a closing brace, the closing bracket of a collection expression or a list pattern, and the
+        // closing parenthesis of a positional or parenthesized pattern (FMT-INDENT-006, FMT-PIPE-014)
         if (token.IsKind(SyntaxKind.CloseBraceToken)
-            || (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is CollectionExpressionSyntax))
+            || (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is CollectionExpressionSyntax or ListPatternSyntax)
+            || (token.IsKind(SyntaxKind.CloseParenToken) && token.Parent is PositionalPatternClauseSyntax or ParenthesizedPatternSyntax))
         {
             alignColumn += FormattingContext.IndentSize;
         }

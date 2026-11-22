@@ -69,8 +69,9 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a pattern is a delimited pattern (recursive, list, or parenthesized)
-    /// that wraps across multiple lines. A <c>not</c> wrapper is unwrapped first
+    /// Determines whether a pattern is a delimited pattern that wraps across multiple lines: a recursive pattern whose
+    /// positional or property pattern clause spans several lines, or a list or parenthesized pattern that does
+    /// (FMT-BREAK-017). A <c>not</c> wrapper is unwrapped first
     /// </summary>
     /// <param name="pattern">The pattern to inspect</param>
     /// <returns><see langword="true"/> if the pattern is a multi-line delimited pattern; otherwise, <see langword="false"/></returns>
@@ -83,7 +84,10 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
 
         return pattern switch
                {
-                   RecursivePatternSyntax { PropertyPatternClause: { } clause } => LineBreakTriviaUtilities.SpansMultipleLines(clause.OpenBraceToken, clause.CloseBraceToken),
+                   RecursivePatternSyntax recursive => (recursive.PositionalPatternClause is { } positionalClause
+                                                        && LineBreakTriviaUtilities.SpansMultipleLines(positionalClause.OpenParenToken, positionalClause.CloseParenToken))
+                                                       || (recursive.PropertyPatternClause is { } propertyClause
+                                                           && LineBreakTriviaUtilities.SpansMultipleLines(propertyClause.OpenBraceToken, propertyClause.CloseBraceToken)),
                    ListPatternSyntax list => LineBreakTriviaUtilities.SpansMultipleLines(list.OpenBracketToken, list.CloseBracketToken),
                    ParenthesizedPatternSyntax parenthesized => LineBreakTriviaUtilities.SpansMultipleLines(parenthesized.OpenParenToken, parenthesized.CloseParenToken),
                    _ => false
@@ -123,7 +127,8 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a pattern chain is wrapped: a line break stands next to one of its combinators, or an operand next to
-    /// one of its combinators is a property, list, or parenthesized pattern that spans several lines (FMT-BREAK-017)
+    /// one of its combinators is a property, list, or parenthesized pattern that spans several lines, or a recursive pattern whose
+    /// positional pattern clause does (FMT-BREAK-017)
     /// </summary>
     /// <param name="chain">The binary patterns of the chain</param>
     /// <returns><see langword="true"/> if the chain is wrapped; otherwise, <see langword="false"/></returns>

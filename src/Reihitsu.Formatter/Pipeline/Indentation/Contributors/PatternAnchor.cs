@@ -14,11 +14,13 @@ internal static class PatternAnchor
     #region Methods
 
     /// <summary>
-    /// Computes the column the given pattern's delimiters should align to. Combinator (<c>and</c>/<c>or</c>)
+    /// Computes the column the given pattern's delimiters should align to (FMT-INDENT-026). Combinator (<c>and</c>/<c>or</c>)
     /// and <c>not</c> wrappers are skipped so the anchor matches the introducing construct: the <c>is</c>
     /// keyword for <c>is</c> expressions, the containing subpattern for nested patterns, the open
-    /// parenthesis (plus one level) for parenthesized patterns, and the pattern's own first token
-    /// otherwise (for example switch expression arms and case patterns, whose brace stays on the label line)
+    /// parenthesis (plus one level) for parenthesized patterns, and otherwise the first token of the outermost
+    /// pattern the wrappers lead to — in a switch-expression arm, an element of a list pattern, or a <c>case</c> label,
+    /// the <c>P</c> of <c>P and { … }</c> or the <c>not</c> of <c>not { … }</c>, and the pattern's own first token where
+    /// no wrapper surrounds it
     /// </summary>
     /// <param name="pattern">The pattern whose anchor column is requested</param>
     /// <param name="model">The layout model</param>
@@ -44,7 +46,7 @@ internal static class PatternAnchor
                 return LayoutComputer.GetAdjustedColumn(parenthesized.OpenParenToken, model) + FormattingContext.IndentSize;
         }
 
-        return LayoutComputer.GetAdjustedColumn(pattern.GetFirstToken(), model);
+        return LayoutComputer.GetAdjustedColumn(current.GetFirstToken(), model);
     }
 
     #endregion // Methods

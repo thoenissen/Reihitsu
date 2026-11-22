@@ -9,7 +9,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// <summary>
 /// Indents recursive (property) pattern subpatterns +1 level from the anchor column
 /// and aligns the opening and closing braces to the anchor column.
-/// The anchor column is resolved by <see cref="PatternAnchor"/>
+/// The anchor column is resolved by <see cref="PatternAnchor"/>. The subpatterns of a multi-line positional pattern clause
+/// are indented +1 level from its opening parenthesis, and its closing parenthesis is aligned to the opening one
+/// (FMT-INDENT-025)
 /// </summary>
 internal sealed class RecursivePatternContributor : ILayoutContributor
 {
@@ -22,6 +24,37 @@ internal sealed class RecursivePatternContributor : ILayoutContributor
 
     #endregion // Constants
 
+    #region Methods
+
+    /// <summary>
+    /// Indents the subpatterns of a positional pattern clause that spans several lines one level deeper than its opening
+    /// parenthesis and aligns its closing parenthesis to the opening one, as for a list pattern (FMT-INDENT-025)
+    /// </summary>
+    /// <param name="positionalClause">The positional pattern clause</param>
+    /// <param name="model">The layout model</param>
+    private static void ContributePositionalClause(PositionalPatternClauseSyntax positionalClause, LayoutModel model)
+    {
+        var openParen = positionalClause.OpenParenToken;
+        var closeParen = positionalClause.CloseParenToken;
+
+        if (LayoutComputer.GetLine(openParen) == LayoutComputer.GetLine(closeParen))
+        {
+            return;
+        }
+
+        var parenColumn = LayoutComputer.GetAdjustedColumn(openParen, model);
+        var subpatternColumn = parenColumn + FormattingContext.IndentSize;
+
+        LayoutComputer.SetIfFirstOnLine(closeParen, parenColumn, RecursivePatternSource, model);
+
+        foreach (var subpattern in positionalClause.Subpatterns)
+        {
+            LayoutComputer.SetIfFirstOnLine(subpattern.GetFirstToken(), subpatternColumn, RecursivePatternSource, model);
+        }
+    }
+
+    #endregion // Methods
+
     #region ILayoutContributor
 
     /// <inheritdoc/>
@@ -30,6 +63,11 @@ internal sealed class RecursivePatternContributor : ILayoutContributor
         if (node is not RecursivePatternSyntax recursivePattern)
         {
             return;
+        }
+
+        if (recursivePattern.PositionalPatternClause != null)
+        {
+            ContributePositionalClause(recursivePattern.PositionalPatternClause, model);
         }
 
         var propertyClause = recursivePattern.PropertyPatternClause;

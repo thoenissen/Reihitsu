@@ -15,7 +15,7 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for argument and parameter lists
+/// Applies line-break rules for argument and parameter lists, and for the base list of a type
 /// </summary>
 internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 {
@@ -645,6 +645,28 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         node = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node, static argumentList => argumentList.Arguments, _context.EndOfLine);
 
         return EnsureArgumentsOnSeparateLines(node, _context.EndOfLine);
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The first base type joins the line of the base list's colon (FMT-BREAK-042), unless a comment, a directive, or
+    /// disabled text in that gap keeps it below the colon (FMT-BREAK-001), and every comma that starts a line moves behind the
+    /// base type in front of it (FMT-BREAK-038). The line breaks in front of the later base types stay as written
+    /// </remarks>
+    public override SyntaxNode VisitBaseList(BaseListSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (BaseListSyntax)base.VisitBaseList(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        node = CollapseFirstElementToSameLine(node, node.Types.Count > 0 ? node.Types[0].GetFirstToken() : default);
+
+        return LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node, static baseList => baseList.Types, _context.EndOfLine);
     }
 
     /// <inheritdoc/>

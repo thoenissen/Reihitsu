@@ -11,8 +11,9 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for initializer and object creation expressions, collection expressions, and list and property
-/// patterns, including the move of a comma that starts a line behind the element in front of it (FMT-BREAK-038)
+/// Applies line-break rules for initializer and object creation expressions, collection expressions, and list, property,
+/// positional, and parenthesized patterns, including the move of a comma that starts a line behind the element in front of it
+/// (FMT-BREAK-038) and the join of a positional pattern clause onto the line of its type (FMT-BREAK-043)
 /// </summary>
 internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 {
@@ -164,6 +165,44 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
 
         return LineBreakTriviaUtilities.MoveTokenToNewLine(node, openBrace, _context.EndOfLine);
+    }
+
+    /// <summary>
+    /// Lays out the positional pattern clause of a recursive pattern. Its opening parenthesis joins the line of the pattern's
+    /// type (FMT-BREAK-043), unless a comment, a directive, or disabled text stands in that gap (FMT-BREAK-001); a comma that
+    /// starts a line moves behind the subpattern in front of it (FMT-BREAK-038); and a clause that spans several lines gets
+    /// every subpattern on its own line, the first one on the line after the opening parenthesis, and the closing parenthesis
+    /// on its own line (FMT-BREAK-022). Without a type, the opening parenthesis follows the <c>is</c>, <c>not</c>, or
+    /// combinator in front of it, which other joins own (FMT-BREAK-017, FMT-BREAK-041)
+    /// </summary>
+    /// <param name="node">The recursive pattern with a positional pattern clause</param>
+    /// <returns>The recursive pattern with its positional pattern clause laid out</returns>
+    private RecursivePatternSyntax LayOutPositionalClause(RecursivePatternSyntax node)
+    {
+        if (node.Type != null
+            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(node.Type.GetLastToken(), node.PositionalPatternClause.OpenParenToken))
+        {
+            node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, node.PositionalPatternClause.OpenParenToken);
+        }
+
+        var positionalClause = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node.PositionalPatternClause, static clause => clause.Subpatterns, _context.EndOfLine);
+
+        node = node.WithPositionalPatternClause(positionalClause);
+
+        if (LineBreakTriviaUtilities.SpansMultipleLines(positionalClause.OpenParenToken, positionalClause.CloseParenToken) == false)
+        {
+            return node;
+        }
+
+        if (positionalClause.Subpatterns.Count > 1)
+        {
+            node = node.WithPositionalPatternClause(EnsureElementsOnSeparateLines(positionalClause, static clause => clause.Subpatterns));
+        }
+
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.PositionalPatternClause.OpenParenToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.PositionalPatternClause.CloseParenToken, static (owner, token) => owner.WithPositionalPatternClause(owner.PositionalPatternClause.WithCloseParenToken(token)));
+
+        return CleanupTrailingWhitespaceBeforeToken(node, node.PositionalPatternClause.CloseParenToken);
     }
 
     #endregion // Methods
@@ -406,6 +445,11 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         if (node == null)
         {
             return null;
+        }
+
+        if (node.PositionalPatternClause != null)
+        {
+            node = LayOutPositionalClause(node);
         }
 
         var propertyClause = node.PropertyPatternClause;
