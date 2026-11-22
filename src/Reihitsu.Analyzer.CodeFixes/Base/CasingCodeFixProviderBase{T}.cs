@@ -385,11 +385,11 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <summary>
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
-    /// no rewritten or rebound reference to a symbol outside the rename cascade, no reference of the cascade rewritten
-    /// beyond its name, no new name that a member of an interface in the type hierarchy of a cascade property, event, or
-    /// ordinary method has, no
-    /// changed native entry point, no changed document that holds code another build configuration hides, no added
-    /// compile error, and no change to the properties the compiler declares for positional record parameters
+    /// no new name written where it is a keyword, no rewritten or rebound reference to a symbol outside the rename
+    /// cascade, no reference of the cascade rewritten beyond its name, no new name that a member of an interface in the
+    /// type hierarchy of a cascade property, event, or ordinary method has, no changed native entry point, no changed
+    /// document that holds code another build configuration hides, no added compile error, and no change to the
+    /// properties the compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -440,7 +440,10 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
                                                               cancellationToken)
                                            .ConfigureAwait(false);
 
-        if (await CasingRenameSafetyUtilities.HasConflictAnnotationsAsync(solution, renamedSolution, cancellationToken).ConfigureAwait(false))
+        // A new name that the rename writes where it is a keyword, with the verbatim prefix or without it, only looks
+        // corrected or does not compile (SHARED-CASING-013)
+        if (await CasingRenameSafetyUtilities.HasConflictAnnotationsAsync(solution, renamedSolution, cancellationToken).ConfigureAwait(false)
+            || await CasingRenameSafetyUtilities.WritesNameAsKeywordAsync(solution, renamedSolution, identifier, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }

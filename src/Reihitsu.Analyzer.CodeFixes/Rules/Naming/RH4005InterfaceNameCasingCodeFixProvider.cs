@@ -35,22 +35,32 @@ public class RH4005InterfaceNameCasingCodeFixProvider : CasingCodeFixProviderBas
     /// Transform identifier for to IPascalCase
     /// </summary>
     /// <param name="identifier">Identifier</param>
-    /// <returns>Transformed identifier</returns>
+    /// <returns>Transformed identifier; the identifier itself when nothing is left behind its prefix</returns>
     private static string OnTransformIdentifier(string identifier)
     {
-        // Only strip the leading character when it is a genuine "I" prefix, that is an 'i'/'I' followed by another
-        // uppercase letter (for example "iDocumentReader" or "IDocumentReader"). Names that merely start with the letter
-        // i (for example "index" or "important") keep the whole word so the prefix is prepended (for example "IIndex").
-        if (identifier.Length > 1
+        // Only strip the leading character when it is a genuine "I" prefix, that is an 'i'/'I' that is the whole name or
+        // is followed by an uppercase letter, a digit, or '_' (for example "iDocumentReader", "i2Factory", or
+        // "i_document"); the underscores behind the prefix are dropped with it. Names that merely start with the letter i
+        // (for example "index" or "important") keep the whole word so the prefix is prepended (for example "IIndex").
+        var rest = identifier;
+
+        if (identifier.Length > 0
             && (identifier[0] == 'i' || identifier[0] == 'I')
-            && char.IsUpper(identifier[1]))
+            && (identifier.Length == 1
+                || char.IsUpper(identifier[1])
+                || char.IsDigit(identifier[1])
+                || identifier[1] == '_'))
         {
-            identifier = identifier.Substring(1);
+            rest = identifier.Substring(1).TrimStart('_');
+
+            // Nothing is left behind the prefix, so no name can be derived; returning the old name withholds the fix
+            if (rest.Length == 0)
+            {
+                return identifier;
+            }
         }
 
-        identifier = CasingUtilities.ToPascalCase(identifier);
-
-        return $"I{identifier}";
+        return $"I{CasingUtilities.ToPascalCase(rest)}";
     }
 
     #endregion // Methods

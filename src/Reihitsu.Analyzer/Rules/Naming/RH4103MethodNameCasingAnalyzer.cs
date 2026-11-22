@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -48,6 +49,14 @@ public class RH4103MethodNameCasingAnalyzer : CasingAnalyzerBase
         {
             yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }
+    }
+
+    /// <inheritdoc/>
+    private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        return node is MethodDeclarationSyntax declaration
+               && (IsDictatedMember(semanticModel.GetDeclaredSymbol(declaration, cancellationToken))
+                   || HasNativeEntryPointFromName(declaration.AttributeLists, semanticModel, cancellationToken));
     }
 
     #endregion // CasingAnalyzerBase
