@@ -69,4 +69,5 @@
 - Round 2: cleaner (25) clean.
 - Round 2: spec checker (26) consistent.
 - Audit 27 pass. AUDITED SHA: b2f13f1e01363dcf98e026220120889752694d5d.
-- Next: validator (28) → lane check → issue manager (29) → note, delete sdd/work → trigger → PR. → validator.
+- Issue manager (29): created #1948 (layout rules + node-level limit), #1949 (scripts lang version).
+- Next: validator (28) → lane check → note, delete sdd/work → trigger → PR. → validator.
