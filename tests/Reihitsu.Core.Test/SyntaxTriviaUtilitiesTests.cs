@@ -488,7 +488,7 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
 
-        CollectionAssert.AreEqual(new[] { SyntaxKind.PragmaWarningDirectiveTrivia }, GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
+        Assert.AreSequenceEqual(new[] { SyntaxKind.PragmaWarningDirectiveTrivia }, GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
     }
 
     /// <summary>
@@ -499,7 +499,7 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n#nullable enable\n    private string _x;\n}\n";
 
-        CollectionAssert.AreEqual(new[] { SyntaxKind.NullableDirectiveTrivia }, GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
+        Assert.AreSequenceEqual(new[] { SyntaxKind.NullableDirectiveTrivia }, GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
     }
 
     /// <summary>
@@ -510,7 +510,7 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n#line 200\n    private int _x;\n}\n";
 
-        CollectionAssert.AreEqual(new[] { SyntaxKind.LineDirectiveTrivia }, GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
+        Assert.AreSequenceEqual(new[] { SyntaxKind.LineDirectiveTrivia }, GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
     }
 
     /// <summary>
@@ -521,7 +521,7 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n    #region Fields\n\n    private int _x;\n\n    #endregion\n}\n";
 
-        Assert.AreEqual(0, GetPositionSensitiveDirectiveKinds(source, 0, source.Length).Length);
+        Assert.IsEmpty(GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
     }
 
     /// <summary>
@@ -532,7 +532,7 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n#if DEBUG\n    private int _x;\n#else\n    private int _y;\n#endif\n}\n";
 
-        Assert.AreEqual(0, GetPositionSensitiveDirectiveKinds(source, 0, source.Length).Length);
+        Assert.IsEmpty(GetPositionSensitiveDirectiveKinds(source, 0, source.Length));
     }
 
     /// <summary>
@@ -543,7 +543,7 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
 
-        Assert.AreEqual(0, GetPositionSensitiveDirectiveKinds(source, source.IndexOf("    private", StringComparison.Ordinal), source.Length).Length);
+        Assert.IsEmpty(GetPositionSensitiveDirectiveKinds(source, source.IndexOf("    private", StringComparison.Ordinal), source.Length));
     }
 
     /// <summary>
