@@ -96,15 +96,16 @@ public class RawStringClosingWhitespaceMeasureTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example and the maintainer's decision: a literal behind four tabs counts each tab as one
-    /// column, gains 12 spaces, and keeps its tabs
+    /// Verifies the specification example: a literal behind four tabs counts each tab as one column and gains 12 spaces, and its
+    /// four tabs are written as four spaces
     /// </summary>
     [TestMethod]
     [Requirement("FMT-RAW-001")]
-    public void TabsCountAsOneColumnEachAndStay()
+    [Requirement("FMT-RAW-010")]
+    public void TabsCountAsOneColumnEachAndBecomeSpaces()
     {
         var input = InMethod(Literal("→→→→"));
-        var expected = InMethod(Literal("            →→→→"));
+        var expected = InMethod(Literal("                "));
 
         AssertRuleResult(input, expected);
     }
@@ -134,13 +135,15 @@ public class RawStringClosingWhitespaceMeasureTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a literal aligned by the shared measure with tabs, 12 spaces and four tabs, stays as written
+    /// Verifies the specification example: a literal aligned by the shared measure with tabs, 12 spaces and four tabs, does not
+    /// move, and its four tabs are written as four spaces
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-RAW-001")]
-    public void LiteralAlignedBySharedMeasureWithTabsStays()
+    [Requirement("FMT-RAW-006")]
+    [Requirement("FMT-RAW-010")]
+    public void LiteralAlignedBySharedMeasureWithTabsIsWrittenWithSpacesWithoutMoving()
     {
-        AssertRuleResult(InMethod(Literal("            →→→→")));
+        AssertRuleResult(InMethod(Literal("            →→→→")), InMethod(Literal("                ")));
     }
 
     /// <summary>

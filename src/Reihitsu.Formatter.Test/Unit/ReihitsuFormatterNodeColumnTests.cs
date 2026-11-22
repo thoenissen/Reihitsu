@@ -77,6 +77,42 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an equals-value target holding a raw string whose closing marker stands behind tabs moves the literal under
+    /// its opening quotes and writes the stripped tabs as spaces, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-RAW-010")]
+    public async Task EqualsValueTargetHoldingTabIndentedRawStringWritesTheStrippedTabsAsSpaces()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        var s = \"\"\"\n\t\ta\n\t\t\"\"\";\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var s = \"\"\"\n                a\n                \"\"\";\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<EqualsValueClauseSyntax>);
+    }
+
+    /// <summary>
+    /// Verifies that formatting a method declaration of a tree through <see cref="ReihitsuFormatter.FormatNode"/> moves a raw
+    /// string whose closing marker stands behind tabs under its opening quotes and writes the stripped tabs as spaces
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-RAW-010")]
+    public void FormatNodeWritesTheStrippedTabsOfARawStringAsSpaces()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings("class C\n{\n    void M()\n    {\n        var s = \"\"\"\n\t\ta\n\t\t\"\"\";\n    }\n}", endOfLine), cancellationToken: TestContext.CancellationToken);
+            var target = tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            var result = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).Output;
+
+            Assert.AreEqual(NormalizeLineEndings("    void M()\n    {\n        var s = \"\"\"\n                a\n                \"\"\";\n    }", endOfLine),
+                            result.ToFullString().TrimEnd('\r', '\n'),
+                            $"Unexpected output under {DescribeLineEnding(endOfLine)} line endings.");
+        }
+    }
+
+    /// <summary>
     /// Verifies the spec example: the tabs in the leading whitespace of a statement target are kept and count as one column
     /// each, so the statement starts in column 2 and the wrapped argument aligns under the first one with seven spaces, while
     /// the lines outside the target keep their tabs

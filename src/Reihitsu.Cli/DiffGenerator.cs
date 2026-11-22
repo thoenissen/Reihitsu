@@ -22,13 +22,27 @@ internal static class DiffGenerator
     #region Methods
 
     /// <summary>
-    /// Generates a unified diff between the original and formatted content
+    /// Generates a unified diff between the original and formatted content, naming the file <c>a/&lt;path&gt;</c> and
+    /// <c>b/&lt;path&gt;</c> in the header
     /// </summary>
-    /// <param name="filePath">The file path to display in the diff header</param>
+    /// <param name="filePath">The file path to display behind the <c>a/</c> and <c>b/</c> prefixes of the diff header</param>
     /// <param name="originalContent">The original file content</param>
     /// <param name="formattedContent">The formatted file content</param>
     /// <returns>A string containing the unified diff output</returns>
     public static string Generate(string filePath, string originalContent, string formattedContent)
+    {
+        return GenerateWithNames($"a/{filePath}", $"b/{filePath}", originalContent, formattedContent);
+    }
+
+    /// <summary>
+    /// Generates a unified diff between the original and formatted content, with the given names in the header
+    /// </summary>
+    /// <param name="originalName">The name written behind <c>---</c> in the diff header</param>
+    /// <param name="formattedName">The name written behind <c>+++</c> in the diff header</param>
+    /// <param name="originalContent">The original file content</param>
+    /// <param name="formattedContent">The formatted file content</param>
+    /// <returns>A string containing the unified diff output</returns>
+    public static string GenerateWithNames(string originalName, string formattedName, string originalContent, string formattedContent)
     {
         var originalLines = ToDiffLines(originalContent);
         var formattedLines = ToDiffLines(formattedContent);
@@ -42,8 +56,8 @@ internal static class DiffGenerator
 
         var builder = new StringBuilder();
 
-        builder.AppendLine($"--- a/{filePath}");
-        builder.AppendLine($"+++ b/{filePath}");
+        builder.AppendLine($"--- {originalName}");
+        builder.AppendLine($"+++ {formattedName}");
 
         foreach (var hunk in hunks)
         {

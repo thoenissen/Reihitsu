@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | CLI |
 | Status | Active |
-| Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `BufferedConsoleOutput`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
+| Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `BufferedConsoleOutput`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator`, `DefaultDiffGenerator`, `PathComparison` |
 | Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008, FMT-PIPE-033, FMT-UNSUP-001, FMT-UNSUP-002 |
 
 This spec covers the `reihitsu-format` .NET tool: its arguments, which files it selects and skips, how it reads and writes them, the `--check` and `--dry-run` modes, its console output, and its exit codes. What the formatter does to a file's content is specified under `formatter/`.
@@ -18,10 +18,11 @@ This spec covers the `reihitsu-format` .NET tool: its arguments, which files it 
 - How fast a run is, how many processor cores it uses, and how much memory it takes. CLI-022 and CLI-023 state what parallel processing must keep, not how much faster it is.
 - Formatting one file in parallel. Parallel processing is between files; each file is formatted as a whole by one worker.
 - The exact layout of the usage text and the version string beyond what the requirements quote.
+- Making the output of `--dry-run` a patch that `git apply` or `patch` applies as it is. CLI-024 decides only how the diff header names the file.
 
 ## Requirements
 
-Paths in the example outputs are shortened to `/work/…`; the tool prints full paths.
+Paths in the example outputs are shortened to `/work/…`; the tool prints full paths, except in the diff header of `--dry-run` (CLI-024). The examples run in the current directory `/work` unless they name another.
 
 ### CLI-001 — Arguments are options and paths
 
@@ -215,7 +216,7 @@ exit code 1.
 
 ### CLI-013 — `--dry-run` shows the diff without writing
 
-With `--dry-run`, the CLI MUST NOT write any file. For each file that would change, it MUST print `Would format: <path>` followed by a unified diff of the text change, finish with `<changed> of <total> file(s) would be formatted.`, and exit with code 1 when at least one file would change.
+With `--dry-run`, the CLI MUST NOT write any file. For each file that would change, it MUST print `Would format: <path>` followed by a unified diff of the text change, whose header names the file as CLI-024 states, finish with `<changed> of <total> file(s) would be formatted.`, and exit with code 1 when at least one file would change.
 
 Why: The diff lets a user review what the formatter would do before letting it write.
 
@@ -227,8 +228,8 @@ reihitsu-format --dry-run src/A.cs
 
 ```text
 Would format: /work/src/A.cs
---- a//work/src/A.cs
-+++ b//work/src/A.cs
+--- a/src/A.cs
++++ b/src/A.cs
 @@ -1,4 +1,4 @@
  class A
  {
@@ -483,3 +484,62 @@ reihitsu-format [options] [--] [<paths>...]
 ```
 
 exit code 2. The same holds for `-1`, `+2`, ` 2`, `two`, `1.5`, and `99999999999`. `--max-parallelism 1000` and `--max-parallelism 007` are accepted (1000 and 7); `--max-parallelism 2 --max-parallelism 8` uses 8.
+
+### CLI-024 — The `--dry-run` diff header names the file relative to the current directory
+
+The `---` and `+++` lines of the diff that `--dry-run` prints (CLI-013) MUST name the file by where its full path, as the CLI selects it (CLI-006), lies relative to the current directory — the working directory the CLI process reports, which on Linux and macOS is the physical directory, not the shell's `$PWD` when that reaches it through a symbolic link:
+
+- A file inside the current directory — that directory is one of the directories its full path passes through — MUST be named `--- a/<relative path>` and `+++ b/<relative path>`, where `<relative path>` is the file's full path relative to the current directory, with every directory separator written as `/`, also on Windows.
+- Any other file MUST be named `--- <path>` and `+++ <path>`, with the full path exactly as the `Would format:` line prints it — on Windows with `\` as the directory separator — and without the `a/` and `b/` prefixes.
+
+Directory names are compared case-insensitively on Windows and case-sensitively on every other platform, as CLI-006 compares paths. The two paths are compared as written: symbolic links are not resolved, so a full path that reaches the file through a link names it outside the current directory even when the link leads into it. The header is the same whether the file is given by its full path, by a path relative to the current directory, or through a directory. The `Would format:` line MUST keep the full path.
+
+Why: The `a/` and `b/` prefixes are the git convention for a path relative to the root of the tree a patch applies to, written with `/`: `patch -p1`, and `git apply` run at the top of a work tree, strip the first segment and look for the rest below the directory they run in. A full path behind the prefix names no file they can find. A file outside the current directory has no such path; its full path still tells the reader which file the diff is about, and without the prefix the header promises no use it cannot serve.
+
+Example — run in `/work`, with `src/A.cs` unformatted:
+
+```shell
+reihitsu-format --dry-run src/A.cs
+```
+
+```text
+Would format: /work/src/A.cs
+--- a/src/A.cs
++++ b/src/A.cs
+@@ -1,4 +1,4 @@
+…
+```
+
+`reihitsu-format --dry-run /work/src/A.cs` and `reihitsu-format --dry-run src/` write the same header for `A.cs`. A file directly in `/work` named `..A.cs` is inside it and gets `--- a/..A.cs`. On Windows, run in `C:\work` with `src\A.cs` unformatted, the header is `--- a/src/A.cs` and `+++ b/src/A.cs`, while the `Would format:` line reads `C:\work\src\A.cs`; run in `C:\Work`, the file `C:\work\src\A.cs` is inside it and gets the same header.
+
+Example — run in `/work/src`, with `/work/other/B.cs` unformatted:
+
+```shell
+reihitsu-format --dry-run ../other/B.cs
+```
+
+```text
+Would format: /work/other/B.cs
+--- /work/other/B.cs
++++ /work/other/B.cs
+@@ -1,4 +1,4 @@
+…
+```
+
+Run in `/work`, `/work-old/A.cs` is outside the current directory, because `/work` is not one of the directories its path passes through, and gets `--- /work-old/A.cs`. On Linux, run in `/Work`, the file `/work/src/A.cs` is outside it. On Windows, run in `C:\work` with `D:\other\B.cs` unformatted, `reihitsu-format --dry-run D:\other\B.cs` writes `--- D:\other\B.cs` and `+++ D:\other\B.cs`, the path of its `Would format:` line.
+
+Example — `/home/me/proj` is a symbolic link to `/data/proj`, and the CLI runs in `/data/proj`, reached by `cd /home/me/proj`, with `src/A.cs` unformatted:
+
+```shell
+reihitsu-format --dry-run /home/me/proj/src/A.cs
+```
+
+```text
+Would format: /home/me/proj/src/A.cs
+--- /home/me/proj/src/A.cs
++++ /home/me/proj/src/A.cs
+@@ -1,4 +1,4 @@
+…
+```
+
+`reihitsu-format --dry-run src/A.cs` in the same directory writes `--- a/src/A.cs` and `+++ b/src/A.cs`.

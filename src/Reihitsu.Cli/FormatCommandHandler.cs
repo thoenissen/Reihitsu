@@ -727,8 +727,8 @@ internal sealed class FormatCommandHandler
 
         // Normalize to full paths and track what has already been added so a file passed both directly and via a
         // parent directory (overlapping inputs) is formatted and counted only once. Path case sensitivity is
-        // platform-dependent, so dedupe case-insensitively on Windows and case-sensitively elsewhere.
-        var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        // platform-dependent, so dedupe with the CLI's one path comparer.
+        var comparer = PathComparison.Comparer;
         var seen = new HashSet<string>(comparer);
 
         foreach (var path in _paths)
