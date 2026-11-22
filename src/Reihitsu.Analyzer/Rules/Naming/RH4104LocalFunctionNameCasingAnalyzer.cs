@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -47,6 +48,13 @@ public class RH4104LocalFunctionNameCasingAnalyzer : CasingAnalyzerBase
         {
             yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }
+    }
+
+    /// <inheritdoc/>
+    private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        return node is LocalFunctionStatementSyntax declaration
+               && HasNativeEntryPointFromName(declaration.AttributeLists, semanticModel, cancellationToken);
     }
 
     #endregion // CasingAnalyzerBase

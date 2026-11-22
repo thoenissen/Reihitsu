@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -49,6 +50,12 @@ public class RH4113InternalPropertyCasingAnalyzer : CasingAnalyzerBase
         {
             yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }
+    }
+
+    /// <inheritdoc/>
+    private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        return IsDictatedMember(semanticModel.GetDeclaredSymbol(node, cancellationToken));
     }
 
     #endregion // CasingAnalyzerBase

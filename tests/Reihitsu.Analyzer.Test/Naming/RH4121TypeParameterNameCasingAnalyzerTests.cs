@@ -883,6 +883,65 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a <c>t</c> or <c>T</c> followed by <c>_</c> is the prefix: it becomes <c>T</c>, the underscores behind it
+    /// are dropped, and an empty body leaves <c>T</c> alone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4121-003")]
+    public async Task FixDropsTheUnderscoresBehindAnExistingPrefix()
+    {
+        const string testCode = """
+                                public class E<{|RH4121:T_Key|}, {|RH4121:t_value|}, {|RH4121:T_1|}>
+                                {
+                                }
+
+                                public class F<{|RH4121:T_|}>
+                                {
+                                }
+
+                                public class G<{|RH4121:T__Key|}>
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class E<TKey, TValue, T1>
+                                 {
+                                 }
+
+                                 public class F<T>
+                                 {
+                                 }
+
+                                 public class G<TKey>
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when the name derived from a prefix with an underscore is the name of another type
+    /// parameter of the same declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4121-003")]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenThePrefixWithAnUnderscoreDerivesTheNameOfAnotherTypeParameter()
+    {
+        const string testCode = """
+                                public class C<{|RH4121:T_|}, T>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -1488,6 +1488,170 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix writes a leading acronym of the variable name in lowercase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4115-003")]
+    public async Task FixWritesALeadingAcronymInLowercase()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        var {|RH4115:HTTPClient|} = 1;
+                                        var {|RH4115:URLs|} = 2;
+
+                                        return HTTPClient + URLs;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M()
+                                     {
+                                         var httpClient = 1;
+                                         var urLs = 2;
+
+                                         return httpClient + urLs;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when the derived name is a reserved keyword
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    [Requirement("RH4115-003")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameIsAReservedKeyword()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M()
+                                    {
+                                        var {|RH4115:String|} = "a";
+
+                                        return String;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when the derived name is <c>await</c> inside an async lambda
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameIsAwaitInsideAnAsyncLambda()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    Func<Task<int>> M()
+                                    {
+                                        return async () =>
+                                               {
+                                                   var {|RH4115:Await|} = 1;
+                                                   await Task.Yield();
+
+                                                   return Await;
+                                               };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when a reference inside a query expression would need the verbatim prefix, although the
+    /// declaration would not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    public async Task NoFixIsOfferedWhenAReferenceInsideAQueryExpressionWouldNeedTheVerbatimPrefix()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    IEnumerable<int> M(int[] xs)
+                                    {
+                                        var {|RH4115:Select|} = 1;
+
+                                        return from x in xs select Select;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a variable to a contextual keyword that is written without the verbatim prefix at the
+    /// declaration and at every reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    [Requirement("RH4115-003")]
+    public async Task FixRenamesToAContextualKeywordThatNeedsNoVerbatimPrefix()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    IEnumerable<int> M()
+                                    {
+                                        var {|RH4115:Yield|} = 1;
+                                        var {|RH4115:Dynamic|} = 2;
+                                        var {|RH4115:Async|} = 3;
+
+                                        yield return Yield + Dynamic + Async;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     IEnumerable<int> M()
+                                     {
+                                         var yield = 1;
+                                         var dynamic = 2;
+                                         var async = 3;
+
+                                         yield return yield + dynamic + async;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

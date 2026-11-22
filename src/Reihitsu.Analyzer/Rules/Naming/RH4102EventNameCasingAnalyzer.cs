@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -59,6 +60,19 @@ public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase
         {
             yield return (eventDeclaration.Identifier.ValueText, eventDeclaration.Identifier.GetLocation());
         }
+    }
+
+    /// <inheritdoc/>
+    private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var declaration = node is EventFieldDeclarationSyntax fieldDeclaration
+                              ? fieldDeclaration.Declaration
+                                                .Variables
+                                                .FirstOrDefault(variable => variable.Identifier.Span == location.SourceSpan)
+                              : node;
+
+        return declaration != null
+               && IsDictatedMember(semanticModel.GetDeclaredSymbol(declaration, cancellationToken));
     }
 
     #endregion // CasingAnalyzerBase

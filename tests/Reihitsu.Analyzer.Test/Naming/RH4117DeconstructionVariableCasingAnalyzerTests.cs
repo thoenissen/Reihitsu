@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -236,6 +237,86 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
                                 """;
 
         await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes a leading acronym of the variable name in lowercase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4117-002")]
+    public async Task FixWritesALeadingAcronymInLowercase()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        var ({|RH4117:HTTPClient|}, {|RH4117:IOStream|}) = (1, 2);
+
+                                        return HTTPClient + IOStream;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M()
+                                     {
+                                         var (httpClient, ioStream) = (1, 2);
+
+                                         return httpClient + ioStream;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for a variable whose derived name is a reserved keyword, while the other variable of
+    /// the deconstruction is renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    [Requirement("RH4117-002")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameIsAReservedKeyword()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        var ({|RH4117:Object|}, {|RH4117:Total|}) = (1, 2);
+
+                                        return Object + Total;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M()
+                                     {
+                                         var ({|RH4117:Object|}, total) = (1, 2);
+
+                                         return Object + total;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic whose fix is withheld stays and is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                            });
     }
 
     #endregion // Tests

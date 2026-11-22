@@ -1863,6 +1863,266 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
     }
 
+    /// <summary>
+    /// Verifies that the fix writes a leading acronym of the parameter name in lowercase and keeps the first letter of the
+    /// next word
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4105-003")]
+    public async Task FixWritesALeadingAcronymInLowercase()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int {|RH4105:XMLParser|})
+                                    {
+                                        return XMLParser;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int xmlParser)
+                                     {
+                                         return xmlParser;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when the derived name is a reserved keyword, or <c>await</c> inside an async method,
+    /// because the rename would write the name with the verbatim prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameNeedsTheVerbatimPrefix()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    void M(int {|RH4105:Class|}, object {|RH4105:Object|})
+                                    {
+                                    }
+
+                                    async Task<int> N(int {|RH4105:Await|})
+                                    {
+                                        await Task.Yield();
+                                        return Await;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a parameter to a contextual keyword that is written without the verbatim prefix at the
+    /// declaration and at every reference, <c>await</c> in a method that is not async included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    [Requirement("RH4105-003")]
+    public async Task FixRenamesToAContextualKeywordThatNeedsNoVerbatimPrefix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int {|RH4105:Var|}, int {|RH4105:Nameof|}, int {|RH4105:Await|})
+                                    {
+                                        return Var + Nameof + Await;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int var, int nameof, int await)
+                                     {
+                                         return var + nameof + await;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when the derived name is <c>await</c> inside an async local function
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameIsAwaitInsideAnAsyncLocalFunction()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    Task<int> M()
+                                    {
+                                        return Local(1);
+
+                                        async Task<int> Local(int {|RH4105:Await|})
+                                        {
+                                            await Task.Yield();
+                                            return Await;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for a parameter the author wrote with the verbatim prefix when its derived name is a
+    /// reserved keyword, because the rename still writes the prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    public async Task NoFixIsOfferedForAVerbatimParameterWhoseDerivedNameIsAReservedKeyword()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int {|RH4105:@Class|})
+                                    {
+                                        return @Class;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the single fixes and Fix All rename the other parameters and leave the parameter whose derived name is a
+    /// reserved keyword with its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    public async Task FixAllRenamesTheOtherParametersAndKeepsTheParameterWhoseDerivedNameIsAKeyword()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int {|RH4105:Class|}, int {|RH4105:Count|})
+                                    {
+                                        return Class + Count;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int {|RH4105:Class|}, int count)
+                                     {
+                                         return Class + count;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic whose fix is withheld stays and is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that a combining mark, a letter number, and connector punctuation other than <c>_</c> are accepted in a
+    /// camelCase name, while a name that starts with an uppercase letter is still reported and keeps its combining mark in the
+    /// fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-002")]
+    [Requirement("SHARED-CASING-006")]
+    public async Task CamelCaseAcceptsCombiningMarksLetterNumbersAndConnectorPunctuation()
+    {
+        const string acute = "\u0301";
+        const string twelve = "\u216B";
+        const string undertie = "\u203F";
+
+        const string testCode = $$"""
+                                  class C
+                                  {
+                                      int M(int cafe{{acute}}, int class{{twelve}}, int order{{undertie}}line, int {|RH4105:Re{{acute}}sume|})
+                                      {
+                                          return cafe{{acute}} + class{{twelve}} + order{{undertie}}line + Re{{acute}}sume;
+                                      }
+                                  }
+                                  """;
+
+        const string fixedCode = $$"""
+                                   class C
+                                   {
+                                       int M(int cafe{{acute}}, int class{{twelve}}, int order{{undertie}}line, int re{{acute}}sume)
+                                       {
+                                           return cafe{{acute}} + class{{twelve}} + order{{undertie}}line + re{{acute}}sume;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a letter number and a combining mark that start a word after the first as written, also
+    /// when the character has an uppercase mapping
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4105-003")]
+    public async Task FixKeepsALetterNumberOrCombiningMarkThatStartsALaterWordAsWritten()
+    {
+        const string twelve = "\u217B";
+        const string ypogegrammeni = "\u0345";
+
+        const string testCode = $$"""
+                                  class C
+                                  {
+                                      int M(int {|RH4105:order_{{twelve}}x|}, int {|RH4105:a_{{ypogegrammeni}}b|})
+                                      {
+                                          return order_{{twelve}}x + a_{{ypogegrammeni}}b;
+                                      }
+                                  }
+                                  """;
+
+        const string fixedCode = $$"""
+                                   class C
+                                   {
+                                       int M(int order{{twelve}}x, int a{{ypogegrammeni}}b)
+                                       {
+                                           return order{{twelve}}x + a{{ypogegrammeni}}b;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

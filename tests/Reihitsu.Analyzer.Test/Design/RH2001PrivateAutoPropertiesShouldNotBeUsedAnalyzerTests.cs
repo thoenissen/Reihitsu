@@ -727,13 +727,15 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Characterizes the field name derived from a property name that starts with a run of uppercase letters followed
-    /// by lowercase ones: <c>HTTPClient</c> becomes <c>_hTTPClient</c>. The case belongs to an existing follow-up, so
-    /// this test pins today's behavior without stating it as intended
+    /// Verifies that the field name derived from a property name that starts with a run of uppercase letters followed by
+    /// lowercase ones writes the run in lowercase, except its last letter, which starts the next word: <c>HTTPClient</c>
+    /// becomes <c>_httpClient</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixKeepsUppercaseRunOfLeadingAcronymInFieldName()
+    [Requirement("RH2001-004")]
+    [Requirement("SHARED-CASING-006")]
+    public async Task VerifyFixWritesALeadingAcronymOfTheFieldNameInLowercase()
     {
         const string testData = """
                                 class C
@@ -747,9 +749,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         const string resultData = """
                                   class C
                                   {
-                                      private int _hTTPClient;
+                                      private int _httpClient;
 
-                                      public int Get() => _hTTPClient;
+                                      public int Get() => _httpClient;
                                   }
                                   """;
 
