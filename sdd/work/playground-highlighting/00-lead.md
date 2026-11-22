@@ -27,6 +27,8 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | tests (04) | Does PLAY-010 "each category has its own colour" also require a colour different from the normal text colour? | Yes; keep the `AreNotEqual(normal, …)` assert | A category in the normal colour would be indistinguishable from uncoloured text, which defeats the requirement | Answer 1 asked for distinct colours per category; the exact colours are styling, a spec non-goal | df0d437 |
+| 2 | implementer (05) | A mark that starts inside another and ends past it | Cut at the outer mark's end, one element per mark | Keeps markup well-formed; no probed input produces it | Rare overlapping-error class; the mark still starts at the reported position | f209936 |
+| 3 | implementer (05) | `PlaygroundHighlighter` missing from the spec's Code owners | Route to spec author (spec header and `sdd/specs/README.md`) | Code-owner lists are spec metadata | Internal spec metadata | pending |
 
 ## Follow-up candidates
 
@@ -34,4 +36,4 @@
 
 ## Next step
 
-Tests written (04, 66 failing on unchanged code). Spawn implementer (05).
+Implementer (05) done at f209936, 80/80 Playground tests pass. Spawn spec author (code owners, 06) and cleaner (07) in parallel, then spec checker, auditor, validator (browser checks listed in 04/05).
