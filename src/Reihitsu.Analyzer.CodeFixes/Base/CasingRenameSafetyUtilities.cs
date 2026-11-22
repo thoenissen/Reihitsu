@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
+using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -666,11 +667,7 @@ internal static class CasingRenameSafetyUtilities
 
                 foreach (var parameter in record.ParameterList.Parameters)
                 {
-                    flags.Add(recordType != null
-                              && recordType.GetMembers(parameter.Identifier.ValueText)
-                                           .OfType<IPropertySymbol>()
-                                           .Any(property => property.DeclaringSyntaxReferences.Any(reference => reference.SyntaxTree == parameter.SyntaxTree
-                                                                                                                && parameter.Span.Contains(reference.Span))));
+                    flags.Add(RecordPositionalParameterUtilities.GetDeclaredProperty(recordType, parameter) != null);
                 }
             }
         }

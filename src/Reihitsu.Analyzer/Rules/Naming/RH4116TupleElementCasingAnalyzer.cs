@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -64,8 +65,8 @@ public class RH4116TupleElementCasingAnalyzer : CasingAnalyzerBase
 
     /// <summary>
     /// Gets the members the compiler declares whose signature holds a type: the member a parameter belongs to, and for a
-    /// record's positional parameter also the property the compiler declares for it; each event, field, or local a
-    /// variable declaration declares; and the member whose own type or return type it is
+    /// record's positional parameter also the property and the <c>Deconstruct</c> method the compiler declares from it;
+    /// each event, field, or local a variable declaration declares; and the member whose own type or return type it is
     /// </summary>
     /// <param name="type">The outermost type</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -81,16 +82,9 @@ public class RH4116TupleElementCasingAnalyzer : CasingAnalyzerBase
                     {
                         yield return parameterSymbol.ContainingSymbol;
 
-                        if (parameterSymbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
+                        foreach (var declaredMember in RecordPositionalParameterUtilities.GetDeclaredMembers(parameterSymbol, parameter))
                         {
-                            foreach (var property in constructor.ContainingType
-                                                                .GetMembers(parameterSymbol.Name)
-                                                                .OfType<IPropertySymbol>()
-                                                                .Where(property => property.DeclaringSyntaxReferences.Any(reference => reference.SyntaxTree == parameter.SyntaxTree
-                                                                                                                                       && reference.Span == parameter.Span)))
-                            {
-                                yield return property;
-                            }
+                            yield return declaredMember;
                         }
                     }
                 }
@@ -135,9 +129,9 @@ public class RH4116TupleElementCasingAnalyzer : CasingAnalyzerBase
     /// <remarks>
     /// A tuple type is in the signature of a member when it stands, at any depth, in the type the compiler declares the
     /// member with: its return type, the type of one of its parameters, or the type of a property, indexer, event, or
-    /// field. The element names there are dictated when such a member is; a record's positional parameter is in the
-    /// signature of the property the compiler declares for it, and the type of an event field in that of each event it
-    /// declares (SHARED-CASING-014)
+    /// field. The element names there are dictated when such a member is; a record's positional parameter is also in the
+    /// signature of the property and the <c>Deconstruct</c> method the compiler declares from it, and the type of an event
+    /// field in that of each event it declares (SHARED-CASING-014)
     /// </remarks>
     private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
