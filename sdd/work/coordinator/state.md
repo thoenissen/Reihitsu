@@ -13,28 +13,31 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (45, numbers as of 2026-11-21 plus triage): #953 #970 #971 #975 #1072 #1085 #1086 #1087 #1088 #1089 #1090 #1240 #1275 #1399 #1400 #1432 #1434 #1451 #1472 #1542 #1566 #1567 #1568 #1589 #1591 #1607 #1633 #1634 #1647 #1668 #1685 #1698 #1722 #1771 #1818 #1836 #1837 #1852 #1880 #1896 #1912 #1924 #1925 #1926 #1929. All are in the roadmap's 1.6.0 runs. Merged since the start-now set (not yet re-derived by `batch`): #1920 (#953), #1922 (#975), #1923 (#1432).
+Open in 1.6.0 (38): #970 #971 #1072 #1085 #1086 #1087 #1088 #1089 #1090 #1240 #1275 #1399 #1400 #1434 #1451 #1472 #1542 #1566 #1567 #1568 #1589 #1591 #1607 #1633 #1634 #1647 #1668 #1685 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1929.
 
-Carried over: `/squad #1880` (waited for the v1.5.0 tag; the tag exists).
+Merged since start: #1921 (#1880), #1920 (#953 #1852 #1896 #1818), #1922 (#975), #1923 (#1432); #1932 moved test projects to `tests/` (no new shared file).
 
-Runs in progress: none.
+Runs in progress: none with a pull request (main at 75cc39fa).
 
-Dependency graph: `inventory/plan-1.6.0.md` (roadmap runs split by lane; the blanket "formatter waits on #953" narrowed to the runs that share `indentation.md`/`line-breaks.md`/`structural-transforms.md` or a logical link).
+Dependency graph: `inventory/batch-2026-11-22.md` (supersedes the graph part of `inventory/plan-1.6.0.md`).
 
-Start now (as given 2026-11-21; triage adds `#1924`, `#1925`): `#953 #1852 #1896 #1818` · `#1880` · `#975` · `#1432` · `#1566` · `#1472` · `#1912` · `#1240 #1591` · `#1836` · `#970 #1668` · `#971 #1072 #1451 #1434` · `#1086` · `#1089` · `#1090`.
+Start now: `#1633 #1634 #1647 #1685 #1542 #1929` · `#1722` · `#1925` · `#1924` · `#1472` · `#1912` · `#1240 #1591` · `#1836` · `#970 #1668` · `#971 #1072 #1451 #1434` · `#1086` · `#1089` · `#1090`.
 
 After merges:
-- after #953 → `#1633 #1634 #1647 #1685 #1542 #1929`
-- after `#1633 #1634 #1647 #1685 #1542 #1929` → `#1926` (`indentation.md`)
-- after #953 and #1240 #1591 → `#1275 #1837`
-- after #953 and #1912 → `#1607`
-- after the list/pattern run (and #1566) → `#1568 #1698 #1567` → `#1399` → `#1400` (serial on `indentation.md`)
-- after #1432 → `#1722`; after #1086 → `#1085`; after the casing run → `#1771` (escalation 9 first)
-- after #1090 → `#1087 #1088` (camelCase decided)
-- after #953, #1836, #1275 #1837, #970 #1668 → `#1589` alone (or 1.7.0)
+- after `#1633 … #1929` → `#1926` and `#1566` (in parallel; #1566 moved behind R5: `line-breaks.md`, `pipeline.md`)
+- after #1926 and #1566 → `#1568 #1698 #1567` → `#1399` → `#1400` (serial on `indentation.md`)
+- after #1240 #1591 → `#1275 #1837`
+- after #1912 → `#1607`
+- after #1086 → `#1085`
+- after the casing run → `#1771` (escalation 9 first)
+- after #1090 (and #1925 if it rewords RH5202's message, #1924 if it adds a spec) → `#1087 #1088`
+- after #1836, #1275 #1837, #970 #1668, #1926 and the list/pattern run → `#1589` alone (or 1.7.0)
+
+Notes for the runs (on the evidence of the batch check, not decided): #1685 likely fixed by FMT-INDENT-034 (the run confirms, then closes); #1567 partly done (only the return-type gap remains); #1542 parenthesized half decided by #1920; #1633 still open (FMT-BREAK-041 does not join behind a base list's `:`); "Before" changed for #1634, #1698, #1399 item 21. #1929 is a bug fix in a behavior-change run: grouping decided by the maintainer (triage 1A, comment on #1929).
 
 ## Status
 
+Status 2026-11-22 (j): batch — merges #1920 #1921 #1922 #1923 #1932 read; graph rebuilt; start-now set given (13 runs).
 Status 2026-11-22 (i): triage answered "as recommended" (1A, 2A, 3A, 4A); milestones set; commented on #1925 #1926 #1928 #1929.
 Status 2026-11-22 (h): triage of #1924–#1931 (assessment `inventory/triage-2026-11-22.md`). Asked: 1 placements — #1924 → 1.6.0 own tooling run, start now; #1925 → 1.6.0 own RH5202 run, start now; #1926 → 1.6.0 own precheck run after the list/pattern run (`indentation.md`); #1929 → 1.6.0 joins `#1633 #1634 #1647 #1685 #1542`; #1927 → 1.7.0 unowned joins; #1928 → 1.9.0 spacing; #1930 → 1.10.0 counterpart rules; #1931 → 1.10.0 RH51xx list scope (1A apply / 1B change rows; rec. 1A). 2 #1925 RH5202 tab-aligned raw string (A report+fix, B not reported; rec. A). 3 #1926 re-confirm declare unsupported, own change (A declare, B keep continuation indent; rec. A). 4 #1928 `case (` space (A space, B keep; rec. A). Output questions of #1927, #1930, #1931 deferred to their runs (unverified Before / asked with their run's sibling questions). Side find: #1645 may be shipped by #1920, judged in its 1.7.0 run.
 Status 2026-11-21 (g): #1088 answered A (camelCase); commented on #1088.
@@ -44,4 +47,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-`/coordinator batch`: #953, #975 and #1432 have merged since the start-now set; re-derive it (including #1924, #1925, and the list/pattern run with #1929).
+Maintainer starts the start-now runs. After merges: `/coordinator batch`.
