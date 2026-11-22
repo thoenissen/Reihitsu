@@ -89,6 +89,16 @@ public class CliLanguageVersionEndToEndTests
     /// </summary>
     private const string SyntaxErrorSummaryLine = "Skipped 1 file(s) with syntax errors.";
 
+    /// <summary>
+    /// A method whose local holds an anonymous method in an interpolation of a non-verbatim interpolated string
+    /// </summary>
+    private const string InterpolationHoleSource = "class C\n{\n    string M()\n    {\n        var b1 = $\"J {M(delegate { return 1; })}\";\n        return b1;\n    }\n}";
+
+    /// <summary>
+    /// The formatted form of <see cref="InterpolationHoleSource"/> under C# 10: the interpolation keeps its line
+    /// </summary>
+    private const string InterpolationHoleCSharp10Formatted = "class C\n{\n    string M()\n    {\n        var b1 = $\"J {M(delegate { return 1; })}\";\n\n        return b1;\n    }\n}";
+
     #endregion // Constants
 
     #region Properties
@@ -440,6 +450,31 @@ public class CliLanguageVersionEndToEndTests
             Assert.AreEqual(string.Empty, error);
             Assert.AreEqual(Join($"Formatted: {filePath}", string.Empty, "Formatted 1 of 1 file(s)."), output);
             Assert.AreEqual(TopLevelUnionLocalFormatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version 10</c> writes no line break into an interpolation of a non-verbatim interpolated string,
+    /// and that a check of the result finds nothing to format
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-044")]
+    public async Task LangVersion10KeepsInterpolationOnOneLine()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("C.cs", InterpolationHoleSource);
+
+            var (exitCode, output, error) = await Run(["--lang-version", "10", filePath]);
+            var (checkExitCode, checkOutput, _) = await Run(["--check", "--lang-version", "10", filePath]);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            Assert.AreEqual(Join($"Formatted: {filePath}", string.Empty, "Formatted 1 of 1 file(s)."), output);
+            Assert.AreEqual(InterpolationHoleCSharp10Formatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+            Assert.AreEqual(ExitCodes.Success, checkExitCode);
+            Assert.AreEqual(Join(string.Empty, "0 of 1 file(s) need formatting."), checkOutput);
         }
     }
 
