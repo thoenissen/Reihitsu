@@ -152,17 +152,17 @@ The output is the same text, and the message is shown.
 
 The Playground MUST colour the text of the input and of the output by the C# syntax tree that Roslyn parses from that text with the options of PLAY-005, in these categories:
 
-- **keyword** — a token the parser gives a keyword kind, also a contextual keyword the parser reads as a keyword, such as `partial`, `async`, `await`, `get`, or `where` in a constraint;
-- **identifier** — an identifier token;
+- **keyword** — a token the parser gives a keyword kind, also a contextual keyword the parser reads as a keyword, such as `partial`, `async`, `await`, `get`, `set`, or `where` in a constraint;
+- **identifier** — an identifier token, also when its text can be a contextual keyword, such as `var`, `nameof`, `dynamic`, or `value` where the parser gives it an identifier token;
 - **string** — a string or character literal, and the text parts and the opening and closing delimiters of an interpolated or raw string literal, but not an interpolation hole: its braces keep the normal text colour, and its code is coloured by its own tokens;
 - **number** — a numeric literal;
-- **comment** — a single-line or delimited comment, also a documentation comment;
-- **preprocessor directive** — a directive's tokens and its message text, such as a `#region`'s name, but not a comment behind it, which is a comment;
+- **comment** — a single-line or delimited comment trivia, and a documentation comment trivia as a whole, with every token inside it: a keyword or a name inside a documentation comment, such as `int` in `<see cref="int"/>`, is a comment;
+- **preprocessor directive** — a directive trivia's tokens and its message trivia, such as a `#region`'s name, but not a comment trivia behind the directive, such as `// Methods` behind `#endregion`, which is a comment;
 - **disabled text** — the text of a branch the conditional directives exclude.
 
-Each category MUST have its own colour, in each colour scheme the page supports; every other token and trivia — punctuation, operators, and whitespace — MUST keep the page's normal text colour. The highlighted text MUST be exactly the text it colours: no character is added, dropped, or changed. The colouring MUST be computed in the page and MUST NOT load an editor library or any script or stylesheet from another origin.
+The category is decided by the kind of the token or trivia the parser produces, never by the characters of the text: an identifier token is an identifier whatever its text, and text the parser reads as a directive's message, such as `/* c */` behind `#region X` or `// b` behind `#error a`, is a directive although it looks like a comment.
 
-This requirement specifies the colour of an identifier token only where its text is not a contextual keyword, and leaves the colour of an identifier token such as `var`, `nameof`, `dynamic`, or `value` unspecified.
+Each category MUST have its own colour, in each colour scheme the page supports; every other token and trivia — punctuation, operators, and whitespace — MUST keep the page's normal text colour. The highlighted text MUST be exactly the text it colours: no character is added, dropped, or changed. The colouring MUST be computed in the page and MUST NOT load an editor library or any script or stylesheet from another origin.
 
 Why: Colour makes the formatted code readable; the syntax tree is already in the page, because the formatter needs it, so the colouring needs no new dependency, and nothing leaves the browser (PLAY-001).
 
@@ -177,18 +177,29 @@ public class Sample{public int Add(int a,int b){return a+b;}}
 Example — input:
 
 ```csharp
+#region Methods
 #if DEBUG
 inactive text
 #endif
 // comment
 class C { string s = $"a{n}b"; char c = 'x'; const int n = 42; }
+#endregion // Methods
 ```
 
-`#if DEBUG` and `#endif` are preprocessor directives, `inactive text` disabled text — the Playground defines no preprocessor symbol (PLAY-005) — `// comment` a comment, `$"a`, `b"`, and `'x'` strings, the `n` inside the hole an identifier, and `42` a number.
+`#region Methods`, `#if DEBUG`, `#endif`, and `#endregion` are preprocessor directives, `// Methods` behind `#endregion` a comment, `inactive text` disabled text — the Playground defines no preprocessor symbol (PLAY-005) — `// comment` a comment, `$"a`, `b"`, and `'x'` strings, the `n` inside the hole an identifier, and `42` a number.
+
+Example — input:
+
+```csharp
+/// <summary>Uses <see cref="int"/>.</summary>
+partial class C { int P { set { var x = nameof(value); dynamic d = x; } } }
+```
+
+The whole documentation comment, `int` and `see` included, is a comment; `partial`, `class`, `int`, and `set` are keywords; `C`, `P`, `var`, `x`, `nameof`, `value`, `dynamic`, and `d` are identifiers, because the parser gives `var`, `nameof`, `value`, and `dynamic` identifier tokens here.
 
 ### PLAY-011 — The input is highlighted while the user types
 
-The input's colours MUST follow its text on every change, also while the text does not parse, and MUST stay under the characters they colour while the input is scrolled in either direction. Typing MUST NOT change the output (PLAY-004).
+The input's colours MUST follow its text on every change, also while the text does not parse, and MUST stay under the characters they colour while the input is scrolled in either direction. Typing MUST NOT change the output (PLAY-004). Assistive technology MUST read the input's text once: a coloured copy of the text shown with the input MUST be hidden from assistive technology.
 
 Why: The colours of a text the user edits help only when they match what is on the screen; misaligned or stale colours are worse than none. Colouring is cheap and shows no message, so it does not have the problem PLAY-004 avoids for formatting.
 
@@ -218,11 +229,42 @@ Example — the PLAY-006 example's input shows the box with its two lines; the P
 
 ### PLAY-014 — Error locations are marked in the input
 
-When "Format" shows the message of PLAY-006, the input MUST mark the span of each error that message lists with a red wavy underline; when it shows the message of PLAY-008, the input MUST mark the span of the shape the formatter reports in the same way. An error whose span is empty MUST be marked one character wide at its position. When it shows the message of PLAY-009, the input MUST show no mark, because the formatter reports no location for that input. A format that shows no message MUST remove every mark. This requirement leaves unspecified whether a mark stays while the input is edited before the next format.
+When "Format" shows the message of PLAY-006, the input MUST mark the span of each error that message lists with a red wavy underline; when it shows the message of PLAY-008, the input MUST mark the span of the shape the formatter reports in the same way. When it shows the message of PLAY-009, the input MUST show no mark, because the formatter reports no location for that input. A format that shows no message MUST remove every mark.
 
-Why: The line and the column in the message say where the problem is; the mark shows it, in the text the user has to change.
+An error whose span is empty MUST be marked one character wide, by what follows its position in the text:
+
+- an ordinary character, one that is not a line break — that character is marked;
+- a line break — the place directly behind the line's last character is marked, in the column after it, and the line break itself is not;
+- the end of the text — the place directly behind the text's last character is marked.
+
+A mark MUST NOT add, drop, or change a character of the input (PLAY-010).
+
+Every mark MUST disappear at the first change of the input's text after the format that set it, and marks MUST come back only with a later format that shows the message of PLAY-006 or PLAY-008. Editing the input MUST NOT change or remove the message box; it stays until the next format (PLAY-013).
+
+Why: The line and the column in the message say where the problem is; the mark shows it, in the text the user has to change. A mark that stays after an edit can point at code it was not about, which is worse than no mark, and recomputing marks while typing would flash errors for half-typed code, which PLAY-004 avoids.
 
 Example — the input of PLAY-006's second example: the `}` at column 59 is marked, and the place behind it, at the end of the text, one character wide.
+
+Example — input:
+
+```csharp
+class C
+{
+    int x
+}
+```
+
+The message lists `line 3, column 10 — CS1002: ; expected`, whose span is empty at the line break behind `x`; the place directly behind `x`, in column 10 of line 3, is marked one character wide, and the text does not change.
+
+Example — input:
+
+```csharp
+class C { /* open
+```
+
+The message lists `line 1, column 11 — CS1035: End-of-file found, '*/' expected` and `line 1, column 18 — CS1513: } expected`, both with empty spans; the `/` in front of which the first one sits is marked, and the place behind the text's last character for the second.
+
+Example — after "Format" on the input of PLAY-006's second example, the user types `int y;` at the start of the input: both marks disappear at the first typed character, the message box keeps its two lines, and the next "Format" sets the marks of the new input.
 
 Example — the input of PLAY-008's example: `/* c */` is marked.
 
