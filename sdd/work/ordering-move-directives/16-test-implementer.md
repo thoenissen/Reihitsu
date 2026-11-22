@@ -41,3 +41,40 @@ Both fail on the assertion that no action is registered, not on diagnostics or c
 ## Follow-up candidates
 
 _None._
+
+## Addendum — spec author 15 (head da48669, decision 13)
+
+Inputs: `15-spec-author.md` and the spec diff of db9eed8 (anchor at the last instance field of the spans; new RH7309-005 example and its prose opposite; the `A B C D` → `B A D C` example in SHARED-ORDER-008). The coordinator's message carried no intended fix or hoped-for verdict to ignore.
+
+### Tests
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `NoCodeFixWhenAGroupOfMembersBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFields` — **changed** (my own test from the first part, not yet worked against): its group is now the spec's `#if DEBUG` / `public void Trace()` method group, so the test is the new RH7309-005 example verbatim | RH7309-005, SHARED-ORDER-008 | `VerifyNoCodeFixIsOffered` | fails on da48669: 1 action offered for the diagnostic at [205..220) |
+| `FixReordersInstanceFieldsOfTheFirstRunInFrontOfAGroupBetweenTwoReorderedRuns` — the prose opposite: `_o` in `Object`, `_m` in `Methods`, `IDisposable`/`Base` hold only `Dispose`/`Reset`; output `Methods`, `Object`, group, `Base`, `IDisposable`, `_m` in front of `_o` | RH7309-005, SHARED-ORDER-008 | `Verify` (exact fixed and batch state) | pass (the other side of the repaired condition; must stay green) |
+| `FixReordersTheBlocksWhenAGroupBetweenTwoReorderedRunsPrecedesAnInstanceFieldWhoseOrderStays` — `_o` in `Object`, `_d` in `IDisposable`, the same group: an instance field of the spans stands behind the group, but the reorder keeps `_o` in front of `_d` | SHARED-ORDER-008 (and SHARED-ORDER-007: the clause refuses only a move that reorders instance fields), RH7309-005 | `Verify` | pass; pins the "reorders instance fields" side of the condition (FC-003) so the new anchor does not over-refuse |
+
+### Spec examples — coverage
+
+- New RH7309-005 no-fix example: the changed test above; the auditor's struct-opening counterexample stays as `NoCodeFixWhenAGroupBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFieldsThatOpensAStruct` (still red).
+- Prose opposite: `FixReordersInstanceFieldsOfTheFirstRunInFrontOfAGroupBetweenTwoReorderedRuns`.
+- SHARED-ORDER-008 `A B C D` → `B A D C`: a directive between `B` and `C` counts when `C` or `D` holds an instance field — the two red no-fix tests; does not when only `A` or `B` holds one — the opposite test; a directive between `A` and `B` refuses — `ConditionalGroupInCodeThatAMovedBlockCrossesBetweenTwoReorderedPairsWithholdsTheFix`; no instance field at all — `ConditionalGroupBetweenTwoPairsReorderedOnTheirOwnSideDoesNotWithholdTheFix`.
+- SHARED-ORDER-008 *for a member move, this place is the body in front of the crossed span*: unchanged behavior, pinned by the RH7109 TypeGroup layout tests (`04`).
+
+### Spec versus real output
+
+`scripts/apply-fix.sh RH7309 <scratchpad fixtures>` on da48669, LF and CRLF:
+- prose opposite: fixed, 1 action, 1 iteration; the diff is exactly the spec's description (`Methods`, `Object`, group, `Base`, `IDisposable`; `_m` in front of `_o`). The `Verify` test asserts that text and passes.
+- one-field variant (`_o`, `_d`): fixed, same block order.
+- new no-fix example: fixed on head (the defect under repair), as the red test shows.
+
+**No mismatch between spec and real output** for the fix-offered cases.
+
+### Not covered, and why
+
+- CRLF for the no-fix tests: as above. The two `Verify` tests run one line ending; `apply-fix.sh` checked both.
+
+### Commands
+
+- `scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~RH7309RegionsShouldFollowCategoryOrderTriviaTests"` on da48669: Failed 2 (`NoCodeFixWhenAGroupBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFieldsThatOpensAStruct`, `NoCodeFixWhenAGroupOfMembersBetweenTwoReorderedRunsPrecedesAReorderOfInstanceFields`), Passed 49.
+- `scripts/format.sh` on the test file: 0 of 1 changed.

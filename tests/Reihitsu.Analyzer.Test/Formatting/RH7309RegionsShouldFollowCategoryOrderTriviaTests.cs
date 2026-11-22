@@ -1800,8 +1800,9 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
 
     /// <summary>
     /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309 when the fix reorders
-    /// two separate runs of blocks: a group of whole members between the runs stands in front of the instance fields the
-    /// second run reorders, so no code fix is offered for a reorder that puts <c>_b</c> in front of <c>_d</c>
+    /// two separate runs of blocks, the RH7309-005 example: a group of a whole method between the runs stands in front of
+    /// the instance fields the second run reorders, so no code fix is offered for a reorder that puts <c>_b</c> in front
+    /// of <c>_d</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1836,7 +1837,9 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
                                     #endregion // Methods
 
                                 #if DEBUG
-                                    private int _trace;
+                                    public void Trace()
+                                    {
+                                    }
                                 #endif
 
                                     #region IDisposable
@@ -1858,6 +1861,250 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
                                 """;
 
         await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the opposite side of the RH7309-005 example: the instance fields <c>_o</c> and <c>_m</c> lie in the first
+    /// run of reordered blocks, so the group of a whole method between the runs stands behind every instance field of the
+    /// spans, and the fix reorders the blocks with <c>_m</c> now in front of <c>_o</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixReordersInstanceFieldsOfTheFirstRunInFrontOfAGroupBetweenTwoReorderedRuns()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    private int _o;
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    private int _m;
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class Base
+                                 {
+                                 }
+
+                                 public class C : Base, IDisposable
+                                 {
+                                     #region Methods
+
+                                     private int _m;
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     private int _o;
+
+                                     public override string ToString()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     #endregion // Object
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region Base
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Base
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a group between two reordered runs of blocks, in front of an instance field of the spans, does not
+    /// withhold the fix when the reorder keeps the order of the instance fields: <c>_o</c> stays in front of <c>_d</c>,
+    /// and SHARED-ORDER-008 refuses for the type's layout only a move that reorders instance fields
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-005")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixReordersTheBlocksWhenAGroupBetweenTwoReorderedRunsPrecedesAnInstanceFieldWhoseOrderStays()
+    {
+        const string testData = """
+                                using System;
+
+                                public class Base
+                                {
+                                }
+
+                                public class C : Base, IDisposable
+                                {
+                                    #region Object
+
+                                    private int _o;
+
+                                    public override string ToString()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    #endregion // Object
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    #region IDisposable
+
+                                    private int _d;
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion // IDisposable
+
+                                    {|RH7309:#region Base|}
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    #endregion // Base
+                                }
+                                """;
+
+        const string fixedData = """
+                                 using System;
+
+                                 public class Base
+                                 {
+                                 }
+
+                                 public class C : Base, IDisposable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region Object
+
+                                     private int _o;
+
+                                     public override string ToString()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     #endregion // Object
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region Base
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Base
+
+                                     #region IDisposable
+
+                                     private int _d;
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion // IDisposable
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>
