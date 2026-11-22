@@ -29,6 +29,8 @@
 | 12 | Auditor (round 1) | Finding #1: doc-comment phase (FMT-DOC-001) and `ControlFlowBraceTransform` (FMT-STRUCT-026) write a line break into a `$"` interpolation below C# 11 when a `/** */` comment stands inside it | Repair round 1, same requirement (FMT-BREAK-044). Rare input class: refuse it by its cause — below C# 11, neither phase writes a line break into such an interpolation; tests for the auditor's failing and holding cases; FMT-BREAK-044 names these two phases' parts. Mechanism is the implementer's, a cheap check only | Rare class; refusal, not modelling | Refusal for a rare class; unchanged FMT-BREAK-044/FMT-PIPE-003 decide | (round 1) |
 | 13 | Auditor (round 1) | Finding #2: unclosed code fence in switch-case-braces.md | Spec author fixes it in round 1 | Text | Spec text | (round 1) |
 | 14 | Auditor (round 1) | Hint: the hole-marking pass walks the whole tree at C# 11+ where it never matches | Implementer adds a cheap early return in round 1 | Cheap, in the component the run changes | No output change | (round 1) |
+| 15 | Implementer (round 1) | New public `StringInterpolationUtilities.CanInterpolationsHoldLineBreaks` in Core | Accept | States the C# 11 cutoff once; Core API is internal to the repository | Internal API | a0888e4 |
+| 16 | Implementer (round 1) | Nested `if` in a C# 10 hole with a trailing doc comment: inner body braced without a line break | Accept untested; rare class under decision 12 | Output compiles; no further guard for a rare class | Rare class; unchanged requirements | a0888e4 |
 
 ## Follow-up candidates
 
@@ -47,4 +49,5 @@
 - Repair round 1: spec author (12) + test implementer (13) in parallel → implementer (14) → cleaner → spec checker → auditor (repair only).
 - Round 1: spec author done (12-spec-author.md; brace wrap withheld for the class, as written).
 - Round 1: test implementer done (13-test-implementer.md; 11 failing as expected).
-- Next: implementer (14) → cleaner → spec checker → auditor → validator.
+- Round 1: implementer done (14-implementer.md, a0888e4; all green).
+- Next: → cleaner → spec checker → auditor → validator.
