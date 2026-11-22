@@ -10,7 +10,10 @@ Runs, in order:
 - **After the v1.5.0 tag:** `#1880` alone — the build passes the root `reihitsu.json` to the analyzers once `binaries/` knows the `design` section (the repository's production-type limit 500 is otherwise checked only by the self-hosting test).
 - **Formatter/IndentationPhase, first:** `#953` with `#1852` `#1896` `#1818` (the general continuation rule; decides #1567 option B, #955 part 1 and #1645 option B in 1.7.0). Everything formatter-side below waits on it.
 - **Formatter/hole and lambda lines (OQ):** `#1566 #1568 #1698 #1567` → after #953.
-- **Formatter/list and pattern columns (one OQ round):** `#1633 #1634 #1647 #1685 #1542` → after #953. Comma-first shapes of #1542/#1633 stay as written (they follow #1739 in 1.10.0).
+- **Formatter/list and pattern columns (one OQ round):** `#1633 #1634 #1647 #1685 #1542 #1929` → after #953.
+- **Formatter/precheck (declared, change of its own):** `#1926` → after the list and pattern columns run (`indentation.md`).
+- **Analyzer/RH5202:** `#1925` (decided A).
+- **Tooling:** `#1924` (trace headers; no predecessors). Comma-first shapes of #1542/#1633 stay as written (they follow #1739 in 1.10.0).
 - **Formatter/indentation small + docs:** `#1399 #1432 #1722 #1400 #1607`; `#1472` (written review only, docs lane) rides alongside.
 - **Analyzer/SHARED-DIAG-008 follow-ups (OQ):** `#1240 #1275 #1591 #1836`.
 - **Code fixes/directive guards (OQ):** `#1668 #1589 #970 #1837` (#970 must stay a cheap check).
@@ -27,7 +30,7 @@ Theme: T11 part A (line-break joins, extension blocks, switch arms, one-owner re
 
 Runs, in order:
 - **Formatter/LineBreakPhase one-owner refactors, first in their files:** `#1517 #1519 #1654 #862`.
-- **Formatter/unowned joins (one OQ round):** `#1639 #1645 #1646 #1648 #1652 #1653 #1829 #1830` → after #953 (1.6.0).
+- **Formatter/unowned joins (one OQ round):** `#1639 #1645 #1646 #1648 #1652 #1653 #1829 #1830 #1927` → after #953 (1.6.0). #1645 may already be shipped by #1920: check and close first. #1927's inputs are run before its output question.
 - **Formatter/extension blocks (owner set once, OQ):** `#1636 #1785 #1446 #1845`.
 - **Formatter/lists and switch arms:** `#956` (narrowed, OQ) `#955 #1442` (#956 before #1739 in 1.10.0).
 - **Analyzer/RH1001–RH1002 equality judgement:** `#1290` → `#1295 #1296 #1297`.
@@ -59,7 +62,7 @@ Runs, in order:
 - **"Documents nothing" and FMT-BLANK-011, first:** `#1077 #1280 #962 #1148` (#1077 absorbs #957 part 2; #962 decided with #1148).
 - **Formatter/doc-comment placement:** `#1533 #1563 #1564 #961 #1461`.
 - **Comment rules:** `#1097 #1098` (anchor model); `#1078` → `#1160`; `#1864 #1914` together (SHARED-COMMENT-012).
-- **Formatter/spacing (OQ):** `#1440 #1550 #1556 #1559` (#1559 before #1560 in 1.10.0).
+- **Formatter/spacing (OQ):** `#1440 #1550 #1556 #1559 #1928` (#1928 decided A; #1559 before #1560 in 1.10.0).
 - **Formatter/blank lines:** `#1095 #1562 #1713 #1776` (#1562 closes with its regression test).
 - **Formatter/switch braces:** `#1518` → `#1538 #950`; `#1537 #1540 #1659` judged there (likely closes: #1540 on A, #1659 on B).
 - **Specs and tests (docs lane):** `#1571 #1572 #1641 #1661 #1690 #1819`.
@@ -71,8 +74,8 @@ Theme: T6 layout rule scope (P11) and counterpart rules; #1612, #1033; T13 part 
 Runs, in order:
 - **Analyzer/line-start facts, first where reports change:** `#1512 #1157 #1156 #1080 #1433`.
 - **Analyzer/RH53xx initializers and operators:** `#1271 #1272 #1273 #1477`.
-- **Analyzer/RH51xx list scope (OQ):** `#1154 #1155 #1649 #1158 #1650 #1394`.
-- **Analyzer/new counterpart rules (OQ):** `#1739 #1159 #1637 #1638 #1560 #1827` (#1159 decided with #1739 in one change doc).
+- **Analyzer/RH51xx list scope (OQ):** `#1154 #1155 #1649 #1158 #1650 #1394 #1931` (#1931 asked together with #1155/#1649).
+- **Analyzer/new counterpart rules (OQ):** `#1739 #1159 #1637 #1638 #1560 #1827 #1930` (#1159 decided with #1739 in one change doc).
 - **Analyzer/new layout rules (OQ):** `#1843 #1844` (one run).
 - **Analyzer/attribute placement and hole lines (OQ):** `#1445 #1033 #1628 #1612`.
 - **Formatter/directives and line ends (OQ):** `#960 #1579 #1658 #959 #1082 #1895` (#959 is large and splittable; #1895's premise unconfirmed).
