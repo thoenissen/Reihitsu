@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ORDER |
 | Status | Active |
 | Code owners | `OrderingMoveSafety`, `OrderingDeclarationUtilities`, `AccessorOrderingUtilities`, `TypeMemberOrderingCodeFixProviderBase` |
-| Uses | RH7309-005, SHARED-DOC-004, SHARED-FIX-003, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-009, SHARED-TYPEREGION-006 |
+| Uses | RH7102-006, RH7309-005, SHARED-DOC-004, SHARED-FIX-003, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-009, SHARED-TYPEREGION-006 |
 
 This spec covers how the code fixes of the ordering rules move one declaration in front of an earlier sibling, and when such a move is refused. It applies to the member reordering fixes (RH7102 constants before fields, RH7103 static before instance, RH7109 readonly before non-readonly) and to the accessor reordering fixes (RH7107 property accessors, RH7108 event accessors). SHARED-ORDER-007 and SHARED-ORDER-008 also apply to the RH7309 fix, which reorders region blocks. It also states the region scope that every rule ordering the members of a type shares (SHARED-ORDER-004), RH7110 included, which offers no fix. Apart from that scope, which declaration a rule reports and where it should go is each rule's own spec; this spec owns the move and its guards.
 
@@ -228,7 +228,7 @@ is reported by RH7103, and no code fix is offered.
 
 ### SHARED-ORDER-006 — Balanced directive pairs travel intact
 
-A move MUST stay available when every conditional and region directive in the moved span and in the crossed span has its partner in the same span, neither span contains a directive of any other kind, and, for a member reordering fix, SHARED-ORDER-007 and SHARED-ORDER-008 do not refuse it.
+A move MUST stay available when every conditional and region directive in the moved span and in the crossed span has its partner in the same span, every directive of any other kind in either span is one that SHARED-ORDER-011 keeps, and, for a member reordering fix, SHARED-ORDER-007 and SHARED-ORDER-008 do not refuse it. Any other directive that is neither a conditional nor a region directive refuses the move wherever it stands in either span: in a declaration's leading trivia under SHARED-ORDER-005, and anywhere else in the spans under this requirement.
 
 Why: A complete pair inside one half moves or stays as one unit, so the code it governs is the same before and after the move. Refusing it would give away safe ground — for example every member whose body contains an `#if DEBUG` block.
 
@@ -303,6 +303,177 @@ public class TestClass
     }
 }
 ```
+
+### SHARED-ORDER-011 — A warning or nullable pair that ends its own effect inside one declaration travels intact
+
+A `#pragma warning` or `#nullable` directive in the moved span or in the crossed span MUST NOT refuse a move when all of these hold:
+
+- **Inside one declaration.** The directive stands in the leading trivia of a token of one declaration of the list the move reorders — a member, or an accessor (SHARED-ORDER-001) — that lies wholly in the moved or the crossed span, and that token is not the declaration's first token. For RH7309, the declarations are the members of the type that lie wholly in the region blocks whose place the fix changes or in the code between blocks that the reorder crosses. A directive in the leading trivia of a declaration's first token is SHARED-ORDER-005's and still refuses the move. A member of a nested type is part of the nested type's declaration.
+- **Pairs.** The directives of the declaration of the directive's kind — `#pragma warning` or `#nullable` — read in the order of the text, active ones and those in an excluded branch alike, form consecutive pairs, each an opening directive followed directly, among the declaration's directives of that kind, by its closing directive:
+  - for `#pragma warning`, a `#pragma warning disable` followed by a `#pragma warning restore` that names the same diagnostic IDs in the same order, each written as in the `disable`, or that names none where the `disable` names none;
+  - for `#nullable`, a `#nullable enable` or `#nullable disable` followed by a `#nullable restore` with the same target — `warnings`, `annotations`, or none.
+- **One branch.** Every `#if`, `#elif`, `#else`, and `#endif` that lies between the two directives of a pair belongs to a conditional group that lies wholly between them.
+- **Nothing in front.** No directive of the pair's kind stands in the document in front of the moved and the crossed span — in front of the target's first trivia, for RH7309 in front of the first region block or code between blocks whose place the reorder changes — neither an active one nor one in an excluded branch.
+
+Every other `#pragma warning` or `#nullable` directive in either span still refuses the move (SHARED-ORDER-006): one in a declaration's leading trivia, a lone one, one whose closing directive names other IDs or another target, a `#nullable enable` or `#nullable disable` closed by the opposite setting instead of `#nullable restore`, two opening directives in a row, a pair split across a conditional branch, and a pair with a directive of its kind in front of the spans. Every directive that is neither a conditional, a region, a `#pragma warning`, nor a `#nullable` directive, such as `#line`, `#error`, `#warning`, or `#pragma checksum`, refuses the move wherever it stands in either span.
+
+Why: `#pragma warning restore` and `#nullable restore` do not return to the setting in effect in front of the pair; they return to the project's setting. A pair therefore ends its own effect only where nothing of its kind is in effect in front of it, and moving code across a pair that does not changes which code the earlier directive governs (SHARED-FIX-003, *Comments and directives in place*): a member moved from behind the pair to in front of it falls under an earlier `#pragma warning disable` that the pair's `restore` ended for it. With no directive of the kind in front of the spans, every declaration of the spans starts and ends at the project's setting, so a pair that opens and closes inside one declaration governs only that declaration's code and moves or stays with it, as a balanced conditional pair does (SHARED-ORDER-006). A pair split across a conditional branch, or an opening directive that only some builds close, leaves its effect behind in a build that compiles one directive without the other (SHARED-FIX-003, *Build configurations*); a directive in an excluded branch counts like an active one, which needs no evaluation of its condition (SHARED-FIX-009). Each condition is a check of where a directive stands and what it names, read from the syntax tree; comparing IDs as written refuses a pair spelled two ways, such as `168` and `CS0168`, which can only withhold the fix.
+
+Example — a pair inside a crossed member's body, for RH7103:
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+    }
+
+    public void Reset()
+    {
+#pragma warning disable CS0168
+        int unused;
+#pragma warning restore CS0168
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+```csharp
+public class C
+{
+    public static void Create()
+    {
+    }
+
+    public void Run()
+    {
+    }
+
+    public void Reset()
+    {
+#pragma warning disable CS0168
+        int unused;
+#pragma warning restore CS0168
+    }
+}
+```
+
+A `#nullable disable` closed by `#nullable restore` in the same place keeps the move as well; closed by `#nullable enable`, it refuses it.
+
+Example — a lone directive inside a crossed member's body, for RH7103:
+
+```csharp
+public class C
+{
+    public void Reset()
+    {
+#pragma warning disable CS0168
+        int unused;
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered: the `disable` governs `Create` as long as `Create` stands behind it. The same holds when the closing directive is `#pragma warning restore CS0219`.
+
+Example — a directive of the pair's kind in front of the spans, for RH7103:
+
+```csharp
+#pragma warning disable CS1591
+public class C
+{
+    public void Run()
+    {
+    }
+
+    public void Reset()
+    {
+#pragma warning disable CS0168
+        int unused;
+#pragma warning restore CS0168
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered: any `#pragma warning` directive in front of the spans refuses the move, whichever IDs it names. With `#pragma warning disable CS0168` in that place, the move would be wrong: `Create` stands behind the `restore` and is not governed by that `disable`, and moved in front of `Run`, it would be. The same holds when the directive in front stands in an excluded branch.
+
+Example — a pair split across a conditional branch, for RH7103. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    public void Reset()
+    {
+#pragma warning disable CS0168
+        int unused;
+#if DEBUG
+#pragma warning restore CS0168
+#endif
+    }
+
+    public static void {|RH7103:Create|}()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered: a build without `DEBUG` leaves `CS0168` disabled up to `Create`. A conditional group that lies wholly between the two directives keeps the move, for RH7107:
+
+```csharp
+class C
+{
+    public int A
+    {
+        set
+        {
+#pragma warning disable CS0168
+#if DEBUG
+            int unused;
+#endif
+#pragma warning restore CS0168
+        }
+
+        {|RH7107:get|}
+        {
+            return 0;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    public int A
+    {
+        get
+        {
+            return 0;
+        }
+
+        set
+        {
+#pragma warning disable CS0168
+#if DEBUG
+            int unused;
+#endif
+#pragma warning restore CS0168
+        }
+    }
+}
+```
+
+A pair whose directives stand in the leading trivia of two members, as in RH7102-006's example, is SHARED-ORDER-005's and refuses the move.
 
 ### SHARED-ORDER-007 — Initializer execution order is kept
 
