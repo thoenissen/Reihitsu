@@ -49,4 +49,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Test implementer done (f9b2eda): 80 red analyzer + 2 red Core tests, all new behavior.
 - Spec author 05 done (3369d50).
 - Implementer done (44bd79c code, aeac0a8 handover): all tests pass.
-- Next: in parallel spec author (decision 9 sentence) + test implementer (decision 10 tests); then implementer (delete method); then cleaner.
+- Spec author 07 done (c0e555b); test implementer 08 done (443fee2).
+- Next: test implementer (continued) adds tests for the two new RH7309-005 examples of 07; then implementer deletes the method (decision 10) and makes any new test pass; then cleaner.
