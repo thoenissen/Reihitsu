@@ -1,7 +1,3 @@
-// The render tree types are the only record of which content Blazor inserts as text and which as markup; the tests read
-// them to model the browser, not to drive the renderer.
-#pragma warning disable BL0006
-
 using System.Linq;
 using System.Reflection;
 
@@ -57,9 +53,45 @@ internal static class PlaygroundBrowserDocument
     private static void AppendComponent(BunitContext context, int componentId, INode parent, IDocument document)
     {
         var method = typeof(Renderer).GetMethod("GetCurrentRenderTreeFrames", BindingFlags.Instance | BindingFlags.NonPublic);
-        var frames = (ArrayRange<RenderTreeFrame>)method.Invoke(context.Renderer, [componentId]);
+        var range = method.Invoke(context.Renderer, [componentId]);
+        var array = (System.Array)ReadMember(range, "Array");
+        var count = (int)ReadMember(range, "Count");
+        var frames = new object[count];
 
-        AppendFrames(context, frames.Array, 0, frames.Count, parent, document);
+        System.Array.Copy(array, frames, count);
+
+        AppendFrames(context, frames, 0, count, parent, document);
+    }
+
+    /// <summary>
+    /// Reads a public property or field of a render tree value by name
+    /// </summary>
+    /// <param name="value">The value, a render tree frame or a range of frames</param>
+    /// <param name="name">The name of the property or field</param>
+    /// <returns>The member's value</returns>
+    /// <remarks>
+    /// The render tree types are the only record of which content Blazor inserts as text and which as markup. They are read by
+    /// name, not referenced at compile time, because they are not meant for use outside the framework; the tests read them to
+    /// model the browser, not to drive the renderer.
+    /// </remarks>
+    private static object ReadMember(object value, string name)
+    {
+        var type = value.GetType();
+        var property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public);
+
+        return property != null
+                   ? property.GetValue(value)
+                   : type.GetField(name, BindingFlags.Instance | BindingFlags.Public).GetValue(value);
+    }
+
+    /// <summary>
+    /// Reads the name of a frame's type
+    /// </summary>
+    /// <param name="frame">The frame</param>
+    /// <returns>The name of the frame's type, such as <c>Element</c> or <c>Text</c></returns>
+    private static string GetFrameType(object frame)
+    {
+        return ReadMember(frame, "FrameType").ToString();
     }
 
     /// <summary>
@@ -71,7 +103,7 @@ internal static class PlaygroundBrowserDocument
     /// <param name="end">Index behind the last frame</param>
     /// <param name="parent">The node the nodes are appended to</param>
     /// <param name="document">The document</param>
-    private static void AppendFrames(BunitContext context, RenderTreeFrame[] frames, int start, int end, INode parent, IDocument document)
+    private static void AppendFrames(BunitContext context, object[] frames, int start, int end, INode parent, IDocument document)
     {
         var index = start;
 
@@ -79,16 +111,16 @@ internal static class PlaygroundBrowserDocument
         {
             var frame = frames[index];
 
-            switch (frame.FrameType)
+            switch (GetFrameType(frame))
             {
-                case RenderTreeFrameType.Element:
+                case "Element":
                     {
-                        var element = document.CreateElement(frame.ElementName);
+                        var element = document.CreateElement((string)ReadMember(frame, "ElementName"));
                         var childIndex = index + 1;
-                        var subtreeEnd = index + frame.ElementSubtreeLength;
+                        var subtreeEnd = index + (int)ReadMember(frame, "ElementSubtreeLength");
 
                         while (childIndex < subtreeEnd
-                               && frames[childIndex].FrameType == RenderTreeFrameType.Attribute)
+                               && GetFrameType(frames[childIndex]) == "Attribute")
                         {
                             SetAttribute(element, frames[childIndex]);
 
@@ -102,19 +134,20 @@ internal static class PlaygroundBrowserDocument
                     }
                     break;
 
-                case RenderTreeFrameType.Text:
+                case "Text":
                     {
-                        parent.AppendChild(document.CreateTextNode(frame.TextContent));
+                        parent.AppendChild(document.CreateTextNode((string)ReadMember(frame, "TextContent")));
 
                         index++;
                     }
                     break;
 
-                case RenderTreeFrameType.Markup:
+                case "Markup":
                     {
                         var template = (IHtmlTemplateElement)document.CreateElement("template");
+                        var markup = (string)ReadMember(frame, "MarkupContent");
 
-                        template.InnerHtml = string.IsNullOrEmpty(frame.MarkupContent) ? " " : frame.MarkupContent;
+                        template.InnerHtml = string.IsNullOrEmpty(markup) ? " " : markup;
 
                         foreach (var node in template.Content.ChildNodes.ToList())
                         {
@@ -125,19 +158,21 @@ internal static class PlaygroundBrowserDocument
                     }
                     break;
 
-                case RenderTreeFrameType.Component:
+                case "Component":
                     {
-                        AppendComponent(context, frame.ComponentId, parent, document);
+                        AppendComponent(context, (int)ReadMember(frame, "ComponentId"), parent, document);
 
-                        index += frame.ComponentSubtreeLength;
+                        index += (int)ReadMember(frame, "ComponentSubtreeLength");
                     }
                     break;
 
-                case RenderTreeFrameType.Region:
+                case "Region":
                     {
-                        AppendFrames(context, frames, index + 1, index + frame.RegionSubtreeLength, parent, document);
+                        var subtreeLength = (int)ReadMember(frame, "RegionSubtreeLength");
 
-                        index += frame.RegionSubtreeLength;
+                        AppendFrames(context, frames, index + 1, index + subtreeLength, parent, document);
+
+                        index += subtreeLength;
                     }
                     break;
 
@@ -156,30 +191,33 @@ internal static class PlaygroundBrowserDocument
     /// </summary>
     /// <param name="element">The element</param>
     /// <param name="frame">The attribute frame</param>
-    private static void SetAttribute(IElement element, RenderTreeFrame frame)
+    private static void SetAttribute(IElement element, object frame)
     {
-        if (frame.AttributeName.StartsWith("__", System.StringComparison.Ordinal))
+        var name = (string)ReadMember(frame, "AttributeName");
+        var value = ReadMember(frame, "AttributeValue");
+
+        if (name.StartsWith("__", System.StringComparison.Ordinal))
         {
             return;
         }
 
-        switch (frame.AttributeValue)
+        switch (value)
         {
             case string text:
                 {
-                    element.SetAttribute(frame.AttributeName, text);
+                    element.SetAttribute(name, text);
                 }
                 break;
 
             case true:
                 {
-                    element.SetAttribute(frame.AttributeName, string.Empty);
+                    element.SetAttribute(name, string.Empty);
                 }
                 break;
 
             case int or long or double or decimal:
                 {
-                    element.SetAttribute(frame.AttributeName, System.Convert.ToString(frame.AttributeValue, System.Globalization.CultureInfo.InvariantCulture));
+                    element.SetAttribute(name, System.Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture));
                 }
                 break;
         }
