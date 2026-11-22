@@ -38,9 +38,9 @@ public partial class Home
     private List<string> _messageLines = [];
 
     /// <summary>
-    /// The spans the input marks, set by the last format and removed at the first change of the input (PLAY-014)
+    /// The input coloured by its syntax tree, with the marks of the last format until the first change of the input (PLAY-014)
     /// </summary>
-    private List<TextSpan> _marks = [];
+    private PlaygroundHighlighting _inputHighlighting;
 
     #endregion // Fields
 
@@ -88,39 +88,43 @@ public partial class Home
         var result = PlaygroundFormatter.Format(_input);
         var errors = result.Errors ?? [];
 
-        _outputContent = PlaygroundHighlighter.Render(result.Text, []);
+        List<TextSpan> marks;
+
+        _outputContent = PlaygroundHighlighter.Highlight(result.Text, []).Content;
 
         if (result.Formatted)
         {
             _messageLines = [];
-            _marks = [];
+            marks = [];
         }
         else if (result.Unsupported != null)
         {
             _messageLines = [CreateUnsupportedMessage(result.Unsupported)];
-            _marks = [PlaygroundHighlighter.GetMarkSpan(result.Unsupported.Location.SourceSpan, _input)];
+            marks = [PlaygroundHighlighter.GetMarkSpan(result.Unsupported.Location.SourceSpan, _input)];
         }
         else if (result.HoldsHiddenCode)
         {
             // The formatter reports no location for hidden code, so nothing is marked (PLAY-014)
             _messageLines = ["The input contains code hidden in another build configuration and was left unchanged."];
-            _marks = [];
+            marks = [];
         }
         else
         {
             _messageLines = ["The input contains syntax errors and was left unchanged.", .. errors.Select(CreateErrorLine)];
-            _marks = errors.Select(error => PlaygroundHighlighter.GetMarkSpan(error.Location.SourceSpan, _input))
-                           .ToList();
+            marks = errors.Select(error => PlaygroundHighlighter.GetMarkSpan(error.Location.SourceSpan, _input))
+                          .ToList();
         }
+
+        _inputHighlighting = PlaygroundHighlighter.Highlight(_input, marks, _inputHighlighting);
     }
 
     /// <summary>
-    /// Removes every mark at a change of the input, because a mark can point at code it was not about after an edit; the
-    /// message stays until the next format (PLAY-014)
+    /// Colours the input again at a change of it and removes every mark, because a mark can point at code it was not about
+    /// after an edit; the message stays until the next format (PLAY-014)
     /// </summary>
     private void OnInputChanged()
     {
-        _marks = [];
+        _inputHighlighting = PlaygroundHighlighter.Highlight(_input, [], _inputHighlighting);
     }
 
     #endregion // Methods

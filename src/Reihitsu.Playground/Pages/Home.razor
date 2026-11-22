@@ -13,7 +13,7 @@
         <label for="playground-input">Input</label>
         <div class="playground-editor">
             <div class="playground-editor-layers">
-                <pre class="playground-code playground-input-copy" aria-hidden="true">@PlaygroundHighlighter.Render(_input, _marks)</pre>
+                <pre class="playground-code playground-input-copy" aria-hidden="true">@_inputHighlighting.Content</pre>
                 <textarea id="playground-input" class="playground-code" spellcheck="false" wrap="off" @bind="_input" @bind:event="oninput" @bind:after="OnInputChanged"></textarea>
             </div>
         </div>

@@ -3,6 +3,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Formatter;
 
@@ -54,6 +55,19 @@ public static class PlaygroundFormatter
     internal static SyntaxTree Parse(string source)
     {
         return CSharpSyntaxTree.ParseText(source);
+    }
+
+    /// <summary>
+    /// Parses C# source that differs from the text of an earlier tree of <see cref="Parse"/> by one change, reusing the parts
+    /// of the earlier tree the change leaves intact; the tree is the one <see cref="Parse"/> returns for the new text, with
+    /// the options of PLAY-005
+    /// </summary>
+    /// <param name="previous">The earlier tree</param>
+    /// <param name="change">The change from the earlier tree's text to the new text</param>
+    /// <returns>The syntax tree of the new text</returns>
+    internal static SyntaxTree Reparse(SyntaxTree previous, TextChange change)
+    {
+        return previous.WithChangedText(previous.GetText().WithChanges(change));
     }
 
     /// <summary>

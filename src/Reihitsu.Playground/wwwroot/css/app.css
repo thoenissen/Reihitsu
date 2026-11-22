@@ -132,7 +132,8 @@ html, body {
 
 .playground-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* A zero minimum keeps each column at its share of the row, so a pane whose text is wider scrolls inside itself */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
 }
 
@@ -162,7 +163,7 @@ html, body {
 /* Behind the base rules, so the narrow-screen values override them */
 @media (max-width: 700px) {
     .playground-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .playground-editor,
@@ -211,8 +212,14 @@ html, body {
     pointer-events: none;
 }
 
+/* Each line is its own block, so the browser lays out again only the lines an edit replaces; a line ends behind its line
+   feed, which does not open another line at the end of a block */
+.playground-line {
+    display: block;
+}
+
 /* Keeps the height of an empty last line, which a pre does not show */
-.playground-input-copy::after {
+.playground-input-copy > .playground-line:last-child::after {
     content: " ";
 }
 
@@ -394,4 +401,4 @@ code {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
-}
+}
