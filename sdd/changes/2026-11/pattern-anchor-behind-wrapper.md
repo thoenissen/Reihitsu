@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-INDENT-026, examples of FMT-BREAK-017, FMT-BREAK-022, and FMT-BREAK-041 |
 
@@ -223,8 +223,8 @@ No rule page changes.
 
 ### The anchor is the first token of the outermost pattern
 
-Pending the maintainer's answer for the patterns a `case` label introduces; the other reading changes only those, which keep their content and `}` in the brace's own column, as on `main`. For the switch-expression arm, the brace's own column is no column, so the outermost pattern's first token is the only reading that gives one.
+The maintainer chose A for question 8, which also covers the patterns a `case` label introduces: their content and `}` take the outermost pattern's column, not the brace's own column as on `main`. For the switch-expression arm, the brace's own column is no column, so the outermost pattern's first token is the only reading that gives one.
 
 ## Alternatives considered
 
-- **Anchor to the outermost pattern only where the brace starts its line, and to the brace elsewhere** (today's `case` label output) — not recommended: the column of the content would depend on where the author put the brace's line break, `case P and {` would differ from `case P {`, and the rule would need a condition on the layout of another phase.
+- **Anchor to the outermost pattern only where the brace starts its line, and to the brace elsewhere** (today's `case` label output) — rejected by the maintainer: the column of the content would depend on where the author put the brace's line break, `case P and {` would differ from `case P {`, and the rule would need a condition on the layout of another phase.

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-038, FMT-BREAK-043 (new), FMT-INDENT-025, FMT-INDENT-006, the indentation spec's non-goals |
 | Depends on | [continuation-indent.md](continuation-indent.md), [pattern-closing-delimiter-comment.md](pattern-closing-delimiter-comment.md) |
@@ -174,28 +174,28 @@ No rule page changes. RH5306 reports list patterns and is unchanged; the formatt
 
 ### A wrapped positional pattern is laid out like a list pattern
 
-Pending the maintainer's answer. The recommendation follows the issue's reading A — content one level inside the parentheses, `)` under the `(`, `(` on the line that opens it — which is the list pattern's layout.
+The maintainer chose A for question 7, the issue's reading A — content one level inside the parentheses, `)` under the `(`, `(` on the line that opens it — which is the list pattern's layout.
 
 ### The `(` joins the pattern's type
 
-Pending the maintainer's answer, together with the layout. The clause belongs to its type as an argument list belongs to its name (FMT-BREAK-039).
+Decided with question 7 (A). The clause belongs to its type as an argument list belongs to its name (FMT-BREAK-039).
 
 ### A comma that starts a line moves behind its subpattern
 
-Pending the maintainer's answer, together with the layout. Every list FMT-BREAK-022 lays out moves such a comma (FMT-BREAK-038).
+Decided with question 7 (A). Every list FMT-BREAK-022 lays out moves such a comma (FMT-BREAK-038).
 
 ### A multi-line positional pattern next to a combinator wraps the chain
 
-Pending the maintainer's answer, asked only if the layout is taken. FMT-BREAK-017 already wraps a chain next to a multi-line property, list, or parenthesized pattern; without the positional pattern in that list, `o is (1, 1) and (2,⏎3)` would keep `and (` on the line of `(1, 1)` and open the subpatterns behind it.
+The maintainer chose A for question 7b: FMT-BREAK-017 already wraps a chain next to a multi-line property, list, or parenthesized pattern, and the positional pattern joins that list; otherwise `o is (1, 1) and (2,⏎3)` would keep `and (` on the line of `(1, 1)` and open the subpatterns behind it.
 
-### The comment in front of the `)` depends on the layout
+### A comment in front of the `)` goes into the subpatterns' column
 
-The positional sentence of FMT-INDENT-006 — a comment in front of the `)` goes into the subpatterns' column — holds only if the layout is taken: it rests on the subpatterns standing one level deeper than the `)`. If the maintainer keeps today's lines or chooses the argument-list layout, the positional pattern is removed from FMT-INDENT-006's text and example, and the comment keeps the `)` column, as in front of an argument list's `)`.
+Follows from question 7 (A): the positional sentence of FMT-INDENT-006 — a comment in front of the `)` goes into the subpatterns' column — rests on the subpatterns standing one level deeper than the `)`, which the chosen layout gives, so it stays in FMT-INDENT-006's text and example.
 
 ## Alternatives considered
 
-- **Lay a positional pattern out like an argument list** (FMT-BREAK-012, FMT-INDENT-012): the first subpattern on the `(` line, every later one aligned behind the `(`, the `)` behind the last subpattern. Shown as reading B in the question; not recommended: the pattern family would hold two layouts for delimited lists of subpatterns.
-- **Lay it out like a parenthesized pattern**, with the `(` on a line of its own below the `is` or the type — not recommended: a positional pattern's `(` belongs to its type, and below a type it would read as a separate pattern.
-- **Keep today's continuation lines** (the issue's reading C) — not recommended: the subpatterns stand left of their own parentheses.
-- **Keep a combinator on its line next to a multi-line positional pattern** — not recommended: the chain would be wrapped next to a multi-line list pattern and not next to a positional one.
+- **Lay a positional pattern out like an argument list** (FMT-BREAK-012, FMT-INDENT-012): the first subpattern on the `(` line, every later one aligned behind the `(`, the `)` behind the last subpattern. Shown as reading B in the question; rejected by the maintainer: the pattern family would hold two layouts for delimited lists of subpatterns.
+- **Lay it out like a parenthesized pattern**, with the `(` on a line of its own below the `is` or the type — not taken: a positional pattern's `(` belongs to its type, and below a type it would read as a separate pattern.
+- **Keep today's continuation lines** (the issue's reading C) — rejected by the maintainer: the subpatterns stand left of their own parentheses.
+- **Keep a combinator on its line next to a multi-line positional pattern** — rejected by the maintainer: the chain would be wrapped next to a multi-line list pattern and not next to a positional one.
 - **Keep the `(` of a parenthesized pattern on the `is` line** (the issue's reading A for parenthesized patterns) — not taken up: the maintainer decided the opposite.

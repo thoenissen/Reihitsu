@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-INDENT-006 |
 
@@ -105,13 +105,13 @@ No rule page changes.
 
 ### The list pattern gets the collection expression's rule
 
-Pending the maintainer's answer. The recommendation indents the comment into the elements' column, as the issue's reading A does.
+The maintainer chose A for question 6: the comment goes into the elements' column, as the issue's reading A does and as in front of a collection expression's `]`.
 
 ### The parenthesized pattern is decided together
 
-Pending the maintainer's answer. The issue names only the list pattern; the parenthesized pattern has the same shape and the same cause, so the requirement states the cause and the question shows both.
+The maintainer chose A for question 6, which showed both: the issue names only the list pattern, but the parenthesized pattern has the same shape and the same cause, so the requirement states the cause and covers both.
 
 ## Alternatives considered
 
-- **Keep the comment in the delimiter's column** (today's output) — not recommended: a collection expression and a list pattern, laid out alike everywhere else, would differ here.
-- **Change only the list pattern** — not recommended: the parenthesized pattern would keep a rule stated per construct, and the next construct of the class would need its own change.
+- **Keep the comment in the delimiter's column** (today's output) — rejected by the maintainer: a collection expression and a list pattern, laid out alike everywhere else, would differ here.
+- **Change only the list pattern** — not taken: the parenthesized pattern would keep a rule stated per construct, and the next construct of the class would need its own change.

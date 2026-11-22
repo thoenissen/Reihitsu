@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-042 (new), FMT-BREAK-038, FMT-BREAK-041, FMT-INDENT-034 (clarified), FMT-INDENT-036, FMT-INDENT-037, FMT-INDENT-038 (issued and retired in this change), the indentation spec's non-goals |
 | Depends on | [continuation-indent.md](continuation-indent.md), [continuation-join.md](continuation-join.md) |
@@ -133,7 +133,7 @@ Not changed: a first base type that a comment keeps below the colon (`class C : 
 
 ### The first base type joins the colon's line
 
-Pending the maintainer's answer. The recommendation joins it, as the first constraint of a `where` clause is joined (constraint-clause-wrap.md, Q2).
+The maintainer chose A for question 1: the first base type joins the colon's line, as the first constraint of a `where` clause is joined (constraint-clause-wrap.md, Q2). A comment behind the colon keeps today's layout (FMT-BREAK-042).
 
 ### Lines a comment keeps below a colon, a bracket, or a dot keep the continuation indent
 
@@ -141,7 +141,7 @@ Decided in the run, since nothing visible changes: a first base type that a comm
 
 ### A comma-first base list ends the base type's line
 
-Pending the maintainer's answer. The recommendation moves the comma, as every other list does.
+The maintainer chose A for question 3: the comma moves behind the base type in front of it, as every other list does (FMT-BREAK-038), and the next base type aligns under the first (FMT-INDENT-016).
 
 ### Only the first base type is joined
 
@@ -152,6 +152,6 @@ The later base types keep the line breaks their author wrote: no requirement lay
 - **Give a comment-held first base type the column behind the colon** (FMT-INDENT-036 as drafted), and a comment-held first list element the column behind its bracket, and a qualified name's right part a column measured from the name (FMT-INDENT-037, FMT-INDENT-038) — not taken: each serves a rare class only.
 - **Declare a comment behind a base list's colon unsupported** — not an option: with the comment-held column dropped, the shape deletes no special case.
 
-- **Keep the wrap behind the colon and the continuation indent** (the issue's reading B, today's output) — not recommended: the first base type stands four columns right of the declaration while a wrapped `where` clause joins its first constraint onto the colon's line.
-- **Keep a comma that starts a line and align it with the base types** — not recommended: every other list moves such a comma behind its element, and a comma alone at the start of a line belongs to neither base type.
+- **Keep the wrap behind the colon and the continuation indent** (the issue's reading B, today's output) — rejected by the maintainer: the first base type stands four columns right of the declaration while a wrapped `where` clause joins its first constraint onto the colon's line.
+- **Keep a comma that starts a line and align it with the base types** — rejected by the maintainer: every other list moves such a comma behind its element, and a comma alone at the start of a line belongs to neither base type.
 - **Join every base type onto the colon's line** — not proposed: no requirement or issue asks to remove the line breaks between base types, and long base lists are wrapped on purpose.
