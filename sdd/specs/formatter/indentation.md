@@ -1528,7 +1528,7 @@ class C
 
 ### FMT-INDENT-026 — Property patterns and parenthesized patterns align to their introducer
 
-When the braces of a property pattern or the parentheses of a parenthesized pattern span several lines, the formatter MUST indent the delimiters that start a line to the pattern's anchor column, the subpatterns of a property pattern one level deeper, and the pattern inside a parenthesized pattern four columns right of the opening parenthesis — whatever kind of pattern it is. The anchor column MUST be, skipping `and`, `or`, and `not` wrappers: the `is` keyword for a pattern of an `is` expression, the first token of the subpattern for a nested pattern, one level deeper than the opening parenthesis for a pattern inside a parenthesized pattern, and otherwise the first token of the pattern those wrappers lead to — the outermost pattern that holds the property or parenthesized pattern only through `and`, `or`, and `not` patterns. For `P and { … }` and `not { … }` in a switch-expression arm or a `case` label, that is the `P` or the `not`, not the brace; for a pattern with no wrapper around it, such as `P { … }` or `{ … }`, it is the pattern's own first token. A combinator that starts a line inside the parentheses aligns with the first token of the pattern it combines (FMT-INDENT-019).
+When the braces of a property pattern or the parentheses of a parenthesized pattern span several lines, the formatter MUST indent the delimiters that start a line to the pattern's anchor column, the subpatterns of a property pattern one level deeper, and the pattern inside a parenthesized pattern four columns right of the opening parenthesis — whatever kind of pattern it is. The anchor column MUST be, skipping `and`, `or`, and `not` wrappers: the `is` keyword for a pattern of an `is` expression, the first token of the subpattern for a nested pattern, one level deeper than the opening parenthesis for a pattern inside a parenthesized pattern, and otherwise the first token of the pattern those wrappers lead to — the outermost pattern that holds the property or parenthesized pattern only through `and`, `or`, and `not` patterns. For `P and { … }` and `not { … }` in a switch-expression arm, in an element of a list pattern, or in a `case` label, that is the `P` or the `not`, not the brace; for a pattern with no wrapper around it, such as `P { … }` or `{ … }`, it is the pattern's own first token. A combinator that starts a line inside the parentheses aligns with the first token of the pattern it combines (FMT-INDENT-019).
 
 Why: A multi-line pattern reads as a block that belongs to the construct introducing it; anchoring to `is` or to the owning subpattern keeps that block next to its introducer however far right the pattern starts. The content of a parenthesized pattern is one level inside its parentheses, as the maintainer decided, for a constant, type, relational, or combined pattern as for a property pattern. Skipping the wrappers also where nothing introduces the pattern keeps the braces of `P and { … }` and `not { … }` under the `P` or the `not`, where the braces of `P { … }` stand under the `P`; a brace behind a wrapper is not its own anchor, since a brace that starts its line below the wrapper would then have no column to take. Where the property or parenthesized pattern is itself the outermost pattern and its opening delimiter starts the line, as `{` at the start of a switch-expression arm or `(` below a `case` keyword, the requirement that places that line gives the delimiter its column, and the content follows from it.
 
@@ -1598,7 +1598,7 @@ class C
 }
 ```
 
-Example — behind `and` and `not` in a switch-expression arm and in a `case` label, the braces of a property pattern stand under the first token of the arm's or the label's pattern, the `P` or the `not`, as they do for `P { … }`:
+Example — behind `and` and `not` in a switch-expression arm, in an element of a list pattern, and in a `case` label, the braces of a property pattern stand under the first token of the arm's, the element's, or the label's pattern, the `P` or the `not`, as they do for `P { … }`:
 
 ```csharp
 class P
@@ -1622,6 +1622,12 @@ class C
         };
     }
 
+    bool L(object[] a)
+    {
+        return a is [P and { A: 1,
+            B: 2 }];
+    }
+
     void N(object o)
     {
         switch (o)
@@ -1633,6 +1639,11 @@ class C
 
             case not {
             A: 2
+            }:
+                break;
+
+            case P and not {
+            A: 3
             }:
                 break;
         }
@@ -1669,6 +1680,18 @@ class C
                };
     }
 
+    bool L(object[] a)
+    {
+        return a is [
+                        P
+                        and
+                        {
+                            A: 1,
+                            B: 2
+                        }
+                    ];
+    }
+
     void N(object o)
     {
         switch (o)
@@ -1681,6 +1704,12 @@ class C
 
             case not {
                      A: 2
+                 }:
+                break;
+
+            case P
+                 and not {
+                     A: 3
                  }:
                 break;
         }
@@ -2441,9 +2470,9 @@ The formatter MUST indent a continuation line that no other requirement of this 
 - **The column.** The column at which that line begins is the column the indentation phase gives the first token or comment on it, measured where the phase puts it (FMT-INDENT-030), so a continuation line of a continuation line is indented one more level.
 - **A root formatted on its own.** When a node-level entry point formats a node as a root of its own (FMT-PIPE-023) and the line of the construct is the line on which the root's first token stands, the column at which that line begins is the line-start column (FMT-PIPE-024): the column of the first token or comment on that line in the document, which may stand in front of the root. The entry point keeps everything in front of the root as written, so that line begins where the document has it, and the continuation line gets the column whole-document formatting gives it when the document's line begins where whole-document formatting puts it. `FormatNode`, which has no such fact, measures from the root's first token.
 
-The gaps FMT-BREAK-041 joins, the `=` of an anonymous-object member and of a `let` clause that FMT-BREAK-016 joins, and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in one of those gaps is refused (FMT-UNSUP-011, FMT-UNSUP-017). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the value behind `x += // c` outside a switch arm and an anonymous-object member (inside one, FMT-UNSUP-019 refuses it), a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins.
+The gaps FMT-BREAK-041 joins, the `=` of an anonymous-object member and of a `let` clause that FMT-BREAK-016 joins, and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in one of those gaps is refused (FMT-UNSUP-011, FMT-UNSUP-017). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the value behind `x += // c` outside a switch arm and an anonymous-object member (inside one, FMT-UNSUP-019 refuses it), a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins. Among them are the lines a comment keeps inside a base list, inside an attribute, type argument, type parameter, or function-pointer parameter list, and inside a qualified name: a first base type below the base list's `:`, which FMT-BREAK-042 does not join across the comment (FMT-BREAK-001); a first element below the opening bracket of one of those lists, which FMT-BREAK-014 does not join across it; and the right part of a qualified name below its `.`. No requirement aligns them with the colon, the bracket, or the name: this requirement places them, the later base types and list elements align under the first (FMT-INDENT-015, FMT-INDENT-016), and a line inside an element of a list that FMT-INDENT-013 places keeps that column.
 
-Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an element of a collection expression or an initializer to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column.
+Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an element of a collection expression or an initializer to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column. The lines a comment keeps inside a base list, a bracket list, or a qualified name get no column of their own: a comment there is reported by another rule — RH5043 in a base list, RH5044 in an attribute list, RH5046 in a type parameter or type argument list, RH5104 behind code on its line — or stands where code hardly ever holds one, so the class is rare, and a column behind the colon, behind the bracket, or measured from the name would be a placement rule for that class alone.
 
 Example — a value kept on its own line by a comment continues the statement, also where it starts an expression of its own (`3 + 4`):
 
@@ -2551,6 +2580,54 @@ class C
     bool Check(int v)
     {
         return v > 0;
+    }
+}
+```
+
+Example — a first base type below the colon, a first type argument below `<`, and the right part of a qualified name below its `.`, each kept there by a comment, are continuation lines; the later base type aligns under the first:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+interface I1;
+
+interface I2;
+
+class C : // c
+I1,
+I2
+{
+    List< // c
+    int> P => null;
+
+    void N<T>()
+        where T : System. // c
+        IDisposable
+    {
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+interface I1;
+
+interface I2;
+
+class C : // c
+    I1,
+    I2
+{
+    List< // c
+        int> P => null;
+
+    void N<T>()
+        where T : System. // c
+            IDisposable
+    {
     }
 }
 ```
@@ -2750,184 +2827,12 @@ class C
 
 ### FMT-INDENT-036 — A first base type kept below the colon takes the column behind the colon
 
-When the first base type of a base list starts a line — because a comment, a directive, or disabled text between the base list's colon and that type keeps FMT-BREAK-042 from joining it onto the colon's line —, the formatter MUST indent it, and every later base type that starts a line (FMT-INDENT-016), to the column behind the colon and one space: the column the first base type has when it stands behind the colon. This holds for the base list of a class, struct, record, interface, and enum alike, whatever the number of its types. When the first base type stands behind the colon, this requirement places nothing: FMT-INDENT-016 aligns the later base types under it. A line inside a base type is placed by FMT-INDENT-013.
-
-Why: The column of the base types should not depend on whether a comment keeps the first of them below the colon, as the constraints of a `where` clause take the column behind the colon when a comment keeps the first constraint below it (FMT-INDENT-032), and as an argument list whose first argument a comment pushes down aligns to the column after its opening parenthesis (FMT-INDENT-012).
-
-Example — a first base type that a comment keeps below the colon, with one type and with two:
-
-```csharp
-interface I1;
-
-interface I2;
-
-class C : // c
-    I1
-{
-    int _x;
-}
-
-class D : // c
-    I1, // d
-    I2
-{
-    int _x;
-}
-```
-
-```csharp
-interface I1;
-
-interface I2;
-
-class C : // c
-          I1
-{
-    int _x;
-}
-
-class D : // c
-          I1, // d
-          I2
-{
-    int _x;
-}
-```
-
-and with the first base type behind the colon, only FMT-INDENT-016 applies:
-
-```csharp
-interface I1;
-
-interface I2;
-
-class D : I1, // d
-    I2
-{
-    int _x;
-}
-```
-
-```csharp
-interface I1;
-
-interface I2;
-
-class D : I1, // d
-          I2
-{
-    int _x;
-}
-```
+Status: Retired in the change that added it — a first base type that a comment keeps below the base list's colon stays a continuation line (FMT-INDENT-034), and the later base types align under it (FMT-INDENT-016). RH5043 reports every comment inside a base list, so the class is rare, and it keeps the continuation indent rather than a column of its own.
 
 ### FMT-INDENT-037 — A first element kept below its opening bracket aligns behind the bracket
 
-When the first element of an attribute list, a type argument list, a type parameter list, or a function-pointer parameter list starts a line — because a comment, a directive, or disabled text between the opening bracket and the element keeps FMT-BREAK-014 from joining it onto the bracket's line (FMT-BREAK-001) —, the formatter MUST indent it to the column directly after the opening bracket. FMT-INDENT-015 then aligns every later element, separator, and closing bracket that starts a line with it. A comment on its own line in front of the element takes the element's column (FMT-INDENT-006). When the first element stands on the bracket's line, this requirement places nothing.
-
-Such a list inside an element of a list from FMT-INDENT-012, such as a type argument list in a parameter's type, is a nested list that lays out its own lines (FMT-INDENT-013): this requirement places its first element there too.
-
-Why: The column of a list's elements should not depend on whether a comment keeps the first of them below the opening bracket, as an argument list whose first argument a comment pushes down aligns to the column after its opening parenthesis (FMT-INDENT-012); every later element of these lists already aligns under the first (FMT-INDENT-015).
-
-Example — the first type argument of a property's type, of a constraint, of a parameter's type, and of an object creation, and the first type parameter of a type:
-
-```csharp
-using System;
-using System.Collections.Generic;
-
-class C
-{
-    List< // c
-        int> P => null;
-
-    void M<T>()
-        where T : class, IComparable< // c
-            T>, new()
-    {
-    }
-
-    void N(List< // c
-        int> a)
-    {
-        var b = new List< // c
-            int>();
-    }
-}
-
-class D<
-    // c
-    T>
-{
-}
-```
-
-```csharp
-using System;
-using System.Collections.Generic;
-
-class C
-{
-    List< // c
-         int> P => null;
-
-    void M<T>()
-        where T : class,
-                  IComparable< // c
-                              T>,
-                  new()
-    {
-    }
-
-    void N(List< // c
-                int> a)
-    {
-        var b = new List< // c
-                         int>();
-    }
-}
-
-class D<
-        // c
-        T>
-{
-}
-```
+Status: Retired in the change that added it — a first element that a comment keeps below the opening bracket of an attribute list, a type argument list, a type parameter list, or a function-pointer parameter list stays a continuation line (FMT-INDENT-034), or, inside an element of a list that FMT-INDENT-013 places, keeps that column; the later elements align under it (FMT-INDENT-015). RH5044 and RH5046 report every comment inside these lists, so the class is rare, and it keeps the continuation indent rather than a column of its own.
 
 ### FMT-INDENT-038 — A line inside a qualified name is indented one level deeper than the name
 
-When a line starts inside a qualified name at a token other than the name's first token — the right part behind a `.`, or the `.` itself — and no other requirement of this spec except FMT-INDENT-034 places that line, the formatter MUST indent it four columns right of the column of the first token of the outermost qualified name that holds it. A qualified name is a `QualifiedNameSyntax`: a name in a type position, such as `System.IDisposable` in a member's type, a constraint, or a local's type, not a member access in an expression. A line inside a qualified name that is an element, or inside an element, of a list from FMT-INDENT-012, FMT-INDENT-015, or FMT-INDENT-016 is placed by FMT-INDENT-013, which aligns it with the element's first token.
-
-Why: The right part of a name belongs to the name, not to the line the name stands on: measured from the line (FMT-INDENT-034), a name that starts in the middle of its line, such as a constraint behind `where T :`, put its right part left of its own first token. One level deeper than the name keeps the right part apart from the name, so a part of a member's type does not stand in the member's column and read as a member of its own.
-
-Example — the right part of a member's type and of a constraint:
-
-```csharp
-using System;
-
-class C
-{
-    System. // c
-    IDisposable P => null;
-
-    void N<T>()
-        where T : System. // c
-            IDisposable
-    {
-    }
-}
-```
-
-```csharp
-using System;
-
-class C
-{
-    System. // c
-        IDisposable P => null;
-
-    void N<T>()
-        where T : System. // c
-                      IDisposable
-    {
-    }
-}
-```
+Status: Retired in the change that added it — a line that a comment keeps inside a qualified name stays a continuation line (FMT-INDENT-034), or, inside an element of a list that FMT-INDENT-013 places, keeps that column. The comment is rare, and a column measured from the name would also have moved qualified names wrapped without any comment — in a cast, a `typeof`, a `default`, a using alias, a namespace name — which no requirement or issue asks to change.

@@ -4,18 +4,18 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-042 (new), FMT-INDENT-036 (new), FMT-BREAK-038, FMT-BREAK-041, the indentation spec's non-goals |
+| Affected requirements | FMT-BREAK-042 (new), FMT-BREAK-038, FMT-BREAK-041, FMT-INDENT-034 (clarified), FMT-INDENT-036, FMT-INDENT-037, FMT-INDENT-038 (issued and retired in this change), the indentation spec's non-goals |
 | Depends on | [continuation-indent.md](continuation-indent.md), [continuation-join.md](continuation-join.md) |
 
 ## What
 
 A first base type that stands on the line below its base list's `:` joins the colon's line (FMT-BREAK-042), for the base list of every type declaration, a base type with an argument list included. The later base types keep their line breaks and align under the first (FMT-INDENT-016).
 
-Where a comment, a directive, or disabled text behind the colon keeps the first base type below it, the base types that start a line take the column behind the colon and one space, the column the first base type has when it stands behind the colon (FMT-INDENT-036).
+Where a comment, a directive, or disabled text behind the colon keeps the first base type below it, nothing changes: the first base type is a continuation line (FMT-INDENT-034), and the later base types align under it (FMT-INDENT-016). FMT-INDENT-034 now states that it owns such lines, and the same for the lines a comment keeps below the opening bracket of an attribute, type argument, type parameter, or function-pointer parameter list and inside a qualified name.
 
 A comma that starts a line in a base list moves behind the base type in front of it, as in an initializer or a collection expression (FMT-BREAK-038). The indentation spec drops the base list from its non-goal on comma columns: no line of a base list starts with a comma any more.
 
-This change covers thoenissen/Reihitsu#1633 and the comma-first shape recorded on it.
+This change covers thoenissen/Reihitsu#1633 and the comma-first shape recorded on it. The statement in FMT-INDENT-034 answers thoenissen/Reihitsu#1634, which asked which requirement owns the comment-held lines; it changes no output.
 
 ## Why
 
@@ -52,7 +52,7 @@ class D :
 enum E :
     int
 {
-    A,
+    A
 }
 
 record R(int X) :
@@ -61,7 +61,7 @@ record R(int X) :
 record Q(int X);
 ```
 
-Before: the input, with `A,` written `A` (FMT-STRUCT); the base types stay in column 4.
+Before: the input, unchanged; the base types stay in column 4.
 
 After:
 
@@ -91,51 +91,7 @@ record R(int X) : Q(X);
 record Q(int X);
 ```
 
-### 2. A first base type that a comment keeps below the colon
-
-Input and before (the base types stay in column 4):
-
-```csharp
-interface I1;
-
-interface I2;
-
-class C : // c
-    I1
-{
-    int _x;
-}
-
-class D : // c
-    I1, // d
-    I2
-{
-    int _x;
-}
-```
-
-After:
-
-```csharp
-interface I1;
-
-interface I2;
-
-class C : // c
-          I1
-{
-    int _x;
-}
-
-class D : // c
-          I1, // d
-          I2
-{
-    int _x;
-}
-```
-
-### 3. A comma that starts a line in a base list
+### 2. A comma that starts a line in a base list
 
 Input and before (`, I2` stays in column 4):
 
@@ -171,15 +127,17 @@ The fixes that format a type declaration through the formatter give its base lis
 
 No rule page changes: no rule page shows a base list wrapped behind its colon or a comma-first base list. RH5043 reports a comment inside a base list and is unchanged.
 
+Not changed: a first base type that a comment keeps below the colon (`class C : // c⏎    I1`) stays in column 4, as on `main`.
+
 ## Decisions
 
 ### The first base type joins the colon's line
 
 Pending the maintainer's answer. The recommendation joins it, as the first constraint of a `where` clause is joined (constraint-clause-wrap.md, Q2).
 
-### A comment-held first base type takes the column behind the colon
+### Lines a comment keeps below a colon, a bracket, or a dot keep the continuation indent
 
-Pending the maintainer's answer. The recommendation takes the column behind the colon and one space, as the constraints do (constraint-clause-wrap.md, Q3) and as an argument list whose first argument a comment pushes down does (FMT-INDENT-012).
+Decided in the run, since nothing visible changes: a first base type that a comment keeps below the colon, a first element that a comment keeps below the opening bracket of an attribute, type argument, type parameter, or function-pointer parameter list, and a line that a comment keeps inside a qualified name stay continuation lines (FMT-INDENT-034). Each such comment is reported by another rule — RH5043, RH5044, RH5046, or RH5104 — or stands where code hardly ever holds one, so the class is rare, and a column of its own would be a placement rule for that class alone. FMT-INDENT-036, FMT-INDENT-037, and FMT-INDENT-038, drafted for those columns, were retired before they shipped; FMT-INDENT-038 would also have moved qualified names wrapped without a comment, in casts, `typeof`, `default`, using aliases, and namespace names.
 
 ### A comma-first base list ends the base type's line
 
@@ -190,6 +148,9 @@ Pending the maintainer's answer. The recommendation moves the comma, as every ot
 The later base types keep the line breaks their author wrote: no requirement lays a base list out one type per line, and the issue asks only for the gap behind the colon. They align under the first base type (FMT-INDENT-016) wherever it stands.
 
 ## Alternatives considered
+
+- **Give a comment-held first base type the column behind the colon** (FMT-INDENT-036 as drafted), and a comment-held first list element the column behind its bracket, and a qualified name's right part a column measured from the name (FMT-INDENT-037, FMT-INDENT-038) — not taken: each serves a rare class only.
+- **Declare a comment behind a base list's colon unsupported** — not an option: with the comment-held column dropped, the shape deletes no special case.
 
 - **Keep the wrap behind the colon and the continuation indent** (the issue's reading B, today's output) — not recommended: the first base type stands four columns right of the declaration while a wrapped `where` clause joins its first constraint onto the colon's line.
 - **Keep a comma that starts a line and align it with the base types** — not recommended: every other list moves such a comma behind its element, and a comma alone at the start of a line belongs to neither base type.

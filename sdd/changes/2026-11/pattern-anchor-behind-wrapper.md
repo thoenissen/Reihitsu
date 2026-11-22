@@ -8,9 +8,9 @@
 
 ## What
 
-FMT-INDENT-026 anchors the delimiters of a multi-line property or parenthesized pattern, skipping `and`, `or`, and `not` wrappers. Where no `is`, subpattern, or parenthesized pattern introduces the pattern — in a switch-expression arm and in a `case` label —, the anchor is now stated as the first token of the outermost pattern those wrappers lead to: the `P` of `P and { … }`, the `not` of `not { … }`. Before, the text read "the pattern's own first token", which can be read as the brace itself.
+FMT-INDENT-026 anchors the delimiters of a multi-line property or parenthesized pattern, skipping `and`, `or`, and `not` wrappers. Where no `is`, subpattern, or parenthesized pattern introduces the pattern — in a switch-expression arm, in an element of a list pattern, and in a `case` label —, the anchor is now stated as the first token of the outermost pattern those wrappers lead to: the `P` of `P and { … }`, the `not` of `not { … }`. Before, the text read "the pattern's own first token", which can be read as the brace itself.
 
-In a switch-expression arm, the brace of such a pattern starts its own line (FMT-BREAK-022); taken as its own anchor, it has no column, and on `main` it lands left of the arm (thoenissen/Reihitsu#1929, a bug against either reading). In a `case` label the brace stays behind the `and` or `not` (FMT-BREAK-022), and on `main` the content and the `}` take the brace's own column; with the stated anchor they move under the `P` or the `not`, as they already stand for `case P { … }`.
+In a switch-expression arm and in an element of a list pattern, the brace of such a pattern starts its own line (FMT-BREAK-022); taken as its own anchor, it has no column, and on `main` it lands left of the arm or the list (thoenissen/Reihitsu#1929, a bug against either reading). In a `case` label the brace stays behind the `and` or `not` (FMT-BREAK-022), and on `main` the content and the `}` take the brace's own column; with the stated anchor they move under the `P` or the `not`, as they already stand for `case P { … }`.
 
 ## Why
 
@@ -44,6 +44,12 @@ class C
         };
     }
 
+    bool L(object[] a)
+    {
+        return a is [P and { A: 1,
+            B: 2 }];
+    }
+
     void N(object o)
     {
         switch (o)
@@ -55,6 +61,11 @@ class C
 
             case not {
             A: 2
+            }:
+                break;
+
+            case P and not {
+            A: 3
             }:
                 break;
         }
@@ -93,6 +104,18 @@ class C
                };
     }
 
+    bool L(object[] a)
+    {
+        return a is [
+                        P
+                        and
+                {
+                    A: 1,
+                    B: 2
+                }
+                    ];
+    }
+
     void N(object o)
     {
         switch (o)
@@ -106,6 +129,12 @@ class C
             case not {
                          A: 2
                      }:
+                break;
+
+            case P
+                 and not {
+                             A: 3
+                         }:
                 break;
         }
     }
@@ -143,6 +172,18 @@ class C
                };
     }
 
+    bool L(object[] a)
+    {
+        return a is [
+                        P
+                        and
+                        {
+                            A: 1,
+                            B: 2
+                        }
+                    ];
+    }
+
     void N(object o)
     {
         switch (o)
@@ -157,12 +198,20 @@ class C
                      A: 2
                  }:
                 break;
+
+            case P
+                 and not {
+                     A: 3
+                 }:
+                break;
         }
     }
 }
 ```
 
-The switch-expression arms are the bug thoenissen/Reihitsu#1929 reports; the `case` labels are the visible change this clarification adds. `case 1⏎or {` and `case 1⏎or not {` move the same way, under the `1` (the examples of FMT-BREAK-017 and FMT-BREAK-041).
+The switch-expression arms are the bug thoenissen/Reihitsu#1929 reports, and the element of the list pattern is a member of the same bug that the issue does not name: in both, the brace starts its own line at column 16, left of the arm's first token (column 19) and of the list's `[` (column 21). The `case` labels are the visible change this clarification adds: there the label introduces the pattern, the brace stays behind `and` or `not` (FMT-BREAK-022), and the content and the `}` move under the `P` or the `not`. `case P and not {`, with two wrappers, moves furthest (content from column 29 to 21). `case 1⏎or {` and `case 1⏎or not {` move the same way, under the `1` (the examples of FMT-BREAK-017 and FMT-BREAK-041). A property pattern inside a list pattern in a `case` label is not introduced by the label (FMT-BREAK-022), so it is laid out as in the `is` expression above, whatever the `case`-label reading.
+
+Two more members fail on `main` the same way and follow from the same text (observed with `scripts/format.sh`): the slice of a list pattern (`[1, .. not { A: 1,⏎A: 2 }]`, brace at column 16, left of the `[` at 21; afterwards under the `not`), and a parenthesized pattern behind `not` in an arm (`not (1 or⏎2) => 1`, `(` at column 16, left of the arm at 19; afterwards under the `not`, its content four columns right of the `(`).
 
 ### Code fixes
 
@@ -174,7 +223,7 @@ No rule page changes.
 
 ### The anchor is the first token of the outermost pattern
 
-Pending the maintainer's answer for the `case` label. For the switch-expression arm, the brace's own column is no column, so the outermost pattern's first token is the only reading that gives one.
+Pending the maintainer's answer for the patterns a `case` label introduces; the other reading changes only those, which keep their content and `}` in the brace's own column, as on `main`. For the switch-expression arm, the brace's own column is no column, so the outermost pattern's first token is the only reading that gives one.
 
 ## Alternatives considered
 
