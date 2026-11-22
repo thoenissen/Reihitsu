@@ -58,4 +58,5 @@
 - Round 1: spec checker done (16-spec-checker.md, consistent).
 - Round 1 audit done (17-auditor.md, audited 15526cc): #1, #2 closed; #3 (repeats #1 → decision 17, architecture), #4 (text).
 - Spec author (18) done.
-- Next: test implementer (19) → implementer (20) → cleaner (21, incl. #4) → spec checker → auditor (delta) → validator. → validator.
+- Test implementer (19) done: 11 failing as expected.
+- Next: implementer (20) → cleaner (21, incl. #4) → spec checker → auditor (delta) → validator. → validator.
