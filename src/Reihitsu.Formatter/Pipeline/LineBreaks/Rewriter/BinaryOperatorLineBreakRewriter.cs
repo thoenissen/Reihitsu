@@ -136,10 +136,10 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes binary operator position by moving end-of-line trivia to the left operand. The <c>is</c> of a type test keeps
-    /// its place: the type behind it joins it (FMT-BREAK-041), and an <c>is</c> that starts its line stays there, unless a line break already
-    /// separates the left operand from the operator, which then stays the gap's only one (FMT-BREAK-030). The operator and the right
-    /// operand are joined with the minimal separator (FMT-BREAK-031), so an operand such as <c>-a</c> behind <c>-</c> stays
+    /// Normalizes binary operator position by moving end-of-line trivia to the left operand, unless a line break already
+    /// separates the left operand from the operator, which then stays the gap's only one (FMT-BREAK-030). The <c>is</c> of a type test
+    /// keeps its place: the type behind it joins it (FMT-BREAK-041), and an <c>is</c> that starts its line stays there. The operator and
+    /// the right operand are joined with the minimal separator (FMT-BREAK-031), so an operand such as <c>-a</c> behind <c>-</c> stays
     /// a separate token; the spaces of the joined gap are the horizontal-spacing phase's
     /// </summary>
     /// <param name="node">The binary expression node</param>
