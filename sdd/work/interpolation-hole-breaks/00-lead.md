@@ -39,4 +39,5 @@
 - Implementer done (05-implementer.md, ef49b5e): 5 disputed tests.
 - Test implementer done (07-test-implementer.md): formatter + architecture green.
 - Cleaner done (09-cleaner.md, clean).
-- Next: spec checker → auditor → validator.
+- Spec checker done (10-spec-checker.md, consistent). Main merged: up to date. Build green.
+- Next: auditor → validator.
