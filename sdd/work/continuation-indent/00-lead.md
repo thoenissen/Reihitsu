@@ -99,6 +99,8 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Neighbouring gaps no answer named stay continuation lines: in front of `foreach … in`, `from x in⏎arr`, `on x⏎equals`, `>⏎1`, unary prefix operators, `;` of `return⏎;` (06-spec-author.md).
 - `case(1)` keeps no space after `case` while `switch (` and `is (` get one (11-spec-author.md).
 - Switch-arm multi-line property pattern without a type behind a combinator: the brace lands left of its pattern (`PatternAnchor.GetColumn` falls back to the original pattern's first token); FMT-INDENT-026 reads as the arm's column (28-auditor.md).
+- New-rule candidates under P11: a pattern-combinator counterpart of RH5302; an anonymous-object member / `let` `=` counterpart of RH5111 (05-skeptic.md).
+- A multi-line positional pattern behind the joined `is` puts its elements and `)` at continuation columns; no requirement aligns positional patterns (05-skeptic.md).
 - `case (⏎…⏎):` puts `case` alone on its line on `main` — looks wrong, outside the run (04-spec-author.md).
 
 Escalation 10 (S5) answer: B — declare a comment or directive behind an assignment `=` (outside switch arms/anonymous members, already FMT-UNSUP-019) and behind a switch arm's `=>` unsupported, in a change of its own, not in this run. This run keeps the continuation indent for those lines meanwhile. -> follow-up issue carrying the answer.
@@ -139,6 +141,6 @@ Escalation 10 (S5) answer: B — declare a comment or directive behind an assign
 - Cleaner 21 clean on merged tree (f434b0b). Auditor 22 spawned against main ab547b7, head f434b0b.
 - Repair round 2 complete: cleaner 26, spec checker 27, auditor 28 pass.
 - Validator 29 pass at 796ac0d (all projects green, self-hosting line-count rows 18/18).
-- Escalation 10 answered (B -> follow-up). Next: issue manager (follow-ups incl. the answer if B), note, delete sdd/work, trigger commit, PR body, ready.
+- Escalation 10 answered (B -> follow-up). Issue manager (30) spawned. Next after it: issue manager (follow-ups incl. the answer if B), note, delete sdd/work, trigger commit, PR body, ready.
 - Auditor 22: findings F1-F4 on #953; #1852/#1896/#1818 pass. Repair round 2: spec author (23) -> test implementer (24) -> implementer (25) -> cleaner (26) -> spec checker (27) -> auditor on the repair (28) -> validator (29).
 - (old) auditor verdict; validator (23); wait for the escalation-10 answer before marking ready.
