@@ -18,7 +18,7 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Spec author | Where does the exemption live? | As a bullet of SHARED-CASING-014 referenced from RH4120-001, no new requirement ID | One statement of what makes a name dictated | Spec structure only | 243da8d |
-| 3 | Skeptic | RH4120-001 claims to cover only parameters the compiler turns into a property, but the code and existing tests report every positional parameter | Widen RH4120-001's coverage statement to every positional parameter (minus the exemptions), describing today's code; route to the spec author with the answers | Spec matches existing behavior and tests | Describes unchanged output | (pending) |
+| 3 | Skeptic | RH4120-001 claims to cover only parameters the compiler turns into a property, but the code and existing tests report every positional parameter | Widen RH4120-001's coverage statement to every positional parameter (minus the exemptions), describing today's code; route to the spec author with the answers | Spec matches existing behavior and tests | Describes unchanged output | 8d09179 |
 | 2 | Spec author | Parameter of a derived record that inherits a dictated property (`Derived(string name) : Person(name)`) | Stays reported (no property is declared for it) | Today's behavior; only the compiler-declared property decides | Unchanged output | 243da8d |
 
 ## Follow-up candidates
@@ -36,3 +36,5 @@
 - Skeptic done (02, 6b36c13): premise confirmed (CS0535/CS0534 on rename), reachable. Output questions Q1 (override) and Q2 (parameter with no generated property because the record declares/inherits a member of its name) asked to the maintainer in one batch.
 - Answers received (1A, 2B). Lead accepts the change doc.
 - Next: spec author follow-up (fresh: earlier agent large, cache cold) — answers 1A/2B into change doc Decisions + spec, decision 3, Status: Accepted. Then test implementer.
+- Spec author follow-up done (03, 8d09179), change doc Accepted.
+- Next: test implementer (04).
