@@ -54,3 +54,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - origin/main 75cc39f, branch not behind; build green.
 - Auditor 1 done (`b0074e4`, `11-auditor.md`), audited HEAD 396887f: #971 pass, #1072 pass, #1451 finding 2 (low), #1434 finding 1 (RH4116 operators / conversion operators / multi-declarator events). Both same requirement.
 - Repair round 2 (round 1 was the spec-checker code-owner repair): test implementer (tests for findings 1 and 2), then implementer, cleaner, spec checker, auditor on the repair, validator.
+- Round 2 test implementer done (`d90597e`, `ff266a7`, `12-test-implementer.md`): 5 RH4116 + 12 core + 2 code-fix tests fail on current code. Next: implementer.
