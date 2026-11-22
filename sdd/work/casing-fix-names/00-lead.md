@@ -65,3 +65,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Structural repair: test implementer done (`a2f386b`, `17-test-implementer.md`): 6 failing, 1 passing as intended. Next: implementer (decision 4).
 - Structural repair implementer done (`b7651b3`, `18-implementer.md`): RH4116 decides by declared symbol; default set green in Debug. Next: cleaner (+ decision 5 comment), spec checker, auditor on the repair.
 - Structural repair cleaner done (`46d5587`): comment fixed, text-only proof PASS. Next: spec checker, then auditor on c94249b..HEAD.
+- Structural repair spec checker done (`c8b4355`): consistent. Build green. Next: auditor on c94249b..HEAD.
