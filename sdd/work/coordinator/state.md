@@ -14,30 +14,29 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (38): #970 #971 #1072 #1085 #1086 #1087 #1088 #1089 #1090 #1240 #1275 #1399 #1400 #1434 #1451 #1472 #1542 #1566 #1567 #1568 #1589 #1591 #1607 #1633 #1634 #1647 #1668 #1685 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1929.
+Open in 1.6.0 (29): #1085 #1086 #1087 #1088 #1089 #1090 #1275 #1399 #1400 #1472 #1566 #1567 #1568 #1589 #1607 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1935 #1936 #1939 #1941 #1943.
 
-Merged since start: #1921 (#1880), #1920 (#953 #1852 #1896 #1818), #1922 (#975), #1923 (#1432); #1932 moved test projects to `tests/` (no new shared file).
+Merged since the previous batch: #1933 (#1542 #1633 #1634 #1647 #1685 #1929), #1934 (#971 #1072 #1434 #1451), #1938 (#1240 #1591), #1940 (#970 #1668).
 
-Runs in progress: none with a pull request (main at 75cc39fa).
+Runs in progress: #1941 (PR #1942, Playground files, `playground.md`; blocks nothing).
 
-Dependency graph: `inventory/batch-2026-11-22.md` (supersedes the graph part of `inventory/plan-1.6.0.md`).
+Dependency graph: `inventory/batch-2026-11-22b.md` (main at 1788f94d).
 
-Start now: `#1633 #1634 #1647 #1685 #1542 #1929` · `#1722` · `#1925` · `#1924` · `#1472` · `#1912` · `#1240 #1591` · `#1836` · `#970 #1668` · `#971 #1072 #1451 #1434` · `#1086` · `#1089` · `#1090`.
+Start now: `#1926` · `#1566` · `#1935` · `#1939` · `#1943` · `#1275 #1837` · `#1472` · `#1722` · `#1925` · `#1924` · `#1912` · `#1836` · `#1086` · `#1089` · `#1090`.
 
 After merges:
-- after `#1633 … #1929` → `#1926` and `#1566` (in parallel; #1566 moved behind R5: `line-breaks.md`, `pipeline.md`)
-- after #1926 and #1566 → `#1568 #1698 #1567` → `#1399` → `#1400` (serial on `indentation.md`)
-- after #1240 #1591 → `#1275 #1837`
+- after #1926 and #1566 → `#1568 #1698 #1567` → `#1399` → `#1400 #1936` (serial on `indentation.md`)
 - after #1912 → `#1607`
 - after #1086 → `#1085`
-- after the casing run → `#1771` (escalation 9 first)
 - after #1090 (and #1925 if it rewords RH5202's message, #1924 if it adds a spec) → `#1087 #1088`
-- after #1836, #1275 #1837, #970 #1668, #1926 and the list/pattern run → `#1589` alone (or 1.7.0)
+- after #1939 and #1943 → `#1771` (escalation 9 first)
+- after #1836, #1275 #1837, #1926, #1943 → `#1589` alone (or 1.7.0)
 
-Notes for the runs (on the evidence of the batch check, not decided): #1685 likely fixed by FMT-INDENT-034 (the run confirms, then closes); #1567 partly done (only the return-type gap remains); #1542 parenthesized half decided by #1920; #1633 still open (FMT-BREAK-041 does not join behind a base list's `:`); "Before" changed for #1634, #1698, #1399 item 21. #1929 is a bug fix in a behavior-change run: grouping decided by the maintainer (triage 1A, comment on #1929).
+Notes for the runs (evidence in the batch file, not decided): #1275 likely narrows to `class C⏎{⏎};` (item 2 decided otherwise by SHARED-EMPTY-001, item 3 holds); #1567 partly done (return-type gap remains); #1771's file pointer is stale (`CasingRenameSafetyUtilities.cs`). #1936 moved from the #1472 run to the #1400 run (`indentation.md` shared with #1926; comment on #1936).
 
 ## Status
 
+Status 2026-11-22 (l): batch — merges #1933 #1934 #1938 #1940 read; graph rebuilt; #1936 moved to the #1400 run; start-now set given (15 runs).
 Status 2026-11-22 (k): triage of #1935–#1943 applied as recommended (`inventory/triage-2026-11-22b.md`); milestones set; commented on all five. Batch next in the same session.
 Status 2026-11-22 (j): batch — merges #1920 #1921 #1922 #1923 #1932 read; graph rebuilt; start-now set given (13 runs).
 Status 2026-11-22 (i): triage answered "as recommended" (1A, 2A, 3A, 4A); milestones set; commented on #1925 #1926 #1928 #1929.
