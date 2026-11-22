@@ -9,6 +9,10 @@
 
 1. #1939 output question (answered on the issue, comment 2026-11-22): **option A** — RH4120 does not report a positional record parameter whose generated property implements a property of another (referenced) assembly; that name is dictated, as for properties under SHARED-CASING-014. Example: `public record Person(string name) : INamed;` with `INamed.name` declared in a referenced assembly is not reported.
 
+2. Batch before the test implementer (asked in chat), answered "as recommended" = **1A, 2B**:
+   - 1A: `public record Item(string title) : MetaRecord;` where `MetaRecord.title` is an abstract property of a referenced assembly — the parameter is not reported (override counts like implementation).
+   - 2B: a positional parameter for which the compiler declares no property, because the record inherits or declares a member of its name, is not reported when that member is dictated (SHARED-CASING-014): `public record Derived(string name) : Person(name);` (Person.name implements referenced `INamed.name`) is not reported; same for a property declared in the record's body that implements a referenced-assembly member, e.g. `record R(string name) : INamed { public string name { get; init; } = name; }`. Option C (also exempt when the matching inherited member merely comes from another assembly without being dictated, e.g. `record Local(string name) : MetaPerson(name)`) was NOT chosen — that stays reported.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -30,4 +34,5 @@
 - Spec author done (01, 243da8d): change doc `sdd/changes/2026-11/record-parameter-dictated-name.md` (Draft).
 - Open output question for the batch before the test implementer: the override case (`record Item(string title) : MetaRecord` where `MetaRecord.title` is an abstract property of a referenced assembly) — the maintainer's answer names only "implements"; a case the answer does not name is a new question.
 - Skeptic done (02, 6b36c13): premise confirmed (CS0535/CS0534 on rename), reachable. Output questions Q1 (override) and Q2 (parameter with no generated property because the record declares/inherits a member of its name) asked to the maintainer in one batch.
-- Next: wait for answers; then spec author follow-up (answers + decision 3 + Status: Accepted), then test implementer.
+- Answers received (1A, 2B). Lead accepts the change doc.
+- Next: spec author follow-up (fresh: earlier agent large, cache cold) — answers 1A/2B into change doc Decisions + spec, decision 3, Status: Accepted. Then test implementer.
