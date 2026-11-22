@@ -19,6 +19,7 @@
 | 3 | skeptic | Architecture finding FC-015: closing-token set listed in both `BraceBlankLinePolicy` and `CommentIndentationContributor` | Change the structure in this run: one shared predicate used by both components, routed to the implementer | The drift between the two lists is this issue's cause; the issue itself asks to keep them in step; the shared predicate is a few lines within the run's component and its named counterpart, far below escalation 9 | Both lists hold the same tokens after the change; no output changes beyond option A | |
 | 4 | skeptic | Is the issue comment recording option A the maintainer's answer? | Yes | Posted on the maintainer's account as an explicit decision, placing the run in 1.6.0 | — | |
 | 5 | skeptic | Output-question batch before the test implementer | None to ask | Every visible change is covered by the option-A answer (decision 1) | — | |
+| 6 | test implementer | Add a detached `FormatNode` test? | No | The rule depends only on the `)` token and its owning node, not on the entry point; the node-in-document path is covered by the RH3202 test | Tests only | f651f95 |
 
 ## Follow-up candidates
 
@@ -33,4 +34,5 @@
 - Done: spec author (01, fdca76f), lane check confirmed.
 - Done: skeptic (02, d5d0947) — proceed.
 - Done: spec author amendment (03, 96d9be0), change doc Accepted.
-- Next: test implementer (04).
+- Done: test implementer (04, f651f95/b65151b): 14 formatter + 2 RH3202 runs fail as intended, 4 pin unchanged behavior.
+- Next: implementer (05), incl. decision 3 (shared predicate).
