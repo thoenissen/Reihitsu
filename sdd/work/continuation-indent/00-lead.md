@@ -69,6 +69,15 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 | 14 | 08 spec author | RH5401 (expression-style get-only properties) behaves like RH5419 for modifier breaks and comments behind modifiers | Accept the RH5401-003/004 amendment: fix offered across a modifier/type break; withheld for a comment behind a modifier (formatter refuses) | Same scheme as row 11; otherwise a visible fix change would go unlisted | As row 11 | 88de891 |
 | 13 | 07 test impl. | Twelve RH5201 tests and similar would assert nothing once their input is refused (FC-017) | Rewrite their `return⏎/* c */` input as `_ =` so the layout is still checked | Keeps the tests meaningful; no output in question | Test-only | 0c9cbfd |
 | 15 | 09 test impl. | `SameLineGapRulePhaseTests.DocumentationCommentInFrontOfTheOperandOfAwaitKeepsItsPlace` runs a phase on input the precheck now refuses | Not a follow-up; dropped (no caller reaches it, AGENTS.md *Supported inputs*); the test stays as written | Unreachable input | Internal test | — |
+| 16 | 10 implementer | Three handed-over `ContinuationJoinTests` rows (`with`, anonymous-method modifier, `public class N { }`) are reshaped after the join by unchanged rules (FMT-BREAK-021, the block layout, the empty-type transform) | The unchanged rules win: spec author fixes the FMT-BREAK-041 examples, test implementer updates the rows | An unchanged requirement decides the output | Unchanged requirements demand it | (pending) |
+| 17 | 10 implementer | 54 existing tests pin columns, joins or inputs the accepted spec diff changes or refuses | Test implementer updates each to the specified output (or `AssertUnsupportedFor`), checking each against the clause 10 names | Outputs decided by the accepted change docs and maintainer answers | Covered by maintainer answers / accepted change docs | (pending) |
+| 18 | 10 implementer | RH5111 fix now joins `public⏎string` and the property collapses to one line | Accept; spec author lists it in `continuation-join.md` code fixes | Follows FMT-BREAK-041 (answers 1B/2B) | Decided under the standing instruction; named in PR Review notes | (pending) |
+| 19 | 10 implementer | `JoinSeparatorPhaseTests.DirectiveInTheGapStillRefusesEveryJoin` runs the phase on input the precheck now refuses | Test implementer removes or rewrites it to a reachable input; no join refusal is added | AGENTS.md *Supported inputs*; the change doc rules out the refusal | Internal test | (pending) |
+| 20 | 10 implementer | S1: `OperatorSpacingRule` now spaces pattern combinators, the `is` of a pattern match, and a `let` clause's `=`; `x is(1)` becomes `x is (1)` | Accept; spec author amends FMT-SPACE-010 and lists the change in a change doc | Needed by the specified outputs; canonical spacing; standing instruction | Decided under the standing instruction; named in PR Review notes | (pending) |
+| 21 | 10 implementer | S2: six new types have no code-owner rows; AGENTS.md table names no new owners | Spec author adds them | Spec-structure rules | Internal | (pending) |
+| 22 | 10 implementer | S3: six new types, ~1,380 production lines | Accept; not escalation 9 — it is the issues' own fix (README escalation 9 exempts it) | The code implements the run's own requirements | Internal | e2d55dd |
+| 23 | 10 implementer | S4: node-level root treated as a container | Spec author states it in FMT-INDENT-034 | Spec should say what the code relies on | Internal | (pending) |
+| 24 | 10 implementer | Special cases `CreateReturnStatement` and the `ListElementAligner` zero-width guard were reshaped, not deleted | Spec author corrects the change docs' Special cases accounting (checked and kept / changed, with reason) | Accounting must match the code | Internal | (pending) |
 | 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
 ## Follow-up candidates
@@ -78,6 +87,10 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - #1633: its case no longer exists because the base list `:` joins the type's line (04-spec-author.md).
 - Neighbouring gaps no answer named stay continuation lines: in front of `foreach … in`, `from x in⏎arr`, `on x⏎equals`, `>⏎1`, unary prefix operators, `;` of `return⏎;` (06-spec-author.md).
 - `case (⏎…⏎):` puts `case` alone on its line on `main` — looks wrong, outside the run (04-spec-author.md).
+
+## Open escalation 10 (ask before publishing)
+
+- S5 (10-implementer): declaring the remaining comment-held continuation lines unsupported. Lead recommendation: do not declare in this run (6A answered a continuation indent for the directive case). Ask before publishing (section 8 step 3).
 
 ## Audited SHA
 
@@ -99,4 +112,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Test implementer 07 done (3eb0971 tests, dabd60a handover): 268 formatter + 40 analyzer tests fail on main's code as expected.
 - Spec author 08 done (88de891).
 - Test implementer 09 done (0c9cbfd, af128ef).
-- Next: implementer (10).
+- Implementer 10 done (e2d55dd, 1217fad): tests pass except 3 disputed rows + 54 existing tests pinning old output.
+- Next: fresh spec author (11) for rows 16, 18, 20, 21, 23, 24; then fresh test implementer (12) for rows 16, 17, 19, 20; then implementer if anything fails; then cleaner.
