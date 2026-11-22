@@ -457,6 +457,110 @@ class C
 
 A chain with no line break next to a combinator keeps its layout, and so does a combinator next to a multi-line property, list, or parenthesized pattern, which already starts its own line on `main`.
 
+In a pattern a `case` label introduces — the label's pattern and every pattern behind its `and`, `or`, and `not` —, FMT-BREAK-022 leaves the brace of a multi-line property pattern without a type on the line it is written on, so the brace is a first token like any other: it joins the combinator in front of it (FMT-BREAK-017) and the `not` in front of it (FMT-BREAK-041), wherever the author broke the line. Behind `is`, and in a pattern the label does not introduce, FMT-BREAK-022 starts the brace on its own line and it stays below the combinator or the `not`. Input:
+
+```csharp
+class P
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    bool M(object o)
+    {
+        switch (o)
+        {
+            case P and
+            {
+            A: 1
+            }:
+                break;
+
+            case 1 or not
+            {
+            A: 2
+            }:
+                break;
+
+            case not
+            {
+            A: 3
+            }:
+                break;
+        }
+
+        return o is not
+        {
+        A: 4
+        };
+    }
+}
+```
+
+Before (`main`):
+
+```csharp
+        switch (o)
+        {
+            case P
+                 and
+            {
+                A: 1
+            }:
+                break;
+
+            case 1
+                 or not
+            {
+                A: 2
+            }:
+                break;
+
+            case not
+            {
+                A: 3
+            }:
+                break;
+        }
+
+        return o is not
+                 {
+                     A: 4
+                 };
+```
+
+After (the same as for the input written `case P and {`, `case 1 or not {`, and `case not {`, which `main` already kept on the combinator's or the `not`'s line):
+
+```csharp
+        switch (o)
+        {
+            case P
+                 and {
+                         A: 1
+                     }:
+                break;
+
+            case 1
+                 or not {
+                            A: 2
+                        }:
+                break;
+
+            case not {
+                         A: 3
+                     }:
+                break;
+        }
+
+        return o is not
+                 {
+                     A: 4
+                 };
+```
+
+No code fix formats a pattern on its own; a fix that formats a member or a statement holding such a label gives the same layout as whole-document formatting.
+
 ### 3. A comment, a directive, or disabled text in a joined gap refuses the file
 
 Input:
@@ -848,7 +952,7 @@ The gaps are one decision with one cause — the gaps the line-break phase joins
 
 ### The multi-line pattern's opening delimiter keeps its line (maintainer, batch 2, answer 10 A)
 
-FMT-BREAK-022 starts the opening brace of a multi-line property pattern on its own line, and the opening parenthesis of a multi-line parenthesized pattern as well. The `is` join, and the join of a right pattern onto its combinator, do not undo them: only the content moves (FMT-INDENT-026).
+FMT-BREAK-022 starts the opening brace of a multi-line property pattern on its own line, and the opening parenthesis of a multi-line parenthesized pattern as well. The `is` join, and the join of a right pattern onto its combinator, do not undo them: only the content moves (FMT-INDENT-026). FMT-BREAK-022 alone decides which token that is, by its own conditions, so its `case` label exception holds for the joins as well: in a pattern a `case` label introduces, directly or behind `and`, `or`, and `not`, the brace is not started on its own line, and the join behind a combinator or a `not` puts it on that token's line (lead, under the maintainer's standing instruction: join where nothing stands in the gap). One reading for `is`, `not`, and the combinators keeps one layout for one tree, which a copy of the condition without the exception did not.
 
 ## Alternatives considered
 
@@ -858,4 +962,5 @@ FMT-BREAK-022 starts the opening brace of a multi-line property pattern on its o
 - **Join only the gaps of the first list, and indent the neighbouring ones** — rejected by the maintainer (batch 2, answers 1 B and 2 B).
 - **Move only the combinator at the end of a line, as for binary operators** — rejected by the maintainer (batch 2, answer 5 B): a chain wrapped anywhere is wrapped at every combinator.
 - **Keep moving a type test's `is` to the next line** — rejected by the maintainer (batch 2, answer 4 B).
+- **Keep the brace of a `case` label's property pattern on its own line below a combinator or `not` when the author broke the line there** — rejected by the lead under the standing instruction: one tree would have two fixed points, depending on where the author broke the line, and a combinator or `not` would stand alone on its line.
 - **Ten requirements, one per gap, or one reason for all** — rejected: one cause, one requirement; the table keeps each gap's conditions and reason apart (batch 2, answer 9 A).

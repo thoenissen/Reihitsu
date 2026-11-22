@@ -75,6 +75,68 @@ error: <file>(7,30): unsupported syntax: a comment or directive behind an assign
 
 A comment behind the operator on one line, such as `/* c2 */`, which `main` formats as written, refuses the file the same way. A comment in front of the operator (`A = x /* c */ += 3`) or inside the value behind its first token is formatted as on `main`.
 
+The members of an object initializer, of a `with` initializer, and of an index initializer are assignment expressions, so a comment behind their `=` inside an arm or an anonymous-object member refuses the file as well. Input:
+
+```csharp
+using System.Collections.Generic;
+
+record R
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    object M(int y, R r)
+    {
+        var w = new
+                {
+                    B = r with { A = /* c1 */ 3 }
+                };
+
+        return y switch
+               {
+                   1 => new R { A = /* c2 */ 3 },
+                   2 => new Dictionary<int, int> { [0] = /* c3 */ 1 },
+                   _ => w,
+               };
+    }
+}
+```
+
+Before (`main`): each initializer is spread over its lines, the comments stay behind their `=`.
+
+```csharp
+        var w = new
+                {
+                    B = r with
+                          {
+                              A = /* c1 */ 3
+                          }
+                };
+
+        return y switch
+               {
+                   1 => new R
+                        {
+                            A = /* c2 */ 3
+                        },
+                   2 => new Dictionary<int, int>
+                        {
+                            [0] = /* c3 */ 1
+                        },
+                   _ => w,
+               };
+```
+
+After: the file is unchanged, and the CLI reports
+
+```
+error: <file>(14,38): unsupported syntax: a comment or directive behind an assignment operator inside a switch arm or an anonymous-object member. The file was left unchanged.
+```
+
+The same initializers outside an arm or a member (`var o = new R { A = /* c */ 3 };`) are formatted as on `main`.
+
 Code fixes: every code fix whose formatted node holds such an arm or member with the comment is withheld — the RH7101 fix for any such comment in the type it formats, and the RH2001 fix for one in the field it builds, such as `private object Value { get; } = new { A = s_count += /* three */ 3 };`. A fix that formats a node inside the arm or the member without the arm or the member, such as the RH5302 fix of a condition inside an arm, does not hold the shape (FMT-UNSUP-003) and stays offered. No rule reports a comment behind an assignment operator.
 
 No rule page changes: rule pages never describe the formatter.
@@ -94,7 +156,7 @@ None. The declaration replaces a decision rather than a guard: the column of a v
 
 ### Refuse instead of choosing a column (maintainer, batch 2, answer 8)
 
-The run asked whether the line takes its column from the arm's or member's line or from the statement's line; the maintainer answered that the shape is unsupported. The shape is written around the assignment operator, the gap whose comment leaves the line, and limited to the two constructs the question named.
+The run asked whether the line takes its column from the arm's or member's line or from the statement's line; the maintainer answered that the shape is unsupported. The shape is written around the assignment operator, the gap whose comment leaves the line, and limited to the two constructs the question named. The members of an object, `with`, and index initializer are assignment expressions in the syntax tree, so they count like any other assignment inside the arm or the member (lead, under the maintainer's standing instruction: the same shape as answer 8); excluding them would need a second condition on the assignment's parent and would leave the column question of answer 8 open for them.
 
 ### The arm or member is found by walking up to the nearest statement or member declaration
 
@@ -112,4 +174,5 @@ The reason names the operator and the two constructs, so the CLI's line tells th
 
 - **Measure the line from the arm's or member's line** — rejected by the maintainer (batch 2, answer 8).
 - **Measure the line from the statement's line** — rejected by the maintainer (batch 2, answer 8); it puts the line left of the construct it belongs to.
+- **Leave initializer members out of the shape** — not chosen by the lead under the standing instruction: a member's value behind such a comment raises the column question answer 8 declined, and the boundary stays one node kind.
 - **Refuse a comment behind every assignment operator, wherever the assignment stands** — not chosen: the maintainer's answer names the arm and the member, and the same line at statement level is the compound-assignment instance of thoenissen/Reihitsu#953, which keeps the continuation indent.

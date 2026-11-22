@@ -1473,7 +1473,7 @@ An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, i
 
 The conditions, each with both sides:
 
-- **An assignment expression.** The operator is `=` or a compound assignment operator (`+=`, `-=`, `??=`, and every other) of an assignment expression: `A = x += // c⏎3` and `1 => x = /* c */ 2` are refused. The `=` of a variable declarator, a property initializer, an enum member, a parameter's default value, an anonymous-object member declarator, or a `let` clause is not an assignment expression: the anonymous-object member's own `=` and the `=` of a `let` clause are FMT-UNSUP-017's (`new { A = /* c */ 1 }`).
+- **An assignment expression.** The operator is `=` or a compound assignment operator (`+=`, `-=`, `??=`, and every other) of an assignment expression: `A = x += // c⏎3` and `1 => x = /* c */ 2` are refused. The members of an object initializer, of the initializer of a `with` expression, and of an index initializer are assignment expressions too, whose left operand is the member or the index: `1 => new R { A = /* c */ 3 }`, `1 => r with { A = /* c */ 3 }`, `1 => new Dictionary<int, int> { [0] = /* c */ 1 }`, and `B = r with { A = /* c */ 3 }` in an anonymous-object member are refused, while the same initializers outside an arm or a member (`var o = new R { A = /* c */ 3 };`) are formatted (the third condition). The `=` of a variable declarator, a property initializer, an enum member, a parameter's default value, an anonymous-object member declarator, or a `let` clause is not an assignment expression: the anonymous-object member's own `=` and the `=` of a `let` clause are FMT-UNSUP-017's (`new { A = /* c */ 1 }`).
 - **Behind the operator.** Only the gap between the operator and the right operand's first token counts. A comment in front of the operator (`A = x /* c */ += 3`) or inside the right operand behind its first token (`A = x += M(/* c */ 1)`) does not refuse the input.
 - **Inside a switch arm or an anonymous-object member.** The assignment counts when the nearest switch-expression arm, anonymous-object member declarator, statement, or member declaration that contains it is an arm or a member declarator — in the arm's `when` clause or expression, or in the member's value, also nested in an argument, a collection expression, or a lambda with an expression body inside it. An assignment in a statement does not count, also when the statement stands in a lambda's block inside an arm (`1 => () => { x += // c⏎3; }`), and neither does one anywhere outside an arm or a member: `x += // c⏎3;`, `M(x += // c⏎3)`, and `int[] z = [y += // c⏎2];` are formatted, and FMT-INDENT-034 places the line behind the comment.
 - **On any line.** Whether the gap holds a line break does not matter: `A = x += /* c */ 3` on one line is refused like `A = x += // c⏎3`.
@@ -1511,9 +1511,47 @@ class C
 
 The location is the span of `// c1`, which starts in line 7, column 30.
 
-Example — the other side: none of these comments refuses the input under this requirement:
+Example — the members of an object initializer, of a `with` initializer, and of an index initializer are assignments; inside an arm or an anonymous-object member each one is refused, and the input is returned unchanged:
 
 ```csharp
+using System.Collections.Generic;
+
+record R
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    object M(int y, R r)
+    {
+        var w = new
+                {
+                    B = r with { A = /* c1 */ 3 }
+                };
+
+        return y switch
+               {
+                   1 => new R { A = /* c2 */ 3 },
+                   2 => new Dictionary<int, int> { [0] = /* c3 */ 1 },
+                   _ => w,
+               };
+    }
+}
+```
+
+The location is the span of `/* c1 */`, which starts in line 14, column 38.
+
+Example — the other side: none of these comments refuses the input under this requirement, also not those behind the `=` of an initializer member outside an arm and a member (`c5`, `c6`, `c7`):
+
+```csharp
+using System.Collections.Generic;
+
+record R
+{
+    public int A { get; set; }
+}
+
 class C
 {
     object M(int x, int y)
@@ -1529,8 +1567,11 @@ class C
                     A = x /* c3 */ += 3,
                     B = x += M2(/* c4 */ 1)
                 };
+        var o = new R { A = /* c5 */ 3 };
+        var p = o with { A = /* c6 */ 4 };
+        var d = new Dictionary<int, int> { [0] = /* c7 */ 1 };
 
-        return z.Length + w.A;
+        return z.Length + w.A + p.A + d.Count;
     }
 
     int M2(int v)
