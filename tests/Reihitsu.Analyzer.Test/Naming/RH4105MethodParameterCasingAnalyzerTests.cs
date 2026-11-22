@@ -2087,6 +2087,42 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps a letter number and a combining mark that start a word after the first as written, also
+    /// when the character has an uppercase mapping
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4105-003")]
+    public async Task FixKeepsALetterNumberOrCombiningMarkThatStartsALaterWordAsWritten()
+    {
+        const string twelve = "\u217B";
+        const string ypogegrammeni = "\u0345";
+
+        const string testCode = $$"""
+                                  class C
+                                  {
+                                      int M(int {|RH4105:order_{{twelve}}x|}, int {|RH4105:a_{{ypogegrammeni}}b|})
+                                      {
+                                          return order_{{twelve}}x + a_{{ypogegrammeni}}b;
+                                      }
+                                  }
+                                  """;
+
+        const string fixedCode = $$"""
+                                   class C
+                                   {
+                                       int M(int order{{twelve}}x, int a{{ypogegrammeni}}b)
+                                       {
+                                           return order{{twelve}}x + a{{ypogegrammeni}}b;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

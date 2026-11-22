@@ -331,5 +331,98 @@ public class CasingUtilitiesTests
         Assert.AreEqual(expected, CasingUtilities.ToTypeParameterName(input));
     }
 
+    /// <summary>
+    /// Tests that <see cref="CasingUtilities.ToPascalCase(string)"/> keeps a letter number or a combining mark that starts a
+    /// word after the first as written, also when the character has an uppercase mapping
+    /// </summary>
+    /// <param name="input">The string to convert to PascalCase</param>
+    /// <param name="expected">The expected PascalCase string</param>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [DataRow("class_ⅻ", "Classⅻ")]
+    [DataRow("order_ⅻx", "Orderⅻx")]
+    [DataRow("order_ⅰ_line", "OrderⅰLine")]
+    [DataRow("a_ͅb", "Aͅb")]
+    [DataRow("CLASS_ⅿ", "Classⅿ")]
+    public void ToPascalCaseKeepsALetterNumberOrCombiningMarkThatStartsALaterWordAsWritten(string input, string expected)
+    {
+        Assert.AreEqual(expected, CasingUtilities.ToPascalCase(input));
+    }
+
+    /// <summary>
+    /// Tests that <see cref="CasingUtilities.ToCamelCase(string)"/> keeps a letter number or a combining mark that starts a
+    /// word after the first as written, also when the character has an uppercase mapping
+    /// </summary>
+    /// <param name="input">The string to convert to camelCase</param>
+    /// <param name="expected">The expected camelCase string</param>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [DataRow("class_ⅻ", "classⅻ")]
+    [DataRow("order_ⅻx", "orderⅻx")]
+    [DataRow("a_ͅb", "aͅb")]
+    public void ToCamelCaseKeepsALetterNumberOrCombiningMarkThatStartsALaterWordAsWritten(string input, string expected)
+    {
+        Assert.AreEqual(expected, CasingUtilities.ToCamelCase(input));
+    }
+
+    /// <summary>
+    /// Tests that <see cref="CasingUtilities.ToUnderlineCamelCase(string)"/> keeps a letter number or a combining mark that
+    /// starts a word after the first as written, also when the character has an uppercase mapping
+    /// </summary>
+    /// <param name="input">The string to convert to _camelCase</param>
+    /// <param name="expected">The expected _camelCase string</param>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [DataRow("class_ⅻ", "_classⅻ")]
+    [DataRow("order_ⅻx", "_orderⅻx")]
+    [DataRow("a_ͅb", "_aͅb")]
+    public void ToUnderlineCamelCaseKeepsALetterNumberOrCombiningMarkThatStartsALaterWordAsWritten(string input, string expected)
+    {
+        Assert.AreEqual(expected, CasingUtilities.ToUnderlineCamelCase(input));
+    }
+
+    /// <summary>
+    /// Tests that every PascalCase, camelCase, and _camelCase derivation keeps each letter number, combining mark, and connector
+    /// punctuation other than <c>_</c> as written when it starts a word after the first, for every such character
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    public void EveryDerivationKeepsEachCharacterThatIsKeptAsWrittenWhenItStartsALaterWord()
+    {
+        var failures = new System.Collections.Generic.List<string>();
+
+        for (var code = 0; code <= char.MaxValue; code++)
+        {
+            var character = (char)code;
+
+            if (character == '_'
+                || char.IsSurrogate(character))
+            {
+                continue;
+            }
+
+            var category = char.GetUnicodeCategory(character);
+
+            if (category != System.Globalization.UnicodeCategory.LetterNumber
+                && category != System.Globalization.UnicodeCategory.NonSpacingMark
+                && category != System.Globalization.UnicodeCategory.SpacingCombiningMark
+                && category != System.Globalization.UnicodeCategory.ConnectorPunctuation)
+            {
+                continue;
+            }
+
+            var input = $"a_{character}b";
+
+            if (CasingUtilities.ToPascalCase(input) != $"A{character}b"
+                || CasingUtilities.ToCamelCase(input) != $"a{character}b"
+                || CasingUtilities.ToUnderlineCamelCase(input) != $"_a{character}b")
+            {
+                failures.Add($"U+{code:X4}");
+            }
+        }
+
+        Assert.IsEmpty(failures, $"Characters changed at the start of a later word: {string.Join(", ", failures)}");
+    }
+
     #endregion // Tests
 }

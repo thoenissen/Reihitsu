@@ -310,5 +310,283 @@ public class RH4116TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4116Tup
         await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
+    /// <summary>
+    /// Verifies that the element names of tuple types in the return type and the parameter types of a unary, a binary, and a
+    /// checked operator that implicitly implement static abstract operators declared in a referenced assembly are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfAnOperatorThatImplementsAReferencedAssemblyOperatorAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IOps<T>
+                                          where T : IOps<T>
+                                      {
+                                          static abstract (int first, int second) operator +(T left, T right);
+
+                                          static abstract (int first, int second) operator checked +(T left, T right);
+
+                                          static abstract T operator -(T value, (int low, int high) range);
+
+                                          static abstract (int count, int total) operator !(T value);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public struct P : IOps<P>
+                                {
+                                    public static (int first, int second) operator +(P left, P right) => default;
+
+                                    public static (int first, int second) operator checked +(P left, P right) => default;
+
+                                    public static P operator -(P value, (int low, int high) range) => default;
+
+                                    public static (int count, int total) operator !(P value) => default;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types in the signature of an implicit and of an explicit conversion operator
+    /// that implicitly implement static abstract conversion operators declared in a referenced assembly are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfAConversionOperatorThatImplementsAReferencedAssemblyOperatorAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IConversions<T>
+                                          where T : IConversions<T>
+                                      {
+                                          static abstract implicit operator (int low, int high)(T value);
+
+                                          static abstract explicit operator T((int first, int second) value);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public struct P : IConversions<P>
+                                {
+                                    public static implicit operator (int low, int high)(P value) => default;
+
+                                    public static explicit operator P((int first, int second) value) => default;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types in the signature of explicit interface implementations of an operator and
+    /// of a conversion operator declared in a referenced assembly are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfAnExplicitImplementationOfAReferencedAssemblyOperatorAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IOps<T>
+                                          where T : IOps<T>
+                                      {
+                                          static abstract (int first, int second) operator +(T left, T right);
+
+                                          static abstract implicit operator (int low, int high)(T value);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public struct P : IOps<P>
+                                {
+                                    static (int first, int second) IOps<P>.operator +(P left, P right) => default;
+
+                                    static implicit IOps<P>.operator (int low, int high)(P value) => default;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of a tuple type in the parameter type of an instance compound assignment operator that
+    /// implements an operator declared in a referenced assembly are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfACompoundAssignmentOperatorThatImplementsAReferencedAssemblyOperatorAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IAccumulator
+                                      {
+                                          void operator +=((int first, int second) value);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public class Accumulator : IAccumulator
+                                {
+                                    public void operator +=((int first, int second) value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types in the signatures of operators and conversion operators that implement
+    /// only operators declared in this compilation, or implement nothing, are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfAnOperatorThatIsNotDictatedAreReported()
+    {
+        const string testCode = """
+                                public interface ILocalOps<T>
+                                    where T : ILocalOps<T>
+                                {
+                                    static abstract (int {|RH4116:first|}, int {|RH4116:second|}) operator +(T left, T right);
+
+                                    static abstract implicit operator (int {|RH4116:low|}, int {|RH4116:high|})(T value);
+                                }
+
+                                public struct P : ILocalOps<P>
+                                {
+                                    public static (int {|RH4116:first|}, int {|RH4116:second|}) operator +(P left, P right) => default;
+
+                                    public static implicit operator (int {|RH4116:low|}, int {|RH4116:high|})(P value) => default;
+                                }
+
+                                public struct Q : ILocalOps<Q>
+                                {
+                                    static (int {|RH4116:first|}, int {|RH4116:second|}) ILocalOps<Q>.operator +(Q left, Q right) => default;
+
+                                    static implicit ILocalOps<Q>.operator (int {|RH4116:low|}, int {|RH4116:high|})(Q value) => default;
+                                }
+
+                                public struct R
+                                {
+                                    public static (int {|RH4116:count|}, int {|RH4116:total|}) operator -(R left, R right) => default;
+
+                                    public static explicit operator R((int {|RH4116:first|}, int {|RH4116:second|}) value) => default;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a field-like event with several declarators are not reported when a
+    /// declarator other than the first implements an event declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfAnEventFieldAreNotReportedWhenALaterDeclaratorIsDictated()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IMeta
+                                      {
+                                          event System.Action<(int first, int second)> changed;
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System;
+
+                                using Meta;
+
+                                public class Second : IMeta
+                                {
+                                    public event Action<(int first, int second)> local, changed;
+                                }
+
+                                public class Middle : IMeta
+                                {
+                                    public event Action<(int first, int second)> local, changed, other;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a field-like event with several declarators are reported when no
+    /// declarator implements an event declared outside the compilation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfAnEventFieldAreReportedWhenNoDeclaratorIsDictated()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface ILocal
+                                {
+                                    event Action<(int {|RH4116:first|}, int {|RH4116:second|})> changed;
+                                }
+
+                                public class Second : ILocal
+                                {
+                                    public event Action<(int {|RH4116:first|}, int {|RH4116:second|})> local, changed;
+                                }
+
+                                public class Plain
+                                {
+                                    public event Action<(int {|RH4116:low|}, int {|RH4116:high|})> local, other;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
