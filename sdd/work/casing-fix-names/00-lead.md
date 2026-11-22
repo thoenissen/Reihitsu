@@ -34,3 +34,9 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 
 - Claim done (empty commit, draft PR #1934), SDK installed.
 - Next: spec author (change doc + spec diff for all four issues).
+
+## Progress log
+
+- Spec author done (`8939ef7`, `a351dd2`): change docs written for all four; nine output questions (handover `01-spec-author.md`, *Whole run*). New IDs SHARED-CASING-013 (keyword `@`) and SHARED-CASING-014 (dictated names).
+- Follow-up candidate: RH4120 positional record parameter whose generated property implicitly implements a referenced-assembly property is still reported (from `01-spec-author.md`).
+- Next: skeptic, then output-question batch.
