@@ -21,6 +21,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Architecture finding: the rule for which position-sensitive directives a move may carry is stated twice (`OrderingMoveSafety.RelocationChangesDirectiveScope` and RH7309's `ContainsUnsafeDirectives`) | Change the structure in this run: SHARED-ORDER-011 is implemented once and RH7309 uses the shared check; routed to the implementer | The narrow fix would otherwise add a second copy of the new pairing rule; both components are already changed by the run | Internal structure; outputs decided by SHARED-ORDER-011 and the answers | – |
+| 2 | Skeptic | Declaring a shape unsupported | Not an option for either issue (ordering fixes do not use the formatter for the guarded text; no formatter special case deleted) — no escalation 10 | skeptic handover | – | – |
+| 3 | Skeptic | Stale goals of #970: remove an open-question non-goal that does not exist on `main`; bug-fix lane; RH7309 missing from ID list | Drop the non-goal goal; lane is behavior-change; RH7309 decided by 970-2 | agent-filed goals are proposals | No visible output; RH7309 goes to the maintainer as 970-2 | – |
 
 ## Follow-up candidates
 
@@ -28,5 +31,6 @@
 
 ## State
 
+- Skeptic done (c72272a): extra Q 970-3, 970-4; spec wording fixes pending for spec author after answers (RH7309 clause wording, intro paragraph naming RH7309 for SHARED-ORDER-011, RH7103 split-pair example → state for RH7107; SHARED-ORDER-006 Why sentence on `#if DEBUG` bodies if 1668-1 B); test implementer must update three existing tests (02-skeptic.md).
 - Last step: spec author (88ae496): #970 spec + change doc written; #1668 draft change doc, spec waits for answer. Open output questions 970-1, 970-2, 1668-1, 1668-2.
-- Next: skeptic, then batch output questions.
+- Next: WAITING for maintainer answers to batch 1 (970-1..4, 1668-1, 1668-2), then spec author (amend + Accepted), then test implementer.
