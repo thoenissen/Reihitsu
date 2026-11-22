@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: <filled by commit below>
+Commit: ff7330f (tests and this handover; run on head 7f41ed4)
 Verdict: tests written
 
 Repair round 1, thoenissen/Reihitsu#1929, audit finding #1 (`11-auditor.md`), answer 9A (`00-lead.md`). My prompt carried no intended fix, suspected cause, or hoped-for verdict.
@@ -42,7 +42,7 @@ _Not a bug-fix stage._
 - FC-001–FC-009, FC-011, FC-013, FC-018–FC-026, FC-029, FC-030, FC-036–FC-044: no new guard, join, rename, fix action, or unsupported shape. FC-010/FC-012 (idempotency) and FC-017 (assertion strength) are covered by `AssertRuleResult`. FC-016/FC-027 (all instances and nesting levels) are the member table, covered above.
 
 ## Spec finding
-The spec author's RH5206 code-fix example (`12-spec-author.md`, and the change doc's *Code fixes* section if it quotes it) does not compile: `not Q { A: 3, A: 4 }` can never fail to match, so the following `_ => 0` arm is unreachable (CS8510). The test gives `Q` a second property `B` and uses `B: 4`. This changes no column of the asserted output. The lead should have the spec author correct the example wherever it is quoted.
+The spec author's RH5206 code-fix example (`12-spec-author.md`, and the change doc `sdd/changes/2026-11/pattern-anchor-behind-wrapper.md:621`) does not compile: `not Q { A: 3, A: 4 }` can never fail to match, so the following `_ => 0` arm is unreachable (CS8510). The test gives `Q` a second property `B` and uses `B: 4`. This changes no column of the asserted output. The lead should have the spec author correct the example wherever it is quoted.
 
 ## Commands
 ```shell
