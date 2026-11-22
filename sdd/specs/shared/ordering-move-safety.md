@@ -916,7 +916,7 @@ public class C
 }
 ```
 
-is reported, and no code fix is offered, whether or not `DEBUG` is defined. The same group keeps a move that reorders no instance field, for RH7103:
+is reported, and no code fix is offered, whether or not `DEBUG` is defined. A group in the body in front of the spans keeps a move that reorders no instance field, for RH7103:
 
 ```csharp
 public class C
@@ -924,6 +924,8 @@ public class C
 #if DEBUG
     private int _trace;
 #endif
+    private int _count;
+
     public void Run()
     {
     }
@@ -940,6 +942,8 @@ public class C
 #if DEBUG
     private int _trace;
 #endif
+    private int _count;
+
     public static void Create()
     {
     }
@@ -949,6 +953,8 @@ public class C
     }
 }
 ```
+
+Without `_count`, the `#endif` would stand in the leading trivia of `Run`, the target, where the crossed span starts (SHARED-ORDER-003): the group would lie in the crossed span, and no code fix is offered.
 
 ### SHARED-ORDER-009 — A move moves whole lines
 
