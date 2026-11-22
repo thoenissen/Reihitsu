@@ -20,6 +20,7 @@
    - 2A: colour follows the parser — `var`, `nameof`, `dynamic`, `value` as identifiers when parsed as identifiers; contextual keywords parsed as keywords (`partial`, `async`, `await`, `get`, `set`, `where` in a constraint) as keywords.
    - 3A: an empty span at a line break is marked one character wide just behind the line's last character; in front of an ordinary character that character is marked; at end of text a mark behind the last character.
    - 4A: everything inside a doc comment is comment colour; directive text is directive colour; comment trivia behind a directive (`#endregion // Methods`) is comment colour.
+8. Escalation 9 (incremental highlighting, +534 production lines, two new types): answer A — keep the full incremental fix since it works.
 6. Delivery: issue filed (#1941, milestone 1.6.0), run through the squad in this session.
 
 ## Decisions taken
@@ -33,10 +34,12 @@
 | 6 | repair 1 (11) | Keep the implementer's extra `:focus-visible` outline on the output pane? | Keep | A keyboard focus stop without a visible focus indicator is an accessibility defect of finding 4's own repair | Styling, a spec non-goal; it mirrors the input's existing outline | 9bf2670 |
 | 7 | repair 1 (13) | Spec gap: PLAY-012 does not state the keyboard reachability the output test asserts | Spec author adds one sentence to PLAY-012 (no new ID) | Test tag must be backed by spec text | On `main` the output is a focusable text area; the sentence keeps that existing reachability | 7bead9d |
 | 8 | audit 2 (16) | Finding 7 (output `pre` named via `aria-labelledby` without a nameable role) repeats finding 4's class | Handled as an architecture finding by its cause, not as a repair round: the test helper decides the name by the ARIA rule that a role-less `pre`/`div`/`span` cannot be named, and the output pane gets a role that may be named; also correct the `Parse` summary (hint) | The cause is the element's role, not the one attribute; fixing the helper's rule stops the next member | Restores the name PLAY-002 already gives the pane; no new visible output | 9dbe708 |
-| 9 | validation (21) | Repair round 2 worklist | V1: panes grow to their content width instead of scrolling inside (violates PLAY-012; caret off screen) → test implementer (a test that fails on it, at the strongest level the harness allows) + implementer. V2: pasting/typing large input is far too slow (300-line fill 27 s, 1000 lines > 120 s) → implementer finds the cause and fixes it; acceptance bar set by the lead: pasting a 1000-line file re-colours in about 2 s or less and a keystroke at 1000 lines stays under about 100 ms in Release, measured by the validator; test implementer adds a deterministic test only if one can pin the fix without timing | Both PR-introduced; main's text areas neither grow nor re-render | V1 restores PLAY-012 as written; V2 is responsiveness, not output | pending |
+| 9 | validation (21) | Repair round 2 worklist | V1: panes grow to their content width instead of scrolling inside (violates PLAY-012; caret off screen) → test implementer (a test that fails on it, at the strongest level the harness allows) + implementer. V2: pasting/typing large input is far too slow (300-line fill 27 s, 1000 lines > 120 s) → implementer finds the cause and fixes it; acceptance bar set by the lead: pasting a 1000-line file re-colours in about 2 s or less and a keystroke at 1000 lines stays under about 100 ms in Release, measured by the validator; test implementer adds a deterministic test only if one can pin the fix without timing | Both PR-introduced; main's text areas neither grow nor re-render | V1 restores PLAY-012 as written; V2 is responsiveness, not output | 7791652 |
 | 5 | audit 1 (09) | Pre-existing `@media (max-width: 700px)` pane height overridden by the later base rule in `app.css` | Adjacent fix in this run, with a stylesheet test | A few lines in a file the run already rewrites; restores the narrow-screen height the stylesheet already intends | Restores the stylesheet's own stated layout; styling is a spec non-goal | 9bf2670 |
 
 ## Follow-up candidates
+
+- Playground: process only the latest of several queued input events, and keep the output pane out of renders caused only by typing (from 23-implementer.md).
 
 ## Audited SHA
 
@@ -46,4 +49,4 @@ fcb82346886ea93149e5229451aa87a43b7438fb (audit 1, base main 1788f94)
 
 ## Next step
 
-Implementer (23, 7791652) fixed V1 (minmax tracks) and V2 with incremental highlighting: +534 production lines, two new types (PlaygroundHighlighting, PlaygroundHighlightedLine). Escalation 9 asked to the maintainer: A keep incremental / B cause-1 only (~60 lines, keystroke ~450 ms at 1000 lines) / C B + colour after a typing pause. Lead recommends B. Waiting. Pending afterwards: code owners for new types (spec author), equivalence test candidate, follow-up candidate (coalesce input events, keep output out of typing renders).
+Maintainer answered A (answer 8). Spec author (24: code owners for PlaygroundHighlighting, PlaygroundHighlightedLine) and test implementer (25: equivalence test after edits) in parallel → cleaner (26) → spec checker (27) → auditor repair-only (28) → validator (29) with real-paste measurement.
