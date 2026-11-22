@@ -23,6 +23,8 @@
 | 1 | spec author | One requirement or two (assignment `=` vs. switch-arm `=>`) | Two: FMT-UNSUP-020 and FMT-UNSUP-021, each with its own reason | Separate gaps, separate reasons for the CLI report | The maintainer's answer covers both shapes; requirement split is internal | 4046a07 |
 | 3 | skeptic | Initializer members (object/`with`/index) as assignments | Count them (as the spec author wrote) | They are assignment expressions, as FMT-UNSUP-019 already counts them | Covered by the maintainer's answer ("the `=` of an assignment") | 4046a07 |
 | 4 | skeptic | Issue goals "a CLI test per input" / "a code-fix test per input" | One precheck test per input (CLI path already pinned by CLI-019 end-to-end tests); one test per affected fix plus the must-stay-offered cases | Coverage first | Tests only | — |
+| 5 | spec author (03) | Does an equals-value clause formatted on its own hold the whole gap (refused) | Yes, pending the skeptic's check of the amendment: no caller formats a bare clause (RH5111 formats the declaration/list/enum, RH5303 the object creation), and it lets both equals-value refusals go | Deletes refusals; direct-call examples retargeted | No caller reaches a bare clause (AGENTS.md, Supported inputs) | 0106e32 |
+| 6 | lead | Re-run the skeptic on the amended spec | Yes, fresh skeptic on 03's amendment before batch 2 | Answer 3A added shapes and a FMT-UNSUP-003 reading no skeptic has checked; its questions join batch 2 so the run stops once | Process only | — |
 | 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
@@ -33,5 +35,7 @@
 ## State
 
 - Batch 1 answered (1B, 2A, 3A).
-- Now: one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
+- Done: spec-author amendment (03, commits 0106e32, 4f7624a). Open output questions from 03: reason wording; attribute-argument / using-alias `=`.
+- Now: fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
+- (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
