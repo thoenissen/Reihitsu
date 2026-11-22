@@ -2,14 +2,14 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BLANK-019 (changed), FMT-BLANK-009 (changed), FMT-BLANK-018 (changed), FMT-BLANK-020 (changed) |
 | Depends on | [positional-pattern-layout.md](positional-pattern-layout.md), [own-line-comment-before-every-brace.md](own-line-comment-before-every-brace.md) |
 
 ## What
 
-FMT-BLANK-019 removes the blank lines directly before the closing `)` of the positional pattern clause of a recursive pattern — `(1, 2)` in `o is (1, 2)` and in `o is P(1, 2)`, behind `is`, in a switch expression arm, and in a `case` label — as it already does before the closing `]` of a list pattern and the closing `)` of a parenthesized pattern.
+FMT-BLANK-019 removes the blank lines directly before the closing `)` of the positional pattern clause of a recursive pattern — `(1, 2)` in `o is (1, 2)` and in `o is P(1, 2)`, wherever the pattern stands, for example behind `is`, in a switch expression arm, or in a `case` label — as it already does before the closing `]` of a list pattern and the closing `)` of a parenthesized pattern.
 
 The requirements that read FMT-BLANK-019's set of tokens follow without a rule of their own, because they name the tokens FMT-BLANK-019 names:
 
@@ -139,6 +139,70 @@ class C
                      ) => 1,
                     _ => 0,
                 };
+    }
+}
+```
+
+In a clause with no subpattern, the blank line behind the `(` is also the one directly before the `)`, and it is removed, as in an empty list pattern on `main` (FMT-BLANK-019).
+
+Input:
+
+```csharp
+class P
+{
+    public void Deconstruct()
+    {
+    }
+}
+
+class C
+{
+    void M(object o)
+    {
+        var a = o is P(
+
+        );
+    }
+}
+```
+
+Before:
+
+```csharp
+class P
+{
+    public void Deconstruct()
+    {
+    }
+}
+
+class C
+{
+    void M(object o)
+    {
+        var a = o is P(
+
+                      );
+    }
+}
+```
+
+After:
+
+```csharp
+class P
+{
+    public void Deconstruct()
+    {
+    }
+}
+
+class C
+{
+    void M(object o)
+    {
+        var a = o is P(
+                      );
     }
 }
 ```
@@ -320,8 +384,8 @@ class C
 
 ### Unchanged
 
-- A blank line behind the `(` of a positional pattern is kept, as behind the `[` of a list pattern (FMT-BLANK-019).
-- The closing parenthesis of any other node — an argument list, a parameter list, a tuple expression, a parenthesized variable designation such as `var (x, y)` — is not named, and its blank lines are not changed by this change.
+- A blank line behind the `(` of a positional pattern that holds a subpattern is kept, as behind the `[` of a list pattern (FMT-BLANK-019).
+- The closing parenthesis of any other node — an argument list, a parameter list, a tuple expression, a parenthesized variable designation such as `var (x, y)` — is not named; its blank lines are kept, collapsed to one (FMT-BLANK-014), as before this change.
 - Below a region directive the blank line in front of the `)` stays (SHARED-BLANK-006, FMT-BLANK-013), as in front of a list pattern's `]`.
 - No rule page changes: no analyzer rule reports a blank line in front of a pattern's closing delimiter.
 
@@ -329,7 +393,7 @@ class C
 
 ### Option A of the output question on thoenissen/Reihitsu#1935
 
-Decided by the maintainer (2026-11-22): the blank line in front of a positional pattern's closing `)` is removed, like the one in front of a list pattern's `]`, and the requirements that refer to FMT-BLANK-019 follow. Visible output changes 1 and 3 are that answer; visible output change 2 is the same token set read by FMT-BLANK-009, FMT-BLANK-018, and FMT-BLANK-020.
+Decided by the maintainer (2026-11-22): the blank line in front of a positional pattern's closing `)` is removed, like the one in front of a list pattern's `]`, and the requirements that refer to FMT-BLANK-019 follow. Visible output changes 1 and 3 are that answer, the empty clause of change 1 included, which follows the empty list pattern's `[⏎]` on `main`; visible output change 2 is the same token set read by FMT-BLANK-009, FMT-BLANK-018, and FMT-BLANK-020.
 
 ### The node that owns the `)` decides
 

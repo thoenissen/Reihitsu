@@ -2266,7 +2266,7 @@ class C
 
 ### FMT-BLANK-019 — No blank line before the closing bracket of a collection expression or pattern
 
-The formatter MUST remove the blank lines directly before the closing bracket of a collection expression or a list pattern, before the closing parenthesis of a parenthesized pattern, and before the closing parenthesis of the positional pattern clause of a recursive pattern — `(1, 2)` in `o is (1, 2)` and in `o is P(1, 2)`, whether the pattern stands behind `is`, in a switch expression arm, or in a `case` label. The kind of the token and the node that owns it decide: a closing parenthesis owned by any other node, such as the argument list of an invocation, is not named here, and the blank lines directly before it are decided as FMT-BLANK-018 states for any other token. A blank line behind the opening bracket or parenthesis is kept. This requirement does not remove the blank line directly below a region directive: the line below it starts with the closing bracket or parenthesis, not with a closing brace, so SHARED-BLANK-006 requires it to be blank and FMT-BLANK-013 inserts it. Behind another directive, FMT-BLANK-009 decides which blank lines are removed, and behind a comment that ends its line, FMT-BLANK-020.
+The formatter MUST remove the blank lines directly before the closing bracket of a collection expression or a list pattern, before the closing parenthesis of a parenthesized pattern, and before the closing parenthesis of the positional pattern clause of a recursive pattern — `(1, 2)` in `o is (1, 2)` and in `o is P(1, 2)`, wherever the pattern stands, for example behind `is`, in a switch expression arm, in a `case` label, behind `not`, or nested in another subpattern. The kind of the token and the node that owns it decide, never the context of that node: a closing parenthesis owned by any other node, such as the argument list of an invocation, is not named here; no requirement decides the blank lines directly before it, so they are kept, collapsed to one (FMT-BLANK-014). A blank line behind the opening bracket or parenthesis is kept, unless it is also directly before the closing one, as in a construct with no element such as `P(⏎⏎)` or `[⏎⏎]`, where it is removed. This requirement does not remove the blank line directly below a region directive: the line below it starts with the closing bracket or parenthesis, not with a closing brace, so SHARED-BLANK-006 requires it to be blank and FMT-BLANK-013 inserts it. Behind another directive, FMT-BLANK-009 decides which blank lines are removed, and behind a comment that ends its line, FMT-BLANK-020.
 
 Why: The closing token ends a construct that FMT-BREAK-022 lays out one element per line; a blank line in front of it adds height without separating two elements, as a blank line before a closing brace does (FMT-BLANK-007). The positional pattern clause is laid out like a list pattern (FMT-BREAK-022, FMT-INDENT-025), so a blank line before its `)` separates no two subpatterns either. The blank line behind the opening token is the author's, and no rule has removed it. Below a region directive the shared rule asks for the blank line, and RH5032 would report its removal.
 
@@ -2383,6 +2383,50 @@ class C
                      ) => 1,
                     _ => 0,
                 };
+    }
+}
+```
+
+Example — a construct with no element:
+
+```csharp
+class P
+{
+    public void Deconstruct()
+    {
+    }
+}
+
+class C
+{
+    void M(object o, int[] arr)
+    {
+        var a = o is P(
+
+        );
+        var b = arr is [
+
+        ];
+    }
+}
+```
+
+```csharp
+class P
+{
+    public void Deconstruct()
+    {
+    }
+}
+
+class C
+{
+    void M(object o, int[] arr)
+    {
+        var a = o is P(
+                      );
+        var b = arr is [
+                       ];
     }
 }
 ```
