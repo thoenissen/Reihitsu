@@ -1135,8 +1135,8 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
 
     /// <summary>
     /// Verifies that a field with a leading acronym, whose derived name equals the derived name of another field of the
-    /// class, is skipped by Fix All together with that field, while a single fix renames the first and is then withheld for
-    /// the second
+    /// class, is skipped by Fix All together with that field while Fix All still renames a field whose derived name collides
+    /// with nothing, and that a single fix renames the first colliding field and is then withheld for the second
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1149,8 +1149,9 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                 {
                                     private int {|RH4106:HTTPClient|};
                                     private int {|RH4106:HttpClient|};
+                                    private int {|RH4106:Count|};
 
-                                    public int Sum => HTTPClient + HttpClient;
+                                    public int Sum => HTTPClient + HttpClient + Count;
                                 }
                                 """;
 
@@ -1159,10 +1160,22 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  {
                                      private int _httpClient;
                                      private int {|RH4106:HttpClient|};
+                                     private int _count;
 
-                                     public int Sum => _httpClient + HttpClient;
+                                     public int Sum => _httpClient + HttpClient + _count;
                                  }
                                  """;
+
+        const string batchFixedCode = """
+                                      public class C
+                                      {
+                                          private int {|RH4106:HTTPClient|};
+                                          private int {|RH4106:HttpClient|};
+                                          private int _count;
+
+                                          public int Sum => HTTPClient + HttpClient + _count;
+                                      }
+                                      """;
 
         await Verify(testCode,
                      fixedCode,
@@ -1170,8 +1183,11 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                             {
                                 // The diagnostics whose fix is withheld stay and are marked in the expected sources
                                 test.FixedState.MarkupHandling = MarkupMode.Allow;
-                                test.BatchFixedState.Sources.Add(testCode);
+                                test.BatchFixedState.Sources.Add(batchFixedCode);
                                 test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+
+                                // The skipped group keeps the Fix All loop running for a second pass that changes nothing
+                                test.NumberOfFixAllIterations = -2;
                             });
     }
 
