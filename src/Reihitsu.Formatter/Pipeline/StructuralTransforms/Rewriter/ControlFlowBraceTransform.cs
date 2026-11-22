@@ -52,18 +52,15 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// needs to parse back to the block (FMT-STRUCT-026): a line break behind the opening brace when a comment leads the
     /// statement, a line break behind a single-line comment that ends the statement's trailing trivia without one, and a line
     /// break behind the closing brace when a comment or a directive leads the token that follows it. The statement keeps the
-    /// comments around it together with the whitespace and line breaks the author wrote in front of and between them. Where
-    /// no line break may be written, a statement whose braces would need one stays unbraced (FMT-BREAK-044)
+    /// comments around it together with the whitespace and line breaks the author wrote in front of and between them
     /// </summary>
     /// <param name="statement">The statement to inspect</param>
     /// <param name="nextToken">The token that follows the inserted closing brace, read from the original tree, whose leading trivia decides whether the closing brace needs a line break behind it; <see langword="default"/> when another inserted closing brace follows it</param>
     /// <param name="endOfLine">The end-of-line sequence of a separator line break</param>
-    /// <param name="forbidsLineBreak">Whether the statement stands in an interpolation that cannot hold a line break in the target language version</param>
     /// <returns>The braced statement, or the statement as written when it is not wrapped</returns>
     private static StatementSyntax WrapWithBraces(StatementSyntax statement,
                                                   SyntaxToken nextToken,
-                                                  string endOfLine,
-                                                  bool forbidsLineBreak)
+                                                  string endOfLine)
     {
         if (CanWrap(statement) == false)
         {
@@ -87,12 +84,6 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         var closeBraceTrailingTrivia = StartsWithCommentOrDirective(nextToken.LeadingTrivia)
                                            ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
                                            : default;
-
-        if (forbidsLineBreak
-            && (openBraceTrailingTrivia.Count > 0 || closeBraceTrailingTrivia.Count > 0))
-        {
-            return statement;
-        }
 
         // The braces are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
         return SyntaxFactory.Block(SyntaxFactory.Token(default, SyntaxKind.OpenBraceToken, openBraceTrailingTrivia),
@@ -159,6 +150,25 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the bodies of an <c>if</c> statement stay unbraced because an interpolation that contains it
+    /// cannot hold a line break in the language version and holds a documentation comment anywhere between its braces
+    /// (FMT-BREAK-044). Such a comment can lead a token on the line, and the separator in front of it would be a line break
+    /// (FMT-STRUCT-026), so the whole interpolation is refused instead of deciding each brace. An interpolation that holds the
+    /// comment and stands inside one that cannot hold a line break counts as well, since that one holds the comment too
+    /// </summary>
+    /// <param name="ifStatement">The <c>if</c> statement of the original tree</param>
+    /// <param name="languageVersion">Effective language version the code is compiled with</param>
+    /// <returns><see langword="true"/> if the bodies stay unbraced; otherwise, <see langword="false"/></returns>
+    private static bool IsInSingleLineInterpolationWithDocumentationComment(IfStatementSyntax ifStatement, LanguageVersion languageVersion)
+    {
+        return StringInterpolationUtilities.IsInsideSingleLineInterpolation(ifStatement, languageVersion)
+               && ifStatement.Ancestors()
+                             .OfType<InterpolationSyntax>()
+                             .Any(interpolation => interpolation.DescendantTrivia().Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia)
+                                                   && StringInterpolationUtilities.IsInsideSingleLineInterpolation(interpolation, languageVersion));
+    }
+
+    /// <summary>
     /// Determines whether a comment, a directive, or disabled text is the first trivia on the line a leading trivia list
     /// starts on, in front of any line break
     /// </summary>
@@ -196,9 +206,9 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
                                 ? GetTokenBehindInsertedCloseBrace(node.Else.Statement)
                                 : default;
 
-        // The interpolation is read from the original tree as well; a body whose braces would need a line break in an
-        // interpolation that cannot hold one stays unbraced (FMT-BREAK-044)
-        var forbidsLineBreak = StringInterpolationUtilities.IsInsideSingleLineInterpolation(node, _context.LanguageVersion);
+        // The interpolations are read from the original tree as well; in an interpolation that cannot hold a line break and
+        // holds a documentation comment, no body is braced, at any depth (FMT-BREAK-044)
+        var keepsBodiesUnbraced = IsInSingleLineInterpolationWithDocumentationComment(node, _context.LanguageVersion);
 
         node = (IfStatementSyntax)base.VisitIfStatement(node);
 
@@ -207,11 +217,16 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return null;
         }
 
-        node = node.WithStatement(WrapWithBraces(node.Statement, statementNextToken, _context.EndOfLine, forbidsLineBreak));
+        if (keepsBodiesUnbraced)
+        {
+            return node;
+        }
+
+        node = node.WithStatement(WrapWithBraces(node.Statement, statementNextToken, _context.EndOfLine));
 
         if (node.Else is { Statement: not null and not BlockSyntax and not IfStatementSyntax } elseClause)
         {
-            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, elseNextToken, _context.EndOfLine, forbidsLineBreak)));
+            node = node.WithElse(elseClause.WithStatement(WrapWithBraces(elseClause.Statement, elseNextToken, _context.EndOfLine)));
         }
 
         return node;
