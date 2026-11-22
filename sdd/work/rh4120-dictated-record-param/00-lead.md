@@ -40,4 +40,5 @@
 - Test implementer done (04, 3c509ca tests, 9e4ba00 handover): 16 new tests, 12 fail as intended.
 - Implementer done (05, 28a5103 prod, 926139b handover): +43/-1, no new type.
 - Cleaner done (06, 1cb0e2a): clean, 0 warnings.
-- Next: spec checker (07).
+- Spec checker done (07, f32e03b): consistent, no findings.
+- Next: auditor (08).
