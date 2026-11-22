@@ -24,9 +24,9 @@
 
 ## Follow-up candidates
 
-(none yet)
+- If 1668-1 is answered B: RH2001's fix (RH2001-010, `ConditionalGroupsWrapWholeMembers`) remains the only place parsing excluded branches; same criterion would apply (01-spec-author.md).
 
 ## State
 
-- Last step: claim, lane, prepare.
-- Next: spec author.
+- Last step: spec author (88ae496): #970 spec + change doc written; #1668 draft change doc, spec waits for answer. Open output questions 970-1, 970-2, 1668-1, 1668-2.
+- Next: skeptic, then batch output questions.
