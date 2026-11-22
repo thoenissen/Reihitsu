@@ -15,6 +15,11 @@
 3. Syntax-error message (before the issue): keep today's sentence and list every syntax error below it with line, column, ID, and message (e.g. `line 1, column 26 — CS1002: ; expected`), plus a red squiggle under each error span in the input.
 4. No auto-wrap in either pane; horizontal scrolling instead.
 5. Errors shown in a clearly styled alert box; unsupported syntax gets the squiggle at its reported location; hidden code gets only the alert box.
+7. Batch 1 (answer: "as recommended" = 1A, 2A, 3A, 4A):
+   - 1A: all error marks disappear at the first edit of the input and return on the next Format; the alert box stays until the next Format.
+   - 2A: colour follows the parser — `var`, `nameof`, `dynamic`, `value` as identifiers when parsed as identifiers; contextual keywords parsed as keywords (`partial`, `async`, `await`, `get`, `set`, `where` in a constraint) as keywords.
+   - 3A: an empty span at a line break is marked one character wide just behind the line's last character; in front of an ordinary character that character is marked; at end of text a mark behind the last character.
+   - 4A: everything inside a doc comment is comment colour; directive text is directive colour; comment trivia behind a directive (`#endregion // Methods`) is comment colour.
 6. Delivery: issue filed (#1941, milestone 1.6.0), run through the squad in this session.
 
 ## Decisions taken
@@ -28,4 +33,4 @@
 
 ## Next step
 
-Spec author (01) and skeptic (02) done. Waiting on output-question batch 1: Q1 marks after edit, Q2 var/nameof/dynamic/value colour, Q3 empty span at line end, Q4 doc-comment colouring. Then route answers to spec author (fresh or continue), plus skeptic wording gaps (comment trivia behind directives, aria-hidden overlay, shared line/column helper, stale change-doc line), then test implementer.
+Spec author (01) and skeptic (02) done. Batch 1 answered (see Maintainer answers 7). Route to spec author: was waiting on output-question batch 1: Q1 marks after edit, Q2 var/nameof/dynamic/value colour, Q3 empty span at line end, Q4 doc-comment colouring. Then route answers to spec author (fresh or continue), plus skeptic wording gaps (comment trivia behind directives, aria-hidden overlay, shared line/column helper, stale change-doc line), then test implementer.
