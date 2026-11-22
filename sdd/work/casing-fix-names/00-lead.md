@@ -46,4 +46,5 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Test implementer done (`e33eea6`, `d76fdcb`, `04-test-implementer.md`): 58 analyzer + 39 core tests fail on unchanged code, exactly the new/rewritten ones; architecture green.
 - Implementer done (`bc565c2`, `05-implementer.md`): all tests pass but one disputed (decision 2). Full suites green otherwise; self-hosting scan not run.
 - Test repair done (`4022a0c`, `06-test-implementer.md`): disputed test passes.
-- Next: cleaner.
+- Cleaner done (`3acd20e`): clean, 0 warnings.
+- Next: spec checker.
