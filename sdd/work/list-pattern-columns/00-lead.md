@@ -35,11 +35,15 @@ Issue comments relevant to the run (summarized):
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | #1929 is a bug fix while the other issues are behavior changes; split the run? | Keep all six in one behavior-change run | The maintainer named all six in the prompt; the coordinator batched #1929 here for the shared `PatternAnchor`/FMT-INDENT-026 mechanism; the behavior-change lane admits a bug-fix diff | Lane choice is internal | claim |
+| 2 | Spec author | #1929 turned out to carry an output question (case-label anchor reading); #1685 already met on main | Accept: #1929 gets a change doc and Q8; #1685 gets only a spec example + characterization test | Spec author's handover shows two readings with different `case` output; main already gives #1685's reading A | #1929's visible part goes to the maintainer as Q8; #1685 changes no output | 26aff07 |
 
 ## Follow-up candidates
 
-(none yet)
+- Qualified name wrapped behind its dot in a member's type is not joined (joined in a constraint) — 01-spec-author.md
+- FMT-BREAK-017 should count a multi-line positional pattern as wrapping a pattern chain, if Q7 = A (may fold into Q7) — 01-spec-author.md
+- FMT-INDENT-021 `Why:` contradicts its own example (spec wording) — 01-spec-author.md
 
 ## Worklist / next step
 
-- Next: spawn spec author (01).
+- Spec author done (26aff07), 8 output questions open in 01-spec-author.md. Lane check confirmed.
+- Next: skeptic (02), then output-question batch.
