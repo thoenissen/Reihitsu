@@ -28,7 +28,7 @@
 
 ## Audited SHA
 
-(none yet)
+b4f2c1d (audit pass, handover 32abfef)
 
 ## Worklist / next step
 
@@ -39,4 +39,5 @@
 - Done: implementer (05, 3a0c01e/215e75d): all tests pass.
 - Done: cleaner (06, e39b1b9): clean.
 - Done: spec checker (07, bfee443): consistent.
-- Next: auditor (08).
+- Done: auditor (08, 32abfef): pass, no findings; three non-blocking hints not routed (cosmetic comment wrap, decision 7 observation, illustrative FMT-BLANK-009 sentence).
+- Next: validator (09), then publish.
