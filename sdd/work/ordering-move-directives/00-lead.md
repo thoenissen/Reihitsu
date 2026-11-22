@@ -50,4 +50,5 @@ Batch 1 (before test implementer), questions as drafted in 01-spec-author.md and
 - Spec author 05 done (3369d50).
 - Implementer done (44bd79c code, aeac0a8 handover): all tests pass.
 - Spec author 07 done (c0e555b); test implementer 08 done (443fee2).
-- Next: test implementer (continued) adds tests for the two new RH7309-005 examples of 07; then implementer deletes the method (decision 10) and makes any new test pass; then cleaner.
+- Test implementer 09 done (90d4243): 3 RH7309 tests, all pass on head.
+- Next: implementer deletes `ContainsPositionSensitiveDirectives` (decision 10); then cleaner.
