@@ -49,20 +49,24 @@ internal static class RecordPositionalParameterUtilities
     /// Gets the member a record's positional parameter stands for: the property the compiler declares for it, or, when
     /// the record declares or inherits a member of the parameter's name, so the compiler declares none, that member
     /// </summary>
+    /// <param name="compilation">The compilation the record belongs to</param>
     /// <param name="recordType">The record type</param>
     /// <param name="parameter">The positional parameter</param>
     /// <returns>The member, or <see langword="null"/> when none is found</returns>
     /// <remarks>
     /// The record and its base types are searched from the record outward, and the first type that has a property or a
-    /// field of the parameter's name gives it, so a member declared in a derived type hides one of a base type. The property the
-    /// compiler declares is a member of the record, so it is found first when it exists
+    /// field of the parameter's name that the record can access gives it, so a member declared in a derived type hides one of
+    /// a base type, and an inherited member the record cannot access is skipped, as the compiler skips it. Accessibility is
+    /// the compiler's result, and every member the record declares is accessible to it. The property the compiler declares
+    /// is a member of the record, so it is found first when it exists
     /// </remarks>
-    internal static ISymbol GetMember(INamedTypeSymbol recordType, ParameterSyntax parameter)
+    internal static ISymbol GetMember(Compilation compilation, INamedTypeSymbol recordType, ParameterSyntax parameter)
     {
         for (var type = recordType; type != null; type = type.BaseType)
         {
             var member = type.GetMembers(parameter.Identifier.ValueText)
-                             .FirstOrDefault(static candidate => candidate is IPropertySymbol or IFieldSymbol);
+                             .FirstOrDefault(candidate => candidate is IPropertySymbol or IFieldSymbol
+                                                          && compilation.IsSymbolAccessibleWithin(candidate, recordType));
 
             if (member != null)
             {

@@ -56,13 +56,13 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzer : CasingAnaly
     /// <inheritdoc/>
     /// <remarks>
     /// The parameter's name is dictated when the member it stands for is dictated: the property the compiler declares for
-    /// it, or the member of its name the record declares or inherits
+    /// it, or the member of its name the record declares or inherits and can access
     /// </remarks>
     private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         return node is ParameterSyntax parameter
                && semanticModel.GetDeclaredSymbol(parameter, cancellationToken) is IParameterSymbol { ContainingSymbol: IMethodSymbol { ContainingType: { } recordType } }
-               && IsDictatedMember(RecordPositionalParameterUtilities.GetMember(recordType, parameter));
+               && IsDictatedMember(RecordPositionalParameterUtilities.GetMember(semanticModel.Compilation, recordType, parameter));
     }
 
     #endregion // CasingAnalyzerBase
