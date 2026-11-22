@@ -333,7 +333,7 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the modifier and base-list rows for declarations: a comment behind a modifier of a method, a type, a constructor,
-    /// a delegate, an accessor, and a parameter, and a comment in front of the <c>:</c> of a base list of a class and an enum,
+    /// a delegate, an accessor, a parameter, and a function-pointer parameter outside a variable declaration, and a comment in front of the <c>:</c> of a base list of a class and an enum,
     /// each refuses the input with the row's reason
     /// </summary>
     /// <param name="reason">The reason of the row</param>
@@ -349,6 +349,10 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
     [DataRow(ModifierCommentReason, "    public int P { get; private /* c */ set; }", "/* c */", DisplayName = "Modifier of an accessor")]
     [DataRow(ModifierCommentReason, "    static void E(this /* c */ int x)\n    {\n    }", "/* c */", DisplayName = "Modifier of a parameter")]
     [DataRow(ModifierCommentReason, "    public static /* c */ implicit operator int(C c)\n    {\n        return 1;\n    }", "/* c */", DisplayName = "Modifier of a conversion operator")]
+    [DataRow(ModifierCommentReason, "    static unsafe delegate*<ref // c\n    int, void> P => null;", "// c", DisplayName = "Line comment behind a function-pointer parameter's modifier in a property's type")]
+    [DataRow(ModifierCommentReason, "    static unsafe delegate*<ref /* c */ int, void> Q => null;", "/* c */", DisplayName = "Block comment behind a function-pointer parameter's modifier in a property's type")]
+    [DataRow(ModifierCommentReason, "    static unsafe void F(delegate*<ref /* c */ int, void> p)\n    {\n    }", "/* c */", DisplayName = "Block comment behind a function-pointer parameter's modifier in a method's parameter")]
+    [DataRow(ModifierCommentReason, "    static unsafe void G(delegate*<in // c\n    int, void> p)\n    {\n    }", "// c", DisplayName = "Line comment behind a function-pointer parameter's modifier in a method's parameter")]
     [DataRow(BaseListCommentReason, "    class D2 // c\n        : B\n    {\n    }", "// c", DisplayName = "Base list of a class")]
     [DataRow(BaseListCommentReason, "    enum E /* c */ : byte\n    {\n    }", "/* c */", DisplayName = "Base list of an enum")]
     public void EveryRowOfTheTableIsUnsupportedInDeclarations(string reason, string member, string comment)
@@ -501,8 +505,9 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
     /// Verifies the overlap with FMT-UNSUP-004 and FMT-UNSUP-010: a comment behind a field's modifier, between a local's
     /// <c>const</c> and its type, and between the <c>await</c> and the <c>using</c> of a using declaration give the reason of
     /// FMT-UNSUP-004, a directive behind a modifier of a field with several
-    /// declarators gives the reason of FMT-UNSUP-010, and a gap inside an initializer value and behind the first <c>;</c> of a
-    /// <c>for</c> header give this requirement's reason
+    /// declarators gives the reason of FMT-UNSUP-010, a gap inside an initializer value and behind the first <c>;</c> of a
+    /// <c>for</c> header give this requirement's reason, and a comment behind a function-pointer parameter's modifier inside the
+    /// type of a field or a local gives the reason of FMT-UNSUP-004
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
@@ -517,6 +522,8 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
         AssertUnsupportedFor(VariableDeclarationCommentReason, WrapInMethod("        await /* c */ using var e = d;"), "/* c */");
         AssertUnsupportedFor(KeywordOperandCommentReason, WrapInMethod("        int v = await /* c */ t;"), "/* c */");
         AssertUnsupportedFor(ForHeaderCommentReason, WrapInMethod("        for (var i = 0; /* c */ i < 3; i++)\n        {\n        }"), "/* c */");
+        AssertUnsupportedFor(VariableDeclarationCommentReason, WrapInClass("    static unsafe delegate*<ref /* c */ int, void> _p;"), "/* c */");
+        AssertUnsupportedFor(VariableDeclarationCommentReason, WrapInMethod("        delegate*<ref // c\n            int, void> p = null;"), "// c");
     }
 
     /// <summary>

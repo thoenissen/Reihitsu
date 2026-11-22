@@ -1676,7 +1676,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         const string testData = """
                                 class C
                                 {
-                                    string M(string s)
+                                    void M(string s)
                                     {
                                         _ =
                                             /* c */ s
@@ -1688,7 +1688,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         const string fixedData = """
                                  class C
                                  {
-                                     string M(string s)
+                                     void M(string s)
                                      {
                                          _ =
                                              /* c */ s.Trim()

@@ -356,14 +356,14 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
 
                              internal class Example
                              {
-                                 private static List<int> Method()
+                                 private static void Method()
                                  {
-                                     return
+                                     _ =
 
-                                     /* c */ {|#0:new List<int>
-                                     {
-                                         2
-                                     }|};
+                                         /* c */ {|#0:new List<int>
+                                         {
+                                             2
+                                         }|};
                                  }
                              }
                              """;
@@ -372,14 +372,14 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
 
                                  internal class Example
                                  {
-                                     private static List<int> Method()
+                                     private static void Method()
                                      {
-                                         return
+                                         _ =
 
-                                         /* c */ new List<int>
-                                                 {
-                                                     2
-                                                 };
+                                             /* c */ new List<int>
+                                                     {
+                                                         2
+                                                     };
                                      }
                                  }
                                  """;
