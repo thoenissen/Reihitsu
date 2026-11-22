@@ -441,16 +441,237 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Characterizes current behavior that no requirement states: a balanced pragma pair inside the body of the
-    /// crossed <c>set</c> accessor withholds the fix, and the diagnostic is still reported
+    /// Verifying that a <c>#pragma warning</c> pair inside the body of the crossed <c>set</c> accessor keeps the fix: the
+    /// pair ends its own effect inside the accessor and stays with it, under LF and CRLF
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task BalancedPragmaPairInTheCrossedAccessorBodyWithholdsTheFix()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7107-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairInTheCrossedAccessorBodyKeepsTheFix(string endOfLine)
     {
         const string source = """
                               class C
                               {
+                                  public int A
+                                  {
+                                      set
+                                      {
+                              #pragma warning disable CS0168
+                                          int unused;
+                              #pragma warning restore CS0168
+                                      }
+
+                                      {|RH7107:get|}
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A
+                                       {
+                                           get
+                                           {
+                                               return 0;
+                                           }
+
+                                           set
+                                           {
+                                   #pragma warning disable CS0168
+                                               int unused;
+                                   #pragma warning restore CS0168
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-011 example of a pair split across a conditional branch: a build without <c>DEBUG</c>
+    /// leaves the warning disabled up to <c>get</c>, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task NoCodeFixWhenAWarningPairInTheCrossedAccessorBodyIsSplitAcrossAConditionalBranch()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {
+                                      set
+                                      {
+                              #pragma warning disable CS0168
+                                          int unused;
+                              #if DEBUG
+                              #pragma warning restore CS0168
+                              #endif
+                                      }
+
+                                      {|RH7107:get|}
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-011 example of a conditional group that lies wholly between the two directives of a
+    /// pair: the pair keeps the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-005")]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairAroundAWholeConditionalGroupInTheCrossedAccessorBodyKeepsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {
+                                      set
+                                      {
+                              #pragma warning disable CS0168
+                              #if DEBUG
+                                          int unused;
+                              #endif
+                              #pragma warning restore CS0168
+                                      }
+
+                                      {|RH7107:get|}
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A
+                                       {
+                                           get
+                                           {
+                                               return 0;
+                                           }
+
+                                           set
+                                           {
+                                   #pragma warning disable CS0168
+                                   #if DEBUG
+                                               int unused;
+                                   #endif
+                                   #pragma warning restore CS0168
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that for an accessor move every closed pair in front of the accessor list is in front of the spans: a
+    /// pair inside a method above the property keeps the fix across a pair in the crossed accessor body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task WarningPairInTheCrossedAccessorBodyBehindAClosedPairInAMethodAboveKeepsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public void Log()
+                                  {
+                              #pragma warning disable CS0168
+                                      int unused;
+                              #pragma warning restore CS0168
+                                  }
+
+                                  public int A
+                                  {
+                                      set
+                                      {
+                              #pragma warning disable CS0168
+                                          int unused;
+                              #pragma warning restore CS0168
+                                      }
+
+                                      {|RH7107:get|}
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public void Log()
+                                       {
+                                   #pragma warning disable CS0168
+                                           int unused;
+                                   #pragma warning restore CS0168
+                                       }
+
+                                       public int A
+                                       {
+                                           get
+                                           {
+                                               return 0;
+                                           }
+
+                                           set
+                                           {
+                                   #pragma warning disable CS0168
+                                               int unused;
+                                   #pragma warning restore CS0168
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a lone <c>#pragma warning disable</c> inside a method above the property is a directive open in
+    /// front of the spans, so a pair in the crossed accessor body withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-011")]
+    public async Task NoCodeFixWhenAWarningDirectiveInAMethodAboveThePropertyIsNotClosed()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public void Log()
+                                  {
+                              #pragma warning disable CS0168
+                                      int unused;
+                                  }
+
                                   public int A
                                   {
                                       set

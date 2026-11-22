@@ -356,11 +356,12 @@ public class OrderingDeclarationUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a position sensitive directive inside the body of a crossed member is detected.
-    /// <c>#pragma</c> applies from its own position onwards, so the guard cannot prove the move keeps its coverage
+    /// Verifies that a <c>#pragma warning</c> pair that ends its own effect inside the body of a crossed member does not
+    /// block the move: the pair stays with the member it lies in
     /// </summary>
     [TestMethod]
-    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedMemberBodyContainsDirective()
+    [Requirement("SHARED-ORDER-011")]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenCrossedMemberBodyContainsClosedWarningPair()
     {
         var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
                                                                             internal class Sample
@@ -370,6 +371,67 @@ public class OrderingDeclarationUtilitiesTests
                                                                             #pragma warning disable CS0219
                                                                                     var unused = 0;
                                                                             #pragma warning restore CS0219
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> inside the body of a crossed member that no <c>restore</c> closes
+    /// there blocks the move: it governs the moved member as long as that member stands behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-011")]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedMemberBodyContainsUnclosedWarningDirective()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                            #pragma warning disable CS0219
+                                                                                    var unused = 0;
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a directive inside the body of a crossed member that is neither a conditional, a region, a
+    /// <c>#pragma warning</c>, nor a <c>#nullable</c> directive blocks the move
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-011")]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedMemberBodyContainsLineDirective()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                            #line hidden
+                                                                                    var unused = 0;
+                                                                            #line default
                                                                                 }
 
                                                                                 private static void Second()

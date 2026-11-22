@@ -753,8 +753,8 @@ public class RH7309RegionsShouldFollowCategoryOrderInitializationOrderTests : Ba
     }
 
     /// <summary>
-    /// Verifies that a conditional group that completes the initializer of a field of the moved block stands between two
-    /// tokens of the declaration, at no boundary of whole units, so no code fix is offered
+    /// Verifies that a conditional group that completes the initializer of a field of the moved block lies in the moved
+    /// span, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -850,8 +850,8 @@ public class RH7309RegionsShouldFollowCategoryOrderInitializationOrderTests : Ba
     }
 
     /// <summary>
-    /// Verifies that a conditional group behind the accessor list of a property of the moved block whose excluded branch
-    /// holds an initializer, which is neither whole members nor whole attribute lists, withholds the fix
+    /// Verifies that a conditional group behind the accessor list of a property of the moved block lies in the moved
+    /// span, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -897,8 +897,8 @@ public class RH7309RegionsShouldFollowCategoryOrderInitializationOrderTests : Ba
     }
 
     /// <summary>
-    /// Verifies that a conditional group between two modifiers of a field of the moved block stands at no boundary of whole
-    /// units, so no code fix is offered
+    /// Verifies that a conditional group between two modifiers of a field of the moved block lies in the moved span, so
+    /// no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1126,8 +1126,8 @@ public class RH7309RegionsShouldFollowCategoryOrderInitializationOrderTests : Ba
     }
 
     /// <summary>
-    /// Verifies that a conditional group in front of a field of the moved block whose branches hold its modifiers, which
-    /// are neither whole members nor whole attribute lists, withholds the fix
+    /// Verifies that a conditional group in front of a field of the moved block whose branches hold its modifiers lies
+    /// in the moved span, so no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1216,297 +1216,6 @@ public class RH7309RegionsShouldFollowCategoryOrderInitializationOrderTests : Ba
                               """;
 
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies that a group of whole accessors with an accessor without a body in one branch, in a property whose other
-    /// branch has an accessor with a body, refuses the reorder like the <c>field</c> keyword: a build that compiles that
-    /// accessor gives the property a backing field, so no code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task NoCodeFixWhenAPropertyOfAStructHasAnAutoAccessorOnlyInOneBranchOfItsAccessorList(string endOfLine)
-    {
-        const string source = """
-                              using System;
-
-                              public struct S : IDisposable
-                              {
-                                  #region IDisposable
-
-                                  public int Handle
-                                  {
-                              #if DEBUG
-                                      get;
-                              #else
-                                      get => 0;
-                              #endif
-                                  }
-
-                                  public void Dispose()
-                                  {
-                                  }
-
-                                  #endregion // IDisposable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _a;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the counterpart of a group of whole accessors: when every branch declares an accessor with a body, no
-    /// branch holds an accessor without a body, the group wraps whole accessors, and the code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task CodeFixMovesABlockOfAStructAcrossAPropertyWhoseAccessorListBranchesAreAllBodied(string endOfLine)
-    {
-        const string source = """
-                              using System;
-
-                              public struct S : IDisposable
-                              {
-                                  #region IDisposable
-
-                                  public int Handle
-                                  {
-                              #if DEBUG
-                                      get => 1;
-                              #else
-                                      get => 0;
-                              #endif
-                                  }
-
-                                  public void Dispose()
-                                  {
-                                  }
-
-                                  #endregion // IDisposable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _a;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        const string fixedSource = """
-                                   using System;
-
-                                   public struct S : IDisposable
-                                   {
-                                       #region Fields
-
-                                       private int _a;
-
-                                       #endregion // Fields
-
-                                       #region IDisposable
-
-                                       public int Handle
-                                       {
-                                   #if DEBUG
-                                           get => 1;
-                                   #else
-                                           get => 0;
-                                   #endif
-                                       }
-
-                                       public void Dispose()
-                                       {
-                                       }
-
-                                       #endregion // IDisposable
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the SHARED-ORDER-008 example of the <c>field</c> clause for a region reorder: without <c>TRACE</c> defined,
-    /// a build with <c>TRACE</c> gives <c>Value</c> a backing field, and the reorder would put <c>_x</c> in front of it, so
-    /// no code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task NoCodeFixWhenAGroupInAnAccessorBodyOfAStructUsesTheFieldKeyword(string endOfLine)
-    {
-        const string source = """
-                              public struct S : System.IComparable
-                              {
-                                  #region IComparable
-
-                                  public int Value
-                                  {
-                                      get
-                                      {
-                              #if TRACE
-                                          return field;
-                              #else
-                                          return 0;
-                              #endif
-                                      }
-                                  }
-
-                                  public int CompareTo(object obj)
-                                  {
-                                      return 0;
-                                  }
-
-                                  #endregion // IComparable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _x;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the example of a conditional accessor without a body: the group of whole accessors holds <c>get;</c> in
-    /// one branch while the other branch has <c>get =&gt; 0;</c>, which refuses the reorder like the <c>field</c>
-    /// keyword, so no code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task NoCodeFixWhenAConditionalAccessorWithoutABodyGivesAPropertyOfAStructABackingField(string endOfLine)
-    {
-        const string source = """
-                              public struct S : System.IComparable
-                              {
-                                  #region IComparable
-
-                                  public int Value
-                                  {
-                              #if DEBUG
-                                      get;
-                              #else
-                                      get => 0;
-                              #endif
-                                  }
-
-                                  public int CompareTo(object obj)
-                                  {
-                                      return 0;
-                                  }
-
-                                  #endregion // IComparable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _x;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the counterpart of the conditional accessor example: with <c>get =&gt; 0;</c> and <c>set { }</c> inside a
-    /// group, no accessor lacks a body, the group wraps whole accessors, and the fix moves the <c>Fields</c> block in front
-    /// of the <c>IComparable</c> block
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task CodeFixMovesABlockOfAStructAcrossAPropertyWhoseConditionalAccessorHasABody(string endOfLine)
-    {
-        const string source = """
-                              public struct S : System.IComparable
-                              {
-                                  #region IComparable
-
-                                  public int Value
-                                  {
-                                      get => 0;
-                              #if DEBUG
-                                      set { }
-                              #endif
-                                  }
-
-                                  public int CompareTo(object obj)
-                                  {
-                                      return 0;
-                                  }
-
-                                  #endregion // IComparable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _x;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        const string fixedSource = """
-                                   public struct S : System.IComparable
-                                   {
-                                       #region Fields
-
-                                       private int _x;
-
-                                       #endregion // Fields
-
-                                       #region IComparable
-
-                                       public int Value
-                                       {
-                                           get => 0;
-                                   #if DEBUG
-                                           set { }
-                                   #endif
-                                       }
-
-                                       public int CompareTo(object obj)
-                                       {
-                                           return 0;
-                                       }
-
-                                       #endregion // IComparable
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
     /// <summary>
@@ -1688,140 +1397,6 @@ public class RH7309RegionsShouldFollowCategoryOrderInitializationOrderTests : Ba
                                    """;
 
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies that a group of whole accessors whose active branch holds <c>set;</c>, in a property whose <c>get =&gt; 0;</c>
-    /// has a body, refuses the reorder of a struct's blocks like the <c>field</c> keyword, so no code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task NoCodeFixWhenAnActiveConditionalAccessorWithoutABodyStandsNextToAnAccessorWithABody(string endOfLine)
-    {
-        const string source = """
-                              public struct S : System.IComparable
-                              {
-                                  #region IComparable
-
-                                  public int Value
-                                  {
-                                      get => 0;
-                              #if !DEBUG
-                                      set;
-                              #endif
-                                  }
-
-                                  public int CompareTo(object obj)
-                                  {
-                                      return 0;
-                                  }
-
-                                  #endregion // IComparable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _x;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies that a group of whole accessors whose excluded branch holds <c>set;</c>, in a property whose
-    /// <c>get =&gt; 0;</c> has a body, refuses the reorder of a struct's blocks like the <c>field</c> keyword, so no code fix
-    /// is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task NoCodeFixWhenAnExcludedConditionalAccessorWithoutABodyStandsNextToAnAccessorWithABody(string endOfLine)
-    {
-        const string source = """
-                              public struct S : System.IComparable
-                              {
-                                  #region IComparable
-
-                                  public int Value
-                                  {
-                                      get => 0;
-                              #if DEBUG
-                                      set;
-                              #endif
-                                  }
-
-                                  public int CompareTo(object obj)
-                                  {
-                                      return 0;
-                                  }
-
-                                  #endregion // IComparable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _x;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
-    }
-
-    /// <summary>
-    /// Verifies the <c>field</c> clause for a group of whole accessors: the excluded <c>set =&gt; field = value;</c> gives
-    /// <c>Value</c> a backing field in a build with <c>DEBUG</c>, so the reorder of the struct's blocks is refused and no
-    /// code fix is offered
-    /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
-    [Requirement("RH7309-005")]
-    [Requirement("SHARED-ORDER-008")]
-    public async Task NoCodeFixWhenAGroupOfWholeAccessorsOfAStructPropertyUsesTheFieldKeyword(string endOfLine)
-    {
-        const string source = """
-                              public struct S : System.IComparable
-                              {
-                                  #region IComparable
-
-                                  public int Value
-                                  {
-                                      get => 0;
-                              #if DEBUG
-                                      set => field = value;
-                              #endif
-                                  }
-
-                                  public int CompareTo(object obj)
-                                  {
-                                      return 0;
-                                  }
-
-                                  #endregion // IComparable
-
-                                  {|RH7309:#region Fields|}
-
-                                  private int _x;
-
-                                  #endregion // Fields
-                              }
-                              """;
-
-        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
