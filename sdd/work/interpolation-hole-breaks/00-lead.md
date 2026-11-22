@@ -25,6 +25,7 @@
 | 8 | Implementer | `UsingStatementInInterpolationGetsBracesOnItsLineInCSharp10` expects braces on a using body | Correct: expected output is the input unchanged; no requirement braces a using body | Test was wrong | Unchanged FMT-STRUCT-001 decides | (test implementer) |
 | 9 | Implementer | Scope: blank-line phase and lambda alignment also changed, new internal type | Accept; widen decision 3 to the blank-line phase; spec author names the blank-line phase where its spec needs it (FMT-BREAK-044 already says "the formatter") | Needed for the fix; new type is the issue's own fix, not escalation 9 | Output decided by FMT-BREAK-044/FMT-PIPE-003 | (spec author) |
 | 10 | Implementer | `FormatNodeInDocumentAsync` target itself inside a `$"` hole still breaks | Not in this run; added to follow-up candidate 1 (reached only via RH5301/RH5303/RH5206 fixes) | Belongs with the analyzer follow-up | — | — |
+| 11 | Spec author | List `SingleLineInterpolationUtilities` as a code owner of line-breaks.md? | No for now; both phases that call it are already owners; spec checker may say otherwise | Avoid a second owner entry for a helper | Internal | — |
 
 ## Follow-up candidates
 
@@ -36,4 +37,4 @@
 - Last step: test implementer amendment (04-test-implementer.md).
 - Spec author done (06-spec-author.md, FMT-SWITCH-017). Open: test needs tag FMT-SWITCH-017 (test implementer, after the implementer).
 - Implementer done (05-implementer.md, ef49b5e): 5 disputed tests.
-- Next: test implementer (tag FMT-SWITCH-017, decisions 7, 8) + spec author (decision 9) in parallel → implementer check → cleaner.
+- Next: test implementer (tag FMT-SWITCH-017, decisions 7, 8) + spec author (decision 9, done: 08-spec-author.md) in parallel → implementer check → cleaner.
