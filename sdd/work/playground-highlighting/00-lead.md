@@ -29,11 +29,15 @@
 | 1 | tests (04) | Does PLAY-010 "each category has its own colour" also require a colour different from the normal text colour? | Yes; keep the `AreNotEqual(normal, …)` assert | A category in the normal colour would be indistinguishable from uncoloured text, which defeats the requirement | Answer 1 asked for distinct colours per category; the exact colours are styling, a spec non-goal | df0d437 |
 | 2 | implementer (05) | A mark that starts inside another and ends past it | Cut at the outer mark's end, one element per mark | Keeps markup well-formed; no probed input produces it | Rare overlapping-error class; the mark still starts at the reported position | f209936 |
 | 3 | implementer (05) | `PlaygroundHighlighter` missing from the spec's Code owners | Route to spec author (spec header and `sdd/specs/README.md`) | Code-owner lists are spec metadata | Internal spec metadata | 0f674fc |
+| 4 | audit 1 (09) | Repair round 1 worklist | F1 (empty-span widening splits surrogate pairs; Unicode line breaks marked) → tests + implementer; F2 weak stylesheet tests → test implementer; F3 two bare ParseText calls → implementer, one shared parse entry point; F4 output `<pre>` loses label and focus → test + implementer; F5 double BOM in Home.razor.cs → implementer; F6 `Errors` doc vs null → implementer | All PR-introduced or same requirement; small | F1 restores PLAY-014/PLAY-010 as specified; F4 restores the label PLAY-002 already names; the rest are internal | pending |
+| 5 | audit 1 (09) | Pre-existing `@media (max-width: 700px)` pane height overridden by the later base rule in `app.css` | Adjacent fix in this run, with a stylesheet test | A few lines in a file the run already rewrites; restores the narrow-screen height the stylesheet already intends | Restores the stylesheet's own stated layout; styling is a spec non-goal | pending |
 
 ## Follow-up candidates
 
 ## Audited SHA
 
+fcb82346886ea93149e5229451aa87a43b7438fb (audit 1, base main 1788f94)
+
 ## Next step
 
-Cleaner (07) clean at d4b6665, code owners added (06, 0f674fc). Next: spec checker (08), then auditor, validator.
+Repair round 1 of 3: test implementer (10) → implementer (11) → cleaner (12) → spec checker (13) → auditor on the repair only (14) → validator.
