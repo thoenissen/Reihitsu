@@ -61,4 +61,5 @@ Issue comments relevant to the run (summarized):
 - Implementer 07 done (39fc4b0, e55c8ff): 5 disputed older tests (decision 7).
 - Test implementer 08 done (bea3bb6, 7186a1c): formatter project green.
 - Cleaner 09 clean (1aa5871).
-- Next: spec checker (10).
+- Spec checker 10 consistent (4439857). Main not ahead; build green.
+- Next: auditor (11).
