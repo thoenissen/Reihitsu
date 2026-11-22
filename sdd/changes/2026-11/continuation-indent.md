@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-INDENT-034 (new), FMT-INDENT-035 (new), FMT-UNSUP-019 (new, [assignment-comment-in-arm-unsupported.md](assignment-comment-in-arm-unsupported.md)), FMT-INDENT-002, FMT-INDENT-013, FMT-INDENT-026, FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, FMT-PIPE-024, SHARED-BLANK-008, SHARED-BODY-001, SHARED-USING-009, RH5111-004 |
+| Affected requirements | FMT-INDENT-034 (new), FMT-INDENT-035 (new), FMT-UNSUP-019 (new, [assignment-comment-in-arm-unsupported.md](assignment-comment-in-arm-unsupported.md)), FMT-INDENT-002, FMT-INDENT-013, FMT-INDENT-026, FMT-DOC-003, FMT-STRUCT-007, FMT-STRUCT-021, FMT-BLANK-018, FMT-BLANK-020, FMT-SPACE-001, FMT-PIPE-017, FMT-PIPE-024, SHARED-BLANK-008, SHARED-BODY-001, SHARED-USING-009, RH5111-004 |
 
 ## What
 
@@ -389,7 +389,7 @@ class C
 
 After: each `;` moves one level deeper than the line its declaration or statement starts on, to columns 8, 12, and 12. The disabled `+ 1` keeps its column.
 
-### Split fields and other declarations (FMT-STRUCT-021, FMT-BLANK-020, SHARED-USING-009)
+### Split fields and other declarations (FMT-STRUCT-021, FMT-BLANK-018, FMT-BLANK-020, SHARED-USING-009)
 
 The fields that FMT-STRUCT-021 splits keep a line break behind the type; the line behind it moves one level deeper than the field's first line:
 
@@ -403,7 +403,7 @@ class C
 }
 ```
 
-After: `_map1;` and `_map2;` move to column 8, each below its own repeated head. A line break between two modifiers is joined instead ([continuation-join.md](continuation-join.md)). In the same way, a property pattern's `{` behind `if (o is C` and a comment on its own line (FMT-BLANK-020) moves to column 12 with the comment, and `.Text;` behind a directive inside a using directive (SHARED-USING-009) moves to column 4.
+After: `_map1;` and `_map2;` move to column 8, each below its own repeated head. A line break between two modifiers is joined instead ([continuation-join.md](continuation-join.md)). In the same way, a property initializer's value behind its `=` and a comment glued to the value on the value's own line, such as `/* b */ { 1, 2 };` (FMT-BLANK-018), moves one level deeper than the property's line, to column 8, with the comment, a property pattern's `{` behind `if (o is C` and a comment on its own line (FMT-BLANK-020) moves to column 12 with the comment, and `.Text;` behind a directive inside a using directive (SHARED-USING-009) moves to column 4.
 
 ### Code fixes
 

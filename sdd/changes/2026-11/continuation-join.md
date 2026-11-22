@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-SPACE-010, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH2001-009, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH5111-004, RH7101-007 |
+| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-SPACE-010, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-004, RH2001-007, RH2001-009, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH5111-004, RH7101-007 |
 | Depends on | [continuation-indent.md](continuation-indent.md) |
 
 ## What
@@ -737,6 +737,8 @@ Every code fix that lays out a node through the formatter joins these gaps in th
   ```
 
   After: reported, and no code fix is offered.
+
+  RH2001-004 follows: its paragraph on the modifier list now hands every comment or directive between two modifiers or between the last modifier and the type to RH2001-009, where it named only a comment for the gap in front of the type.
 
 No rule page changes: no rule page shows a gap this change joins or refuses, and rule pages never describe the formatter.
 
