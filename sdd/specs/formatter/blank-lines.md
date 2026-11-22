@@ -5,7 +5,7 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
+| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-INDENT-025, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. The phase runs after the line-break and switch-brace phases (FMT-PIPE-001), so it decides every blank line on the lines the output keeps. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
@@ -599,7 +599,7 @@ class C
 
 ### FMT-BLANK-009 — Around a directive, only the blank line next to the token is removed
 
-When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two; this holds before a closing brace, the closing bracket of a collection expression or list pattern, and the closing parenthesis of a parenthesized pattern alike. In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
+When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two; this holds before a closing brace, the closing bracket of a collection expression or list pattern, and the closing parenthesis of a parenthesized pattern or a positional pattern clause alike. In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
 
 Why: The blank line above the directive is the author's separator in front of the conditional code, not a blank line next to the brace, and the analyzer rules do not report it. Only the blank line that actually touches the token is the one RH5024–RH5027 forbid. No rule asks for a blank line in front of the directive; one inserted there would separate the directive from the code the author grouped with it, as FMT-BLANK-016 states for the blank lines the statement rules insert. A region directive at the end of the gap is framed by its own blank lines and does not change that.
 
@@ -1885,7 +1885,7 @@ One case puts a comment on its own line although no such line break stands behin
 
 The comments on the token's line are glued to it when the first of them is an ordinary comment. When the first of them is a documentation comment, none of them is glued, and FMT-BLANK-011 applies above it as above a comment on its own line. The formatter MUST NOT insert the blank line of FMT-BLANK-011 above a comment glued to a token, and MUST decide the blank lines above the first glued comment as it decides the blank lines directly before that token:
 
-- where FMT-BLANK-007, FMT-BLANK-008, or FMT-BLANK-019 removes the blank lines directly before the token — every opening and closing brace other than the opening brace of a block statement that follows another statement, the `else`, `catch`, `finally`, and do-statement `while` keywords, the closing bracket of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern — it MUST remove the blank lines above the glued comment;
+- where FMT-BLANK-007, FMT-BLANK-008, or FMT-BLANK-019 removes the blank lines directly before the token — every opening and closing brace other than the opening brace of a block statement that follows another statement, the `else`, `catch`, `finally`, and do-statement `while` keywords, the closing bracket of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern or a positional pattern clause — it MUST remove the blank lines above the glued comment;
 - above the opening brace of a block statement that follows another statement, FMT-BLANK-017 decides, and above the first token of any other statement, the statement requirements decide: the blank line they insert goes above the glued comment, and the author's blank line is kept where they insert none;
 - above any other token — the first token of a member declaration, the closing parenthesis of an argument list — no requirement decides the blank lines directly before the token, so none is inserted and the author's are kept, collapsed to one (FMT-BLANK-014).
 
@@ -2266,9 +2266,9 @@ class C
 
 ### FMT-BLANK-019 — No blank line before the closing bracket of a collection expression or pattern
 
-The formatter MUST remove the blank lines directly before the closing bracket of a collection expression or a list pattern and before the closing parenthesis of a parenthesized pattern. A blank line behind the opening bracket or parenthesis is kept. This requirement does not remove the blank line directly below a region directive: the line below it starts with the closing bracket or parenthesis, not with a closing brace, so SHARED-BLANK-006 requires it to be blank and FMT-BLANK-013 inserts it. Behind another directive, FMT-BLANK-009 decides which blank lines are removed, and behind a comment that ends its line, FMT-BLANK-020.
+The formatter MUST remove the blank lines directly before the closing bracket of a collection expression or a list pattern, before the closing parenthesis of a parenthesized pattern, and before the closing parenthesis of the positional pattern clause of a recursive pattern — `(1, 2)` in `o is (1, 2)` and in `o is P(1, 2)`, whether the pattern stands behind `is`, in a switch expression arm, or in a `case` label. The kind of the token and the node that owns it decide: a closing parenthesis owned by any other node, such as the argument list of an invocation, is not named here, and the blank lines directly before it are decided as FMT-BLANK-018 states for any other token. A blank line behind the opening bracket or parenthesis is kept. This requirement does not remove the blank line directly below a region directive: the line below it starts with the closing bracket or parenthesis, not with a closing brace, so SHARED-BLANK-006 requires it to be blank and FMT-BLANK-013 inserts it. Behind another directive, FMT-BLANK-009 decides which blank lines are removed, and behind a comment that ends its line, FMT-BLANK-020.
 
-Why: The closing token ends a construct that FMT-BREAK-022 lays out one element per line; a blank line in front of it adds height without separating two elements, as a blank line before a closing brace does (FMT-BLANK-007). The blank line behind the opening token is the author's, and no rule has removed it. Below a region directive the shared rule asks for the blank line, and RH5032 would report its removal.
+Why: The closing token ends a construct that FMT-BREAK-022 lays out one element per line; a blank line in front of it adds height without separating two elements, as a blank line before a closing brace does (FMT-BLANK-007). The positional pattern clause is laid out like a list pattern (FMT-BREAK-022, FMT-INDENT-025), so a blank line before its `)` separates no two subpatterns either. The blank line behind the opening token is the author's, and no rule has removed it. Below a region directive the shared rule asks for the blank line, and RH5032 would report its removal.
 
 Example:
 
@@ -2314,6 +2314,101 @@ class C
 }
 ```
 
+Example — the positional pattern clause, with and without a type and in a switch expression arm:
+
+```csharp
+class P
+{
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 0;
+        b = 0;
+    }
+}
+
+class C
+{
+    void M(object o, (int, int) t)
+    {
+        var a = o is P(
+            1,
+            2
+
+        );
+        var b = t is (
+            1,
+            2
+
+        );
+        var c = o switch
+        {
+            P(
+                1,
+                2
+
+            ) => 1,
+            _ => 0,
+        };
+    }
+}
+```
+
+```csharp
+class P
+{
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 0;
+        b = 0;
+    }
+}
+
+class C
+{
+    void M(object o, (int, int) t)
+    {
+        var a = o is P(
+                          1,
+                          2
+                      );
+        var b = t is (
+                         1,
+                         2
+                     );
+        var c = o switch
+                {
+                    P(
+                         1,
+                         2
+                     ) => 1,
+                    _ => 0,
+                };
+    }
+}
+```
+
+The closing parenthesis of an argument list is not named; the blank line in front of it is kept:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var b = N(1,
+                  2
+
+                  );
+    }
+
+    bool N(int a, int b)
+    {
+        return true;
+    }
+}
+```
+
+is left unchanged.
+
 ### FMT-BLANK-020 — Behind a comment on its own line, no blank line before a brace, closing bracket, or chained keyword
 
 When the last content in the gap before one of the following tokens is an ordinary comment on its own line, as FMT-BLANK-018 classifies it, the formatter MUST remove the blank lines between that comment and the token:
@@ -2321,7 +2416,7 @@ When the last content in the gap before one of the following tokens is an ordina
 - an opening or closing brace, whatever construct it belongs to — a type, a block, an accessor list, a switch statement, an initializer of any kind, an array initializer and a nested element of one included, an anonymous object, a switch expression, a property pattern, an extension block, and the closing brace of an interpolation — other than the opening brace of a block statement that follows another statement, above which FMT-BLANK-017 decides the blank lines, comments included;
 - the `else`, `catch`, `finally`, and do-statement `while` keywords;
 - the closing bracket of a collection expression or a list pattern;
-- the closing parenthesis of a parenthesized pattern.
+- the closing parenthesis of a parenthesized pattern or of the positional pattern clause of a recursive pattern.
 
 These are the tokens FMT-BLANK-007, FMT-BLANK-008, and FMT-BLANK-019 remove a blank line directly in front of.
 
