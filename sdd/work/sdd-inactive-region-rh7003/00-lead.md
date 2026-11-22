@@ -15,6 +15,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | Does the rewritten RH7003 page (Exceptions folded into Description, nested-namespace case added) need an output question? | No | The page's statements are each demanded by unchanged requirements RH7003-001/-002/-003/-005 and the rule-page conventions in AGENTS.md | No requirement changes; the page only restates specified behavior | e0a2683 |
+| 2 | spec author | #1240 lists RH7309 among reporting rules, but its spec excludes such regions | Non-goal names no rule and defers to each rule's spec | agent-filed goal adjusted on evidence; purpose (non-goal no longer contradicts region rules) met | Spec text only, no behavior change | e0a2683 |
 
 ## Follow-up candidates
 
@@ -22,5 +24,5 @@
 
 ## State
 
-- Last step: claim, lane, prepare.sh done.
-- Next: spec author.
+- Last step: spec author done (e0a2683), lane check docs confirmed, no output questions.
+- Next: spec checker.
