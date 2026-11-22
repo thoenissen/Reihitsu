@@ -29,7 +29,7 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 
 ## Follow-up candidates
 
-(none yet)
+- RH4120: a record's positional parameter whose generated property implicitly implements a property declared in a referenced assembly has a dictated name but is still reported (`01-spec-author.md`, #1434).
 
 ## Worklist / next step
 
@@ -47,4 +47,5 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Implementer done (`bc565c2`, `05-implementer.md`): all tests pass but one disputed (decision 2). Full suites green otherwise; self-hosting scan not run.
 - Test repair done (`4022a0c`, `06-test-implementer.md`): disputed test passes.
 - Cleaner done (`3acd20e`): clean, 0 warnings.
-- Next: spec checker.
+- Spec checker done (`2d321c1`, `08-spec-checker.md`): one low finding — `CasingRenameSafetyUtilities` missing from the code-owner lists in `sdd/specs/shared/casing.md` and `sdd/specs/README.md`. Repair round 1: spec author.
+- Next: spec author repair, then spec checker again, then auditor.
