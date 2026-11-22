@@ -42,4 +42,5 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Skeptic done (`ff32292`): #971 output question, #1072 proceed, #1451 proceed, #1434 two output questions. No architecture findings.
 - Output batch 1 posted to the maintainer: Q1–Q9 from `01-spec-author.md` (Q1 with skeptic's `URLs` row), Q10 = skeptic #971 Q1 (first-word vs joined acronym run), Q11 = skeptic #1434 Q1 (base-class implementer), Q12 = skeptic #1434 Q2 (tuple names from a type argument).
 - Answers received (all A). Spec author follow-up done (`f1a2cff`, `03-spec-author.md`): answers recorded, change docs Accepted, SHARED-CASING-006/014 amended for Q10–Q12.
-- Next: test implementer (reads 01–03).
+- Test implementer done (`e33eea6`, `d76fdcb`, `04-test-implementer.md`): 58 analyzer + 39 core tests fail on unchanged code, exactly the new/rewritten ones; architecture green.
+- Next: implementer.
