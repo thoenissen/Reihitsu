@@ -332,9 +332,9 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-                                    _first;
+                                        _first;
                                     private int
-                                    _second;
+                                        _second;
                                 }
                                 """;
 
@@ -414,9 +414,9 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-                                    _g;
+                                        _g;
                                     private int
-                                    _h;
+                                        _h;
                                 }
                                 """;
 
@@ -444,9 +444,9 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private Dictionary<string, List<int>>
-                                    _map1;
+                                        _map1;
                                     private Dictionary<string, List<int>>
-                                    _map2 = new();
+                                        _map2 = new();
                                 }
                                 """;
 
@@ -474,11 +474,11 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-                                    _g = 1;
+                                        _g = 1;
                                     private int
-                                    _h = 2;
+                                        _h = 2;
                                     private int
-                                    _i;
+                                        _i;
                                 }
                                 """;
 
@@ -594,9 +594,9 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-                                    _a;
+                                        _a;
                                     private int
-                                    _b;
+                                        _b;
                                 }
                                 """;
 
@@ -623,7 +623,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                 internal class TestClass
                                 {
                                     private int
-                                    _x;
+                                        _x;
                                 }
                                 """;
 

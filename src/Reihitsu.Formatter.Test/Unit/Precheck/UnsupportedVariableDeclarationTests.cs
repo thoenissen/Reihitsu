@@ -1239,12 +1239,13 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment behind the first semicolon of a <c>for</c> statement does not refuse the input: it is the
-    /// trailing trivia of the token that ends the span
+    /// Verifies that a comment behind the first semicolon of a <c>for</c> statement is not this shape: it is the trailing trivia
+    /// of the token that ends the span, and the input is refused for the gap behind a <c>;</c> of a <c>for</c> header instead
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void CommentBehindTheFirstSemicolonOfAForStatementIsSupported()
+    [Requirement("FMT-UNSUP-017")]
+    public void CommentBehindTheFirstSemicolonOfAForStatementIsRefusedForTheForHeader()
     {
         const string input = """
                              class C
@@ -1258,7 +1259,7 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              }
                              """;
 
-        AssertSupported(input);
+        AssertUnsupportedFor(ForHeaderCommentReason, input, "/* c */");
     }
 
     /// <summary>

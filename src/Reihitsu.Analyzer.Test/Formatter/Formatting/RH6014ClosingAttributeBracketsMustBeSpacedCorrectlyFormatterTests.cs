@@ -79,8 +79,8 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
     {
         const string testData = """
                                 [
-                                System.Obsolete
-                                ]
+                                    System.Obsolete
+                                    ]
                                 internal class TestClass;
                                 """;
 

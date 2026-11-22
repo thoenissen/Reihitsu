@@ -361,7 +361,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  public int M()
                                  {
                                      return 1 /// stray
-                                     /* b */ ;
+                                         /* b */ ;
                                  }
                              }
                              """;

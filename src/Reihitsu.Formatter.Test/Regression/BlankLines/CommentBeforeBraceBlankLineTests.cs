@@ -631,10 +631,10 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                 {
                                     int[] G { get; } =
 
-                                    // c
-                                    {
-                                        1
-                                    };
+                                        // c
+                                        {
+                                            1
+                                        };
                                 }
                                 """;
 

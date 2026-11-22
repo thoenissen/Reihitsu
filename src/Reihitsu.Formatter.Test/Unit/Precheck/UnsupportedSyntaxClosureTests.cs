@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -52,7 +52,7 @@ public class UnsupportedSyntaxClosureTests : FormatterTestsBase
     [DataRow("class C\n{\n    void M()\n    {\n        int a = 1; // c\n        int b = 2;\n    }\n}")]
     [DataRow("class C\n{\n    void M()\n    {\n        int a =\n            Compute(1, // c\n                    2);\n    }\n}")]
     [DataRow("class C\n{\n    void M()\n    {\n        System.Func<int> f = () =>\n        {\n            // c\n            int x = 1;\n            return x;\n        };\n    }\n}")]
-    [DataRow("class C\n{\n    void M()\n    {\n        using (var s = Open()) // c\n        {\n        }\n\n        for (int i = 0; /* c */ i < 1; i++)\n        {\n        }\n    }\n}")]
+    [DataRow("class C\n{\n    void M()\n    {\n        using (var s = Open()) // c\n        {\n        }\n\n        for (int i = 0; i < 1; i++) // d\n        {\n        }\n    }\n}")]
     [DataRow("class C\n{\n    private int _p; /** The second field. */ private int _q;\n}")]
     [DataRow("class C\n{\n    // c\n    [System.Obsolete]\n    private int _a = 1, _b; // d\n}")]
     [DataRow("class C{void M(){int a=1;// c\nint b=2;}}")]

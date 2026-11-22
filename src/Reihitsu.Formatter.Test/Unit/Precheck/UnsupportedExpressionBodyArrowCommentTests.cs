@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -349,23 +349,39 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment outside the gap does not refuse the input: above the member; inside the expression behind its first
-    /// token; and behind the expression or its semicolon. A comment or directive in front of the arrow is FMT-UNSUP-013's shape
+    /// token; and behind the expression or its semicolon. A comment or directive in front of the arrow is FMT-UNSUP-013's shape,
+    /// and one behind a <c>throw</c> or a lambda's arrow is FMT-UNSUP-017's
     /// </summary>
     /// <param name="members">The members of the class</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-012")]
     [DataRow("    // c\n    int A => 1;", DisplayName = "Above the member")]
     [DataRow("    ref int M() => ref /* c */ _v;", DisplayName = "Behind a ref")]
-    [DataRow("    int M() => throw /* c */ new Exception();", DisplayName = "Behind a throw")]
     [DataRow("    int M() => (/* c */ 1);", DisplayName = "Inside parentheses")]
     [DataRow("    int M() => N(/* c */ 1);\n\n    int N(int i) => i;", DisplayName = "Inside an argument list")]
     [DataRow("    int M() => -/* c */ 1;", DisplayName = "Behind a unary operator")]
     [DataRow("    int M() => 1 /* c */;", DisplayName = "In front of the semicolon")]
     [DataRow("    int M() => 1; // c", DisplayName = "Behind the semicolon")]
-    [DataRow("    Func<int> F => () => /* c */ 1;", DisplayName = "Behind the arrow of a lambda that is the expression")]
     public void CommentOutsideTheGapIsSupported(string members)
     {
         AssertSupported(WrapInClass(members));
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the expression behind its first token that stands in a gap of another shape is refused for
+    /// that shape, not for this one: behind the <c>throw</c> of a throw expression and behind the arrow of a lambda that is the
+    /// expression
+    /// </summary>
+    /// <param name="reason">The reason the input is refused for</param>
+    /// <param name="members">The members of the class</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-012")]
+    [Requirement("FMT-UNSUP-017")]
+    [DataRow(KeywordOperandCommentReason, "    int M() => throw /* c */ new Exception();", DisplayName = "Behind a throw")]
+    [DataRow(LambdaArrowCommentReason, "    Func<int> F => () => /* c */ 1;", DisplayName = "Behind the arrow of a lambda that is the expression")]
+    public void CommentBehindTheFirstTokenInAGapOfAnotherShapeIsRefusedForThatShape(string reason, string members)
+    {
+        AssertUnsupportedFor(reason, WrapInClass(members), "/* c */");
     }
 
     /// <summary>

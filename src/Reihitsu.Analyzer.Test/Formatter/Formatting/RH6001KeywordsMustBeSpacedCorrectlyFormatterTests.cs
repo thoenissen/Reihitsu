@@ -70,7 +70,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
                                     internal void M(bool c, int[] items)
                                     {
                                         if/// x
-                                        (c)
+                                            (c)
                                         {
                                         }
                                     }
@@ -95,7 +95,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
                                     internal void M(bool c)
                                     {
                                         if/* c *//// x
-                                        (c)
+                                            (c)
                                         {
                                         }
                                     }

@@ -1818,7 +1818,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a parameter wrap that a disabled modifier holds is not joined and is aligned with the parameter's first token
+    /// Verifies that a parameter wrap that disabled text between the parameter's type and its name holds is not joined and is
+    /// aligned with the parameter's first token; disabled text behind a parameter modifier is refused as unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-001")]
@@ -1831,11 +1832,11 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
 
                              internal class Example
                              {
-                                 internal void M(ref
+                                 internal void M(int
                              #if NEVER
-                                     in
+                                     extra
                              #endif
-                                 int value)
+                                 value)
                                  {
                                  }
                              }
@@ -1846,11 +1847,11 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
 
                                 internal class Example
                                 {
-                                    internal void M(ref
+                                    internal void M(int
                                 #if NEVER
-                                        in
+                                        extra
                                 #endif
-                                                    int value)
+                                                    value)
                                     {
                                     }
                                 }

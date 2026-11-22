@@ -627,9 +627,11 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a LINQ expression correctly
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a LINQ expression correctly: the chain's first link starts its
+    /// line and is the chain's anchor, which no alignment places, so it is a continuation line of the statement
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-034")]
     public void ComputeHandlesLinqExpression()
     {
         // Arrange
@@ -656,8 +658,8 @@ public class LayoutComputerTests
         // Assert — chained LINQ calls should have layout entries
         Assert.IsTrue(model.TryGetLayout(6, out var where), "Line 6 (.Where) should have a layout entry.");
         Assert.IsTrue(model.TryGetLayout(7, out var select), "Line 7 (.Select) should have a layout entry.");
-        Assert.AreEqual(8, where.Column, "Chained LINQ .Where should be at block indentation column.");
-        Assert.AreEqual(8, select.Column, "Chained LINQ .Select should be aligned to .Where, the chain's first invoked link.");
+        Assert.AreEqual(12, where.Column, "Chained LINQ .Where, the chain's anchor, is a continuation line of the statement, one level deeper than its line.");
+        Assert.AreEqual(12, select.Column, "Chained LINQ .Select should be aligned to .Where, the chain's first invoked link.");
     }
 
     /// <summary>

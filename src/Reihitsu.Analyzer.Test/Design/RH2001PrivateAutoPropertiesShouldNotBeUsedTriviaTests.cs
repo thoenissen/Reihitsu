@@ -137,7 +137,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                                                        class C
                                                        {
                                                            private int
-                                                           _value;
+                                                               _value;
                                                        }
                                                        """;
 
@@ -1244,7 +1244,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a directive between two modifiers that keep their order keeps its place, and the fix is offered
+    /// Verifies that a directive between two modifiers that keep their order withholds the fix: the field the fix builds would
+    /// hold the directive behind a modifier, which the formatter refuses
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1252,7 +1253,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    public async Task VerifyFixKeepsADirectiveBetweenModifiersThatKeepTheirOrder(string endOfLine)
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForADirectiveBetweenModifiersThatKeepTheirOrder(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -1263,16 +1265,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                                 }
                                 """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private
-                                  #pragma warning disable CS0169
-                                      static readonly int _value;
-                                  }
-                                  """;
-
-        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
     }
 
     /// <summary>

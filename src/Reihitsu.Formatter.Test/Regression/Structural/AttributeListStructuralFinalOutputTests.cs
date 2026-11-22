@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -637,12 +637,14 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the attribute lists of a lambda keep the output the formatter gave them before the split moved, and that
-    /// a second pass leaves it unchanged; no requirement specifies the attribute lists of a lambda, so the phase-level check of
-    /// <see cref="FormatterTestsBase.AssertRuleResult(string, string, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions)"/>,
+    /// Verifies that the attribute lists of a lambda keep the line layout the formatter gave them before the split moved, and that
+    /// a second pass leaves it unchanged; the later lists and the parameter list are continuation lines of the statement, one
+    /// level deeper than its line. No requirement specifies the line layout of a lambda's attribute lists, so the phase-level
+    /// check of <see cref="FormatterTestsBase.AssertRuleResult(string, string, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions)"/>,
     /// which reports the line-break phase run alone on this output, is not applied
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-034")]
     public void LambdaAttributeListKeepsItsOutput()
     {
         const string input = """
@@ -660,8 +662,8 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                     void M()
                                     {
                                         var f = [A]
-                                        [B]
-                                        (int x) => x;
+                                            [B]
+                                            (int x) => x;
                                     }
                                 }
                                 """;
@@ -1048,10 +1050,12 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the attribute lists of a lambda with a line break behind the original <c>[</c> settle in one pass at the
-    /// output the formatter reached before the split moved; no requirement specifies the attribute lists of a lambda, so the
-    /// phase-level check is not applied, as for <see cref="LambdaAttributeListKeepsItsOutput"/>
+    /// line layout the formatter reached before the split moved, with the later lists and the parameter list as continuation lines
+    /// of the statement; no requirement specifies the line layout of a lambda's attribute lists, so the phase-level check is not
+    /// applied, as for <see cref="LambdaAttributeListKeepsItsOutput"/>
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-INDENT-034")]
     public void LambdaAttributeListWithALineBreakBehindTheOpeningBracketSettlesInOnePass()
     {
         const string input = """
@@ -1070,8 +1074,8 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
                                     void M()
                                     {
                                         var f = [A]
-                                        [B]
-                                        (int x) => x;
+                                            [B]
+                                            (int x) => x;
                                     }
                                 }
                                 """;

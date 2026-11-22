@@ -494,7 +494,7 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                         int x;
                                         x =
 
-                                        /** d */ a;
+                                            /** d */ a;
 
                                         return x;
                                     }

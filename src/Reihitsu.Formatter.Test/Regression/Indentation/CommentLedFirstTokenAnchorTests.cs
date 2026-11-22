@@ -290,10 +290,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 class C
                                 {
                                     int[] B { get; } =
-                                    /* c */ {
-                                                1,
-                                                2
-                                            };
+                                        /* c */ {
+                                                    1,
+                                                    2
+                                                };
                                 }
                                 """;
 
@@ -315,11 +315,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                               {
                                   int[] B { get; } =
 
-                                  // c
-                                  {
-                                      1,
-                                      2
-                                  };
+                                      // c
+                                      {
+                                          1,
+                                          2
+                                      };
                               }
                               """;
 

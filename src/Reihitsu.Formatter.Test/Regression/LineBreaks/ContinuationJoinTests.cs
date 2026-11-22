@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -405,7 +405,9 @@ public class ContinuationJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the gaps of the list one at a time: each statement written with a line break in its gap is joined onto one line
+    /// Verifies the gaps of the list one at a time: each statement written with a line break in its gap is joined, and then takes
+    /// the layout the same statement written on one line gets, such as the initializer behind <c>with</c> on its own line and the
+    /// block of an anonymous method on lines of its own
     /// </summary>
     /// <param name="statement">The statement with the line break in the gap</param>
     /// <param name="joined">The joined statement</param>
@@ -426,9 +428,9 @@ public class ContinuationJoinTests : FormatterTestsBase
     [DataRow("        Func<int> u = () =>\n            1;", "        Func<int> u = () => 1;", DisplayName = "Parenthesized lambda with an expression body")]
     [DataRow("        Func<int, int> f = y =>\n            y + 1;", "        Func<int, int> f = y => y + 1;", DisplayName = "Simple lambda with an expression body")]
     [DataRow("        Func<int, int> f = static\n            y => y;", "        Func<int, int> f = static y => y;", DisplayName = "Modifier of a lambda")]
-    [DataRow("        Func<int> g = static\n            delegate { return 1; };", "        Func<int> g = static delegate { return 1; };", DisplayName = "Modifier of an anonymous method")]
+    [DataRow("        Func<int> g = static\n            delegate { return 1; };", "        Func<int> g = static delegate\n        {\n            return 1;\n        };", DisplayName = "Modifier of an anonymous method")]
     [DataRow("        const\n            int k = 1;", "        const int k = 1;", DisplayName = "Modifier of a local declaration")]
-    [DataRow("        var w = r\n            with { };", "        var w = r with { };", DisplayName = "With expression")]
+    [DataRow("        var w = r\n            with { };", "        var w = r with\n                  {\n                  };", DisplayName = "With expression")]
     [DataRow("        Use(await\n            t, 1);", "        Use(await t, 1);", DisplayName = "Await inside a list element")]
     [DataRow("        Use(o is\n            not null);", "        Use(o is not null);", DisplayName = "Is pattern inside a list element")]
     public void EachGapIsJoined(string statement, string joined)
@@ -471,7 +473,8 @@ public class ContinuationJoinTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the modifier gaps of declarations the specification example does not show: a method, a property's accessor, a
-    /// conversion operator, a delegate, a nested type, and a parameter, each joined
+    /// conversion operator, a delegate, a nested type, and a parameter, each joined; the empty nested type then becomes a semicolon
+    /// declaration, as it does when written on one line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-041")]
@@ -524,8 +527,63 @@ public class ContinuationJoinTests : FormatterTestsBase
                                     {
                                     }
 
-                                    public class N
+                                    public class N;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the join removes only the line breaks of the gap, and the requirements that lay the
+    /// construct out on one line then decide its shape: the initializer behind <c>with</c> starts its own line, the block of the
+    /// anonymous method spans several lines, and the empty type becomes a semicolon declaration
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-041")]
+    public void SpecExampleJoinedConstructsAreLaidOutAsWhenWrittenOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             record R;
+
+                             static class C
+                             {
+                                 public
+                                 class N
+                                 {
+                                 }
+
+                                 static void M(R r)
+                                 {
+                                     Func<int> g = static
+                                         delegate { return 1; };
+                                     var w = r
+                                         with { };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                record R;
+
+                                static class C
+                                {
+                                    public class N;
+
+                                    static void M(R r)
                                     {
+                                        Func<int> g = static delegate
+                                        {
+                                            return 1;
+                                        };
+                                        var w = r with
+                                                  {
+                                                  };
                                     }
                                 }
                                 """;

@@ -224,9 +224,9 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  internal class TestClass
                                  {
                                      private int
-                                     firstField;
+                                         firstField;
                                      private int
-                                     secondField;
+                                         secondField;
                                  }
                                  """;
 
@@ -1522,9 +1522,9 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    internal class TestClass
                                    {
                                        private int
-                                       _g;
+                                           _g;
                                        private int
-                                       _h;
+                                           _h;
                                    }
                                    """;
 

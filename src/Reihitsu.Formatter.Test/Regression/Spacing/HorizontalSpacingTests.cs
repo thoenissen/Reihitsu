@@ -1020,9 +1020,9 @@ public class HorizontalSpacingTests : FormatterTestsBase
     /// opening generic bracket: <see cref="Reihitsu.Formatter.Pipeline.HorizontalSpacing.HorizontalSpacingPhase"/>
     /// leaves the space before the bracket untouched, because the two tokens are not on the same line (see
     /// <c>documentation/rules/RH6011.md</c>), unlike the same-line shape in
-    /// <see cref="BlockCommentBeforeGenericBracketOnSameLineIsGluedToBracket"/>. The blank line and reduced
-    /// indentation this fixture also shows are the pipeline's unrelated, pre-existing blank-line and
-    /// line-break re-flow of that continuation, not a decision this rule owns
+    /// <see cref="BlockCommentBeforeGenericBracketOnSameLineIsGluedToBracket"/>. The column of the continuation
+    /// line, one level deeper than the line of the method it continues, is the indentation phase's decision, not one this rule
+    /// owns
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-001")]
@@ -1047,7 +1047,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
                                 class C
                                 {
                                     List
-                                    /* Keep. */ <int> M()
+                                        /* Keep. */ <int> M()
                                     {
                                         return null;
                                     }

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -202,13 +202,13 @@ public class ParenthesizedLambdaLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line in front of a lambda that starts its line behind the arrow of an expression lambda
-    /// is kept
+    /// Verifies that a lambda behind the arrow of an expression lambda and a blank line joins the arrow, and the blank line goes
+    /// with the join
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-011")]
+    [Requirement("FMT-BREAK-041")]
     [Requirement("FMT-BREAK-030")]
-    public void BlankLineInFrontOfLambdaBehindExpressionLambdaArrowIsKept()
+    public void BlankLineInFrontOfLambdaBehindExpressionLambdaArrowGoesWithTheJoin()
     {
         // Arrange
         const string input = """
@@ -224,9 +224,20 @@ public class ParenthesizedLambdaLineStartTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, Func<int, int>> h = x => (y) => y;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertBlankLinesAbove(input, ("(y) => y;", true));
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

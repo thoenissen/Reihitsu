@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -215,7 +215,9 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an accessor whose only statement carries an attribute keeps its block
+    /// Verifies that an accessor whose only statement carries an attribute keeps its block; the statement behind the attribute
+    /// list is a continuation line, because only the attribute lists of a member, an accessor, or a local function are placed by
+    /// their scope
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-010")]
@@ -240,9 +242,27 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    private int _value;
+
+                                    int Value
+                                    {
+                                        get
+                                        {
+                                            [Obsolete]
+                                                return _value;
+                                        }
+                                        set => _value = value;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

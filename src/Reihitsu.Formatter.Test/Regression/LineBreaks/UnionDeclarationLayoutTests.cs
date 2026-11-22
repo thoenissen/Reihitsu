@@ -345,7 +345,7 @@ public class UnionDeclarationLayoutTests : FormatterTestsBase
                                 namespace N
                                 {
                                     public union B2 // c
-                                    (int, string);
+                                        (int, string);
                                 }
                                 """;
 

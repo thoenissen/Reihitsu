@@ -526,7 +526,8 @@ public class ArrowSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment the arrow carries behind it keeps its place, and the expression follows it after one space
+    /// Verifies that a comment the arrow of a switch-expression arm carries behind it keeps its place, and the expression follows
+    /// it after one space; a comment behind the arrow of a lambda or an expression body is refused as unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-017")]
@@ -535,24 +536,28 @@ public class ArrowSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-                             using System;
-
                              class C
                              {
-                                 void M()
+                                 int M(int x)
                                  {
-                                     Func<int, int> f = y =>/* a */y;
+                                     return x switch
+                                            {
+                                                1 =>/* a */1,
+                                                _ => 0,
+                                            };
                                  }
                              }
                              """;
         const string expected = """
-                                using System;
-
                                 class C
                                 {
-                                    void M()
+                                    int M(int x)
                                     {
-                                        Func<int, int> f = y =>/* a */ y;
+                                        return x switch
+                                               {
+                                                   1 =>/* a */ 1,
+                                                   _ => 0,
+                                               };
                                     }
                                 }
                                 """;

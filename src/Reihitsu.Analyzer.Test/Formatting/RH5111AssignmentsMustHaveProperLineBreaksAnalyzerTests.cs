@@ -296,12 +296,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  {
                                      class TestClass
                                      {
-                                         public
-                                         string Property
-                                         {
-                                             get;
-                                             set;
-                                         } = "test";
+                                         public string Property { get; set; } = "test";
                                      }
                                  }
                                  """;
