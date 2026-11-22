@@ -282,7 +282,7 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     public void IfStatementInInterpolationGetsBracesOnItsLineInCSharp10()
     {
         AssertResult("var s = $\"a {F(() => { if (b) return 1; return 2; })} b\";",
-                     "var s = $\"a {F(() => { if (b) { return 1; } return 2; })} b\";",
+                     "var s = $\"a {F(() => { if (b) {return 1; }return 2; })} b\";",
                      "bool b");
     }
 
@@ -316,7 +316,7 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     public void LocalFunctionInInterpolationGetsBlockBodyOnItsLineInCSharp10()
     {
         AssertResult("var s = $\"a {F(() => { int G() => 1; return G(); })} b\";",
-                     "var s = $\"a {F(() => { int G() { return 1; } return G(); })} b\";");
+                     "var s = $\"a {F(() => { int G() {return 1; } return G(); })} b\";");
     }
 
     /// <summary>
@@ -328,7 +328,7 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     public void LocalFunctionConstraintInInterpolationKeepsItsLineInCSharp10()
     {
         AssertResult("var s = $\"a {F(() => { int G<T>() where T : class => 1; return G<string>(); })} b\";",
-                     "var s = $\"a {F(() => { int G<T>() where T : class { return 1; } return G<string>(); })} b\";");
+                     "var s = $\"a {F(() => { int G<T>() where T : class {return 1; } return G<string>(); })} b\";");
     }
 
     /// <summary>
@@ -340,7 +340,7 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     public void LocalFunctionAttributeInInterpolationKeepsItsLineInCSharp10()
     {
         AssertResult("var s = $\"a {F(() => { [A] int G() => 1; return G(); })} b\";",
-                     "var s = $\"a {F(() => { [A] int G() { return 1; } return G(); })} b\";");
+                     "var s = $\"a {F(() => { [A] int G() {return 1; } return G(); })} b\";");
     }
 
     /// <summary>
@@ -354,15 +354,14 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an embedded <c>using</c> statement in the interpolation still gets its braces under C# 10, on the line
-    /// of the interpolation
+    /// Verifies that an embedded <c>using</c> statement in the interpolation keeps its unbraced body and its line under
+    /// C# 10
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-044")]
-    public void UsingStatementInInterpolationGetsBracesOnItsLineInCSharp10()
+    public void UsingStatementInInterpolationKeepsItsLineInCSharp10()
     {
-        AssertResult("var s = $\"a {F(() => { using (var m = new MemoryStream()) return 1; })} b\";",
-                     "var s = $\"a {F(() => { using (var m = new MemoryStream()) { return 1; } })} b\";");
+        AssertKept("var s = $\"a {F(() => { using (var m = new MemoryStream()) return 1; })} b\";");
     }
 
     /// <summary>
@@ -557,6 +556,7 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     [TestMethod]
     [Requirement("FMT-BREAK-044")]
     [Requirement("FMT-PIPE-003")]
+    [Requirement("FMT-SWITCH-017")]
     public void SwitchSectionWithTwoStatementsInInterpolationStaysAsWrittenInCSharp10()
     {
         AssertKept("var s = $\"a {F(() => { switch (x) { case 1: G(); G(); return 1; default: return 2; } })} b\";", parameters: "int x");
