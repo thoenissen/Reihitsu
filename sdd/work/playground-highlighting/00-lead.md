@@ -28,4 +28,4 @@
 
 ## Next step
 
-Spawn spec author (01).
+Spec author (01) and skeptic (02) done. Waiting on output-question batch 1: Q1 marks after edit, Q2 var/nameof/dynamic/value colour, Q3 empty span at line end, Q4 doc-comment colouring. Then route answers to spec author (fresh or continue), plus skeptic wording gaps (comment trivia behind directives, aria-hidden overlay, shared line/column helper, stale change-doc line), then test implementer.
