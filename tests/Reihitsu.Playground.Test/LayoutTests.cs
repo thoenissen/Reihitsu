@@ -91,6 +91,34 @@ public class LayoutTests
     }
 
     /// <summary>
+    /// Verifies that a pane whose text is wider than the pane keeps the width of its column and scrolls inside itself, on a wide
+    /// and on a narrow screen: no box from the pane up to the page takes its width from the pane's text. The check follows the
+    /// CSS sizing rules for the layouts the page uses (block, flex, and grid), on the computed style of each box
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-012")]
+    public void PanesKeepTheirColumnWidthWhenTheirTextIsWider()
+    {
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
+
+            foreach (var narrow in new[] { false, true })
+            {
+                var document = PlaygroundStyles.CreateDocument(page.Markup, false, narrow);
+
+                foreach (var (name, selector) in new[] { ("input", ".playground-editor"), ("output", "#playground-output") })
+                {
+                    var pane = document.QuerySelector(selector);
+                    var growth = PlaygroundWidths.FindWidthFromText(document, pane);
+
+                    Assert.IsNull(growth, $"On a {(narrow ? "narrow" : "wide")} screen the {name} pane grows to the width of its text instead of scrolling inside itself: {growth}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Verifies that a keyboard user can reach the output to scroll it: the box that scrolls the output horizontally, the output
     /// or a box around it inside its column, is a focus stop in the tab order
     /// </summary>
@@ -134,7 +162,7 @@ public class LayoutTests
                 var outputHeight = PlaygroundStyles.GetComputed(narrow, narrow.QuerySelector("#playground-output"), "height");
 
                 Assert.AreEqual(PlaygroundStyles.GetComputed(wide, wide.QuerySelector("#playground-output"), "height"), wideHeight, "On a wide screen both panes must have one height.");
-                Assert.AreEqual("1fr", PlaygroundStyles.GetComputed(narrow, narrow.QuerySelector(".playground-grid"), "grid-template-columns"), "On a narrow screen the columns must be stacked.");
+                Assert.HasCount(1, PlaygroundWidths.GetTracks(PlaygroundStyles.GetComputed(narrow, narrow.QuerySelector(".playground-grid"), "grid-template-columns")), "On a narrow screen the columns must be stacked in one track.");
                 Assert.AreEqual(editorHeight, outputHeight, "On a narrow screen both panes must have one height.");
                 Assert.AreNotEqual(wideHeight, editorHeight, $"On a narrow screen the panes must take the narrow-screen height, not the wide one ({wideHeight}).");
             }
