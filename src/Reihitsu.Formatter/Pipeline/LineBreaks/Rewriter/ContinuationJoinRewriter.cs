@@ -1,9 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Core.Enumerations;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
@@ -38,6 +39,11 @@ internal sealed class ContinuationJoinRewriter : CSharpSyntaxRewriter
     #region Fields
 
     /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
     /// Cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
@@ -49,9 +55,12 @@ internal sealed class ContinuationJoinRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ContinuationJoinRewriter(CancellationToken cancellationToken)
+    public ContinuationJoinRewriter(FormattingContext context,
+                                    CancellationToken cancellationToken)
     {
+        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -60,19 +69,21 @@ internal sealed class ContinuationJoinRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a gap is one this rewriter joins (FMT-BREAK-041)
+    /// Determines whether a gap is one this rewriter joins (FMT-BREAK-041). The token behind the gap belongs to the node this
+    /// rewriter visits, whose parents are intact, so FMT-BREAK-022's case-label condition is read from them and, at the
+    /// formatting root, from the root's facts
     /// </summary>
     /// <param name="gap">The gap</param>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="token">The token behind the gap</param>
     /// <returns><see langword="true"/> if the gap is joined; otherwise, <see langword="false"/></returns>
-    private static bool IsJoinedGap(JoinedGap gap, SyntaxToken previousToken, SyntaxToken token)
+    private bool IsJoinedGap(JoinedGap gap, SyntaxToken previousToken, SyntaxToken token)
     {
         return gap switch
                {
-                   JoinedGap.IsPattern => PatternLineStartUtilities.StartsOwnLine(token) == false,
+                   JoinedGap.IsPattern => PatternLineStartUtilities.StartsOwnLine(token, _context.RootConstruct) == false,
                    JoinedGap.PatternCombinator => previousToken.IsKind(SyntaxKind.NotKeyword)
-                                                  && PatternLineStartUtilities.StartsOwnLine(token) == false,
+                                                  && PatternLineStartUtilities.StartsOwnLine(token, _context.RootConstruct) == false,
                    JoinedGap.KeywordOperand
                    or JoinedGap.TypeTest
                    or JoinedGap.SwitchArmWhen

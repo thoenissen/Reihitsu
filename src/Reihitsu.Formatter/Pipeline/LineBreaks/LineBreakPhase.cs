@@ -40,7 +40,7 @@ internal sealed class LineBreakPhase : IFormattingPhase
                    new LineBreakAssignmentRewriter(cancellationToken),
                    new DeclarationSemicolonLineBreakRewriter(cancellationToken),
                    new AttachedPartLineStartRewriter(cancellationToken),
-                   new ContinuationJoinRewriter(cancellationToken),
+                   new ContinuationJoinRewriter(context, cancellationToken),
                    new ListElementInteriorJoinRewriter(context, cancellationToken),
                    new LineBreakListRewriter(context, cancellationToken),
                    new PropertyLayoutLineBreakRewriter(accessorListLayout, cancellationToken),

@@ -65,27 +65,6 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a pattern is introduced directly by a case label,
-    /// looking through enclosing combinator (<c>and</c>/<c>or</c>) and <c>not</c> patterns. When the walk reaches the
-    /// formatting root, which has no parent, the facts the entry point captured from the document answer instead
-    /// </summary>
-    /// <param name="node">The pattern</param>
-    /// <param name="rootConstruct">The facts about the construct the formatting root stands in</param>
-    /// <returns><see langword="true"/> if the pattern is introduced by a case label; otherwise, <see langword="false"/></returns>
-    internal static bool IsIntroducedByCaseLabel(SyntaxNode node, RootConstruct rootConstruct)
-    {
-        var current = node;
-
-        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax)
-        {
-            current = current.Parent;
-        }
-
-        return current.Parent is CasePatternSwitchLabelSyntax
-               || rootConstruct.IsRootIn(current, RootConstruct.CaseLabelPattern);
-    }
-
-    /// <summary>
     /// Determines whether an initializer is a collection initializer on the right of an assignment, whose opening brace
     /// stays on the assignment's line. The formatting root has no parent, so for the root the facts the entry point
     /// captured from the document answer instead
@@ -418,10 +397,9 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        // A case label keeps its open brace on the case line so the label is not confused with the
-        // section body. This is determined before the rewrite because the parent is unreachable once
-        // the node is rebuilt
-        var keepOpenBraceInline = IsIntroducedByCaseLabel(node, _context.RootConstruct);
+        // A pattern a case label introduces keeps its open brace on the line it is written on (FMT-BREAK-022). This is
+        // determined before the rewrite because the parent is unreachable once the node is rebuilt
+        var keepOpenBraceInline = PatternLineStartUtilities.IsIntroducedByCaseLabel(node, _context.RootConstruct);
 
         node = (RecursivePatternSyntax)base.VisitRecursivePattern(node);
 

@@ -9,6 +9,7 @@ using Reihitsu.Core;
 using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
+using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
 namespace Reihitsu.Formatter.Utilities;
 
@@ -132,7 +133,7 @@ internal static class ReihitsuFormatterHelpers
         }
 
         if (target is PatternSyntax
-            && LineBreakInitializerRewriter.IsIntroducedByCaseLabel(target, RootConstruct.None))
+            && PatternLineStartUtilities.IsIntroducedByCaseLabel(target, RootConstruct.None))
         {
             facts |= RootConstruct.CaseLabelPattern;
         }
@@ -186,15 +187,15 @@ internal static class ReihitsuFormatterHelpers
 
     /// <summary>
     /// Computes the line-start column of a token (FMT-PIPE-024): the column, in its document, of the first token or comment on
-    /// the line on which the token stands, counted as <see cref="ComputeDocumentColumn"/> counts the column of a token
+    /// the line on which the token stands: the token's column from <see cref="ComputeDocumentColumn"/>, the one counting rule,
+    /// less the characters between that first token or comment and the token
     /// </summary>
     /// <param name="token">The token</param>
     /// <returns>The column at which the token's line begins in the document</returns>
     internal static int ComputeDocumentLineStartColumn(SyntaxToken token)
     {
         var text = token.SyntaxTree.GetText();
-        var line = text.Lines.GetLineFromPosition(token.SpanStart);
-        var position = line.Start;
+        var position = text.Lines.GetLineFromPosition(token.SpanStart).Start;
 
         while (position < token.SpanStart
                && (text[position] == ' ' || text[position] == '\t' || text[position] == '\uFEFF'))
@@ -202,16 +203,7 @@ internal static class ReihitsuFormatterHelpers
             position++;
         }
 
-        var column = position - line.Start;
-
-        if (line.Start == 0
-            && column > 0
-            && text[0] == '\uFEFF')
-        {
-            column--;
-        }
-
-        return column;
+        return ComputeDocumentColumn(token) - (token.SpanStart - position);
     }
 
     #endregion // Methods

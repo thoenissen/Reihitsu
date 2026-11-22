@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -184,9 +185,10 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     /// combinator holds a comment, a directive, or disabled text: the precheck refuses an input that holds one there
     /// (FMT-UNSUP-017)
     /// </summary>
-    /// <param name="node">The outermost binary pattern of the chain</param>
+    /// <param name="node">The outermost binary pattern of the chain, possibly rebuilt and then without a parent</param>
+    /// <param name="chainConstruct">The facts captured for the chain before it was rebuilt, case-label pattern when a case label introduces it</param>
     /// <returns>The binary pattern with its chain laid out</returns>
-    private BinaryPatternSyntax NormalizePatternChain(BinaryPatternSyntax node)
+    private BinaryPatternSyntax NormalizePatternChain(BinaryPatternSyntax node, RootConstruct chainConstruct)
     {
         var chain = new List<BinaryPatternSyntax>();
 
@@ -212,7 +214,7 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
                 replacements[leftLastToken] = currentLeft.WithTrailingTrivia(LineBreakTriviaUtilities.EndLineInFrontOf(currentLeft, operatorToken, _context.EndOfLine));
             }
 
-            if (PatternLineStartUtilities.StartsOwnLine(rightFirstToken) == false
+            if (PatternLineStartUtilities.StartsOwnLine(rightFirstToken, chainConstruct) == false
                 && TokenGapUtilities.HasLineBreakBetween(operatorToken, rightFirstToken))
             {
                 var currentOperator = GetCurrent(replacements, operatorToken);
@@ -253,6 +255,12 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
 
         var isChainRoot = node.Parent is not BinaryPatternSyntax;
 
+        // Whether a case label introduces the chain is decided before the rewrite, because a rebuilt chain has no parent; the
+        // walk of FMT-BREAK-022's condition from a right operand then ends at the chain and reads this fact there
+        var chainConstruct = isChainRoot && PatternLineStartUtilities.IsIntroducedByCaseLabel(node, _context.RootConstruct)
+                                 ? RootConstruct.CaseLabelPattern
+                                 : RootConstruct.None;
+
         node = (BinaryPatternSyntax)base.VisitBinaryPattern(node);
 
         if (node == null)
@@ -261,7 +269,7 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
         }
 
         return isChainRoot
-                   ? NormalizePatternChain(node)
+                   ? NormalizePatternChain(node, chainConstruct)
                    : node;
     }
 
