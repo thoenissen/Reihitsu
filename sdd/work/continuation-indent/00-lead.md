@@ -99,7 +99,7 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 
 ## Audited SHA
 
-(none yet)
+f434b0b (audit 1 in progress)
 
 ## Open worklist / next step
 
@@ -125,4 +125,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Cleaner 15 done (a62f8d2): clean, 0 warnings.
 - Spec checker 16: two minor findings -> repair round 1 (17 spec author, 18 test implementer) done.
 - Spec checker 19: consistent. Escalation 10 (S5) posted to the maintainer. Merged origin/main (9f1eb7d; conflicts resolved by spec author 20).
-- Next: cleaner (21) after the merge; build; auditor (22); validator (23); wait for the escalation-10 answer before marking ready.
+- Cleaner 21 clean on merged tree (f434b0b). Auditor 22 spawned against main ab547b7, head f434b0b.
+- Next: auditor verdict; validator (23); wait for the escalation-10 answer before marking ready.
