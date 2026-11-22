@@ -51,4 +51,5 @@
 - Round 1: test implementer done (13-test-implementer.md; 11 failing as expected).
 - Round 1: implementer done (14-implementer.md, a0888e4; all green).
 - Round 1: cleaner done (15-cleaner.md, clean).
-- Next: spec checker → auditor → validator.
+- Round 1: spec checker done (16-spec-checker.md, consistent).
+- Next: auditor (repair only) → validator.
