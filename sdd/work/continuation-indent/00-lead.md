@@ -64,8 +64,9 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 | 8 | 06 spec author | Q4: chain whose only break sits next to a multi-line `{…}` | Treat the whole chain as wrapped (spec as written) | Only idempotent reading under answer 5B | As row 5 | 11ac457 |
 | 9 | 06 spec author | FMT-UNSUP-019 deletes no special case (AGENTS.md: such a shape is not declared) | Keep the declaration; name it in PR Review notes | Maintainer's explicit answer 8 chose it | Maintainer answer 8 | 11ac457 |
 | 10 | process | Third skeptic pass after 06? | Skip; spec checker and auditor review the final specs | 06 carries out answers and 05's own findings, no new mechanism beyond answer 8 | Process only | — |
-| 11 | 07 test impl. | RH5419-004 still names a modifier/type line break as one the formatter keeps, contradicting FMT-BREAK-041 | Amend RH5419-004: a modifier/type break no longer withholds the fix (the formatter joins it); other kept breaks in front of `this` unchanged; update the RH5419 test | Standing instruction: the code fix follows the formatter's join (batch 2, 1B/2B) | Decided under the standing instruction; named in PR Review notes | (pending) |
-| 12 | 07 test impl. | Function-pointer parameter modifiers (`delegate*<ref // c⏎int, void>`) | Treat as parameter modifiers: joined, and a comment or directive there refused under FMT-UNSUP-017 | Standing instruction: same scheme as every other modifier gap | As row 11 | (pending) |
+| 11 | 07 test impl. | RH5419-004 still names a modifier/type line break as one the formatter keeps, contradicting FMT-BREAK-041 | Amend RH5419-004: a modifier/type break no longer withholds the fix (the formatter joins it); other kept breaks in front of `this` unchanged; update the RH5419 test | Standing instruction: the code fix follows the formatter's join (batch 2, 1B/2B) | Decided under the standing instruction; named in PR Review notes | 88de891 |
+| 12 | 07 test impl. | Function-pointer parameter modifiers (`delegate*<ref // c⏎int, void>`) | Treat as parameter modifiers: joined, and a comment or directive there refused under FMT-UNSUP-017 | Standing instruction: same scheme as every other modifier gap | As row 11 | 88de891 |
+| 14 | 08 spec author | RH5401 (expression-style get-only properties) behaves like RH5419 for modifier breaks and comments behind modifiers | Accept the RH5401-003/004 amendment: fix offered across a modifier/type break; withheld for a comment behind a modifier (formatter refuses) | Same scheme as row 11; otherwise a visible fix change would go unlisted | As row 11 | 88de891 |
 | 13 | 07 test impl. | Twelve RH5201 tests and similar would assert nothing once their input is refused (FC-017) | Rewrite their `return⏎/* c */` input as `_ =` so the layout is still checked | Keeps the tests meaningful; no output in question | Test-only | (pending) |
 | 3 | skeptic | Drop #953 goals: FMT-BLANK-013 clarification, FMT-STRUCT-007/023 refusal examples, issue's own example | Drop | Inputs unreachable under FMT-UNSUP-008/012/013 | Files holding these shapes are refused and unchanged | — |
 
@@ -95,4 +96,5 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - Batch 2 answered (see Maintainer answers).
 - Spec author 06 done (11ac457); its 4 output questions decided (rows 5-8).
 - Test implementer 07 done (3eb0971 tests, dabd60a handover): 268 formatter + 40 analyzer tests fail on main's code as expected.
-- Next: fresh spec author (08) for rows 11-12; then fresh test implementer (09) for rows 11-13; then implementer.
+- Spec author 08 done (88de891).
+- Next: fresh test implementer (09) for 08's test list and row 13; then implementer.
