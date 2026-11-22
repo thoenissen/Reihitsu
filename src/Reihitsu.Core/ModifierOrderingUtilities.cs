@@ -75,7 +75,7 @@ public static class ModifierOrderingUtilities
     /// modifiers stand on one line. A comment, a directive, or code that a directive excludes between two modifiers
     /// keeps its place between the modifiers written in front of it and those written behind it, and one between the
     /// last modifier and the token behind them keeps its place in front of that token; a modifier that the new order
-    /// adds at such a place is written behind it (RH2001-009). The modifiers cannot be written so when the new order
+    /// adds at such a place is written behind it. The modifiers cannot be written so when the new order
     /// puts a modifier written in front of such trivia behind one written behind it, because the trivia would have
     /// to move next to another keyword
     /// </summary>

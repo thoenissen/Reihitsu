@@ -424,11 +424,12 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// The field keeps the property's leading and trailing trivia, its modifiers, its type, and its initializer. When
     /// the fix adds <see langword="readonly"/>, it writes the modifiers in the order of RH7105 through
     /// <see cref="ModifierOrderingUtilities.TryWriteModifiersInOrder"/>: the leading trivia stays in front of the new first
-    /// modifier, the modifiers stand on one line, a comment or directive between them keeps its place, and the
-    /// conversion is withheld when a reordered modifier would cross one (RH2001-004, RH2001-009). A conditional
-    /// directive between the modifiers or in front of the type withholds the conversion in any case (RH2001-009), and
-    /// one in front of the first modifier, or behind a property without an initializer, unless its group wraps whole
-    /// members (RH2001-010). The field gets a new
+    /// modifier, and the modifiers stand on one line. A comment between the modifiers or between the last modifier and
+    /// the type withholds the conversion when a reordered modifier would cross it (RH2001-004), and a directive or
+    /// disabled text there withholds it in any case, because the field would hold it behind a modifier (RH2001-009,
+    /// SHARED-FIX-010). A conditional directive in front of the type of a property without a modifier withholds it too
+    /// (RH2001-009), and one in front of the first modifier, or behind a property without an initializer, unless its
+    /// group wraps whole members (RH2001-010). The field gets a new
     /// name, a new <c>;</c>, and no accessor list, so the trivia of the property's name, of its accessor list, of its
     /// <c>;</c>, and in front of the initializer's <c>=</c> is not carried over. When that trivia holds a comment or a
     /// directive, the field would lose it, and the conversion is withheld (RH2001-007, SHARED-FIX-003)
