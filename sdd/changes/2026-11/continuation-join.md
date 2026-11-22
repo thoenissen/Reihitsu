@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH7101-007 |
+| Affected requirements | FMT-BREAK-041 (new), FMT-UNSUP-017 (new), FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-031, FMT-INDENT-034, FMT-INDENT-035, FMT-UNSUP-010, FMT-UNSUP-011, FMT-UNSUP-012, FMT-UNSUP-013, FMT-STRUCT-006, FMT-STRUCT-021, RH2001-007, RH5401-003, RH5401-004, RH5419-003, RH5419-004, RH7101-007 |
 | Depends on | [continuation-indent.md](continuation-indent.md) |
 
 ## What
@@ -444,9 +444,19 @@ class D // derived
 
 After: the file is unchanged, and the CLI reports `error: <file>(3,9): unsupported syntax: a comment or directive in front of the : of a base list. The file was left unchanged.`
 
-Each gap has its reason (FMT-UNSUP-017): `a comment or directive between return, throw, await, or new and what follows it`, `a comment or directive between is and its pattern`, `a comment or directive between and, or, or not and its pattern`, `a comment or directive in front of the when of a switch arm`, `a comment or directive in front of the => of a switch arm`, `a comment or directive in front of the : of a base list`, `a comment or directive behind a modifier`, `a comment or directive in front of the when of a catch clause`, `a comment or directive behind a ; of a for header`, `a comment or directive behind the in of a foreach statement`, `a comment or directive between a cast and its operand`, `a comment or directive behind the => of a lambda`, `a comment or directive in front of with`, `a comment or directive in front of or behind the = of an anonymous-object member`, and `a comment or directive in front of or behind the = of a let clause`. A comment behind a field's or a local's modifier keeps the reason it gives on `main` (FMT-UNSUP-004), and so does a directive in a field declaration with several declarators (FMT-UNSUP-010).
+Each gap has its reason (FMT-UNSUP-017): `a comment or directive between return, throw, await, or new and what follows it`, `a comment or directive between is and its pattern`, `a comment or directive between and, or, or not and its pattern`, `a comment or directive in front of the when of a switch arm`, `a comment or directive in front of the => of a switch arm`, `a comment or directive in front of the : of a base list`, `a comment or directive behind a modifier`, `a comment or directive in front of the when of a catch clause`, `a comment or directive behind a ; of a for header`, `a comment or directive behind the in of a foreach statement`, `a comment or directive between a cast and its operand`, `a comment or directive behind the => of a lambda`, `a comment or directive in front of with`, `a comment or directive in front of or behind the = of an anonymous-object member`, and `a comment or directive in front of or behind the = of a let clause`. A comment behind a field's or a local's modifier, or behind the modifier of a function-pointer parameter inside a field's or a local's type, keeps the reason it gives on `main` (FMT-UNSUP-004), and so does a directive in a field declaration with several declarators (FMT-UNSUP-010).
 
-Code that held such a comment is formatted on `main` and refused now; the same comment written above the statement or behind its line is formatted. A switch arm with a comment in front of its `=>` (`1 /* c */ => "one"`) and a lambda with a comment behind its `=>` (`() => /* c */ 1`), which the other sides of FMT-UNSUP-013 and FMT-UNSUP-012 showed as formatted, are refused now, and so are `x is 1 or // c⏎2`, `o is not /* c */ null`, `private /* c */ static int M()`, `this /* c */ int x`, and `new { A = /* c */ 1 }`.
+Code that held such a comment is formatted on `main` and refused now; the same comment written above the statement or behind its line is formatted. A switch arm with a comment in front of its `=>` (`1 /* c */ => "one"`) and a lambda with a comment behind its `=>` (`() => /* c */ 1`), which the other sides of FMT-UNSUP-013 and FMT-UNSUP-012 showed as formatted, are refused now, and so are `x is 1 or // c⏎2`, `o is not /* c */ null`, `private /* c */ static int M()`, `this /* c */ int x`, `new { A = /* c */ 1 }`, and a comment behind the modifier of a function-pointer parameter in the type of a property or a parameter:
+
+```csharp
+unsafe class C
+{
+    delegate*<ref // keep
+              int, void> P => null;
+}
+```
+
+`main` formats this input unchanged; now the file is unchanged, and the CLI reports `error: <file>(3,19): unsupported syntax: a comment or directive behind a modifier. The file was left unchanged.`
 
 A conditional group of modifiers, an idiom of code built for several targets, refuses the file as well (batch 2, answer 3 A), and so does a conditional group behind `return`. Input, which `main` formats (it turns `=> f;` into a block):
 
@@ -562,6 +572,44 @@ Every code fix that lays out a node through the formatter joins these gaps in th
       private int _b;
   ```
 
+- **RH5419** (an expression-bodied indexer put on one line): a line break behind a modifier, which withheld the fix on `main`, is joined, so the fix is offered; a comment behind a modifier, which the fix kept on `main`, now withholds it, also on one line.
+
+  ```csharp
+      public
+      virtual int this[int a,
+                       int b] => a;
+
+      public /* c */ int this[short a,
+                              short b] => a;
+  ```
+
+  Before: no fix for the first indexer; the second becomes
+
+  ```csharp
+      public /* c */ int this[short a, short b] => a;
+  ```
+
+  After: the first becomes
+
+  ```csharp
+      public virtual int this[int a, int b] => a;
+  ```
+
+  and no fix is offered for the second. The diagnostic is reported for both, before and after.
+
+- **RH5401** (an expression-bodied property put on one line), in the same way:
+
+  ```csharp
+      public
+      int Q
+          => 2;
+
+      public /* c */ int P
+          => 1;
+  ```
+
+  Before: no fix for `Q`; `P` becomes `public /* c */ int P => 1;`. After: `Q` becomes `public int Q => 2;`, and no fix is offered for `P`. The diagnostic is reported for both, before and after.
+
 - **RH2001, RH7101** (a private auto-property turned into a field; a field split into one field per declaration), whose fixes ask the formatter before they are offered: a comment, a directive, or disabled text in one of the gaps inside the field the RH2001 fix builds, such as `private Counter Value { get; } = new /* three */ Counter();`, or anywhere in the type the RH7101 fix formats, withholds the fix, where `main` offers it. A list of omitted type arguments with a comment does the same for RH7101 ([omitted-type-argument-comment-unsupported.md](omitted-type-argument-comment-unsupported.md)).
 
 No rule page changes: no rule page shows a gap this change joins or refuses, and rule pages never describe the formatter.
@@ -592,7 +640,11 @@ Every listed gap is joined where no comment or directive sits in it: a `return` 
 
 ### Join the neighbouring gaps the run found (maintainer, batch 2, answers 1 B, 2 B, and 4 B)
 
-The maintainer joined every further gap the run listed: two modifiers, a modifier and `event`, the `in` of a `foreach` statement, `await foreach` and `await using`, a cast and its operand, `new[]`, a parameter's modifiers, a switch arm's `when`, both sides of the `=` of an anonymous-object member and of a `let` clause, `not` and its pattern, and `yield return` and its value (answer 1 B); a modifier and whatever starts the declaration behind it when that is no type — `class`, a constructor's name, `implicit` or `explicit`, `delegate` (answer 2 B); and the `is` of a type test and its type (answer 4 B). The modifier gap is stated by its cause, every modifier list of the syntax tree, so it also covers the modifiers of an accessor, a lambda, and an anonymous method, which no question showed; the lead decides that on the scheme of the maintainer's answers. The `new` of `new()` needs nothing new: its `(` is joined by FMT-BREAK-039, and a comment in front of it is refused by FMT-UNSUP-014.
+The maintainer joined every further gap the run listed: two modifiers, a modifier and `event`, the `in` of a `foreach` statement, `await foreach` and `await using`, a cast and its operand, `new[]`, a parameter's modifiers, a switch arm's `when`, both sides of the `=` of an anonymous-object member and of a `let` clause, `not` and its pattern, and `yield return` and its value (answer 1 B); a modifier and whatever starts the declaration behind it when that is no type — `class`, a constructor's name, `implicit` or `explicit`, `delegate` (answer 2 B); and the `is` of a type test and its type (answer 4 B). The modifier gap is stated by its cause, every modifier list of the syntax tree, so it also covers the modifiers of an accessor, a lambda, and an anonymous method, which no question showed; the lead decides that on the scheme of the maintainer's answers. The `new` of `new()` needs nothing new: its `(` is joined by FMT-BREAK-039, and a comment in front of it is refused by FMT-UNSUP-014. The modifiers of a function-pointer parameter (`delegate*<ref⏎int, void>`) are a parameter's modifiers: FMT-BREAK-015 joins them as it does on `main`, and a comment or directive behind them is refused like one behind any other parameter's modifier; the lead decided that under the maintainer's standing instruction.
+
+### RH5419's and RH5401's fixes follow the modifier join (lead, under the maintainer's standing instruction)
+
+RH5419 withheld its fix where the formatter kept a line break in front of `this`, a line break behind a modifier included, and RH5401 withheld its fix for a line break behind a property's modifier in the same way. The formatter now joins that line break, so each fix puts such an indexer or property on one line, and a comment behind a modifier, which the formatter now refuses, withholds it (SHARED-FIX-010). Each fix keeps asking the formatter rather than measuring the gap itself, as every formatting-aware fix does.
 
 ### The `=` of an anonymous-object member and of a `let` clause is FMT-BREAK-016's
 
