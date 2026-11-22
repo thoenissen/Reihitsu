@@ -44,7 +44,7 @@ Issue comments relevant to the run (summarized):
 
 ## Follow-up candidates
 
-- FMT-BLANK-019 (`BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression`) leaves out a positional pattern's `)`, now laid out like a list pattern's `]` — 07-implementer.md
+- FMT-BLANK-019/020 (`BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression`) leaves out a positional pattern's `)`, now laid out like a list pattern's `]` — 07-implementer.md
 
 - Qualified name wrapped behind its dot in a member's type is not joined (joined in a constraint) — 01-spec-author.md
 - FMT-INDENT-021 `Why:` contradicts its own example (spec wording) — 01-spec-author.md
@@ -62,4 +62,6 @@ Issue comments relevant to the run (summarized):
 - Test implementer 08 done (bea3bb6, 7186a1c): formatter project green.
 - Cleaner 09 clean (1aa5871).
 - Spec checker 10 consistent (4439857). Main not ahead; build green.
-- Next: auditor (11).
+- Auditor 11 (69fd99b) on audited SHA 9caef701739028a807c8e7cf8387d23d007c9255: #1929 high finding — undecided output: typed property pattern behind and/or/not, and parenthesized pattern behind a wrapper in a case label, move with PatternAnchor change.
+- WAITING: output question 9 (A = outermost first token for every member, current head; B = only where main had no column of its own) posted.
+- Next after answer: repair round 1 — spec author (change doc members), test implementer (members incl. 8A followers: `or (`/`and (` arm, `not (` list element/slice), implementer if B; then cleaner, spec checker, auditor (repair only), validator.
