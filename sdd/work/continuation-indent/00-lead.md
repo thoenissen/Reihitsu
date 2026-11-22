@@ -96,6 +96,7 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 - #1633: its case no longer exists because the base list `:` joins the type's line (04-spec-author.md).
 - Neighbouring gaps no answer named stay continuation lines: in front of `foreach … in`, `from x in⏎arr`, `on x⏎equals`, `>⏎1`, unary prefix operators, `;` of `return⏎;` (06-spec-author.md).
 - `case(1)` keeps no space after `case` while `switch (` and `is (` get one (11-spec-author.md).
+- Switch-arm multi-line property pattern without a type behind a combinator: the brace lands left of its pattern (`PatternAnchor.GetColumn` falls back to the original pattern's first token); FMT-INDENT-026 reads as the arm's column (28-auditor.md).
 - `case (⏎…⏎):` puts `case` alone on its line on `main` — looks wrong, outside the run (04-spec-author.md).
 
 ## Open escalation 10 (ask before publishing)
@@ -104,7 +105,8 @@ Standing instruction (maintainer, after batch 2): the maintainer cannot answer f
 
 ## Audited SHA
 
-f434b0b (audit 1 in progress)
+- Audit 1 at f434b0b (code; handover at 9df98aa): findings -> repair round 2.
+- Audit 2 (repair only) at c14c4bd: pass (28-auditor.md, 0704781). Audited SHA: c14c4bd.
 
 ## Open worklist / next step
 
@@ -131,6 +133,7 @@ f434b0b (audit 1 in progress)
 - Spec checker 16: two minor findings -> repair round 1 (17 spec author, 18 test implementer) done.
 - Spec checker 19: consistent. Escalation 10 (S5) posted to the maintainer. Merged origin/main (9f1eb7d; conflicts resolved by spec author 20).
 - Cleaner 21 clean on merged tree (f434b0b). Auditor 22 spawned against main ab547b7, head f434b0b.
-- Repair round 2: spec 23, tests 24, implementer 25 (e7aa90f) done; next cleaner 26 (F3).
+- Repair round 2 complete: cleaner 26, spec checker 27, auditor 28 pass.
+- Next: validator (29); then wait for the escalation-10 answer; issue manager; note; publish.
 - Auditor 22: findings F1-F4 on #953; #1852/#1896/#1818 pass. Repair round 2: spec author (23) -> test implementer (24) -> implementer (25) -> cleaner (26) -> spec checker (27) -> auditor on the repair (28) -> validator (29).
 - (old) auditor verdict; validator (23); wait for the escalation-10 answer before marking ready.
