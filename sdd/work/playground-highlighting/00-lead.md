@@ -46,4 +46,4 @@ fcb82346886ea93149e5229451aa87a43b7438fb (audit 1, base main 1788f94)
 
 ## Next step
 
-Repair round 2 of 3: test implementer (22) → implementer (23) → cleaner (24) → spec checker (25) → auditor repair-only (26) → validator (27) with browser re-measure.
+Implementer (23, 7791652) fixed V1 (minmax tracks) and V2 with incremental highlighting: +534 production lines, two new types (PlaygroundHighlighting, PlaygroundHighlightedLine). Escalation 9 asked to the maintainer: A keep incremental / B cause-1 only (~60 lines, keystroke ~450 ms at 1000 lines) / C B + colour after a typing pause. Lead recommends B. Waiting. Pending afterwards: code owners for new types (spec author), equivalence test candidate, follow-up candidate (coalesce input events, keep output out of typing renders).
