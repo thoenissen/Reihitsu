@@ -36,14 +36,20 @@ Issue comments relevant to the run (summarized):
 |---|---|---|---|---|---|---|
 | 1 | Claim | #1929 is a bug fix while the other issues are behavior changes; split the run? | Keep all six in one behavior-change run | The maintainer named all six in the prompt; the coordinator batched #1929 here for the shared `PatternAnchor`/FMT-INDENT-026 mechanism; the behavior-change lane admits a bug-fix diff | Lane choice is internal | claim |
 | 2 | Spec author | #1929 turned out to carry an output question (case-label anchor reading); #1685 already met on main | Accept: #1929 gets a change doc and Q8; #1685 gets only a spec example + characterization test | Spec author's handover shows two readings with different `case` output; main already gives #1685's reading A | #1929's visible part goes to the maintainer as Q8; #1685 changes no output | 26aff07 |
+| 3 | Skeptic | Comment-held first base type (Q2), comment-held first element of a bracket list (Q4), line inside a qualified name (Q5): new columns? | Refuse the rare class: keep today's output (FMT-INDENT-034 continuation indent); drop FMT-INDENT-036/037/038 and Q2/Q4/Q5; the spec records that these lines keep the continuation indent | Every such input already violates RH5104 / RH5043 / RH5044 / RH5046, so it is rare by definition (AGENTS.md, Code-fix coverage); FMT-INDENT-038 would also move comment-free qualified names in casts, usings, etc., outside the issues' scope | Output stays as on main | (spec-author 03) |
+| 4 | Skeptic | Declare "comment behind a base list's colon" unsupported (FMT-UNSUP-017 extension)? | Not an option: with Q2 dropped, the shape deletes no special case (AGENTS.md: a shape that deletes nothing is not declared); remove the spec author's recorded internal choice | Escalation 10 applies only where declaring deletes something | No refusal is added | (spec-author 03) |
+| 5 | Skeptic | #1634's purpose with no new columns | `Closes #1634`: the issue's purpose was that no requirement owns these lines; after #1920 FMT-INDENT-034 owns them, which the spec now states for this class | Agent-filed goals are proposals; nothing visible changes | Output unchanged | (spec-author 03) |
+| 6 | Skeptic | Amendments before the batch | Route to a fresh spec author: #1929 list-pattern element member, Q8 B wording; #1542 Q7b (`and` member), switch-expression arm, FMT-INDENT-006 dependency on Q7; drop the #1634 change doc unless a visible change remains | Skeptic findings within scope | Questions still go to the maintainer | (spec-author 03) |
 
 ## Follow-up candidates
 
 - Qualified name wrapped behind its dot in a member's type is not joined (joined in a constraint) — 01-spec-author.md
 - FMT-BREAK-017 should count a multi-line positional pattern as wrapping a pattern chain, if Q7 = A (may fold into Q7) — 01-spec-author.md
 - FMT-INDENT-021 `Why:` contradicts its own example (spec wording) — 01-spec-author.md
+- Qualified names wrapped behind their dot without a comment are not joined in using aliases, namespace names, explicit interface names, casts, typeof, default, new, member types (whole class) — 02-skeptic.md
 
 ## Worklist / next step
 
 - Spec author done (26aff07), 8 output questions open in 01-spec-author.md. Lane check confirmed.
-- Next: skeptic (02), then output-question batch.
+- Skeptic done (2a8cb38). Decisions 3–6.
+- Next: spec author amendments (03), then output-question batch (Q1, Q3, Q6, Q7(+b), Q8).
