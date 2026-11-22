@@ -38,4 +38,5 @@
 - Spec author done (06-spec-author.md, FMT-SWITCH-017). Open: test needs tag FMT-SWITCH-017 (test implementer, after the implementer).
 - Implementer done (05-implementer.md, ef49b5e): 5 disputed tests.
 - Test implementer done (07-test-implementer.md): formatter + architecture green.
-- Next: cleaner → spec checker → auditor → validator.
+- Cleaner done (09-cleaner.md, clean).
+- Next: spec checker → auditor → validator.
