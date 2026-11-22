@@ -26,6 +26,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | tests (04) | Does PLAY-010 "each category has its own colour" also require a colour different from the normal text colour? | Yes; keep the `AreNotEqual(normal, …)` assert | A category in the normal colour would be indistinguishable from uncoloured text, which defeats the requirement | Answer 1 asked for distinct colours per category; the exact colours are styling, a spec non-goal | df0d437 |
 
 ## Follow-up candidates
 
@@ -33,4 +34,4 @@
 
 ## Next step
 
-Spec author (01) and skeptic (02) done. Batch 1 answered (see Maintainer answers 7). Route to spec author: was waiting on output-question batch 1: Q1 marks after edit, Q2 var/nameof/dynamic/value colour, Q3 empty span at line end, Q4 doc-comment colouring. Then route answers to spec author (fresh or continue), plus skeptic wording gaps (comment trivia behind directives, aria-hidden overlay, shared line/column helper, stale change-doc line), then test implementer.
+Tests written (04, 66 failing on unchanged code). Spawn implementer (05).
