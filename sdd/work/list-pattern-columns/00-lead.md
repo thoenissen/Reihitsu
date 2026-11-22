@@ -40,11 +40,13 @@ Issue comments relevant to the run (summarized):
 | 4 | Skeptic | Declare "comment behind a base list's colon" unsupported (FMT-UNSUP-017 extension)? | Not an option: with Q2 dropped, the shape deletes no special case (AGENTS.md: a shape that deletes nothing is not declared); remove the spec author's recorded internal choice | Escalation 10 applies only where declaring deletes something | No refusal is added | (spec-author 03) |
 | 5 | Skeptic | #1634's purpose with no new columns | `Closes #1634`: the issue's purpose was that no requirement owns these lines; after #1920 FMT-INDENT-034 owns them, which the spec now states for this class | Agent-filed goals are proposals; nothing visible changes | Output unchanged | (spec-author 03) |
 | 6 | Skeptic | Amendments before the batch | Route to a fresh spec author: #1929 list-pattern element member, Q8 B wording; #1542 Q7b (`and` member), switch-expression arm, FMT-INDENT-006 dependency on Q7; drop the #1634 change doc unless a visible change remains | Skeptic findings within scope | Questions still go to the maintainer | (spec-author 03) |
+| 7 | Implementer | Five older tests assert main's output that answers 6A (list-pattern `]` comment column: CollectionExpressionClosingBracketCommentTests 1, MultiLineGluedCommentBlankLineTests 2) and 8A (ReihitsuFormatterNodeColumnTests case-label `not {` 2) replace | Tests are wrong; route to a fresh test implementer to update them to the answered output | Implementer shows the new output matches the accepted spec text | Covered by maintainer answers 6A and 8A | (test-implementer 08) |
 
 ## Follow-up candidates
 
+- FMT-BLANK-019 (`BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression`) leaves out a positional pattern's `)`, now laid out like a list pattern's `]` — 07-implementer.md
+
 - Qualified name wrapped behind its dot in a member's type is not joined (joined in a constraint) — 01-spec-author.md
-- FMT-BREAK-017 should count a multi-line positional pattern as wrapping a pattern chain, if Q7 = A (may fold into Q7) — 01-spec-author.md
 - FMT-INDENT-021 `Why:` contradicts its own example (spec wording) — 01-spec-author.md
 - Qualified names wrapped behind their dot without a comment are not joined in using aliases, namespace names, explicit interface names, casts, typeof, default, new, member types (whole class) — 02-skeptic.md
 
@@ -56,4 +58,5 @@ Issue comments relevant to the run (summarized):
 - Batch 1 answered: all A.
 - Spec author 05 done (52e40b7): change docs Accepted.
 - Test implementer 06 done (b4d741a tests, f2e5cb2 handover): 35 formatter + 2 analyzer tests fail as intended.
-- Next: implementer (07).
+- Implementer 07 done (39fc4b0, e55c8ff): 5 disputed older tests (decision 7).
+- Next: test implementer 08 updates the five tests, then cleaner.
