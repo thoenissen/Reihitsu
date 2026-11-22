@@ -1528,7 +1528,7 @@ class C
 
 ### FMT-INDENT-026 — Property patterns and parenthesized patterns align to their introducer
 
-When the braces of a property pattern or the parentheses of a parenthesized pattern span several lines, the formatter MUST indent the delimiters that start a line to the pattern's anchor column, the subpatterns of a property pattern one level deeper, and the pattern inside a parenthesized pattern four columns right of the opening parenthesis — whatever kind of pattern it is. The anchor column MUST be, skipping `and`, `or`, and `not` wrappers: the `is` keyword for a pattern of an `is` expression, the first token of the subpattern for a nested pattern, one level deeper than the opening parenthesis for a pattern inside a parenthesized pattern, and otherwise the first token of the pattern those wrappers lead to — the outermost pattern that holds the property or parenthesized pattern only through `and`, `or`, and `not` patterns. For `P and { … }` and `not { … }` in a switch-expression arm, in an element of a list pattern, or in a `case` label, that is the `P` or the `not`, not the brace; for a pattern with no wrapper around it, such as `P { … }` or `{ … }`, it is the pattern's own first token. A combinator that starts a line inside the parentheses aligns with the first token of the pattern it combines (FMT-INDENT-019).
+When the braces of a property pattern or the parentheses of a parenthesized pattern span several lines, the formatter MUST indent the delimiters that start a line to the pattern's anchor column, the subpatterns of a property pattern one level deeper, and the pattern inside a parenthesized pattern four columns right of the opening parenthesis — whatever kind of pattern it is. The anchor column MUST be, skipping `and`, `or`, and `not` wrappers: the `is` keyword for a pattern of an `is` expression, the first token of the subpattern for a nested pattern, one level deeper than the opening parenthesis for a pattern inside a parenthesized pattern, and otherwise the first token of the pattern those wrappers lead to — the outermost pattern that holds the property or parenthesized pattern only through `and`, `or`, and `not` patterns. For `P and { … }` and `not { … }` in a switch-expression arm, in an element or a slice of a list pattern, or in a `case` label, that is the `P` or the `not`, not the brace. The same holds whether or not the pattern behind the wrapper has a type and whether it is a property or a parenthesized pattern: for `P { … } or Q { … }` and `not Q { … }` it is the `P` or the `not`, not the `Q`, and for `0 or ( … )`, `not ( … )`, and `case > 5 and ( … )` it is the `0`, the `not`, or the `>`, not the parenthesis or the `case` keyword; for a pattern with no wrapper around it, such as `P { … }` or `{ … }`, it is the pattern's own first token. A combinator that starts a line inside the parentheses aligns with the first token of the pattern it combines (FMT-INDENT-019).
 
 Why: A multi-line pattern reads as a block that belongs to the construct introducing it; anchoring to `is` or to the owning subpattern keeps that block next to its introducer however far right the pattern starts. The content of a parenthesized pattern is one level inside its parentheses, as the maintainer decided, for a constant, type, relational, or combined pattern as for a property pattern. Skipping the wrappers also where nothing introduces the pattern keeps the braces of `P and { … }` and `not { … }` under the `P` or the `not`, where the braces of `P { … }` stand under the `P`; a brace behind a wrapper is not its own anchor, since a brace that starts its line below the wrapper would then have no column to take. Where the property or parenthesized pattern is itself the outermost pattern and its opening delimiter starts the line, as `{` at the start of a switch-expression arm or `(` below a `case` keyword, the requirement that places that line gives the delimiter its column, and the content follows from it.
 
@@ -1711,6 +1711,238 @@ class C
                  and not {
                      A: 3
                  }:
+                break;
+        }
+    }
+}
+```
+
+Example — behind `and`, `or`, and `not`, the braces of a typed property pattern and the parentheses of a parenthesized pattern stand under the first token of the arm's, the element's, the slice's, or the label's pattern, not under the type or one level right of `case`; a pattern with no wrapper, such as the first `P { … }`, keeps its own first token:
+
+```csharp
+class P
+{
+    public int A { get; set; }
+
+    public int B { get; set; }
+}
+
+class Q
+{
+    public int A { get; set; }
+
+    public int B { get; set; }
+}
+
+class C
+{
+    int M(object o)
+    {
+        return o switch
+        {
+            P { A: 1,
+                B: 2 } or Q { A: 1,
+                B: 2 } => 1,
+            not Q { A: 3,
+                B: 4 } => 2,
+            null or P { A: 5,
+                B: 6 } => 3,
+            _ => 0
+        };
+    }
+
+    int K(int i)
+    {
+        return i switch
+        {
+            0
+            or
+            (1 or
+            2) => 1,
+            _ => 0
+        };
+    }
+
+    bool L(object[] a, int[] b)
+    {
+        return a is [1, not Q { A: 1,
+            B: 2 }]
+            && a is [1, .. not Q { A: 1,
+            B: 2 }]
+            && b is [1, not (1 or
+            2)]
+            && b is [1, .. not (1 or
+            2)];
+    }
+
+    void N(object o, int i)
+    {
+        switch (o)
+        {
+            case not Q { A: 1,
+            B: 2 }:
+                break;
+
+            case null or P { A: 1,
+            B: 2 }:
+                break;
+        }
+
+        switch (i)
+        {
+            case not (1 or
+            2):
+                break;
+
+            case > 5 and (< 10 or
+            > 20):
+                break;
+
+            case 3 or (4 or
+            5):
+                break;
+        }
+    }
+}
+```
+
+```csharp
+class P
+{
+    public int A { get; set; }
+
+    public int B { get; set; }
+}
+
+class Q
+{
+    public int A { get; set; }
+
+    public int B { get; set; }
+}
+
+class C
+{
+    int M(object o)
+    {
+        return o switch
+               {
+                   P
+                   {
+                       A: 1,
+                       B: 2
+                   }
+                   or Q
+                   {
+                       A: 1,
+                       B: 2
+                   } => 1,
+                   not Q
+                   {
+                       A: 3,
+                       B: 4
+                   } => 2,
+                   null
+                   or P
+                   {
+                       A: 5,
+                       B: 6
+                   } => 3,
+                   _ => 0
+               };
+    }
+
+    int K(int i)
+    {
+        return i switch
+               {
+                   0
+                   or
+                   (
+                       1
+                       or 2
+                   ) => 1,
+                   _ => 0
+               };
+    }
+
+    bool L(object[] a, int[] b)
+    {
+        return a is [
+                        1,
+                        not Q
+                        {
+                            A: 1,
+                            B: 2
+                        }
+                    ]
+               && a is [
+                           1,
+                           .. not Q
+                              {
+                                  A: 1,
+                                  B: 2
+                              }
+                       ]
+               && b is [
+                           1,
+                           not
+                           (
+                               1
+                               or 2
+                           )
+                       ]
+               && b is [
+                           1,
+                           .. not
+                              (
+                                  1
+                                  or 2
+                              )
+                       ];
+    }
+
+    void N(object o, int i)
+    {
+        switch (o)
+        {
+            case not Q {
+                     A: 1,
+                     B: 2
+                 }:
+                break;
+
+            case null
+                 or P {
+                     A: 1,
+                     B: 2
+                 }:
+                break;
+        }
+
+        switch (i)
+        {
+            case not
+                 (
+                     1
+                     or 2
+                 ):
+                break;
+
+            case > 5
+                 and
+                 (
+                     < 10
+                     or > 20
+                 ):
+                break;
+
+            case 3
+                 or
+                 (
+                     4
+                     or 5
+                 ):
                 break;
         }
     }
