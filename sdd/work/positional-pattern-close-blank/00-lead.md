@@ -14,6 +14,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | Does the maintainer's answer (option A) cover change-doc item 2 (comment/directive gaps in front of the positional `)`, FMT-BLANK-009/018/020)? | Covered; not asked again | The answer names FMT-BLANK-019 "and the requirements that refer to it" and states the rule as "like a list pattern's `]`"; each item-2 After equals main's output for the list-pattern form | The visible change is covered by the maintainer's answer | fdca76f |
 
 ## Follow-up candidates
 
@@ -25,4 +26,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (change doc + spec diff).
+- Done: spec author (01, fdca76f), lane check confirmed.
+- Next: skeptic (02) running; then output-question batch if anything new, then accept change doc + test implementer.
