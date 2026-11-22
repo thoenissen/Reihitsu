@@ -11,7 +11,7 @@ This spec covers what holds for every analyzer rule, so a rule spec states only 
 
 ## Non-goals
 
-- Code in an inactive `#if` branch. The compiler does not hand it to any analyzer, so no rule can report it.
+- Code that an inactive `#if` branch excludes. The compiler does not hand that code to any analyzer, so no rule can report it. The directives inside such a branch are not excluded code: they stay in the syntax tree, so a rule may report a `#region` or `#endregion` there, and whether it does is that rule's own spec.
 - Generated code in the formatter (FMT-PIPE-006) and in the CLI, which have their own specs.
 - How a rule is suppressed or configured — standard .NET analyzer behavior.
 - How a code fix spells a name it writes into the code, including whether it writes the verbatim prefix `@` — the spec of that fix.
