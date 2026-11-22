@@ -37,4 +37,5 @@
 - Done: spec author amendment (03, 96d9be0), change doc Accepted.
 - Done: test implementer (04, f651f95/b65151b): 14 formatter + 2 RH3202 runs fail as intended, 4 pin unchanged behavior.
 - Done: implementer (05, 3a0c01e/215e75d): all tests pass.
-- Next: cleaner (06).
+- Done: cleaner (06, e39b1b9): clean.
+- Next: spec checker (07).
