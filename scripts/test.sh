@@ -79,22 +79,22 @@ done
 declare -a projects
 
 case "$project" in
-    analyzer) projects=("src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj") ;;
-    formatter) projects=("src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj") ;;
-    core) projects=("src/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj") ;;
-    cli) projects=("src/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj") ;;
-    architecture) projects=("src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj") ;;
-    tooling) projects=("src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj") ;;
-    playground) projects=("src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj") ;;
-    selfhosting) projects=("src/Reihitsu.SelfHosting.Test/Reihitsu.SelfHosting.Test.csproj") ;;
+    analyzer) projects=("tests/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj") ;;
+    formatter) projects=("tests/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj") ;;
+    core) projects=("tests/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj") ;;
+    cli) projects=("tests/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj") ;;
+    architecture) projects=("tests/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj") ;;
+    tooling) projects=("tests/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj") ;;
+    playground) projects=("tests/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj") ;;
+    selfhosting) projects=("tests/Reihitsu.SelfHosting.Test/Reihitsu.SelfHosting.Test.csproj") ;;
     all)
-        projects=("src/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj"
-                  "src/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj"
-                  "src/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj"
-                  "src/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj"
-                  "src/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj"
-                  "src/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj"
-                  "src/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj")
+        projects=("tests/Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj"
+                  "tests/Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj"
+                  "tests/Reihitsu.Core.Test/Reihitsu.Core.Test.csproj"
+                  "tests/Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj"
+                  "tests/Reihitsu.ArchitectureTests/Reihitsu.ArchitectureTests.csproj"
+                  "tests/Reihitsu.Tooling.Test/Reihitsu.Tooling.Test.csproj"
+                  "tests/Reihitsu.Playground.Test/Reihitsu.Playground.Test.csproj")
         ;;
     *)
         echo "test.sh: unknown --project value '$project' (use analyzer, formatter, core, cli, architecture, tooling, playground, selfhosting, or all)." >&2

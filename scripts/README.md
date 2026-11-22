@@ -154,10 +154,10 @@ It first runs the text-only proof over the same range, with one `--exclude` for 
 | Category | Paths |
 |---|---|
 | Change doc | `sdd/changes/**` |
-| Text | the rest of `sdd/**`, `squad/notes/**`, `documentation/**`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and C# under `src/` when the proof passed |
+| Text | the rest of `sdd/**`, `squad/notes/**`, `documentation/**`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and `tests/` and C# under `src/` and `tests/` when the proof passed |
 | Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, the root `reihitsu.json`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
 | Wording | `src/Reihitsu.Analyzer/AnalyzerResources.resx` and `src/Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx`, the resources that hold the diagnostic titles and messages and the code-fix titles; every other `*.resx` is production |
-| Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
+| Test | files of test projects (`tests/**`) |
 | Production | every other file under `src/` |
 | Unknown | anything else |
 
