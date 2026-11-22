@@ -37,4 +37,5 @@
 - Answers received (1A, 2B). Lead accepts the change doc.
 - Next: spec author follow-up (fresh: earlier agent large, cache cold) — answers 1A/2B into change doc Decisions + spec, decision 3, Status: Accepted. Then test implementer.
 - Spec author follow-up done (03, 8d09179), change doc Accepted.
-- Next: test implementer (04).
+- Test implementer done (04, 3c509ca tests, 9e4ba00 handover): 16 new tests, 12 fail as intended.
+- Next: implementer (05).
