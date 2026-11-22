@@ -88,8 +88,9 @@ public static class PlaygroundHighlighter
 
     /// <summary>
     /// Gets the span an error mark covers in a text (PLAY-014): a span with characters as reported; an empty span the
-    /// character behind it when that character is an ordinary one, and otherwise, at a line break or at the end of the
-    /// text, the empty span itself, which the stylesheet shows one character wide
+    /// character behind it when that character is an ordinary one, both code units of a surrogate pair included, and
+    /// otherwise, at a line break as the parser counts it or at the end of the text, the empty span itself, which the
+    /// stylesheet shows one character wide
     /// </summary>
     /// <param name="span">The reported span</param>
     /// <param name="text">The text the span lies in</param>
@@ -98,22 +99,22 @@ public static class PlaygroundHighlighter
     {
         if (span.IsEmpty
             && span.Start < text.Length
-            && text[span.Start] is not ('\r' or '\n'))
+            && SyntaxFacts.IsNewLine(text[span.Start]) == false)
         {
-            return new TextSpan(span.Start, 1);
+            return new TextSpan(span.Start, char.IsSurrogatePair(text, span.Start) ? 2 : 1);
         }
 
         return span;
     }
 
     /// <summary>
-    /// Classifies a text by its syntax tree, parsed with the options of PLAY-005
+    /// Classifies a text by its syntax tree, parsed as <see cref="PlaygroundFormatter.Parse"/> parses it for formatting
     /// </summary>
     /// <param name="text">The C# source text</param>
     /// <returns>The coloured spans in text order, each with its class; text outside them keeps the normal colour</returns>
     private static List<(TextSpan Span, string ClassName)> Classify(string text)
     {
-        var root = CSharpSyntaxTree.ParseText(text).GetRoot();
+        var root = PlaygroundFormatter.Parse(text).GetRoot();
         var spans = new List<(TextSpan Span, string ClassName)>();
 
         foreach (var token in root.DescendantTokens())

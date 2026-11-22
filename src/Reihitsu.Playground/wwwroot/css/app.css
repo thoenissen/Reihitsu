@@ -136,17 +136,6 @@ html, body {
     gap: 1rem;
 }
 
-@media (max-width: 700px) {
-    .playground-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .playground-editor,
-    .playground-output {
-        height: 40vh;
-    }
-}
-
 .playground-column {
     display: flex;
     flex-direction: column;
@@ -170,7 +159,20 @@ html, body {
     box-sizing: border-box;
 }
 
-.playground-editor:focus-within {
+/* Behind the base rules, so the narrow-screen values override them */
+@media (max-width: 700px) {
+    .playground-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .playground-editor,
+    .playground-output {
+        height: 40vh;
+    }
+}
+
+.playground-editor:focus-within,
+.playground-output:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: -1px;
 }

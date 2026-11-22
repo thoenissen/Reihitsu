@@ -23,7 +23,7 @@ public static class PlaygroundFormatter
     /// <returns>The formatting result</returns>
     public static PlaygroundFormatResult Format(string source)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var syntaxTree = Parse(source);
 
         var errors = GetSyntaxErrors(syntaxTree);
 
@@ -43,6 +43,17 @@ public static class PlaygroundFormatter
         return result.Unsupported != null
                    ? new PlaygroundFormatResult(source, false, result.Unsupported)
                    : new PlaygroundFormatResult(result.Output.ToString(), true);
+    }
+
+    /// <summary>
+    /// Parses C# source with the options of PLAY-005; formatting, the error list, and the highlighting of the input all read
+    /// the tree this returns
+    /// </summary>
+    /// <param name="source">The C# source to parse</param>
+    /// <returns>The syntax tree</returns>
+    internal static SyntaxTree Parse(string source)
+    {
+        return CSharpSyntaxTree.ParseText(source);
     }
 
     /// <summary>
