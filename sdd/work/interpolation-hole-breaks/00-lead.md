@@ -66,4 +66,5 @@
 - Spec checker (22) consistent.
 - Audit (23-auditor.md, audited 023c066): #3, #4 closed; #5 (missing test).
 - Round 2: test implementer (24) done, mutation-checked.
-- Next: cleaner (25) → spec checker (26) → auditor (27, delta vs 023c066) → validator. → validator.
+- Round 2: cleaner (25) clean.
+- Next: spec checker (26) → auditor (27, delta vs 023c066) → validator. → validator.
