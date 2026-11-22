@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-CASING-007, SHARED-CASING-013 (added by this change), RH4105-003, RH4115-003, RH4117-002 |
 
@@ -103,6 +103,10 @@ The requirement names the cause — the rename would write `@` — and gives res
 ### A new requirement instead of a condition of SHARED-CASING-008
 
 SHARED-CASING-008 withholds a fix when no usable name can be derived from the old one. A keyword is a usable name with `@`; withholding it has its own reason (P3), so it is its own requirement.
+
+### Maintainer answer to output batch 1
+
+- **Question 6 — RH4105, RH4115, RH4117, a derived name that needs `@`: A.** No fix is offered for `Class`, `Object`, and `Await` in an async method; the diagnostics stay. `Var`, `Nameof`, and `Await` in a method that is not async keep their fix (`var`, `nameof`, `await`).
 
 ## Alternatives considered
 

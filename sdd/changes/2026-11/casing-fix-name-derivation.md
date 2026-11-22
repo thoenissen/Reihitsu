@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-CASING-001, SHARED-CASING-002, SHARED-CASING-003, SHARED-CASING-006, RH4005-002, RH4121-003 |
 
@@ -10,7 +10,7 @@
 
 The casing fixes derive a new name from the old one (SHARED-CASING-006). This change extends that derivation, and the styles it checks against, in three ways:
 
-- **Leading acronyms in camelCase targets** (thoenissen/Reihitsu#971). For a camelCase or `_camelCase` target, the leading run of uppercase letters is written in lowercase as one word. When that run has two or more letters and a lowercase letter follows it directly, the run's last letter keeps its case, because it starts the next word: `HTTPClient` becomes `httpClient` and `_httpClient`, not `hTTPClient` and `_hTTPClient`. PascalCase targets are unchanged: `HTTPClient` stays as it is.
+- **Leading acronyms in camelCase targets** (thoenissen/Reihitsu#971). For a camelCase or `_camelCase` target, the leading run of uppercase letters of the first word is written in lowercase as one word. When that run has two or more letters and a lowercase letter follows it directly, the run's last letter keeps its case, because it starts the next word: `HTTPClient` becomes `httpClient` and `_httpClient`, not `hTTPClient` and `_hTTPClient`. PascalCase targets are unchanged: `HTTPClient` stays as it is.
 - **An existing prefix counts** (thoenissen/Reihitsu#1451). RH4005 and RH4121 treat an `i`/`I` or `t`/`T` that is followed by `_` as the prefix the rule requires, and drop the underscores: `i_document` becomes `IDocument`, `T_Key` becomes `TKey`, `T_1` becomes `T1`. RH4005 also treats an `i`/`I` in front of a digit as the prefix, and an `i` or `I` alone as a prefix with nothing behind it, for which no usable name remains, so the fix is withheld.
 - **Every identifier character belongs to its word** (thoenissen/Reihitsu#1451). A combining mark (Unicode categories Mn, Mc), a letter number (Nl), and connector punctuation other than `_` (Pc) are no longer treated as separators that the fix drops. The styles of SHARED-CASING-001 to SHARED-CASING-003 accept them wherever they accept a letter or a digit after the first character, and the fix keeps them in their word. A combining mark counts as part of the character in front of it, so `CAFÉ_NAME`, with `É` written as `E` followed by U+0301, still counts as a word in uppercase letters.
 
@@ -34,8 +34,9 @@ public class C
     private int XMLParser;
     private int IOStream;
     private int HTTP2Client;
+    private int URLs;
 
-    public int Sum => HTTPClient + XMLParser + IOStream + HTTP2Client;
+    public int Sum => HTTPClient + XMLParser + IOStream + HTTP2Client + URLs;
 }
 ```
 
@@ -47,8 +48,9 @@ public class C
     private int _xMLParser;
     private int _iOStream;
     private int _hTTP2Client;
+    private int _uRLs;
 
-    public int Sum => _hTTPClient + _xMLParser + _iOStream + _hTTP2Client;
+    public int Sum => _hTTPClient + _xMLParser + _iOStream + _hTTP2Client + _uRLs;
 }
 ```
 
@@ -60,10 +62,13 @@ public class C
     private int _xmlParser;
     private int _ioStream;
     private int _http2Client;
+    private int _urLs;
 
-    public int Sum => _httpClient + _xmlParser + _ioStream + _http2Client;
+    public int Sum => _httpClient + _xmlParser + _ioStream + _http2Client + _urLs;
 }
 ```
+
+Unchanged, because the run is taken from the first word only: `A_B` becomes `_aB`, `A_B_Cd` becomes `_aBCd`, `m_HTTPClient` becomes `_mHTTPClient`, and `X_Y_Z` becomes `_xYZ`, as before; for a camelCase target, `I_O_Stream` stays `iOStream`.
 
 The same holds for RH4107, and for the backing field the RH2001 fix declares: `private int HTTPClient { get; set; }` becomes `private int _httpClient;` instead of `private int _hTTPClient;`.
 
@@ -189,7 +194,22 @@ A combining mark has no case of its own and modifies the letter in front of it. 
 
 ### The acronym rule applies to camelCase and `_camelCase` targets only
 
-A PascalCase target keeps an acronym as written (`HTTPClient`), because SHARED-CASING-001 accepts it and normalizing it to `HttpClient` would rename a name the rule does not report. The run is measured on the joined name, so `XML_Parser` becomes `xmlParser` and `X_YZ` becomes `xYz`, as before.
+A PascalCase target keeps an acronym as written (`HTTPClient`), because SHARED-CASING-001 accepts it and normalizing it to `HttpClient` would rename a name the rule does not report.
+
+### The acronym run is taken from the first word only
+
+The maintainer chose the first word over the joined name (output batch 1, question 10, answer A). The run is measured on the first word as the word step wrote it, so a word boundary the author marked with `_` is never merged into an acronym: `A_B` stays `_aB` and `m_HTTPClient` stays `_mHTTPClient`, instead of `_ab` and `_mhttpClient`. `XML_Parser` becomes `xmlParser` and `X_YZ` becomes `xYz`, as before, in both readings.
+
+### Maintainer answers to output batch 1
+
+The maintainer chose the recommended option for every question of this change:
+
+- **Question 1 — leading acronym in a camelCase or `_camelCase` target (RH4106, RH4105, RH4107, RH4115, RH4117, RH2001's backing field): A.** `HTTPClient` becomes `_httpClient`, `IOStream` `_ioStream`, `HTTP2Client` `_http2Client`, and the plural acronym `URLs` `_urLs`; PascalCase targets keep `HTTPClient`.
+- **Question 2 — RH4005, an existing `I` prefix: A.** `i_document` becomes `IDocument`, `I_reader` `IReader`; no fix is offered for `I`, `i`, and `i2Factory`.
+- **Question 3 — RH4121, an existing `T` prefix with `_`: A.** `T_Key` and `t_key` become `TKey`, `T_1` `T1`, and `T_` `T`.
+- **Question 4 — combining mark, letter number, and connector punctuation: A.** `Café` and `ClassⅫ` are not reported; `café_bar` becomes `CaféBar`, `order‿line` `Order‿line`.
+- **Question 5 — a combining mark in a word in uppercase letters: A.** `CAFÉ_NAME`, with U+0301, becomes `CaféName`.
+- **Question 10 — the leading run of the first word, not of the joined name: A.** See the decision above.
 
 ### `_` stays the only separator
 

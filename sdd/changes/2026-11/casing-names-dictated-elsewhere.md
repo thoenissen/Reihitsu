@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-CASING-007, SHARED-CASING-009, SHARED-CASING-014 (added by this change), SHARED-FIX-003, RH4102-001, RH4103-001, RH4104-001, RH4104-002, RH4112-001, RH4113-001, RH4114-001, RH4116-001 |
 
@@ -13,6 +13,8 @@ The casing rules no longer report a name the declaration cannot choose (SHARED-C
 - the name of a method, property, or event that overrides or implicitly implements a member declared outside the compilation that declares it — in a referenced assembly, or in another project of the solution —, directly or through a member it overrides at any level;
 - an element name of a tuple type in the signature of a member that overrides or implements, implicitly or explicitly, such a member;
 - the name of a method or local function declared with `[DllImport]`, and of a method declared with `[LibraryImport]`, whose attribute has no `EntryPoint` argument.
+
+A member implements an interface member only when its own type implements that interface: a base-class method that implements a referenced-assembly interface member only for a derived type that lists the interface stays reported. The tuple element names of a dictated member's signature are not reported even where a type argument written in this compilation supplies them; that type argument, where they are written, stays reported.
 
 Overrides and implementations whose chain stays inside the compilation keep today's behavior: they are reported, and their fix renames the whole chain. A method whose attribute names an `EntryPoint` is reported as before.
 
@@ -142,6 +144,46 @@ public static class Native
 
 Before: `getpid` and `parentId` are reported by RH4103, `localPid` and `getuid` by RH4104; the fix is withheld for `getpid` and `getuid` (SHARED-FIX-003). After: `getpid` (RH4103) and `getuid` (RH4104) are not reported; `parentId` and `localPid` are reported as before. The same holds for a `partial` method declared with `[LibraryImport("libc")]`.
 
+### 4. RH4116 — tuple element names that a type argument written in this compilation supplies
+
+```csharp
+// input
+using System.Collections;
+using System.Collections.Generic;
+
+public class Pairs : IEnumerable<(string key, int value)>
+{
+    public IEnumerator<(string key, int value)> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+```
+
+Before (read from the analyzer, which checks tuple types by their syntax alone; not measured, RH4116 has no code fix): `key` and `value` are reported in the base list and in the signature of `GetEnumerator`. After: they are reported in the base list only; `GetEnumerator` implements `IEnumerable<T>.GetEnumerator`, which is declared outside the compilation.
+
+### 5. Unchanged — RH4103, a base-class method that implements a referenced-assembly interface member only for a derived type
+
+With a referenced assembly that declares `public interface IMeta { void process(); }`:
+
+```csharp
+// input
+public class A
+{
+    public void process()
+    {
+    }
+}
+
+public class B : A, IMeta
+{
+}
+```
+
+Before and after: `A.process` is reported, and no fix is offered (SHARED-CASING-009).
+
 ## Decisions
 
 ### A member whose override chain reaches another compilation counts, at any level
@@ -164,8 +206,28 @@ The compiler does not require an override to repeat the names of its parameters 
 
 thoenissen/Reihitsu#1434 proposes SHARED-CASING-011, which is taken; the requirement is SHARED-CASING-014.
 
+### A member implements only for its own type
+
+A member that becomes an implementation only because a derived type lists the interface is not dictated (output batch 1, question 11, answer A). `A` itself implements nothing, and the analyzer of `A` would have to search every derived type, which it cannot see in another project, so the IDE and the build could differ. The member stays reported, and SHARED-CASING-009 keeps withholding its fix.
+
+### Tuple names are exempt in a dictated signature, whatever supplies them
+
+The element names in the signature of a dictated member are not reported, also where a type argument written in this compilation supplies them (output batch 1, question 12, answer A). Those names can only change together with the type argument, which is reported where it is written, so each choice is reported once; tracing which name the other compilation writes and which a type argument supplies would need more machinery.
+
+### Maintainer answers to output batch 1
+
+The maintainer chose the recommended option for every question of this change:
+
+- **Question 7 — names dictated by a referenced assembly: A.** None of the members of example 1 is reported, `Leaf.process` included, whose chain reaches `MetaBase.process` through `Worker.process`.
+- **Question 8 — an override of a method declared in another project of the solution: A.** `Leaf.process` is not reported anywhere; `Base.process` is reported in its own project, and its fix renames both.
+- **Question 9 — a `[DllImport]` local function without `EntryPoint`: A.** Not reported, like the same method under RH4103.
+- **Question 11 — a base-class method that implements a referenced-assembly interface member only for a derived type: A.** Reported, with no fix, as today (example 5).
+- **Question 12 — tuple element names that a type argument written in this compilation supplies: A.** Reported in the base list only (example 4).
+
 ## Alternatives considered
 
 - **Keep reporting and only withhold the fix** — rejected: it leaves a diagnostic the author cannot resolve (P2).
 - **Decide by whether the member is declared in the solution's source** — rejected: the analyzer sees only its compilation, and another project is source in the IDE but a referenced assembly in a command-line build, so the two would report different diagnostics.
 - **Exempt only the members that override a referenced-assembly member directly** — rejected: an override of such an override has the same dictated name.
+- **Exempt a member that implements an interface member on behalf of a derived type** — rejected by the maintainer (question 11): the member's own type implements nothing, and a derived type in another project is out of the analyzer's sight.
+- **Exempt only the tuple names that the declaration in the other compilation writes** — rejected by the maintainer (question 12): the names supplied by a type argument would be reported twice, and telling them apart needs more machinery.

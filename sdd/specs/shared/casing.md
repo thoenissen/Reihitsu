@@ -208,13 +208,13 @@ namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
 
 A rule's code fix MUST derive the new name from an old name whose characters all belong to the categories that SHARED-CASING-001 names, as follows. It splits the old name into words at every `_`, and drops the underscores; every other character belongs to its word and is kept, connector punctuation other than `_` included. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words, which gives the new name for a PascalCase target.
 
-For a camelCase target, it writes the leading run of uppercase letters of the joined name in lowercase. When that run has two or more letters and a lowercase letter follows it directly, the run's last letter keeps its case. For a `_camelCase` target, that camelCase name gets a `_` in front.
+For a camelCase target, it writes the leading run of uppercase letters of the first word, as the step above wrote it, in lowercase, before it joins the words. When that run has two or more letters and a lowercase letter of the same word follows it directly, the run's last letter keeps its case. The run never reaches into the second word: `A_B` gives `aB`, and `m_HTTPClient` gives `mHTTPClient`. For a `_camelCase` target, that camelCase name gets a `_` in front.
 
 In these steps, a combining mark (Mn, Mc) counts as part of the character in front of it: it is kept as written, it does not keep a word from consisting of uppercase letters, and it neither ends a run of uppercase letters nor is the lowercase letter that follows one. A letter number (Nl) and connector punctuation other than `_` count like a digit: they are kept as written, and they keep a word from consisting of uppercase letters and end a run of uppercase letters.
 
 This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter whose one-character uppercase and lowercase mappings, in the invariant culture, differ from each other. A first word that starts with a digit, with a letter without case such as `注`, with a letter such as `ß` that has no one-character uppercase mapping, or with a letter number such as `Ⅻ`, is not covered. For such an old name, SHARED-CASING-008 decides whether the fix is offered.
 
-Why: A separator such as `_`, or the `_` of a leading `m_`, is a word boundary in common naming styles. A word in uppercase letters only (`FIRST_NAME`, `URL`) is a shouted word, not an acronym inside a PascalCase name. Uppercase letters inside a word are kept, because they already mark the word boundaries of a PascalCase or camelCase name, and a PascalCase name may keep an acronym (SHARED-CASING-001). A camelCase name starts with a lowercase word, so an acronym at its start is written in lowercase as a whole (`httpClient`, not `hTTPClient`); the last uppercase letter in front of a lowercase letter is the first letter of the next word (`Client`), and keeps its case. A combining mark modifies the letter in front of it and has no case of its own, so `CAFÉ` is a word in uppercase letters whether `É` is one character or `E` with U+0301; the fix never drops a character, because a character the author wrote is part of the name. Deriving the name mechanically keeps the result predictable across every rule.
+Why: A separator such as `_`, or the `_` of a leading `m_`, is a word boundary in common naming styles. A word in uppercase letters only (`FIRST_NAME`, `URL`) is a shouted word, not an acronym inside a PascalCase name. Uppercase letters inside a word are kept, because they already mark the word boundaries of a PascalCase or camelCase name, and a PascalCase name may keep an acronym (SHARED-CASING-001). A camelCase name starts with a lowercase word, so an acronym at its start is written in lowercase as a whole (`httpClient`, not `hTTPClient`); the last uppercase letter in front of a lowercase letter is the first letter of the next word (`Client`), and keeps its case. The run is taken from the first word only, so a word boundary the author marked with `_` is never merged into an acronym. A combining mark modifies the letter in front of it and has no case of its own, so `CAFÉ` is a word in uppercase letters whether `É` is one character or `E` with U+0301; the fix never drops a character, because a character the author wrote is part of the name. Deriving the name mechanically keeps the result predictable across every rule.
 
 Example — RH4110, PascalCase:
 
@@ -302,8 +302,9 @@ public class C
     private int {|RH4106:IOStream|};
     private int {|RH4106:HTTP2Client|};
     private int {|RH4106:ABc|};
+    private int {|RH4106:URLs|};
 
-    public int Sum => HTTPClient + XMLParser + IOStream + HTTP2Client + ABc;
+    public int Sum => HTTPClient + XMLParser + IOStream + HTTP2Client + ABc + URLs;
 }
 ```
 
@@ -315,12 +316,43 @@ public class C
     private int _ioStream;
     private int _http2Client;
     private int _aBc;
+    private int _urLs;
 
-    public int Sum => _httpClient + _xmlParser + _ioStream + _http2Client + _aBc;
+    public int Sum => _httpClient + _xmlParser + _ioStream + _http2Client + _aBc + _urLs;
 }
 ```
 
-The leading run of `HTTP2Client` is `HTTP`: the digit ends it, so the whole run is written in lowercase. In `FirstName` above, the run `F` has one letter and is written in lowercase although a lowercase letter follows it.
+The leading run of `HTTP2Client` is `HTTP`: the digit ends it, so the whole run is written in lowercase. In `FirstName` above, the run `F` has one letter and is written in lowercase although a lowercase letter follows it. In `URLs`, the `s` follows the run `URL` directly, so its last letter keeps its case.
+
+Example — a leading run that ends with the first word, for RH4106, `_camelCase`:
+
+```csharp
+public class C
+{
+    private int {|RH4106:A_B|};
+    private int {|RH4106:A_B_Cd|};
+    private int {|RH4106:m_HTTPClient|};
+    private int {|RH4106:X_Y_Z|};
+    private int {|RH4106:XML_Parser|};
+
+    public int Sum => A_B + A_B_Cd + m_HTTPClient + X_Y_Z + XML_Parser;
+}
+```
+
+```csharp
+public class C
+{
+    private int _aB;
+    private int _aBCd;
+    private int _mHTTPClient;
+    private int _xYZ;
+    private int _xmlParser;
+
+    public int Sum => _aB + _aBCd + _mHTTPClient + _xYZ + _xmlParser;
+}
+```
+
+The first word of each name is `A`, `M`, `X`, or `Xml` after the first step, so the run is that word's leading uppercase letters alone; the words behind it keep their case. `_mHTTPClient` keeps the acronym of its second word, as a PascalCase name does.
 
 Example — a leading acronym, for RH4105, camelCase:
 
@@ -1583,9 +1615,9 @@ A member is *dictated* when it, or a member it overrides through any number of l
 - an element name of a tuple type in the signature of a dictated member — its return type, the types of its parameters, or the type of a property, indexer, or event —, wherever the tuple type stands in that type: as the type itself, as a type argument, as the element type of an array, or as an element of another tuple type;
 - the name of a method or local function declared with `[DllImport]`, or of a method declared with `[LibraryImport]`, whose attribute has no `EntryPoint` argument.
 
-A member that overrides or implements only members declared in its own compilation, through every level, is not dictated and is reported as its rule states. A method or local function whose `[DllImport]` or `[LibraryImport]` attribute has an `EntryPoint` argument is reported as its rule states, whatever the argument's value.
+A member implements an interface member only when its own type implements that interface. A member that becomes the implementation of an interface member only because a derived type names the interface in its base list, while the member's own type does not implement it, is not dictated by that interface member, and is reported as its rule states. A member that overrides or implements only members declared in its own compilation, through every level, is not dictated and is reported as its rule states. A method or local function whose `[DllImport]` or `[LibraryImport]` attribute has an `EntryPoint` argument is reported as its rule states, whatever the argument's value.
 
-Why: The author cannot choose these names. The compiler requires an override and an implicit implementation to repeat the name of the member it overrides or implements, and an override or implementation to repeat the tuple element names of that member's signature; only the declaration in the other compilation could change them, and a fix in this compilation cannot rename it. When the attribute names no entry point, the runtime looks the native function up by the method's name, so another name calls another function. A diagnostic that cannot be resolved without breaking the build or the native binding has no actionable outcome. The boundary is the compilation, not the solution: in the IDE another project of the solution is a compilation whose members are declared in source, and in a command-line build it is a referenced assembly, so deciding by the declaring compilation gives both the same diagnostics. A member that overrides a dictated member repeats its name as well, so the chain is followed through every level. The member that another project of the solution declares is reported in that project, and its fix renames the dictated members with it (SHARED-CASING-007).
+Why: The author cannot choose these names. The compiler requires an override and an implicit implementation to repeat the name of the member it overrides or implements, and an override or implementation to repeat the tuple element names of that member's signature; only the declaration in the other compilation could change them, and a fix in this compilation cannot rename it. When the attribute names no entry point, the runtime looks the native function up by the method's name, so another name calls another function. A diagnostic that cannot be resolved without breaking the build or the native binding has no actionable outcome. The boundary is the compilation, not the solution: in the IDE another project of the solution is a compilation whose members are declared in source, and in a command-line build it is a referenced assembly, so deciding by the declaring compilation gives both the same diagnostics. A member that overrides a dictated member repeats its name as well, so the chain is followed through every level. The member that another project of the solution declares is reported in that project, and its fix renames the dictated members with it (SHARED-CASING-007). A member implements on behalf of a derived type only through that derived type, which the analyzer of the member's own type cannot always see, so only the member's own type decides; the fix of such a member stays withheld as SHARED-CASING-009 states. The tuple element names of a dictated member's signature are those of the member it overrides or implements after its type arguments are substituted; a name that a type argument written in this compilation supplies is reported where that type argument is written, so the author can still choose it, and is reported once.
 
 Example — RH4102, RH4103, RH4114, and RH4116, with a referenced assembly that declares:
 
@@ -1672,6 +1704,42 @@ public class Pairs : IPairs, ILocal
 ```
 
 The element names in the signature of `IPairs.get` are dictated by the referenced assembly; those of `ILocal.range` are dictated by `ILocal`, which is declared in source and reported there, so they keep their diagnostics. `ILocal.range` is reported by RH4103 too, which this example does not mark.
+
+Example — a method that implements a referenced-assembly interface member only for a derived type, for RH4103, with a referenced assembly that declares `public interface IMeta { void process(); }`:
+
+```csharp
+public class A
+{
+    public void {|RH4103:process|}()
+    {
+    }
+}
+
+public class B : A, IMeta
+{
+}
+```
+
+`A` does not implement `IMeta`, so `A.process` is not dictated and is reported; its fix is withheld (SHARED-CASING-009).
+
+Example — tuple element names that a type argument written in this compilation supplies, for RH4116:
+
+```csharp
+using System.Collections;
+using System.Collections.Generic;
+
+public class Pairs : IEnumerable<(string {|RH4116:key|}, int {|RH4116:value|})>
+{
+    public IEnumerator<(string key, int value)> GetEnumerator()
+    {
+        yield break;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+```
+
+`GetEnumerator` implements `IEnumerable<T>.GetEnumerator`, which is declared outside the compilation, so the element names in its signature are not reported. The names are written in the base list, where they are reported.
 
 Example — native entry points, for RH4103 and RH4104:
 
