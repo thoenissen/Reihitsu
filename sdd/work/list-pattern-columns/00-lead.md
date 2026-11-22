@@ -28,7 +28,7 @@ Issue comments relevant to the run (summarized):
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (Q1, Q3, Q6, Q7, Q7b, Q8 as in 03-spec-author.md): maintainer answered "as recommended" → 1A, 3A, 6A, 7A, 7bA, 8A.
 
 ## Decisions taken
 
@@ -53,5 +53,5 @@ Issue comments relevant to the run (summarized):
 - Spec author done (26aff07), 8 output questions open in 01-spec-author.md. Lane check confirmed.
 - Skeptic done (2a8cb38). Decisions 3–6.
 - Spec author 03 done (fbf4bae): decisions 3–6 carried out; #1634 change doc deleted; FMT-INDENT-036/037/038 retired.
-- WAITING: output-question batch 1 posted (Q1, Q3, Q6, Q7, Q7b, Q8; text in 03-spec-author.md).
-- Next after answers: route answers to spec author (status Accepted), then test implementer (04).
+- Batch 1 answered: all A.
+- Next: spec author 05 (record answers in change docs' Decisions, Status: Accepted), then test implementer.
