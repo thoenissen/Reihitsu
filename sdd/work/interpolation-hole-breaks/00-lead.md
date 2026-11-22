@@ -20,6 +20,7 @@
 | 3 | Skeptic | Issue scope "line-break and blank-line phases" | Narrow to the line-break phase; the switch-case brace phase is checked by a fixture (skeptic c28) | Traces show no other phase writes breaks there | — | — |
 | 4 | Skeptic | Architecture finding: RH5417's private `IsInsideSingleLineInterpolation` and the formatter fix would state the same rule twice | Structural change in this run: the rule is stated once in `Reihitsu.Core` (next to `StringInterpolationUtilities`), used by the formatter and by RH5417, whose behavior stays unchanged | Narrow fix would add a second statement of the rule; small, within Core which the formatter uses | RH5417 behavior unchanged (refactor) | (implementer) |
 | 5 | Skeptic | Declare unsupported? | Not an option: depends on language version, which the precheck cannot read from tokens/trivia; deletes no special case | — | — | — |
+| 6 | Test implementer | Multi-statement switch section inside a non-verbatim interpolation below C# 11 (FMT-SWITCH-001/015 vs FMT-BREAK-044) | Rare input class: the switch-case brace phase leaves such a switch as written (no braces inserted) below C# 11; the test pins the exact output | AGENTS.md Code-fix coverage — leaving a construct as written for a rare class; inserting braces on their own lines would be CS8967 | Leaving a construct as written for a rare class puts nothing in question; PR names the class under Review notes | (test implementer, implementer) |
 
 ## Follow-up candidates
 
@@ -28,5 +29,5 @@
 
 ## State
 
-- Last step: spec author (02-spec-author.md, FMT-BREAK-044 added).
-- Next: test implementer.
+- Last step: test implementer (03-test-implementer.md, reproduced; 31 formatter + 1 CLI fail).
+- Next: fresh test implementer pins decision 6 exactly → implementer.
