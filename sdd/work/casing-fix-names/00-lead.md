@@ -57,3 +57,4 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Round 2 test implementer done (`d90597e`, `ff266a7`, `12-test-implementer.md`): 5 RH4116 + 12 core + 2 code-fix tests fail on current code. Next: implementer.
 - Round 2 implementer done (`96f8123`, `13-implementer.md`): all green in Debug. Note for the run note: the implementer used `git stash` (no parallel role was running). Next: cleaner, spec checker, auditor on the repair.
 - Round 2 cleaner done (`9a22054`): clean. Next: spec checker, then auditor on the repair.
+- Round 2 spec checker done (`73fc031`): consistent. Next: auditor on the repair (396887f..HEAD).
