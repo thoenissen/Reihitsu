@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -24,9 +25,11 @@ public static class PlaygroundFormatter
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
 
-        if (HasSyntaxErrors(syntaxTree))
+        var errors = GetSyntaxErrors(syntaxTree);
+
+        if (errors.Count > 0)
         {
-            return new PlaygroundFormatResult(source, false);
+            return new PlaygroundFormatResult(source, false, Errors: errors);
         }
 
         // The formatter leaves such input as written; it is named by the formatter's own definition (PLAY-009)
@@ -43,14 +46,17 @@ public static class PlaygroundFormatter
     }
 
     /// <summary>
-    /// Checks whether the syntax tree contains error diagnostics
+    /// Gets the error diagnostics of the syntax tree, ordered by the start of their span; errors at one start keep the order
+    /// the parser reports them in, because the sort is stable (PLAY-006)
     /// </summary>
     /// <param name="syntaxTree">The syntax tree to inspect</param>
-    /// <returns><see langword="true"/> if the tree has at least one error diagnostic; otherwise, <see langword="false"/></returns>
-    private static bool HasSyntaxErrors(SyntaxTree syntaxTree)
+    /// <returns>The errors; empty when the tree has none</returns>
+    private static List<Diagnostic> GetSyntaxErrors(SyntaxTree syntaxTree)
     {
         return syntaxTree.GetDiagnostics()
-                         .Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+                         .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                         .OrderBy(diagnostic => diagnostic.Location.SourceSpan.Start)
+                         .ToList();
     }
 
     #endregion // Methods
