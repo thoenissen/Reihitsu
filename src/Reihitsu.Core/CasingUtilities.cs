@@ -335,9 +335,9 @@ public static class CasingUtilities
 
     /// <summary>
     /// Splits a name into the words of its PascalCase form: the name is split at every character that is no word
-    /// character, which drops it, the first character of each word is written in uppercase, and the other characters of
-    /// a word are written in lowercase when they are all uppercase letters, not counting combining marks, and kept
-    /// otherwise
+    /// character, which drops it, the first character of each word is written in uppercase when it is a letter and kept
+    /// as written otherwise, and the other characters of a word are written in lowercase when they are all uppercase
+    /// letters, not counting combining marks, and kept otherwise
     /// </summary>
     /// <param name="input">Input string</param>
     /// <returns>The words in PascalCase, in their order; empty when the name has no word character</returns>
