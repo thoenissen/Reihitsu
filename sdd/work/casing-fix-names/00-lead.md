@@ -48,4 +48,5 @@ All four goals are proposals (agent-filed). Roles: all of the behavior-change la
 - Test repair done (`4022a0c`, `06-test-implementer.md`): disputed test passes.
 - Cleaner done (`3acd20e`): clean, 0 warnings.
 - Spec checker done (`2d321c1`, `08-spec-checker.md`): one low finding — `CasingRenameSafetyUtilities` missing from the code-owner lists in `sdd/specs/shared/casing.md` and `sdd/specs/README.md`. Repair round 1: spec author.
-- Next: spec author repair, then spec checker again, then auditor.
+- Spec author repair done (`4da9fe1`, `4e658ab`, `09-spec-author.md`): type listed as SHARED-CASING owner.
+- Next: spec checker again, then auditor.
