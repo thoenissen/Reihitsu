@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -487,10 +488,11 @@ public static class PlaygroundHighlighter
             var lineFeed = text.IndexOf('\n', lineStart, end - lineStart);
             var lineEnd = lineFeed < 0 ? end : lineFeed + 1;
             var markup = new StringBuilder();
+            var frames = HoldsNullCharacter(text, lineStart, lineEnd) ? new List<Action<RenderTreeBuilder>>() : null;
 
-            RenderText(markup, text, categories, lineStart, lineEnd);
+            RenderText(markup, frames, text, categories, lineStart, lineEnd);
 
-            lines.Add(new PlaygroundHighlightedLine(lineEnd - lineStart, markup.ToString()));
+            lines.Add(CreateLine(lineEnd - lineStart, markup, frames));
 
             if (lineFeed < 0)
             {
@@ -518,11 +520,57 @@ public static class PlaygroundHighlighter
                                 .ToList();
 
         var markup = new StringBuilder(text.Length * 2);
+        var frames = HoldsNullCharacter(text, 0, text.Length) ? new List<Action<RenderTreeBuilder>>() : null;
         var markIndex = 0;
 
-        RenderRange(markup, text, categories, orderedMarks, ref markIndex, 0, text.Length, true);
+        RenderRange(markup, frames, text, categories, orderedMarks, ref markIndex, 0, text.Length, true);
 
-        return new PlaygroundHighlightedLine(text.Length, markup.ToString());
+        return CreateLine(text.Length, markup, frames);
+    }
+
+    /// <summary>
+    /// Determines whether a range of a text holds a null character. Markup parsing replaces a null character, also one
+    /// written as a character reference, so a line that holds one is rendered as frames instead of markup
+    /// </summary>
+    /// <param name="text">The text</param>
+    /// <param name="start">Start of the range</param>
+    /// <param name="end">End of the range</param>
+    /// <returns><see langword="true"/> when the range holds a null character</returns>
+    private static bool HoldsNullCharacter(string text, int start, int end)
+    {
+        return text.IndexOf('\0', start, end - start) >= 0;
+    }
+
+    /// <summary>
+    /// Creates a rendered line from what was written for it: its frames when it was rendered as frames, and otherwise its
+    /// markup. An empty line gets no content, because the page shows empty markup as a space
+    /// </summary>
+    /// <param name="length">The number of characters of the text the line covers, its line break included</param>
+    /// <param name="markup">The markup written for the line</param>
+    /// <param name="frames">The frames written for the line, or <see langword="null"/> when it was rendered as markup</param>
+    /// <returns>The line</returns>
+    private static PlaygroundHighlightedLine CreateLine(int length, StringBuilder markup, List<Action<RenderTreeBuilder>> frames)
+    {
+        if (frames != null)
+        {
+            return new PlaygroundHighlightedLine(length,
+                                                 builder =>
+                                                 {
+                                                     foreach (var frame in frames)
+                                                     {
+                                                         frame(builder);
+                                                     }
+                                                 });
+        }
+
+        if (markup.Length == 0)
+        {
+            return new PlaygroundHighlightedLine(length, null);
+        }
+
+        var lineMarkup = markup.ToString();
+
+        return new PlaygroundHighlightedLine(length, builder => builder.AddMarkupContent(0, lineMarkup));
     }
 
     /// <summary>
@@ -541,10 +589,9 @@ public static class PlaygroundHighlighter
                        builder.SetKey(line);
                        builder.AddAttribute(1, "class", LineClass);
 
-                       // The page shows empty markup as a space, so an empty line gets none
-                       if (line.Markup.Length > 0)
+                       if (line.Content != null)
                        {
-                           builder.AddMarkupContent(2, line.Markup);
+                           builder.AddContent(2, line.Content);
                        }
 
                        builder.CloseElement();
@@ -557,6 +604,7 @@ public static class PlaygroundHighlighter
     /// starts inside it and reaches beyond its end is cut at that end, so every mark stays one element
     /// </summary>
     /// <param name="markup">The markup being written</param>
+    /// <param name="frames">The frames being written instead of markup, or <see langword="null"/></param>
     /// <param name="text">The text</param>
     /// <param name="categories">The coloured spans of the text</param>
     /// <param name="marks">The marks, ordered by start and, at one start, from the longest</param>
@@ -564,7 +612,7 @@ public static class PlaygroundHighlighter
     /// <param name="start">Start of the range</param>
     /// <param name="end">End of the range</param>
     /// <param name="isTopLevel">Whether the range is the whole text, which takes every remaining mark</param>
-    private static void RenderRange(StringBuilder markup, string text, List<(TextSpan Span, string ClassName)> categories, List<TextSpan> marks, ref int markIndex, int start, int end, bool isTopLevel)
+    private static void RenderRange(StringBuilder markup, List<Action<RenderTreeBuilder>> frames, string text, List<(TextSpan Span, string ClassName)> categories, List<TextSpan> marks, ref int markIndex, int start, int end, bool isTopLevel)
     {
         var position = start;
 
@@ -580,31 +628,32 @@ public static class PlaygroundHighlighter
             var markStart = Math.Clamp(mark.Start, position, end);
             var markEnd = Math.Clamp(mark.End, markStart, end);
 
-            RenderText(markup, text, categories, position, markStart);
+            RenderText(markup, frames, text, categories, position, markStart);
 
             markIndex++;
 
-            markup.Append("<span class=\"").Append(MarkClass).Append("\">");
+            OpenSpan(markup, frames, MarkClass);
 
-            RenderRange(markup, text, categories, marks, ref markIndex, markStart, markEnd, false);
+            RenderRange(markup, frames, text, categories, marks, ref markIndex, markStart, markEnd, false);
 
-            markup.Append("</span>");
+            CloseSpan(markup, frames);
 
             position = markEnd;
         }
 
-        RenderText(markup, text, categories, position, end);
+        RenderText(markup, frames, text, categories, position, end);
     }
 
     /// <summary>
     /// Renders a range of the text without marks, each coloured part in an element with its class
     /// </summary>
     /// <param name="markup">The markup being written</param>
+    /// <param name="frames">The frames being written instead of markup, or <see langword="null"/></param>
     /// <param name="text">The text</param>
     /// <param name="categories">The coloured spans of the text</param>
     /// <param name="start">Start of the range</param>
     /// <param name="end">End of the range</param>
-    private static void RenderText(StringBuilder markup, string text, List<(TextSpan Span, string ClassName)> categories, int start, int end)
+    private static void RenderText(StringBuilder markup, List<Action<RenderTreeBuilder>> frames, string text, List<(TextSpan Span, string ClassName)> categories, int start, int end)
     {
         var position = start;
 
@@ -616,24 +665,90 @@ public static class PlaygroundHighlighter
             var spanStart = Math.Max(span.Start, position);
             var spanEnd = Math.Min(span.End, end);
 
-            AppendEncoded(markup, text, position, spanStart);
+            AppendText(markup, frames, text, position, spanStart);
 
-            markup.Append("<span class=\"").Append(className).Append("\">");
+            OpenSpan(markup, frames, className);
 
-            AppendEncoded(markup, text, spanStart, spanEnd);
+            AppendText(markup, frames, text, spanStart, spanEnd);
 
-            markup.Append("</span>");
+            CloseSpan(markup, frames);
 
             position = spanEnd;
         }
 
-        AppendEncoded(markup, text, position, end);
+        AppendText(markup, frames, text, position, end);
+    }
+
+    /// <summary>
+    /// Opens an element with a class
+    /// </summary>
+    /// <param name="markup">The markup being written</param>
+    /// <param name="frames">The frames being written instead of markup, or <see langword="null"/></param>
+    /// <param name="className">The class</param>
+    private static void OpenSpan(StringBuilder markup, List<Action<RenderTreeBuilder>> frames, string className)
+    {
+        if (frames != null)
+        {
+            frames.Add(builder =>
+                       {
+                           builder.OpenElement(0, "span");
+                           builder.AddAttribute(1, "class", className);
+                       });
+        }
+        else
+        {
+            markup.Append("<span class=\"").Append(className).Append("\">");
+        }
+    }
+
+    /// <summary>
+    /// Closes the element opened last
+    /// </summary>
+    /// <param name="markup">The markup being written</param>
+    /// <param name="frames">The frames being written instead of markup, or <see langword="null"/></param>
+    private static void CloseSpan(StringBuilder markup, List<Action<RenderTreeBuilder>> frames)
+    {
+        if (frames != null)
+        {
+            frames.Add(builder => builder.CloseElement());
+        }
+        else
+        {
+            markup.Append("</span>");
+        }
+    }
+
+    /// <summary>
+    /// Appends a range of the text: as a text frame, which the page shows as exactly these characters, when frames are
+    /// written, and otherwise as markup text
+    /// </summary>
+    /// <param name="markup">The markup being written</param>
+    /// <param name="frames">The frames being written instead of markup, or <see langword="null"/></param>
+    /// <param name="text">The text</param>
+    /// <param name="start">Start of the range</param>
+    /// <param name="end">End of the range</param>
+    private static void AppendText(StringBuilder markup, List<Action<RenderTreeBuilder>> frames, string text, int start, int end)
+    {
+        if (frames != null)
+        {
+            if (end > start)
+            {
+                var part = text.Substring(start, end - start);
+
+                frames.Add(builder => builder.AddContent(2, part));
+            }
+        }
+        else
+        {
+            AppendEncoded(markup, text, start, end);
+        }
     }
 
     /// <summary>
     /// Appends a range of the text as markup text that the page shows as exactly these characters: the characters markup
-    /// reads as syntax are escaped, and a carriage return and a null character are written as character references,
-    /// because markup parsing would otherwise fold a carriage return into a line feed and drop a null character
+    /// reads as syntax are escaped, and a carriage return is written as a character reference, because markup parsing
+    /// would otherwise fold it into a line feed. The range holds no null character: markup parsing replaces one, written
+    /// raw or as a character reference, so a line that holds one is rendered as frames (see <see cref="HoldsNullCharacter"/>)
     /// </summary>
     /// <param name="markup">The markup being written</param>
     /// <param name="text">The text</param>
@@ -668,12 +783,6 @@ public static class PlaygroundHighlighter
                 case '\r':
                     {
                         markup.Append("&#13;");
-                    }
-                    break;
-
-                case '\0':
-                    {
-                        markup.Append("&#0;");
                     }
                     break;
 

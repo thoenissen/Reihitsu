@@ -1,4 +1,6 @@
-﻿namespace Reihitsu.Playground;
+﻿using Microsoft.AspNetCore.Components;
+
+namespace Reihitsu.Playground;
 
 /// <summary>
 /// One rendered line of a highlighted text. The page keys the line's element by this instance, so a line an edit leaves
@@ -12,11 +14,11 @@ internal sealed class PlaygroundHighlightedLine
     /// Constructor
     /// </summary>
     /// <param name="length">The number of characters of the text the line covers, its line break included</param>
-    /// <param name="markup">The markup of the line's coloured parts and marks</param>
-    public PlaygroundHighlightedLine(int length, string markup)
+    /// <param name="content">The content that shows the line's coloured parts and marks, or <see langword="null"/> for an empty line</param>
+    public PlaygroundHighlightedLine(int length, RenderFragment content)
     {
         Length = length;
-        Markup = markup;
+        Content = content;
     }
 
     #endregion // Constructor
@@ -29,9 +31,9 @@ internal sealed class PlaygroundHighlightedLine
     public int Length { get; }
 
     /// <summary>
-    /// The markup of the line's coloured parts and marks
+    /// The content that shows the line's coloured parts and marks, or <see langword="null"/> for an empty line
     /// </summary>
-    public string Markup { get; }
+    public RenderFragment Content { get; }
 
     #endregion // Properties
 }
