@@ -15,7 +15,7 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | spec author | Does the maintainer's answer (option A) cover change-doc item 2 (comment/directive gaps in front of the positional `)`, FMT-BLANK-009/018/020)? | Covered; not asked again | The answer names FMT-BLANK-019 "and the requirements that refer to it" and states the rule as "like a list pattern's `]`"; each item-2 After equals main's output for the list-pattern form | The visible change is covered by the maintainer's answer | fdca76f |
-| 2 | skeptic | Skeptic's spec-wording points 1-3 (FMT-BLANK-019 cross-reference to FMT-BLANK-014; empty clause `P(⏎⏎)` sentence + example; owner-node contexts phrased as examples) | Accept all three; routed to a fresh spec author as an amendment | Wording precision; the empty-clause result equals main's for `[⏎⏎]` | Spec wording only; the empty-clause output follows option A ("like a list pattern's `]`") | |
+| 2 | skeptic | Skeptic's spec-wording points 1-3 (FMT-BLANK-019 cross-reference to FMT-BLANK-014; empty clause `P(⏎⏎)` sentence + example; owner-node contexts phrased as examples) | Accept all three; routed to a fresh spec author as an amendment | Wording precision; the empty-clause result equals main's for `[⏎⏎]` | Spec wording only; the empty-clause output follows option A ("like a list pattern's `]`") | 96d9be0 |
 | 3 | skeptic | Architecture finding FC-015: closing-token set listed in both `BraceBlankLinePolicy` and `CommentIndentationContributor` | Change the structure in this run: one shared predicate used by both components, routed to the implementer | The drift between the two lists is this issue's cause; the issue itself asks to keep them in step; the shared predicate is a few lines within the run's component and its named counterpart, far below escalation 9 | Both lists hold the same tokens after the change; no output changes beyond option A | |
 | 4 | skeptic | Is the issue comment recording option A the maintainer's answer? | Yes | Posted on the maintainer's account as an explicit decision, placing the run in 1.6.0 | — | |
 | 5 | skeptic | Output-question batch before the test implementer | None to ask | Every visible change is covered by the option-A answer (decision 1) | — | |
@@ -32,4 +32,5 @@
 
 - Done: spec author (01, fdca76f), lane check confirmed.
 - Done: skeptic (02, d5d0947) — proceed.
-- Next: fresh spec author amendment (decision 2) + Status Accepted; then test implementer.
+- Done: spec author amendment (03, 96d9be0), change doc Accepted.
+- Next: test implementer (04).
