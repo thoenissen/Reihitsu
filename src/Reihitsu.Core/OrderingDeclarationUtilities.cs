@@ -269,7 +269,8 @@ public static class OrderingDeclarationUtilities
     /// across it. A type counts as one whose field order sets its layout when a declaration of it, also another
     /// declaration of a partial type, holds a conditional directive in front of its body or in front of it, unless
     /// that directive's group wraps the whole declaration, or when the reordered declaration's body holds a
-    /// conditional directive in front of the code the reorder moves (SHARED-ORDER-008). The reorder is given as the
+    /// conditional directive in front of the last instance field of the type's layout in the code the reorder moves or
+    /// moves code across (SHARED-ORDER-008). The reorder is given as the
     /// rank, after the reorder, of the part of the body that holds a position; code within one part keeps its order
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose body is reordered</param>

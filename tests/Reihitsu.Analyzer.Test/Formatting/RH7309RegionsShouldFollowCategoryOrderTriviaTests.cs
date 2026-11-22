@@ -1692,7 +1692,7 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
-    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309: a group of whole
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the moved fields for RH7309: a group of whole
     /// members in front of the first region block makes the class count as one whose field order sets its layout, so no
     /// code fix is offered for a reorder that puts <c>_a</c> in front of <c>_handle</c>
     /// </summary>
@@ -1733,7 +1733,7 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
-    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309 when the fix reorders
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the moved fields for RH7309 when the fix reorders
     /// two separate runs of blocks: a group between the runs, which closes the class and opens a struct in another
     /// build, stands in front of the instance fields the second run reorders, so no code fix is offered for a reorder
     /// that puts <c>_b</c> in front of <c>_d</c>
@@ -1799,7 +1799,7 @@ public class RH7309RegionsShouldFollowCategoryOrderTriviaTests : BatchCodeFixTes
     }
 
     /// <summary>
-    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the spans for RH7309 when the fix reorders
+    /// Verifies the SHARED-ORDER-008 place in the reordered body in front of the moved fields for RH7309 when the fix reorders
     /// two separate runs of blocks, the RH7309-005 example: a group of a whole method between the runs stands in front of
     /// the instance fields the second run reorders, so no code fix is offered for a reorder that puts <c>_b</c> in front
     /// of <c>_d</c>
