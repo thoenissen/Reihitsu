@@ -15,7 +15,8 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 /// <summary>
 /// Starts a new line in front of a documentation comment written behind the code in front of it when the comment documents
 /// the code following it (FMT-DOC-001): a single-line comment in every position, a delimited comment only as the first
-/// comment of its token's leading trivia and not behind an opening brace or the colon of a switch label. It also
+/// comment of its token's leading trivia and not behind an opening brace or the colon of a switch label; a comment inside
+/// a hole of a non-verbatim interpolated string below C# 11 stays where it is written (FMT-BREAK-044). It also
 /// normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
@@ -135,7 +136,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <summary>
     /// Starts a new line in front of every documentation comment written behind code that documents the code following
     /// it: single-line comments in every position, delimited comments in the positions
-    /// <see cref="IsMovableDelimitedDocumentation"/> admits
+    /// <see cref="IsMovableDelimitedDocumentation"/> admits; a comment inside a hole of a non-verbatim interpolated string
+    /// below C# 11 stays where it is written (FMT-BREAK-044)
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="sourceText">Source text</param>
