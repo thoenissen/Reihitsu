@@ -588,5 +588,252 @@ public class RH4116TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4116Tup
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a record's positional parameter are not reported when the
+    /// property the compiler declares for it implicitly implements an interface property declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterWhosePropertyImplementsAReferencedAssemblyPropertyAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          (int first, int second) Pair { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record R((int first, int second) Pair) : INamed;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a record struct's positional parameter are not reported when the
+    /// property the compiler declares for it implicitly implements an interface property declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordStructPositionalParameterWhosePropertyImplementsAReferencedAssemblyPropertyAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          (int first, int second) Pair { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record struct S((int first, int second) Pair) : INamed;
+
+                                public readonly record struct T((int first, int second) Pair) : INamed;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a record's positional parameter are not reported when the property
+    /// the compiler declares for it overrides an abstract property of a record declared in a referenced assembly, directly or
+    /// through a record declared in source that overrides it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterWhosePropertyOverridesAReferencedAssemblyPropertyAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public abstract record Base
+                                      {
+                                          public abstract (int first, int second) Pair { get; init; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record Direct((int first, int second) Pair) : Base;
+
+                                public abstract record Middle : Base
+                                {
+                                    public abstract override (int first, int second) Pair { get; init; }
+                                }
+
+                                public record Leaf((int first, int second) Pair) : Middle;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types nested in the type of a record's positional parameter, as a type argument,
+    /// as the element type of an array, and inside another tuple type, are not reported when the property the compiler declares
+    /// for it implements an interface property declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesNestedInTheTypeOfADictatedRecordPositionalParameterAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INested
+                                      {
+                                          System.Collections.Generic.List<(int first, int second)> All { get; }
+
+                                          (int low, int high)[] Ranges { get; }
+
+                                          (int count, (int x, int y) point) Nested { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                using Meta;
+
+                                public record W(List<(int first, int second)> All, (int low, int high)[] Ranges, (int count, (int x, int y) point) Nested) : INested;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that tuple element names that a type argument written in this compilation supplies are reported where the type
+    /// argument is written, and not in the type of a record's positional parameter whose property implements a member of the
+    /// interface declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesSuppliedByATypeArgumentAreReportedWhereWrittenAndNotInARecordPositionalParameter()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IHolder<T>
+                                      {
+                                          T Value { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record H((int first, int second) Value) : IHolder<(int {|RH4116:first|}, int {|RH4116:second|})>;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that, in a record whose base list names an interface declared in a referenced assembly, the element names of a
+    /// positional parameter whose property implements no member of it are reported, next to a dictated positional parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterThatImplementsNothingAreReportedNextToADictatedOne()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface INamed
+                                      {
+                                          (int first, int second) Pair { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record R((int first, int second) Pair, (int {|RH4116:low|}, int {|RH4116:high|}) Range) : INamed;
+
+                                public record struct S((int {|RH4116:low|}, int {|RH4116:high|}) Range, (int first, int second) Pair) : INamed;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a positional parameter are reported when the property the compiler
+    /// declares for it implements or overrides only members declared in source, or nothing, and that those of a class's primary
+    /// constructor parameter, for which the compiler declares no property, are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfAPositionalParameterThatIsNotDictatedAreReported()
+    {
+        const string testCode = """
+                                public interface ILocal
+                                {
+                                    (int {|RH4116:first|}, int {|RH4116:second|}) Pair { get; }
+                                }
+
+                                public abstract record LocalBase
+                                {
+                                    public abstract (int {|RH4116:first|}, int {|RH4116:second|}) Pair { get; init; }
+                                }
+
+                                public record ImplementsSource((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : ILocal;
+
+                                public record struct ImplementsSourceStruct((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : ILocal;
+
+                                public record OverridesSource((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : LocalBase;
+
+                                public record Plain((int {|RH4116:low|}, int {|RH4116:high|}) Range);
+
+                                public record struct PlainStruct((int {|RH4116:low|}, int {|RH4116:high|}) Range);
+
+                                public class PrimaryConstructor((int {|RH4116:low|}, int {|RH4116:high|}) range)
+                                {
+                                    public int Low => range.low;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
