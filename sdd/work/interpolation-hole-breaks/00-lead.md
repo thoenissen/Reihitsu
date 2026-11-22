@@ -26,6 +26,9 @@
 | 9 | Implementer | Scope: blank-line phase and lambda alignment also changed, new internal type | Accept; widen decision 3 to the blank-line phase; spec author names the blank-line phase where its spec needs it (FMT-BREAK-044 already says "the formatter") | Needed for the fix; new type is the issue's own fix, not escalation 9 | Output decided by FMT-BREAK-044/FMT-PIPE-003 | (spec author) |
 | 10 | Implementer | `FormatNodeInDocumentAsync` target itself inside a `$"` hole still breaks | Not in this run; added to follow-up candidate 1 (reached only via RH5301/RH5303/RH5206 fixes) | Belongs with the analyzer follow-up | — | — |
 | 11 | Spec author | List `SingleLineInterpolationUtilities` as a code owner of line-breaks.md? | No for now; both phases that call it are already owners; spec checker may say otherwise | Avoid a second owner entry for a helper | Internal | — |
+| 12 | Auditor (round 1) | Finding #1: doc-comment phase (FMT-DOC-001) and `ControlFlowBraceTransform` (FMT-STRUCT-026) write a line break into a `$"` interpolation below C# 11 when a `/** */` comment stands inside it | Repair round 1, same requirement (FMT-BREAK-044). Rare input class: refuse it by its cause — below C# 11, neither phase writes a line break into such an interpolation; tests for the auditor's failing and holding cases; FMT-BREAK-044 names these two phases' parts. Mechanism is the implementer's, a cheap check only | Rare class; refusal, not modelling | Refusal for a rare class; unchanged FMT-BREAK-044/FMT-PIPE-003 decide | (round 1) |
+| 13 | Auditor (round 1) | Finding #2: unclosed code fence in switch-case-braces.md | Spec author fixes it in round 1 | Text | Spec text | (round 1) |
+| 14 | Auditor (round 1) | Hint: the hole-marking pass walks the whole tree at C# 11+ where it never matches | Implementer adds a cheap early return in round 1 | Cheap, in the component the run changes | No output change | (round 1) |
 
 ## Follow-up candidates
 
@@ -40,4 +43,6 @@
 - Test implementer done (07-test-implementer.md): formatter + architecture green.
 - Cleaner done (09-cleaner.md, clean).
 - Spec checker done (10-spec-checker.md, consistent). Main merged: up to date. Build green.
-- Next: auditor → validator.
+- Auditor done (11-auditor.md, audited d53c0dd, base 1788f94): findings #1 (high), #2 (low).
+- Repair round 1: spec author (12) + test implementer (13) in parallel → implementer (14) → cleaner → spec checker → auditor (repair only).
+- Next: → validator.
