@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 using Reihitsu.Formatter.Pipeline.Indentation.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
@@ -62,11 +62,10 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
         }
 
         // Comments before a closing delimiter whose content is indented one level deeper than the delimiter are indented
-        // into that content: a closing brace, the closing bracket of a collection expression or a list pattern, and the
-        // closing parenthesis of a positional or parenthesized pattern (FMT-INDENT-006, FMT-PIPE-014)
+        // into that content: a closing brace, and the closing delimiters of patterns and collection expressions, whose set
+        // the blank-line phase reads from the same predicate (FMT-INDENT-006, FMT-PIPE-014)
         if (token.IsKind(SyntaxKind.CloseBraceToken)
-            || (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is CollectionExpressionSyntax or ListPatternSyntax)
-            || (token.IsKind(SyntaxKind.CloseParenToken) && token.Parent is PositionalPatternClauseSyntax or ParenthesizedPatternSyntax))
+            || BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression(token))
         {
             alignColumn += FormattingContext.IndentSize;
         }
