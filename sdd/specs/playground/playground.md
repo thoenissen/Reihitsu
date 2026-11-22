@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | PLAY |
 | Status | Active |
-| Code owners | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundHighlighter`, `PlaygroundVersion` |
+| Code owners | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundHighlighter`, `PlaygroundHighlighting`, `PlaygroundHighlightedLine`, `PlaygroundVersion` |
 | Uses | FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-008, FMT-PIPE-007, FMT-PIPE-033, FMT-UNSUP-001, FMT-UNSUP-002 |
 
 This spec covers the user-visible behavior of the Reihitsu Playground, a Blazor WebAssembly page that formats pasted C# with the Reihitsu formatter: what it shows, when it formats, and what it does with input it cannot format.
