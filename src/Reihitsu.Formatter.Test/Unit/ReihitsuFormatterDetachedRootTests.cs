@@ -133,17 +133,19 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an inner part of a longer member-access chain as target keeps the chain's layout, with and without a tab in
-    /// the target
+    /// Verifies that an inner part of a longer member-access chain as target, which is not laid out as a chain because it is not
+    /// the chain's outermost node, keeps its line breaks, and that its wrapped links are continuation lines of the root's first
+    /// line, measured from the column at which that line begins in the document, with and without a tab in the target
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-023")]
     [Requirement("FMT-PIPE-024")]
-    public async Task ChainPrefixTargetKeepsTheLayoutOfTheLongerChain()
+    [Requirement("FMT-INDENT-034")]
+    public async Task ChainPrefixTargetIndentsItsLinksAsContinuationLinesOfTheRootsFirstLine()
     {
         const string input = "using System.Linq;\n\nclass C\n{\n    void M(int[] source)\n    {\n        var x = source\n                .Where(i => i >⇥0)\n                .Select(i => i * 2)\n            .ToList();\n    }\n}";
-        const string expected = "using System.Linq;\n\nclass C\n{\n    void M(int[] source)\n    {\n        var x = source\n                .Where(i => i > 0)\n                .Select(i => i * 2)\n            .ToList();\n    }\n}";
+        const string expected = "using System.Linq;\n\nclass C\n{\n    void M(int[] source)\n    {\n        var x = source\n            .Where(i => i > 0)\n            .Select(i => i * 2)\n            .ToList();\n    }\n}";
 
         await AssertFormatsTarget(input, expected, SelectSelectInvocation);
     }

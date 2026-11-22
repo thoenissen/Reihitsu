@@ -313,8 +313,8 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
                                      {
                                          if (o is C
 
-                                         // c
-                                         { })
+                                             // c
+                                             { })
                                          {
                                          }
                                      }

@@ -141,14 +141,14 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
                              internal class Example
                              {
-                                 private static P Method()
+                                 private static void Method()
                                  {
-                                     return
+                                     _ =
 
-                                     /* c */ {|#0:new P
-                                     {
-                                         X = 2
-                                     }|};
+                                         /* c */ {|#0:new P
+                                         {
+                                             X = 2
+                                         }|};
                                  }
                              }
                              """;
@@ -160,14 +160,14 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
                                  internal class Example
                                  {
-                                     private static P Method()
+                                     private static void Method()
                                      {
-                                         return
+                                         _ =
 
-                                         /* c */ new P
-                                                 {
-                                                     X = 2
-                                                 };
+                                             /* c */ new P
+                                                     {
+                                                         X = 2
+                                                     };
                                      }
                                  }
                                  """;

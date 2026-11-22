@@ -270,8 +270,8 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
                              {
                                  void Method<TValue>
 
-                                 // why
-                                 (TValue value)
+                                     // why
+                                     (TValue value)
                                  {
                                  }
                              }

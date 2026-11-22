@@ -60,7 +60,7 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyFormatterTests : F
                                 internal class TestClass
                                 {
                                     List
-                                    <int> Method()
+                                        <int> Method()
                                     {
                                         return new();
                                     }

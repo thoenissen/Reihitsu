@@ -1992,7 +1992,7 @@ class C
 class C
 {
     int[] G { get; } =
-    /* b */ { 1, 2 };
+        /* b */ { 1, 2 };
     int H;
     /* m */ int I;
 
@@ -2638,8 +2638,8 @@ class C
 
         if (o is C
 
-        // e
-        { })
+            // e
+            { })
         {
         }
 

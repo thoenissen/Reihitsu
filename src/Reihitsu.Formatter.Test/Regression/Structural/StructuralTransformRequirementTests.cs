@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
@@ -144,7 +144,8 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment between the expression and the semicolon stays in front of the created statement's
-    /// semicolon, and that an expression written on the line after the arrow joins the created <c>return</c> keyword
+    /// semicolon, and that an expression written on a later line than the arrow joins the created <c>return</c> keyword, also
+    /// across a blank line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-006")]
@@ -158,6 +159,10 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
 
                                  int Other() =>
                                      Compute(1, 2);
+
+                                 int Third() =>
+
+                                     3;
                              }
                              """;
         const string expected = """
@@ -171,6 +176,11 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
                                     int Other()
                                     {
                                         return Compute(1, 2);
+                                    }
+
+                                    int Third()
+                                    {
+                                        return 3;
                                     }
                                 }
                                 """;
@@ -205,7 +215,9 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an accessor whose only statement carries an attribute keeps its block
+    /// Verifies that an accessor whose only statement carries an attribute keeps its block; the statement behind the attribute
+    /// list is a continuation line, because only the attribute lists of a member, an accessor, or a local function are placed by
+    /// their scope
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-010")]
@@ -230,9 +242,27 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    private int _value;
+
+                                    int Value
+                                    {
+                                        get
+                                        {
+                                            [Obsolete]
+                                                return _value;
+                                        }
+                                        set => _value = value;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

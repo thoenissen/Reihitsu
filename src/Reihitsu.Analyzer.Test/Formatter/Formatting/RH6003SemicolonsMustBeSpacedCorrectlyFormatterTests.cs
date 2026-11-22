@@ -59,7 +59,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyFormatterTests : FormatterTest
                                     void Method()
                                     {
                                         int value = 1
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;

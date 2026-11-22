@@ -67,6 +67,92 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string LinkDotNameCommentReason = "a comment or directive between a . and its member name";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between <c>return</c>, <c>throw</c>, <c>await</c>, or <c>new</c> and what follows it (FMT-UNSUP-017)
+    /// </summary>
+    protected const string KeywordOperandCommentReason = "a comment or directive between return, throw, await, or new and what follows it";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between the <c>is</c> of a pattern match and its pattern (FMT-UNSUP-017)
+    /// </summary>
+    protected const string IsPatternCommentReason = "a comment or directive between is and its pattern";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between <c>and</c>, <c>or</c>, or <c>not</c> and its pattern (FMT-UNSUP-017)
+    /// </summary>
+    protected const string PatternCombinatorCommentReason = "a comment or directive between and, or, or not and its pattern";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of the <c>when</c> of a switch arm (FMT-UNSUP-017)
+    /// </summary>
+    protected const string SwitchArmWhenCommentReason = "a comment or directive in front of the when of a switch arm";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of the <c>=&gt;</c> of a switch arm (FMT-UNSUP-017)
+    /// </summary>
+    protected const string SwitchArmArrowCommentReason = "a comment or directive in front of the => of a switch arm";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of the <c>:</c> of a base list (FMT-UNSUP-017)
+    /// </summary>
+    protected const string BaseListCommentReason = "a comment or directive in front of the : of a base list";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind a modifier (FMT-UNSUP-017)
+    /// </summary>
+    protected const string ModifierCommentReason = "a comment or directive behind a modifier";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of the <c>when</c> of a catch clause (FMT-UNSUP-017)
+    /// </summary>
+    protected const string CatchFilterCommentReason = "a comment or directive in front of the when of a catch clause";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind a <c>;</c> of a <c>for</c> header (FMT-UNSUP-017)
+    /// </summary>
+    protected const string ForHeaderCommentReason = "a comment or directive behind a ; of a for header";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind the <c>in</c> of a <c>foreach</c> statement (FMT-UNSUP-017)
+    /// </summary>
+    protected const string ForEachExpressionCommentReason = "a comment or directive behind the in of a foreach statement";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between a cast and its operand (FMT-UNSUP-017)
+    /// </summary>
+    protected const string CastCommentReason = "a comment or directive between a cast and its operand";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind the <c>=&gt;</c> of a lambda (FMT-UNSUP-017)
+    /// </summary>
+    protected const string LambdaArrowCommentReason = "a comment or directive behind the => of a lambda";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of <c>with</c> (FMT-UNSUP-017)
+    /// </summary>
+    protected const string WithCommentReason = "a comment or directive in front of with";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of or behind the <c>=</c> of an anonymous-object member (FMT-UNSUP-017)
+    /// </summary>
+    protected const string AnonymousMemberEqualsCommentReason = "a comment or directive in front of or behind the = of an anonymous-object member";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of or behind the <c>=</c> of a <c>let</c> clause (FMT-UNSUP-017)
+    /// </summary>
+    protected const string LetClauseEqualsCommentReason = "a comment or directive in front of or behind the = of a let clause";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive inside a list of omitted type arguments (FMT-UNSUP-018)
+    /// </summary>
+    protected const string OmittedTypeArgumentCommentReason = "a comment or directive inside a list of omitted type arguments";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind an assignment operator inside a switch arm or an
+    /// anonymous-object member (FMT-UNSUP-019)
+    /// </summary>
+    protected const string AssignmentInArmCommentReason = "a comment or directive behind an assignment operator inside a switch arm or an anonymous-object member";
+
     #endregion // Constants
 
     #region Fields

@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | FMT-INDENT |
 | Status | Active |
-| Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-037, FMT-BREAK-038, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-009 |
+| Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `ContinuationLineContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `QueryClauseContributor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
+| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-019, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -16,7 +16,6 @@ This spec covers the indentation phase: the column at which every line that star
 - Blank lines — FMT-BLANK.
 - How the content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places, are moved — FMT-RAW, which specifies that part of this phase.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
-- The column of a continuation line that no requirement below owns — for example the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - The column of a comma that starts a line between the arms of a switch expression, in a positional pattern, or in a base list. In initializers, collection expressions, list patterns, and property patterns no line starts with a comma: FMT-BREAK-038 moves every such comma behind the element in front of it.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
 
@@ -42,7 +41,7 @@ class C
 
 ### FMT-INDENT-002 — Block indentation follows the scope depth
 
-The formatter MUST indent the first token of every line by one level per enclosing scope: the braces of a block-scoped namespace, a type, a block, an accessor list, and a switch statement each add one level for what lies between them, and the braces themselves stay at their owner's level. A file-scoped namespace and top-level statements MUST NOT add a level. A labeled statement MUST be indented like any other statement. The first token of a line is the token that starts it as SHARED-BLANK-008 decides, also when the line break in front of it is the one that ends a single-line documentation comment (`///`) written behind code on the line above; the lines of that comment are its text and MUST keep their columns (FMT-DOC-003).
+The formatter MUST indent the first token of every line by one level per enclosing scope: the braces of a block-scoped namespace, a type, a block, an accessor list, and a switch statement each add one level for what lies between them, and the braces themselves stay at their owner's level. A file-scoped namespace and top-level statements MUST NOT add a level. A labeled statement MUST be indented like any other statement. The first token of a line is the token that starts it as SHARED-BLANK-008 decides, also when the line break in front of it is the one that ends a single-line documentation comment (`///`) written behind code on the line above; the lines of that comment are its text and MUST keep their columns (FMT-DOC-003). A continuation line takes the column FMT-INDENT-034 gives it instead, unless another requirement of this spec places it.
 
 Why: Depth by scope is the convention every C# reader expects, and computing it from the syntax tree rather than from the existing whitespace makes the result independent of how badly the input was indented. A label is a statement in the syntax tree and gets no separate outdent rule. A line behind a `///` comment written behind code is a line like any other; it gets the column it would get behind a `//` comment, rather than whatever column the author left it in.
 
@@ -623,9 +622,9 @@ unsafe struct S
 
 ### FMT-INDENT-013 — A line inside a list element aligns with the element
 
-When a line starts inside an element of a list from FMT-INDENT-012, FMT-INDENT-015, or FMT-INDENT-016 at a token other than the element's first token, the formatter MUST indent it to the column of the element's first token. A line inside a construct that lays out its own lines — such as a nested list, an initializer, a switch expression, a lambda body, or an interpolation hole — MUST be left to that construct; the clauses of a query expression MUST align with the query's first token.
+When a line starts inside an element of a list from FMT-INDENT-012, FMT-INDENT-015, or FMT-INDENT-016 at a token other than the element's first token, the formatter MUST indent it to the column of the element's first token. A line inside a construct that lays out its own lines — such as a nested list, an initializer, a switch expression, a lambda body, or an interpolation hole — MUST be left to that construct; the clauses of a query expression are placed by FMT-INDENT-035.
 
-Why: Such a line exists only because a comment, a directive, or disabled text kept FMT-BREAK from joining it. Without this rule it would fall back to the statement's column and look like a new statement.
+Why: Such a line exists only because a comment, a directive, or disabled text kept FMT-BREAK from joining it. Without this rule it would be laid out as a continuation of the whole statement (FMT-INDENT-034), away from the element it belongs to.
 
 Example:
 
@@ -789,9 +788,9 @@ class C
 
 ### FMT-INDENT-015 — Attribute lists and angle-bracket lists align to their first element
 
-When an attribute list, a type argument list, a type parameter list, or a function-pointer parameter list spans several lines, the formatter MUST indent every later element, every separator, and the closing bracket that starts a line to the column of the list's first element. A list whose first element is an omitted type argument (`Dictionary<,>`) and that stays wrapped, because a comment or a directive in it keeps FMT-BREAK-014 from joining it, MUST keep block indentation.
+When an attribute list, a type argument list, a type parameter list, or a function-pointer parameter list spans several lines, the formatter MUST indent every later element, every separator, and the closing bracket that starts a line to the column of the list's first element. A list of omitted type arguments (`Dictionary<,>`) never reaches this requirement wrapped: FMT-BREAK-014 joins it, and the formatter refuses a comment, a directive, or disabled text inside it (FMT-UNSUP-018).
 
-Why: These lists open with a bracket that sits directly in front of the first element, so the first element's column is the natural anchor. An omitted type argument has no width and therefore no column to align to.
+Why: These lists open with a bracket that sits directly in front of the first element, so the first element's column is the natural anchor. An omitted type argument has no width and therefore no column to align to; such a list is refused where it would stay wrapped, so the rule needs no case for it.
 
 Example:
 
@@ -820,30 +819,6 @@ class C
 
     System.Collections.Generic.Dictionary<int, // first
                                           string> Map => null;
-}
-```
-
-A list of omitted type arguments that a comment keeps wrapped keeps block indentation:
-
-```csharp
-class C
-{
-    void M()
-    {
-        var type = typeof(System.Collections.Generic.Dictionary<, // c
-                                                                >);
-    }
-}
-```
-
-```csharp
-class C
-{
-    void M()
-    {
-        var type = typeof(System.Collections.Generic.Dictionary<, // c
-        >);
-    }
 }
 ```
 
@@ -1401,9 +1376,9 @@ class C
 
 ### FMT-INDENT-026 — Property patterns and parenthesized patterns align to their introducer
 
-When the braces of a property pattern or the parentheses of a parenthesized pattern span several lines, the formatter MUST indent the delimiters that start a line to the pattern's anchor column, and the subpatterns of a property pattern one level deeper. The anchor column MUST be, skipping `and`, `or`, and `not` wrappers: the `is` keyword for a pattern of an `is` expression, the first token of the subpattern for a nested pattern, one level deeper than the opening parenthesis for a pattern inside a parenthesized pattern, and otherwise the pattern's own first token.
+When the braces of a property pattern or the parentheses of a parenthesized pattern span several lines, the formatter MUST indent the delimiters that start a line to the pattern's anchor column, the subpatterns of a property pattern one level deeper, and the pattern inside a parenthesized pattern four columns right of the opening parenthesis — whatever kind of pattern it is. The anchor column MUST be, skipping `and`, `or`, and `not` wrappers: the `is` keyword for a pattern of an `is` expression, the first token of the subpattern for a nested pattern, one level deeper than the opening parenthesis for a pattern inside a parenthesized pattern, and otherwise the pattern's own first token. A combinator that starts a line inside the parentheses aligns with the first token of the pattern it combines (FMT-INDENT-019).
 
-Why: A multi-line pattern reads as a block that belongs to the construct introducing it; anchoring to `is` or to the owning subpattern keeps that block next to its introducer however far right the pattern starts.
+Why: A multi-line pattern reads as a block that belongs to the construct introducing it; anchoring to `is` or to the owning subpattern keeps that block next to its introducer however far right the pattern starts. The content of a parenthesized pattern is one level inside its parentheses, as the maintainer decided, for a constant, type, relational, or combined pattern as for a property pattern.
 
 Example:
 
@@ -1433,6 +1408,40 @@ class C
                              Length: > 0
                          }
                      );
+    }
+}
+```
+
+Example — the content of a parenthesized pattern that is no property pattern is indented four columns right of the opening parenthesis, and the combinator inside it aligns with the first pattern it combines:
+
+```csharp
+class C
+{
+    bool M(object o)
+    {
+        var d = o is
+                  (
+        int
+        or long
+                  );
+
+        return d;
+    }
+}
+```
+
+```csharp
+class C
+{
+    bool M(object o)
+    {
+        var d = o is
+                  (
+                      int
+                      or long
+                  );
+
+        return d;
     }
 }
 ```
@@ -2179,3 +2188,278 @@ class C
 ### FMT-INDENT-033 — A comma that starts a line in an initializer, a collection expression, or a pattern takes its elements' column
 
 Status: Retired in the change that added it — a line that starts with a comma in these constructs is left only where a comment, a directive, or disabled text keeps the comma off the line of the element in front of it, and the formatter refuses that shape (FMT-UNSUP-009); every other such comma moves behind its element (FMT-BREAK-038), so no line is left for a column.
+
+### FMT-INDENT-034 — A continuation line no other requirement places is indented one level deeper than the line its construct starts on
+
+The formatter MUST indent a continuation line that no other requirement of this spec and no FMT-RAW requirement places — FMT-INDENT-002 and FMT-INDENT-004 excepted — four columns right of the column at which the line of the construct it continues begins:
+
+- **Continuation line.** A line is a continuation line when the token that starts it (SHARED-BLANK-008) stands inside a statement, a member declaration, or a using directive that starts on an earlier line, and does not begin a part of it that block indentation places by its scope (FMT-INDENT-002 to FMT-INDENT-004). Those parts are a nested statement — a block, an embedded statement, the statement of a labeled statement, and a local function included —, a nested member declaration — an enum member included —, an accessor, a switch section or label, a brace of a scope that FMT-INDENT-002 names, the `else`, `catch`, or `finally` keyword of its clause, the `while` of a `do` statement, and an attribute list of a member, an accessor, or a local function together with the first token behind the last such list. A line that starts with any other token of the statement, member, or directive is a continuation line: a value, an operand, a pattern, a declarator, a clause, a modifier behind the first one, a type, a base list, or the closing token of a construct. A node that a node-level entry point formats as a root of its own (FMT-PIPE-023) counts as such a statement when no statement, member declaration, or using directive inside it holds the token — for example the `&&` chain the RH5302 fix formats: the root stands in for the statement or member that holds it in the document, so a line that starts inside it below its first line is a continuation line, as it is in the whole document.
+- **Construct it continues.** The construct a continuation line continues is the nearest node that contains the line's first token and whose first token stands on an earlier line. A node that starts on the line itself does not count, however far it reaches: the `3` of `y += // c⏎3 + 4;` starts the binary expression `3 + 4`, so the line continues the compound assignment, which starts on the line of `y`.
+- **Its line.** The line of that construct is the line on which its first token stands. When that line begins inside text that started on a still earlier line — the text of a multi-line string literal or of a multi-line comment —, the line of the construct is the line on which that text starts.
+- **The column.** The column at which that line begins is the column the indentation phase gives the first token or comment on it, measured where the phase puts it (FMT-INDENT-030), so a continuation line of a continuation line is indented one more level.
+- **A root formatted on its own.** When a node-level entry point formats a node as a root of its own (FMT-PIPE-023) and the line of the construct is the line on which the root's first token stands, the column at which that line begins is the line-start column (FMT-PIPE-024): the column of the first token or comment on that line in the document, which may stand in front of the root. The entry point keeps everything in front of the root as written, so that line begins where the document has it, and the continuation line gets the column whole-document formatting gives it when the document's line begins where whole-document formatting puts it. `FormatNode`, which has no such fact, measures from the root's first token.
+
+The gaps FMT-BREAK-041 joins, the `=` of an anonymous-object member and of a `let` clause that FMT-BREAK-016 joins, and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in one of those gaps is refused (FMT-UNSUP-011, FMT-UNSUP-017). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the value behind `x += // c` outside a switch arm and an anonymous-object member (inside one, FMT-UNSUP-019 refuses it), a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins.
+
+Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an element of a collection expression or an initializer to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column.
+
+Example — a value kept on its own line by a comment continues the statement, also where it starts an expression of its own (`3 + 4`):
+
+```csharp
+class C
+{
+    int M(int x, int y)
+    {
+        x += // c
+        3;
+        y += // c
+        3 + 4;
+
+        return x + y;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int x, int y)
+    {
+        x += // c
+            3;
+        y += // c
+            3 + 4;
+
+        return x + y;
+    }
+}
+```
+
+Example — the line continues a construct inside an expression, so it is indented from the line of that construct: the value inside an element of a collection expression from the line of `y` in column 22:
+
+```csharp
+class C
+{
+    int M(int y)
+    {
+        int[] z = [
+                      1,
+                      y += // c
+        2
+                  ];
+
+        return z.Length;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int y)
+    {
+        int[] z = [
+                      1,
+                      y += // c
+                          2
+                  ];
+
+        return z.Length;
+    }
+}
+```
+
+The same line inside a switch-expression arm or an anonymous-object member is refused (FMT-UNSUP-019).
+
+Example — a later declarator continues its declaration, also behind an `#endif`, in a field that stays whole, an event field, and a local declaration; the declarator in the disabled text keeps its column (FMT-INDENT-011):
+
+```csharp
+using System;
+
+class C
+{
+    /// <summary>
+    /// Q
+    /// </summary>
+    public int Q,
+    R;
+
+    public event Action A,
+#if X
+        B,
+#endif
+    D;
+
+    void M()
+    {
+        int a = 1,
+        b = 2;
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    /// <summary>
+    /// Q
+    /// </summary>
+    public int Q,
+        R;
+
+    public event Action A,
+#if X
+        B,
+#endif
+        D;
+
+    void M()
+    {
+        int a = 1,
+            b = 2;
+    }
+}
+```
+
+Example — the line of the interpolation in front of `x` begins inside the text of the verbatim string, which starts on the line of `var`, so `x` and the closing brace of the hole are indented from the line of `var`; the text of the string keeps its columns (FMT-INDENT-011):
+
+```csharp
+class C
+{
+    string M(int x)
+    {
+        var s = $@"line one
+      {
+        x
+        }";
+
+        return s;
+    }
+}
+```
+
+```csharp
+class C
+{
+    string M(int x)
+    {
+        var s = $@"line one
+      {
+            x
+            }";
+
+        return s;
+    }
+}
+```
+
+Example — the RH5302 fix formats the `&&` expression as a root of its own, and that root starts behind `var r = ` in column 16. The compound assignment that `3)` continues starts on the root's first line, which begins with `var` in column 8 in the document, so `3) > 0` is indented to column 12 by the fix, as by whole-document formatting, and not to column 20, four columns right of the root's first token. The `&&` aligns with its left operand (FMT-INDENT-018):
+
+```csharp
+class C
+{
+    bool M(int x, bool y)
+    {
+        var r = (x += // c
+        3) > 0 &&
+        y;
+
+        return r;
+    }
+}
+```
+
+```csharp
+class C
+{
+    bool M(int x, bool y)
+    {
+        var r = (x += // c
+            3) > 0
+                && y;
+
+        return r;
+    }
+}
+```
+
+The RH5308 fix of `var s = (x += // c⏎3) > 0 ? 1 :⏎2;` gives `3) > 0` column 12 in the same way, with `? 1` and `: 2;` in column 20 (FMT-INDENT-020).
+
+Example — lines that block indentation places by their scope are not continuations and keep their columns: the attribute lists of a member and the token behind them, a label and its statement, `else`, and the `while` of a `do` statement:
+
+```csharp
+class C
+{
+    [System.Obsolete]
+    [System.CLSCompliant(false)]
+    public void M(int x)
+    {
+        L:
+        x++;
+
+        if (x > 0)
+        {
+        }
+        else
+        {
+        }
+
+        do
+        {
+        }
+        while (x < 0);
+    }
+}
+```
+
+is left unchanged.
+
+### FMT-INDENT-035 — Query clauses align with the query's first token
+
+When a clause of a query expression starts a line — a `from`, `let`, `where`, `join`, `orderby`, `select`, or `group` clause, or the `into` of a query continuation —, the formatter MUST indent it to the column of the first token of the query expression the clause belongs to, inside a list element as anywhere else. The clauses behind an `into` belong to the query expression that holds the continuation. A line inside a clause that starts at another token of the clause is a continuation line of that clause (FMT-INDENT-034).
+
+Why: The clauses of one query read as a column under `from`, which is how a query is read top to bottom; the statement's column would put them left of the query they belong to, and one level deeper than the statement would put them in no relation to `from`. Inside a list element the clauses already aligned with the query's first token, and a query outside a list element has no reason to look different.
+
+Example:
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(int[] arr, int[] brr)
+    {
+        var q = from x in arr
+        let y = x
+        where y > 0
+        select y;
+        var r = from x in arr
+        join b in brr on x
+        equals b
+        select x into z
+        select z;
+    }
+}
+```
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void M(int[] arr, int[] brr)
+    {
+        var q = from x in arr
+                let y = x
+                where y > 0
+                select y;
+        var r = from x in arr
+                join b in brr on x
+                    equals b
+                select x into z
+                select z;
+    }
+}
+```

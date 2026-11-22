@@ -109,6 +109,7 @@ public class LineBreaksConsolidationStabilityTests : FormatterTestsBase
     /// which is the behavior this test locks in
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-041")]
     public void ListPatternDesignationStaysOnCloseBracketLine()
     {
         const string input = """
@@ -132,7 +133,15 @@ public class LineBreaksConsolidationStabilityTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        foreach (var endOfLine in _lineEndings)
+        {
+            var output = FormatWithPipeline(input, endOfLine);
+
+            Assert.Contains("if (value is [", output, "The list pattern behind is must join the is.");
+            Assert.Contains("] items)", output, "The designation must stay on the line of the closing bracket.");
+        }
+
+        AssertSecondPassIsStable(input);
     }
 
     /// <summary>

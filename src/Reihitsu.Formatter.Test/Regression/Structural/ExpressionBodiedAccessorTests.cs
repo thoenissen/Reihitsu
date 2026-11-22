@@ -858,12 +858,12 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment between the <c>return</c> keyword and the returned expression keeps the accessor block,
-    /// because the keyword it follows is removed by the conversion
+    /// Verifies that a comment between the <c>return</c> keyword and the returned expression refuses the input as unsupported,
+    /// because the line-break phase joins that gap
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-012")]
-    public void CommentAfterReturnKeywordKeepsBlock()
+    [Requirement("FMT-UNSUP-017")]
+    public void CommentAfterReturnKeywordIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -882,7 +882,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(KeywordOperandCommentReason, input, "/* cached */");
     }
 
     /// <summary>
@@ -930,7 +930,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                      get
                                      {
                                          return _x // cached
-                                         ;
+                                             ;
                                      }
                                  }
                              }
@@ -1430,12 +1430,12 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an own-line comment before the returned expression keeps the accessor block, because the return keyword
-    /// it follows is removed by the conversion
+    /// Verifies that an own-line comment before the returned expression refuses the input as unsupported, because the comment
+    /// stands between <c>return</c> and its value
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-012")]
-    public void CommentBeforeReturnedExpressionKeepsBlock()
+    [Requirement("FMT-UNSUP-017")]
+    public void CommentBeforeReturnedExpressionIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1457,7 +1457,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(KeywordOperandCommentReason, input, "// value");
     }
 
     /// <summary>
@@ -1479,8 +1479,8 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                                      {
                                          _x = value
 
-                                         // assigned
-                                         ;
+                                             // assigned
+                                             ;
                                      }
                                  }
                              }
@@ -1510,7 +1510,7 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                              #if DEBUG
                                                 + 1
                              #endif
-                                         ;
+                                             ;
                                      }
                                  }
                              }

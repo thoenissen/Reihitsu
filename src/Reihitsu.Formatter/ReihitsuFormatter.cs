@@ -182,7 +182,8 @@ public static class ReihitsuFormatter
     /// applies no region requirement (FMT-PIPE-028).
     /// Version-dependent rules follow the effective language version of the document's project, clamped to the newest
     /// supported version. The target is formatted as a root without a parent; what the phases need from the document around it
-    /// is captured before they run, as plain values: its depth, the column of its first token, and the construct it stands in.
+    /// is captured before they run, as plain values: its depth, the column of its first token, the column at which the line of
+    /// its first token begins (FMT-PIPE-024), and the construct it stands in.
     /// The target's leading trivia is written back as it stands in the document, in every case — its blank lines, its comments
     /// and documentation comments, and the whitespace in front of its first token — so that token keeps its line and column, and
     /// the target's other lines are laid out from that column (FMT-PIPE-017, FMT-PIPE-018).
@@ -215,6 +216,9 @@ public static class ReihitsuFormatter
         int? rootFirstTokenColumn = targetNode == root
                                         ? null
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(originalFirstToken);
+        int? rootLineStartColumn = targetNode == root
+                                       ? null
+                                       : ReihitsuFormatterHelpers.ComputeDocumentLineStartColumn(originalFirstToken);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = SyntaxIndentationUtilities.ComputeIndentLevel(targetNode);
         var context = new FormattingContext(endOfLine,
@@ -225,7 +229,8 @@ public static class ReihitsuFormatter
                                             rootFirstTokenColumn: rootFirstTokenColumn,
                                             rootChainBoundary: FluentChainBoundary.From(targetNode),
                                             rootConstruct: ReihitsuFormatterHelpers.CaptureRootConstruct(targetNode),
-                                            formatsRegionDirectives: false);
+                                            formatsRegionDirectives: false,
+                                            rootLineStartColumn: rootLineStartColumn);
         var lastTokenAnnotation = new SyntaxAnnotation();
         var detachedTarget = DetachWithAnnotatedLastToken(targetNode, targetNode == root ? null : lastTokenAnnotation, cancellationToken);
         var result = FormattingPipeline.Execute(detachedTarget, context, cancellationToken);
@@ -596,8 +601,9 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Runs the pipeline on a copy of the context in which the target is marked, with the facts the context entry point gives
-    /// the phases: the document column of the context's first token, the code-fix structural transforms, the project's
-    /// language version, no region requirement, and the target-position fact (FMT-PIPE-017, FMT-PIPE-024, FMT-PIPE-028)
+    /// the phases: the document column of the context's first token and the line-start column of its line, the code-fix
+    /// structural transforms, the project's language version, no region requirement, and the target-position fact
+    /// (FMT-PIPE-017, FMT-PIPE-024, FMT-PIPE-028)
     /// </summary>
     /// <param name="document">The Roslyn Document containing both nodes</param>
     /// <param name="root">The document's root</param>
@@ -626,6 +632,9 @@ public static class ReihitsuFormatter
         int? rootFirstTokenColumn = contextNode == root
                                         ? null
                                         : ReihitsuFormatterHelpers.ComputeDocumentColumn(contextNode.GetFirstToken());
+        int? rootLineStartColumn = contextNode == root
+                                       ? null
+                                       : ReihitsuFormatterHelpers.ComputeDocumentLineStartColumn(contextNode.GetFirstToken());
         var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
                                             SyntaxIndentationUtilities.ComputeIndentLevel(contextNode),
                                             preserveRootDocumentationBoundary: contextNode != root,
@@ -634,7 +643,8 @@ public static class ReihitsuFormatter
                                             rootFirstTokenColumn: rootFirstTokenColumn,
                                             formatsRegionDirectives: false,
                                             targetAnnotation: targetTokenAnnotation,
-                                            targetFirstTokenColumn: targetFirstTokenColumn);
+                                            targetFirstTokenColumn: targetFirstTokenColumn,
+                                            rootLineStartColumn: rootLineStartColumn);
         var originalFirstToken = targetNode.GetFirstToken();
         var annotatedTarget = targetNode.ReplaceToken(originalFirstToken, originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
 

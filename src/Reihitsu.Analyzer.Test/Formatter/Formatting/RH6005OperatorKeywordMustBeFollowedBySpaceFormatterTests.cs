@@ -56,7 +56,7 @@ public class RH6005OperatorKeywordMustBeFollowedBySpaceFormatterTests : Formatte
                                 internal class C
                                 {
                                     public static C operator/// x
-                                    +(C a, C b)
+                                        +(C a, C b)
                                     {
                                         return a;
                                     }

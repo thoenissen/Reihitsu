@@ -463,6 +463,137 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example: the <c>is</c> of a pattern, the combinators, and the <c>=</c> of a <c>let</c> clause
+    /// get one space on both sides, also next to a parenthesis, a bracket, a literal, or a parenthesized expression
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-010")]
+    public void SpecExampleOneSpaceAroundPatternOperatorsAndTheEqualsOfALetClause()
+    {
+        // Arrange
+        const string input = """
+                             using System.Linq;
+
+                             class C
+                             {
+                                 void M(object o, int[] arr)
+                                 {
+                                     var a = o is(1);
+                                     var b = arr is[1 or(2), _];
+                                     var c = (o)is"s";
+                                     var d = o is(1)and(2);
+                                     var e = from x in arr let y=x select y;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(object o, int[] arr)
+                                    {
+                                        var a = o is (1);
+                                        var b = arr is [1 or (2), _];
+                                        var c = (o) is "s";
+                                        var d = o is (1) and (2);
+                                        var e = from x in arr let y = x select y;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies each pattern operator and the <c>=</c> of a <c>let</c> clause on its own: a missing space is written on the side
+    /// that has none, and an operator that is spaced already stays as it is
+    /// </summary>
+    /// <param name="statement">The statement as written</param>
+    /// <param name="spaced">The statement with its operators spaced</param>
+    [TestMethod]
+    [Requirement("FMT-SPACE-010")]
+    [DataRow("var a = o is(1);", "var a = o is (1);", DisplayName = "Is in front of a parenthesized pattern")]
+    [DataRow("var b = arr is[1, _];", "var b = arr is [1, _];", DisplayName = "Is in front of a list pattern")]
+    [DataRow("var b = arr is [1 or(2), _];", "var b = arr is [1 or (2), _];", DisplayName = "Or in front of a parenthesized pattern inside a list pattern")]
+    [DataRow("var c = (o)is\"s\";", "var c = (o) is \"s\";", DisplayName = "Is between a parenthesized expression and a literal")]
+    [DataRow("var d = o is (1)and(2);", "var d = o is (1) and (2);", DisplayName = "And between parenthesized patterns")]
+    [DataRow("var d = o is (1)or(2);", "var d = o is (1) or (2);", DisplayName = "Or between parenthesized patterns")]
+    [DataRow("var e = from x in arr let y=x select y;", "var e = from x in arr let y = x select y;", DisplayName = "Equals of a let clause")]
+    [DataRow("var f = o is (1) or (2);", "var f = o is (1) or (2);", DisplayName = "Spaced already")]
+    public void OneSpaceAroundEachPatternOperatorAndTheEqualsOfALetClause(string statement, string spaced)
+    {
+        // Arrange
+        const string template = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(object o, int[] arr)
+                                    {
+                                        {0}
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(template.Replace("{0}", statement), template.Replace("{0}", spaced));
+    }
+
+    /// <summary>
+    /// Verifies the change doc's switch-arm and <c>case</c>-label rows: the combinator between two parenthesized patterns gets one
+    /// space on both sides in a switch-expression arm and in a <c>case</c> label, and the gap behind <c>case</c> keeps what it has
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SPACE-010")]
+    public void OneSpaceAroundACombinatorInASwitchArmAndInACaseLabel()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case(1)or(2):
+                                             return 2;
+                                     }
+
+                                     return o switch
+                                            {
+                                                (1)or(2) => 1,
+                                                _ => 0,
+                                            };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case(1) or (2):
+                                                return 2;
+                                        }
+
+                                        return o switch
+                                               {
+                                                   (1) or (2) => 1,
+                                                   _ => 0,
+                                               };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a for-loop semicolon gets one space after it unless an empty clause follows
     /// </summary>
     [TestMethod]

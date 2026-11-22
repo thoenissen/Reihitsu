@@ -410,10 +410,12 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a held line inside a switch expression arm of an argument is not aligned with the argument but left to the
-    /// switch expression, which places it exactly as it does outside an argument
+    /// switch expression, which places it exactly as it does outside an argument: one level deeper than the line of the arm it
+    /// continues
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-013")]
+    [Requirement("FMT-INDENT-034")]
     public void HeldLineInsideSwitchExpressionArgumentIsLeftToTheSwitchExpression()
     {
         // Arrange
@@ -428,7 +430,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                        value switch
                                        {
                                            1 => // keep
-                                     "one",
+                                               "one",
                                            _ => "other",
                                        });
                                  }
@@ -441,10 +443,12 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a held line inside an object initializer member of an argument is not aligned with the argument but left to
-    /// the initializer, which places it exactly as it does outside an argument
+    /// the initializer, which places it exactly as it does outside an argument: one level deeper than the line of the member it
+    /// continues
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-013")]
+    [Requirement("FMT-INDENT-034")]
     public void HeldLineInsideObjectInitializerArgumentIsLeftToTheInitializer()
     {
         // Arrange
@@ -458,7 +462,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                      N(new Example
                                        {
                                            A = // keep
-                                     value,
+                                               value,
                                        });
                                  }
                              }

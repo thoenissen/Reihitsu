@@ -107,14 +107,14 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
                              internal class Example
                              {
-                                 private static List<int> Method()
+                                 private static void Method(List<int> values)
                                  {
-                                     return
+                                     values =
 
-                                     /* c */ {|#0:[
-                                         1,
-                                         2
-                                     ]|};
+                                         /* c */ {|#0:[
+                                             1,
+                                             2
+                                         ]|};
                                  }
                              }
                              """;
@@ -123,14 +123,14 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
                                  internal class Example
                                  {
-                                     private static List<int> Method()
+                                     private static void Method(List<int> values)
                                      {
-                                         return
+                                         values =
 
-                                         /* c */ [
-                                                     1,
-                                                     2
-                                                 ];
+                                             /* c */ [
+                                                         1,
+                                                         2
+                                                     ];
                                      }
                                  }
                                  """;

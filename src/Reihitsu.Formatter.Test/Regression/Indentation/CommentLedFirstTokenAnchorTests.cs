@@ -290,10 +290,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 class C
                                 {
                                     int[] B { get; } =
-                                    /* c */ {
-                                                1,
-                                                2
-                                            };
+                                        /* c */ {
+                                                    1,
+                                                    2
+                                                };
                                 }
                                 """;
 
@@ -315,11 +315,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                               {
                                   int[] B { get; } =
 
-                                  // c
-                                  {
-                                      1,
-                                      2
-                                  };
+                                      // c
+                                      {
+                                          1,
+                                          2
+                                      };
                               }
                               """;
 
@@ -356,7 +356,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     #region Collection expressions and list patterns
 
     /// <summary>
-    /// Verifies the change doc's row for a collection expression: the opening bracket stands behind the comment in column 16,
+    /// Verifies the change doc's row for a collection expression: the opening bracket stands behind the comment in column 20,
     /// and the elements and the closing bracket follow it
     /// </summary>
     [TestMethod]
@@ -369,7 +369,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  List<int> M()
                                  {
-                                     return
+                                     _ =
                                      /* c */ [
                                      1,
                                      2
@@ -382,11 +382,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     List<int> M()
                                     {
-                                        return
-                                        /* c */ [
-                                                    1,
-                                                    2
-                                                ];
+                                        _ =
+                                            /* c */ [
+                                                        1,
+                                                        2
+                                                    ];
                                     }
                                 }
                                 """;
@@ -408,13 +408,13 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                               {
                                   List<int> M()
                                   {
-                                      return
+                                      _ =
 
-                                      // c
-                                      [
-                                          1,
-                                          2
-                                      ];
+                                          // c
+                                          [
+                                              1,
+                                              2
+                                          ];
                                   }
                               }
                               """;
@@ -423,13 +423,12 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for a list pattern behind <c>is</c>: the opening bracket stands behind the comment in
-    /// column 16, and the subpatterns and the closing bracket follow it
+    /// Verifies that a comment that leads the line of a list pattern behind <c>is</c> stands between <c>is</c> and its pattern,
+    /// a gap the line-break phase joins, so the input is refused as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-025")]
-    [Requirement("FMT-INDENT-030")]
-    public void ListPatternAlignsToItsBracketBehindCommentThatLeadsTheLine()
+    [Requirement("FMT-UNSUP-017")]
+    public void ListPatternBehindCommentThatLeadsTheLineBehindIsIsUnsupported()
     {
         const string input = """
                              class C
@@ -444,21 +443,8 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var t = o is
-                                        /* c */ [
-                                                    1,
-                                                    2
-                                                ];
-                                    }
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(IsPatternCommentReason, input, "/* c */");
     }
 
     #endregion // Collection expressions and list patterns
@@ -466,7 +452,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     #region Creation expressions
 
     /// <summary>
-    /// Verifies the change doc's row for an object creation: <c>new</c> stands behind the comment in column 16, the braces align
+    /// Verifies the change doc's row for an object creation: <c>new</c> stands behind the comment in column 20, the braces align
     /// to it, and the member starts one level deeper
     /// </summary>
     [TestMethod]
@@ -479,7 +465,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  P M()
                                  {
-                                     return
+                                     _ =
                                      /* c */ new P
                                      {
                                      X = 2
@@ -492,11 +478,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     P M()
                                     {
-                                        return
-                                        /* c */ new P
-                                                {
-                                                    X = 2
-                                                };
+                                        _ =
+                                            /* c */ new P
+                                                    {
+                                                        X = 2
+                                                    };
                                     }
                                 }
                                 """;
@@ -505,7 +491,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for a collection creation: <c>new</c> stands behind the comment in column 16, the braces
+    /// Verifies the change doc's row for a collection creation: <c>new</c> stands behind the comment in column 20, the braces
     /// align to it, and the element starts one level deeper
     /// </summary>
     [TestMethod]
@@ -518,7 +504,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  List<int> M()
                                  {
-                                     return
+                                     _ =
                                      /* c */ new List<int>
                                      {
                                      2
@@ -531,11 +517,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     List<int> M()
                                     {
-                                        return
-                                        /* c */ new List<int>
-                                                {
-                                                    2
-                                                };
+                                        _ =
+                                            /* c */ new List<int>
+                                                    {
+                                                        2
+                                                    };
                                     }
                                 }
                                 """;
@@ -544,7 +530,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for an anonymous object: <c>new</c> stands behind the comment in column 16, the braces align
+    /// Verifies the change doc's row for an anonymous object: <c>new</c> stands behind the comment in column 20, the braces align
     /// to it, and the member starts one level deeper
     /// </summary>
     [TestMethod]
@@ -557,7 +543,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  object M()
                                  {
-                                     return
+                                     _ =
                                      /* c */ new
                                      {
                                      X = 1
@@ -570,11 +556,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     object M()
                                     {
-                                        return
-                                        /* c */ new
-                                                {
-                                                    X = 1
-                                                };
+                                        _ =
+                                            /* c */ new
+                                                    {
+                                                        X = 1
+                                                    };
                                     }
                                 }
                                 """;
@@ -587,7 +573,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     #region Other anchors
 
     /// <summary>
-    /// Verifies the change doc's row for a switch expression: its governing expression stands behind the comment in column 16,
+    /// Verifies the change doc's row for a switch expression: its governing expression stands behind the comment in column 20,
     /// the braces align to it, and the arms start one level deeper
     /// </summary>
     [TestMethod]
@@ -600,7 +586,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  int M(int v)
                                  {
-                                     return
+                                     _ =
                                      /* c */ v switch
                                      {
                                      1 => 2,
@@ -614,12 +600,12 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     int M(int v)
                                     {
-                                        return
-                                        /* c */ v switch
-                                                {
-                                                    1 => 2,
-                                                    _ => 3
-                                                };
+                                        _ =
+                                            /* c */ v switch
+                                                    {
+                                                        1 => 2,
+                                                        _ => 3
+                                                    };
                                     }
                                 }
                                 """;
@@ -628,7 +614,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for a lambda: its parameter list stands behind the comment in column 16, the braces of the
+    /// Verifies the change doc's row for a lambda: its parameter list stands behind the comment in column 20, the braces of the
     /// block body align to it, and the statement starts one level deeper
     /// </summary>
     [TestMethod]
@@ -641,7 +627,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  Action M()
                                  {
-                                     return
+                                     _ =
                                      /* c */ () =>
                                      {
                                      M();
@@ -654,11 +640,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     Action M()
                                     {
-                                        return
-                                        /* c */ () =>
-                                                {
-                                                    M();
-                                                };
+                                        _ =
+                                            /* c */ () =>
+                                                    {
+                                                        M();
+                                                    };
                                     }
                                 }
                                 """;
@@ -667,7 +653,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for a wrapped binary expression: the left operand stands behind the comment in column 16,
+    /// Verifies the change doc's row for a wrapped binary expression: the left operand stands behind the comment in column 20,
     /// and the wrapped operator aligns to it
     /// </summary>
     [TestMethod]
@@ -680,7 +666,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  bool M(bool a, bool b)
                                  {
-                                     return
+                                     _ =
                                      /* c */ a
                                      && b;
                                  }
@@ -691,9 +677,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     bool M(bool a, bool b)
                                     {
-                                        return
-                                        /* c */ a
-                                                && b;
+                                        _ =
+                                            /* c */ a
+                                                    && b;
                                     }
                                 }
                                 """;
@@ -702,7 +688,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for a conditional expression: the condition stands behind the comment in column 16, and the
+    /// Verifies the change doc's row for a conditional expression: the condition stands behind the comment in column 20, and the
     /// wrapped branches start one level deeper
     /// </summary>
     [TestMethod]
@@ -715,7 +701,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  int M(bool a)
                                  {
-                                     return
+                                     _ =
                                      /* c */ a
                                      ? 1
                                      : 2;
@@ -727,10 +713,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     int M(bool a)
                                     {
-                                        return
-                                        /* c */ a
-                                                    ? 1
-                                                    : 2;
+                                        _ =
+                                            /* c */ a
+                                                        ? 1
+                                                        : 2;
                                     }
                                 }
                                 """;
@@ -740,7 +726,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a method chain: the chain starts behind the comment, and the wrapped link aligns to the
-    /// first link, <c>.Trim</c>, in column 17
+    /// first link, <c>.Trim</c>, in column 21
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-029")]
@@ -752,7 +738,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  string M(string s)
                                  {
-                                     return
+                                     _ =
                                      /* c */ s.Trim()
                                      .ToUpper();
                                  }
@@ -763,9 +749,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     string M(string s)
                                     {
-                                        return
-                                        /* c */ s.Trim()
-                                                 .ToUpper();
+                                        _ =
+                                            /* c */ s.Trim()
+                                                     .ToUpper();
                                     }
                                 }
                                 """;
@@ -775,7 +761,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a wrapped pattern combinator: the pattern's <c>is</c> stands behind the comment in
-    /// column 18, and the wrapped <c>or</c> aligns to it
+    /// column 22, and the wrapped <c>or</c> aligns to it
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-019")]
@@ -787,7 +773,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  bool M(object o)
                                  {
-                                     return
+                                     _ =
                                      /* c */ o is int
                                      or long;
                                  }
@@ -798,9 +784,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     bool M(object o)
                                     {
-                                        return
-                                        /* c */ o is int
-                                                  or long;
+                                        _ =
+                                            /* c */ o is int
+                                                      or long;
                                     }
                                 }
                                 """;

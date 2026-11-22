@@ -326,7 +326,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     /// <summary>
     /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the expression stays wrapped,
     /// also behind an attribute list, when a comment in front of the arrow keeps it on a later line, and when a comment behind
-    /// the arrow makes the formatter refuse the property
+    /// the arrow or behind a modifier makes the formatter refuse the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -347,6 +347,9 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
 
                                     {|RH5401:int D => // note
                                         1;|}
+
+                                    {|RH5401:public /* note */ int Commented
+                                        => 1;|}
 
                                     {|RH5401:[Obsolete]
                                     int E =>
@@ -532,6 +535,94 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                               #pragma warning disable CS0618
                                       => 1;|}
                               #pragma warning restore CS0618
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a line break between a modifier and the type, which the formatter joins, does not withhold the fix, and
+    /// that the fix puts the property on one line with the modifier on its line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixJoinsALineBreakBetweenAModifierAndTheType(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5401:public
+                                    int Q
+                                        => 2;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public int Q => 2;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between two modifiers, which the formatter joins, does not withhold the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixJoinsALineBreakBetweenTwoModifiers(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5401:public
+                                    static int S
+                                        => 2;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public static int S => 2;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a modifier withholds the fix, while the diagnostic stays, because the formatter refuses
+    /// the property: a block comment on the modifier's line and a line comment that ends it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForACommentBehindAModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5401:public /* note */ int Commented
+                                      => 1;|}
+
+                                  {|RH5401:public // note
+                                  int Lined
+                                      => 1;|}
                               }
                               """;
 

@@ -400,7 +400,7 @@ public class InterpolationAlignmentSpacingReproTests : FormatterTestsBase
                                  public string Format(string value)
                                  {
                                      return $"{value
-                                     ,-10}";
+                                         ,-10}";
                                  }
                              }
                              """;

@@ -289,6 +289,7 @@ internal static class LayoutComputer
     private static ILayoutContributor[] CreateContributors()
     {
         return [
+                   new ContinuationLineContributor(),
                    new ArgumentAlignmentContributor(),
                    new MethodChainAlignmentContributor(),
                    new ObjectInitializerContributor(),
@@ -305,6 +306,7 @@ internal static class LayoutComputer
                    new BaseTypeListContributor(),
                    new AngleBracketListAlignmentContributor(),
                    new AnonymousObjectContributor(),
+                   new QueryClauseContributor(),
                    new LambdaAlignmentContributor()
                ];
     }

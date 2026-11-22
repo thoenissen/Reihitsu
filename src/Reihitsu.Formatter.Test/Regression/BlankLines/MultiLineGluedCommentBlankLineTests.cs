@@ -653,7 +653,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                              class C
                              {
                                  int[] G { get; } =
-                                 /* g
+                                     /* g
                                   */ { 1, 2 };
                                  int H;
                                  /* m
@@ -725,7 +725,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                 class C
                                 {
                                     int[] G { get; } =
-                                    /* g
+                                        /* g
                                      */ { 1, 2 };
                                     int H;
 

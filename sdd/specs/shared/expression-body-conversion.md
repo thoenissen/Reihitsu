@@ -120,7 +120,7 @@ class C
 #if DEBUG
         + 1
 #endif
-        ;
+            ;
     }
 }
 ```

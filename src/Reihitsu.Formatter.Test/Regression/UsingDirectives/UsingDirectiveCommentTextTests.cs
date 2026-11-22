@@ -342,7 +342,7 @@ public class UsingDirectiveCommentTextTests : FormatterTestsBase
                              using System.Linq;
                              using System
                              #pragma warning disable CS0105
-                             .Text;
+                                 .Text;
                              using System;
 
                              class C
@@ -371,7 +371,7 @@ public class UsingDirectiveCommentTextTests : FormatterTestsBase
                              #if A
                              .Text
                              #endif
-                             ;
+                                 ;
 
                              class C
                              {
@@ -396,10 +396,10 @@ public class UsingDirectiveCommentTextTests : FormatterTestsBase
         const string input = """
                              using System
                              #if !A
-                             .Text;
+                                 .Text;
                              using System.Collections
                              #endif
-                             ;
+                                 ;
                              using System.Buffers;
 
                              class C

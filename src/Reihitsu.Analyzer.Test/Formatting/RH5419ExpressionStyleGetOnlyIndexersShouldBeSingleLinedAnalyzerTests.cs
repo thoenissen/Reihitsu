@@ -979,8 +979,8 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a line comment behind a modifier withholds the fix, while the diagnostic stays: the measured code
-    /// starts at the first token behind the attribute lists, so the line break behind the modifier counts
+    /// Verifies that a line comment behind a modifier withholds the fix, while the diagnostic stays, because the formatter
+    /// refuses an indexer with a comment behind one of its modifiers
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1027,8 +1027,68 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a line break between a modifier and the type, which the formatter keeps, withholds the fix, while the
-    /// diagnostic stays
+    /// Verifies that a line break between a modifier and the type, which the formatter joins, does not withhold the fix, and
+    /// that the fix puts the indexer on one line with the modifier on its line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-003")]
+    [Requirement("RH5419-004")]
+    public async Task VerifyFixJoinsALineBreakBetweenAModifierAndTheType(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|RH5419:public
+                                        int this[int a,
+                                                 int b] => a;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     public int this[int a, int b] => a;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a line break behind a modifier is joined, and the fix puts the indexer on one line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5419-003")]
+    public async Task VerifySpecificationExampleFixJoinsALineBreakBehindAModifier(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    {|RH5419:public
+                                    virtual int this[int a,
+                                                     int b] => a;|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     public virtual int this[int a, int b] => a;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment behind a modifier on the modifier's line withholds the fix, while the diagnostic stays,
+    /// because the formatter refuses the indexer
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1036,14 +1096,13 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH5419-004")]
-    public async Task VerifyFixIsWithheldForALineBreakBetweenAModifierAndTheType(string endOfLine)
+    public async Task VerifyFixIsWithheldForABlockCommentBehindAModifierOnOneLine(string endOfLine)
     {
         const string source = """
                               class C
                               {
-                                  {|RH5419:public
-                                      int this[int a,
-                                               int b] => a;|}
+                                  {|RH5419:public /* note */ int this[nint a,
+                                                             nint b] => 1;|}
                               }
                               """;
 
@@ -1238,7 +1297,7 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
     /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the expression stays
     /// wrapped, when a comment or a directive stands inside a parameter list on several lines, when a literal spans lines
     /// inside the parameter list, when a comment or a directive in front of the <c>[</c> keeps a line break, when a comment
-    /// stands in front of or behind the arrow, and in the attribute-list cases of a property
+    /// stands in front of or behind the arrow or behind a modifier, and in the attribute-list cases of a property
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1304,6 +1363,9 @@ public class RH5419ExpressionStyleGetOnlyIndexersShouldBeSingleLinedAnalyzerTest
 
                                   {|RH5419:int this[short i] => // note
                                       1;|}
+
+                                  {|RH5419:public /* note */ int this[nint a,
+                                                             nint b] => 1;|}
 
                                   {|RH5419:[Obsolete]
                                   // note

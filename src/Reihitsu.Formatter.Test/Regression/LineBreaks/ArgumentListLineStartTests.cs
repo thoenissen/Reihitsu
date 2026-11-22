@@ -1791,7 +1791,7 @@ public class ArgumentListLineStartTests : FormatterTestsBase
                                  void M()
                                  {
                                      var t = typeof
-                                     (int);
+                                         (int);
                                  }
                              }
                              """;

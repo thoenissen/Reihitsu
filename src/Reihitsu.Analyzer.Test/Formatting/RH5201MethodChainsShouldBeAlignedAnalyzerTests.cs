@@ -3321,8 +3321,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that a chain whose root stands behind a comment that leads its line, laid out as the formatter lays it out
-    /// with the comment line in the column of the statement's first token, is not reported
+    /// Verifies that a chain whose root stands behind a comment that leads a continuation line, laid out as the formatter lays it
+    /// out with the comment line one level deeper than the statement's first token, is not reported
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3335,11 +3335,11 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string source = """
                               class C
                               {
-                                  string M(string s)
+                                  void M(string s)
                                   {
-                                      return
-                                      /* c */ s.Trim()
-                                               .ToUpper();
+                                      _ =
+                                          /* c */ s.Trim()
+                                                   .ToUpper();
                                   }
                               }
                               """;
@@ -3351,7 +3351,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that a chain whose root stands behind a single-line comment that follows the last line of a comment spanning
-    /// several lines, laid out as the formatter lays it out, is not reported
+    /// several lines on a continuation line, laid out as the formatter lays it out, is not reported
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3364,12 +3364,12 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string source = """
                               class C
                               {
-                                  string M(string s)
+                                  void M(string s)
                                   {
-                                      return
-                                      /* a
-                                         b */ /* c */ s.Trim()
-                                                       .ToUpper();
+                                      _ =
+                                          /* a
+                                             b */ /* c */ s.Trim()
+                                                           .ToUpper();
                                   }
                               }
                               """;
@@ -3381,8 +3381,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that a chain whose root stands directly behind the last line of a comment spanning several lines, laid out
-    /// as the formatter lays it out with the comment's first line in the column of the statement's first token and its
-    /// last line as written, is not reported
+    /// as the formatter lays it out with the comment's first line on a continuation line one level deeper than the statement's
+    /// first token and its last line as written, is not reported
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3395,12 +3395,12 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string source = """
                               class C
                               {
-                                  string M(string s)
+                                  void M(string s)
                                   {
-                                      return
-                                      /* a
-                                          b */ s.Trim()
-                                                .ToUpper();
+                                      _ =
+                                          /* a
+                                              b */ s.Trim()
+                                                    .ToUpper();
                                   }
                               }
                               """;
@@ -3411,8 +3411,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that a chain whose root stands behind a comment that leads its line in a column deeper than the statement's
-    /// first token is not reported when its wrapped link is aligned under the chain's first link
+    /// Verifies that a chain whose root stands behind a comment that leads a continuation line in a column deeper than the one the
+    /// formatter gives that line is not reported when its wrapped link is aligned under the chain's first link
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3425,11 +3425,11 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string source = """
                               class C
                               {
-                                  string M(string s)
+                                  void M(string s)
                                   {
-                                      return
-                                          /* c */ s.Trim()
-                                                   .ToUpper();
+                                      _ =
+                                              /* c */ s.Trim()
+                                                       .ToUpper();
                                   }
                               }
                               """;
@@ -3438,8 +3438,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that a wrapped link of a chain whose root stands behind a comment that leads its line is reported when it
-    /// is not aligned under the chain's first link, and that the fix gives the chain the layout the formatter gives it
+    /// Verifies that a wrapped link of a chain whose root stands behind a comment that leads a continuation line is reported when
+    /// it is not aligned under the chain's first link, and that the fix gives the chain the layout the formatter gives it
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3453,22 +3453,22 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string testData = """
                                 class C
                                 {
-                                    string M(string s)
+                                    void M(string s)
                                     {
-                                        return
-                                        /* c */ s.Trim()
-                                         {|RH5201:.|}ToUpper();
+                                        _ =
+                                            /* c */ s.Trim()
+                                             {|RH5201:.|}ToUpper();
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  class C
                                  {
-                                     string M(string s)
+                                     void M(string s)
                                      {
-                                         return
-                                         /* c */ s.Trim()
-                                                  .ToUpper();
+                                         _ =
+                                             /* c */ s.Trim()
+                                                      .ToUpper();
                                      }
                                  }
                                  """;
@@ -3495,24 +3495,24 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string testData = """
                                 class C
                                 {
-                                    string M(string s)
+                                    void M(string s)
                                     {
-                                        return
-                                        /* a
-                                           b */ /* c */ s.Trim()
-                                         {|RH5201:.|}ToUpper();
+                                        _ =
+                                            /* a
+                                               b */ /* c */ s.Trim()
+                                             {|RH5201:.|}ToUpper();
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  class C
                                  {
-                                     string M(string s)
+                                     void M(string s)
                                      {
-                                         return
-                                         /* a
-                                            b */ /* c */ s.Trim()
-                                                          .ToUpper();
+                                         _ =
+                                             /* a
+                                                b */ /* c */ s.Trim()
+                                                              .ToUpper();
                                      }
                                  }
                                  """;
@@ -3523,8 +3523,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that the fix of a misaligned link of a chain whose root stands behind a comment that leads its line in a
-    /// column deeper than the statement's first token keeps the comment line as written and aligns the link under the
+    /// Verifies that the fix of a misaligned link of a chain whose root stands behind a comment that leads a continuation line in
+    /// a column deeper than the one the formatter gives that line keeps the comment line as written and aligns the link under the
     /// chain's first link
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
@@ -3540,22 +3540,22 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string testData = """
                                 class C
                                 {
-                                    string M(string s)
+                                    void M(string s)
                                     {
-                                        return
-                                            /* c */ s.Trim()
-                                             {|RH5201:.|}ToUpper();
+                                        _ =
+                                                /* c */ s.Trim()
+                                                 {|RH5201:.|}ToUpper();
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  class C
                                  {
-                                     string M(string s)
+                                     void M(string s)
                                      {
-                                         return
-                                             /* c */ s.Trim()
-                                                      .ToUpper();
+                                         _ =
+                                                 /* c */ s.Trim()
+                                                          .ToUpper();
                                      }
                                  }
                                  """;
@@ -3565,7 +3565,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that the fix of a misaligned link of a chain whose root stands directly behind the last line of a comment
-    /// spanning several lines, both comment lines deeper than the statement's first token, keeps the comment as written
+    /// spanning several lines, both comment lines deeper than the column the formatter gives the continuation line, keeps the comment as written
     /// and aligns the link under the chain's first link
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
@@ -3581,24 +3581,24 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         const string testData = """
                                 class C
                                 {
-                                    string M(string s)
+                                    void M(string s)
                                     {
-                                        return
-                                            /* a
-                                            b */ s.Trim()
-                                             {|RH5201:.|}ToUpper();
+                                        _ =
+                                                /* a
+                                                b */ s.Trim()
+                                                 {|RH5201:.|}ToUpper();
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  class C
                                  {
-                                     string M(string s)
+                                     void M(string s)
                                      {
-                                         return
-                                             /* a
-                                             b */ s.Trim()
-                                                   .ToUpper();
+                                         _ =
+                                                 /* a
+                                                 b */ s.Trim()
+                                                       .ToUpper();
                                      }
                                  }
                                  """;

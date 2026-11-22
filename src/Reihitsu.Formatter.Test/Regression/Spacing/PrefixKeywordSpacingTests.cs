@@ -1242,7 +1242,8 @@ public class PrefixKeywordSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment the keyword carries keeps its place, and the operand follows it after one space
+    /// Verifies that a comment the keyword carries keeps its place, and the operand follows it after one space; the keyword is
+    /// <c>var</c> in front of a parenthesized designation, because a comment behind <c>await</c> is refused as unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-024")]
@@ -1251,24 +1252,20 @@ public class PrefixKeywordSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-                             using System.Threading.Tasks;
-
                              class C
                              {
-                                 async Task M(Task t)
+                                 void M((int, int) t)
                                  {
-                                     await/* a */(t);
+                                     var/* a */(u, w) = t;
                                  }
                              }
                              """;
         const string expected = """
-                                using System.Threading.Tasks;
-
                                 class C
                                 {
-                                    async Task M(Task t)
+                                    void M((int, int) t)
                                     {
-                                        await/* a */ (t);
+                                        var/* a */ (u, w) = t;
                                     }
                                 }
                                 """;

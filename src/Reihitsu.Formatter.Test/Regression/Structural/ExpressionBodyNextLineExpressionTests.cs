@@ -6,8 +6,8 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
 /// Regression tests for expression bodies whose expression starts on the line after the arrow. A converted
-/// <c>return</c> statement must already read <c>return expression;</c> after a single formatter pass, a gap that carries a
-/// blank line must keep its current layout, and a gap that carries a comment is refused as unsupported
+/// <c>return</c> statement must already read <c>return expression;</c> after a single formatter pass, also across a blank
+/// line, and a gap that carries a comment is refused as unsupported
 /// </summary>
 [TestClass]
 public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
@@ -318,7 +318,7 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                     {
                                         return 1
                                 #pragma warning disable CS0618
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -464,27 +464,123 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a blank line between the arrow and the expression keeps the expression on its own line below the return keyword
+    /// Verifies that an expression written behind a blank line, a blank line that holds whitespace, or two blank lines joins the
+    /// created <c>return</c> keyword of a converted method, and the blank lines go with the join
     /// </summary>
+    /// <param name="gap">The text between the arrow and the expression</param>
     [TestMethod]
-    public void BlankLineBeforeExpressionKeepsExpressionOnOwnLine()
+    [Requirement("FMT-STRUCT-006")]
+    [DataRow("\n\n        ", DisplayName = "One blank line")]
+    [DataRow("\n    \n        ", DisplayName = "One blank line holding whitespace")]
+    [DataRow("\n\n\n        ", DisplayName = "Two blank lines")]
+    public void BlankLineBeforeExpressionJoinsTheCreatedReturn(string gap)
     {
         // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int M() =>
-
-                                     42;
-                             }
-                             """;
+        var input = $"class C\n{{\n    int M() =>{gap}42;\n}}";
         const string expected = """
                                 class C
                                 {
                                     int M()
                                     {
-                                        return
-                                        42;
+                                        return 42;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an expression behind a blank line joins the created <c>return</c> keyword of a converted operator, conversion
+    /// operator, and local function, as of a method
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void BlankLineBeforeExpressionJoinsTheCreatedReturnOfEveryConvertedMember()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static C operator +(C a, C b) =>
+
+                                     a;
+
+                                 public static implicit operator int(C c) =>
+
+                                     1;
+
+                                 void M()
+                                 {
+                                     int Local() =>
+
+                                         2;
+
+                                     Local();
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    public static C operator +(C a, C b)
+                                    {
+                                        return a;
+                                    }
+
+                                    public static implicit operator int(C c)
+                                    {
+                                        return 1;
+                                    }
+
+                                    void M()
+                                    {
+                                        int Local()
+                                        {
+                                            return 2;
+                                        }
+
+                                        Local();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the arrow and the expression of a converted void method disappears: the created
+    /// expression statement starts its own line in the block, with no blank line above it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-006")]
+    public void BlankLineBeforeExpressionOfAVoidMethodDisappears()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M() =>
+
+                                     Foo();
+
+                                 void Foo()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Foo();
+                                    }
+
+                                    void Foo()
+                                    {
                                     }
                                 }
                                 """;

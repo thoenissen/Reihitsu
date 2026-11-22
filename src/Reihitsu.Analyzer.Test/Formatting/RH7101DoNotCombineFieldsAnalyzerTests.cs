@@ -224,9 +224,9 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  internal class TestClass
                                  {
                                      private int
-                                     firstField;
+                                         firstField;
                                      private int
-                                     secondField;
+                                         secondField;
                                  }
                                  """;
 
@@ -1481,14 +1481,12 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    class C
                                    {
                                        private Dictionary<string, List<int>>
-                                       _map1;
+                                           _map1;
                                        private Dictionary<string, List<int>>
-                                       _map2 = new();
+                                           _map2 = new();
 
-                                       private static
-                                       readonly int _g = 1;
-                                       private static
-                                       readonly int _h;
+                                       private static readonly int _g = 1;
+                                       private static readonly int _h;
 
                                        [NonSerialized]
                                        private int _x;
@@ -1524,13 +1522,44 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                    internal class TestClass
                                    {
                                        private int
-                                       _g;
+                                           _g;
                                        private int
-                                       _h;
+                                           _h;
                                    }
                                    """;
 
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the change example: a line break between the last modifier and the type, which the split repeats in every field,
+    /// is joined in every field the fix creates
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    [Requirement("FMT-BREAK-041")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixJoinsALineBreakBehindTheLastModifierInEveryField(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private
+                                      int _a, {|RH7101:_b|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _a;
+                                       private int _b;
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
     }
 
     #endregion // Tests

@@ -494,7 +494,7 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                         int x;
                                         x =
 
-                                        /** d */ a;
+                                            /** d */ a;
 
                                         return x;
                                     }
@@ -511,11 +511,12 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment behind the <c>=&gt;</c> of a lambda starts a new line and the
-    /// arrow stays at the end of the line in front of it
+    /// Verifies that a delimited documentation comment behind the <c>=&gt;</c> of a lambda refuses the input as unsupported,
+    /// because the line-break phase joins the gap behind the arrow
     /// </summary>
     [TestMethod]
-    public void MovesDelimitedDocumentationBehindLambdaArrow()
+    [Requirement("FMT-UNSUP-017")]
+    public void DelimitedDocumentationBehindLambdaArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -530,27 +531,9 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                  internal int N(int x, int y) => x;
                              }
                              """;
-        const string expected = """
-                                internal class C
-                                {
-                                    internal int M(int a, int b, int? n)
-                                    {
-                                        System.Func<int> f = () =>
-
-                                        /** d */ a;
-
-                                        return f();
-                                    }
-
-                                    internal int N(int x, int y)
-                                    {
-                                        return x;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(LambdaArrowCommentReason, input, "/** d */");
     }
 
     /// <summary>

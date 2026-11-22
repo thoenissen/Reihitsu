@@ -476,26 +476,19 @@ public class JoinSeparatorPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a directive in the gap still refuses the join of accessor modifiers in an accessor list and a <c>case</c>
-    /// guard, after the separator change; a directive behind a conditional operator or a binary operator, or in front of a
-    /// property's arrow, is refused as unsupported before this phase (FMT-UNSUP-008, FMT-UNSUP-011, FMT-UNSUP-013)
+    /// Verifies that a directive in the gap still refuses the join of a <c>case</c> guard, after the separator change; a
+    /// directive between accessor modifiers, behind a conditional operator or a binary operator, or in front of a property's
+    /// arrow is refused as unsupported before this phase (FMT-UNSUP-008, FMT-UNSUP-011, FMT-UNSUP-013, FMT-UNSUP-017), so no
+    /// caller passes it to this phase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-031")]
-    public void DirectiveInTheGapStillRefusesEveryJoin()
+    public void DirectiveInTheGapStillRefusesTheJoinOfACaseGuard()
     {
         const string input = """
                              class C
                              {
-                                 public int Q
-                                 {
-                                     get;
-                                     protected
-                             #pragma warning disable CS0002
-                                     internal set;
-                                 }
-
-                                 int M(bool b, int a, object o)
+                                 int M(bool b, object o)
                                  {
                                      switch (o)
                                      {
@@ -516,10 +509,7 @@ public class JoinSeparatorPhaseTests
             var result = ExecuteLineBreakPhase(normalized, endOfLine);
             var lines = result.Split(endOfLine).Select(line => line.TrimStart()).ToList();
 
-            foreach (var code in new[] { "CS0002", "CS0003" })
-            {
-                Assert.Contains($"#pragma warning disable {code}", lines, $"The directive disabling {code} must still stand on a line of its own:{Environment.NewLine}{result}");
-            }
+            Assert.Contains("#pragma warning disable CS0003", lines, $"The directive disabling CS0003 must still stand on a line of its own:{Environment.NewLine}{result}");
 
             AssertSameTokens(normalized, result);
         }

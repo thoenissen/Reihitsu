@@ -142,7 +142,7 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                              class C
                              {
                                  int[] G { get; } =
-                                 /* b */ { 1, 2 };
+                                     /* b */ { 1, 2 };
 
                                  void M()
                                  {
@@ -1017,7 +1017,7 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                 class C
                                 {
                                     int[] G { get; } =
-                                    /* b */ { 1, 2 };
+                                        /* b */ { 1, 2 };
                                     int H;
                                     /* m */ int I;
 

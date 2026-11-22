@@ -65,7 +65,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                 {
                                     public C()
                                         :/// x
-                                    base(1)
+                                            base(1)
                                     {
                                     }
                                 }

@@ -349,8 +349,8 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
                                     {
                                         return 42
 
-                                        // why
-                                        ;
+                                            // why
+                                            ;
                                     }
                                 }
                                 """;

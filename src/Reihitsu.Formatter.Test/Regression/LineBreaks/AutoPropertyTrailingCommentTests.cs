@@ -388,7 +388,7 @@ public class AutoPropertyTrailingCommentTests : FormatterTestsBase
                              internal class TestClass
                              {
                                  public int Value { get; set; } // note
-                                 = 1;
+                                     = 1;
                              }
                              """;
 

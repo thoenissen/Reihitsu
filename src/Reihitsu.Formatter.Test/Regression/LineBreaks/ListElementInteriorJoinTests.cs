@@ -1150,12 +1150,12 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a parameter wrapped after a modifier that a line comment holds keeps the wrap and is aligned with the modifier
+    /// Verifies that a line comment behind a parameter's modifier, which kept the parameter's interior wrap, refuses the input as
+    /// unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    [Requirement("FMT-BREAK-015")]
-    public void ParameterInteriorWrapHeldByLineCommentIsNotJoined()
+    [Requirement("FMT-UNSUP-017")]
+    public void ParameterInteriorWrapHeldByLineCommentBehindAModifierIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1170,20 +1170,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M(ref // keep
-                                                    int value)
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ModifierCommentReason, input, "// keep");
     }
 
     /// <summary>
@@ -1830,7 +1818,8 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a parameter wrap that a disabled modifier holds is not joined and is aligned with the parameter's first token
+    /// Verifies that a parameter wrap that disabled text between the parameter's type and its name holds is not joined and is
+    /// aligned with the parameter's first token; disabled text behind a parameter modifier is refused as unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-001")]
@@ -1843,11 +1832,11 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
 
                              internal class Example
                              {
-                                 internal void M(ref
+                                 internal void M(int
                              #if NEVER
-                                     in
+                                     extra
                              #endif
-                                 int value)
+                                 value)
                                  {
                                  }
                              }
@@ -1858,11 +1847,11 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
 
                                 internal class Example
                                 {
-                                    internal void M(ref
+                                    internal void M(int
                                 #if NEVER
-                                        in
+                                        extra
                                 #endif
-                                                    int value)
+                                                    value)
                                     {
                                     }
                                 }

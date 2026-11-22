@@ -131,7 +131,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
                              internal class Example
                              {
                                  public int Value => 1
-                                 ;
+                                     ;
                              }
                              """;
 
@@ -152,7 +152,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
                                 internal class TestClass
                                 {
                                     private int A { get; } = 1 // c
-                                    ;
+                                        ;
                                     private int _b;
                                 }
                                 """;

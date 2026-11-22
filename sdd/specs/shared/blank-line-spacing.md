@@ -5,7 +5,7 @@
 | ID prefix | SHARED-BLANK |
 | Status | Active |
 | Code owners | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `SyntaxTokenPositionUtilities`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-004, FMT-INDENT-002, FMT-INDENT-015, FMT-PIPE-002 |
+| Uses | FMT-BLANK-001, FMT-BLANK-004, FMT-INDENT-002, FMT-INDENT-034, FMT-PIPE-002 |
 
 This spec covers the blank-line rules that analyzer, code fixes, and formatter decide through the same `Reihitsu.Core` code: what counts as a blank line and as the start of a line, the blank line after a closing brace, the exemption of a switch section's terminal `break`, and the blank lines around `#region` and `#endregion`. The formatter's own blank-line decisions are specified in FMT-BLANK.
 
@@ -446,15 +446,15 @@ class C
 }
 ```
 
-Behind the omitted type argument of a list that a comment keeps wrapped, the closing `>` starts its line, and the line takes the block column (FMT-INDENT-015):
+Behind the omitted array size of a rank specifier that a comment keeps wrapped, the closing `]` starts its line, and the line is a continuation line (FMT-INDENT-034):
 
 ```csharp
 class C
 {
     void M()
     {
-        var type = typeof(System.Collections.Generic.Dictionary<, // c
->);
+        var type = typeof(int[, // c
+]);
     }
 }
 ```
@@ -464,8 +464,8 @@ class C
 {
     void M()
     {
-        var type = typeof(System.Collections.Generic.Dictionary<, // c
-        >);
+        var type = typeof(int[, // c
+            ]);
     }
 }
 ```

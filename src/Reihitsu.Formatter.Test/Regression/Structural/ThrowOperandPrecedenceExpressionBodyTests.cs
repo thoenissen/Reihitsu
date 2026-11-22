@@ -775,10 +775,12 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment after the throw keyword stays between the keyword and the opening parenthesis
+    /// Verifies that a comment after the throw keyword refuses the input as unsupported, because the line-break phase joins the
+    /// gap between <c>throw</c> and its operand
     /// </summary>
     [TestMethod]
-    public void CommentAfterThrowKeywordStaysBeforeOpeningParenthesis()
+    [Requirement("FMT-UNSUP-017")]
+    public void CommentAfterThrowKeywordIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -792,17 +794,9 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                public class Test
-                                {
-                                    private bool _condition;
-
-                                    public int X => throw /* Comment */ (_condition ? new System.Exception() : new System.InvalidOperationException());
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(KeywordOperandCommentReason, input, "/* Comment */");
     }
 
     /// <summary>
@@ -854,7 +848,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                      get
                                      {
                                          throw _condition ? new System.Exception() : new System.InvalidOperationException() // Comment
-                                         ;
+                                             ;
                                      }
                                  }
                              }
@@ -976,11 +970,12 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an operand on the line after the throw keyword, preceded by a comment, is formatted exactly like
-    /// the same operand written with parentheses
+    /// Verifies that an operand on the line after the throw keyword, preceded by a comment, refuses the input as unsupported,
+    /// because the comment stands between <c>throw</c> and its operand
     /// </summary>
     [TestMethod]
-    public void NextLineOperandWithCommentFormatsLikeAuthoredParentheses()
+    [Requirement("FMT-UNSUP-017")]
+    public void NextLineOperandWithCommentIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -999,25 +994,9 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string authored = """
-                                public class Test
-                                {
-                                    private bool _condition;
-
-                                    public int X
-                                    {
-                                        get
-                                        {
-                                            throw
-                                                // Comment
-                                                (_condition ? new System.Exception() : new System.InvalidOperationException());
-                                        }
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, FormatWithPipeline(authored, "\n"));
+        AssertUnsupportedFor(KeywordOperandCommentReason, input, "// Comment");
     }
 
     /// <summary>

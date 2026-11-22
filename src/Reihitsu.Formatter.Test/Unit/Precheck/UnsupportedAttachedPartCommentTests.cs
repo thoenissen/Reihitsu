@@ -424,10 +424,8 @@ public class UnsupportedAttachedPartCommentTests : FormatterTestsBase
     [DataRow("        if /* c */ (b)\n        {\n            Use(1);\n        }", DisplayName = "Parenthesis of an if statement")]
     [DataRow("        Use(new Dictionary<string, int> { /* c */ [\"a\"] = 1 });", DisplayName = "Implicit element access")]
     [DataRow("        Use(new int /* c */ [3]);", DisplayName = "Array rank specifier")]
-    [DataRow("        Use(new /* c */ [] { 1 });", DisplayName = "Implicit array creation")]
     [DataRow("        Span<int> sp = stackalloc /* c */ [] { 1 };", DisplayName = "Implicit stackalloc array creation")]
     [DataRow("        Use(/* c */ [1]);", DisplayName = "Collection expression")]
-    [DataRow("        if (o is /* c */ [1])\n        {\n            Use(1);\n        }", DisplayName = "List pattern")]
     [DataRow("        Use(n /* c */ ?.Length);", DisplayName = "Conditional member access")]
     [DataRow("        Use(b /* c */ ? 1 : 2);", DisplayName = "Conditional expression")]
     [DataRow("        Use(s // c\n            !.Length);", DisplayName = "Null-forgiving operator followed by a dot")]
@@ -436,6 +434,22 @@ public class UnsupportedAttachedPartCommentTests : FormatterTestsBase
     public void CommentInFrontOfATokenThatStartsNoSuchPartIsSupported(string statement)
     {
         AssertSupported(WrapInMethod(statement));
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of the <c>[</c> of an implicitly typed array creation or of a list pattern behind
+    /// <c>is</c> is not this shape: it stands in a gap the line-break phase joins, and the input is refused with that gap's reason
+    /// </summary>
+    /// <param name="reason">The reason that is reported</param>
+    /// <param name="statement">The statement that holds the comment</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-014")]
+    [Requirement("FMT-UNSUP-017")]
+    [DataRow(KeywordOperandCommentReason, "        Use(new /* c */ [] { 1 });", DisplayName = "Implicit array creation")]
+    [DataRow(IsPatternCommentReason, "        if (o is /* c */ [1])\n        {\n            Use(1);\n        }", DisplayName = "List pattern")]
+    public void CommentInFrontOfABracketBehindNewOrIsGivesTheReasonOfTheJoinedGap(string reason, string statement)
+    {
+        AssertUnsupportedFor(reason, WrapInMethod(statement), "/* c */");
     }
 
     /// <summary>

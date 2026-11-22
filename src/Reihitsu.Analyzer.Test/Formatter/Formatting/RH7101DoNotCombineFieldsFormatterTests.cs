@@ -75,14 +75,12 @@ public class RH7101DoNotCombineFieldsFormatterTests : FormatterTestsBase<RH7101D
                                  class C
                                  {
                                      private Dictionary<string, List<int>>
-                                     _map1;
+                                         _map1;
                                      private Dictionary<string, List<int>>
-                                     _map2 = new();
+                                         _map2 = new();
 
-                                     private static
-                                     readonly int _g = 1;
-                                     private static
-                                     readonly int _h;
+                                     private static readonly int _g = 1;
+                                     private static readonly int _h;
 
                                      [NonSerialized]
                                      private int _x;

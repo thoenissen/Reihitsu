@@ -256,7 +256,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
                              class C
                              {
                                  int P => 1 // c
-                                 ;
+                                     ;
                              }
                              """;
 
@@ -282,7 +282,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
                                  event Action E
                              #if X
                              #endif
-                                 ;
+                                     ;
                              }
                              """;
 
@@ -785,6 +785,100 @@ public class LineBreakRequirementTests : FormatterTestsBase
                                     int T => 5;
 
                                     int this[int i] => i;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a <c>case</c> label introduces its pattern and the patterns behind its <c>and</c> and
+    /// <c>not</c>, so the brace there stays on the line it is written on, while the pattern behind the <c>is</c> of a <c>when</c>
+    /// clause and a subpattern are not introduced by the label, so their brace starts its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-022")]
+    public void SpecExampleCaseLabelIntroducesItsPatternThroughCombinatorsAndNot()
+    {
+        // Arrange
+        const string input = """
+                             class P
+                             {
+                                 public int A { get; set; }
+
+                                 public P B { get; set; }
+                             }
+
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case P and {
+                                         A: 1
+                                         }:
+                                             break;
+
+                                         case not {
+                                         A: 2
+                                         }:
+                                             break;
+
+                                         case P p when p.B is not {
+                                         A: 3
+                                         }:
+                                             break;
+
+                                         case P { B: not {
+                                         A: 4
+                                         } }:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public int A { get; set; }
+
+                                    public P B { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(object o)
+                                    {
+                                        switch (o)
+                                        {
+                                            case P
+                                                 and {
+                                                         A: 1
+                                                     }:
+                                                break;
+
+                                            case not {
+                                                         A: 2
+                                                     }:
+                                                break;
+
+                                            case P p when p.B is not
+                                                              {
+                                                                  A: 3
+                                                              }:
+                                                break;
+
+                                            case P {
+                                                     B: not
+                                                     {
+                                                         A: 4
+                                                     }
+                                                 }:
+                                                break;
+                                        }
+                                    }
                                 }
                                 """;
 

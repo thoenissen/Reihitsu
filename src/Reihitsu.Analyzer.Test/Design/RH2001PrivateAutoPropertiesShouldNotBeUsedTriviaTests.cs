@@ -137,7 +137,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                                                        class C
                                                        {
                                                            private int
-                                                           _value;
+                                                               _value;
                                                        }
                                                        """;
 
@@ -1244,7 +1244,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a directive between two modifiers that keep their order keeps its place, and the fix is offered
+    /// Verifies that a directive between two modifiers that keep their order withholds the fix: the field the fix builds would
+    /// hold the directive behind a modifier, which the formatter refuses
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1252,7 +1253,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    public async Task VerifyFixKeepsADirectiveBetweenModifiersThatKeepTheirOrder(string endOfLine)
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForADirectiveBetweenModifiersThatKeepTheirOrder(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -1263,16 +1265,31 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                                 }
                                 """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private
-                                  #pragma warning disable CS0169
-                                      static readonly int _value;
-                                  }
-                                  """;
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
+    }
 
-        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    /// <summary>
+    /// Verifies that a directive between the last modifier and the type of a property that gets no <c>readonly</c> withholds
+    /// the fix: the field the fix builds would hold the directive behind a modifier, which the formatter refuses
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-009")]
+    public async Task VerifyNoFixIsOfferedForADirectiveBetweenTheLastModifierAndTheTypeWithoutReadonly(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static
+                                #pragma warning disable CS0169
+                                    int {|RH2001:Third|} { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
     }
 
     /// <summary>
@@ -2505,6 +2522,54 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
         var testData = $"#nullable enable\n\nclass C\n{{\n    private int {{|RH2001:Value|}} {{ get; set; }} = {value};\n\n    private static int[] Values = [];\n\n    private static string? Text = \"\";\n}}";
 
         await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment in a gap the line-break phase joins in the initializer's value withholds the
+    /// fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindNewInTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class Counter;
+
+                                class C
+                                {
+                                    private Counter {|RH2001:Value|} { get; set; } = new /* three */ Counter();
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind an assignment operator inside an anonymous-object member of the
+    /// initializer's value withholds the fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindAnAssignmentInsideAnAnonymousObjectMember(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static int s_count;
+
+                                    private object {|RH2001:Value|} { get; set; } = new { A = s_count += /* three */ 3 };
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
     }
 
     #endregion // Tests

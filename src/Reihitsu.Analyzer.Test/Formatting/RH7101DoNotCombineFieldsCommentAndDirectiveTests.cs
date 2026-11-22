@@ -2710,6 +2710,28 @@ public class RH7101DoNotCombineFieldsCommentAndDirectiveTests : BatchCodeFixTest
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies that a comment in a gap the line-break phase joins, a comment inside a list of omitted type arguments, and a
+    /// comment behind an assignment operator inside an anonymous-object member, anywhere in the type the fix formats, withhold
+    /// the fix, because the formatter refuses the type, and the diagnostic stays
+    /// </summary>
+    /// <param name="member">The member that holds the refused shape</param>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("    object M()\n    {\n        return new /* c */ object();\n    }", "\n", DisplayName = "Gap behind new, LF")]
+    [DataRow("    object M()\n    {\n        return new /* c */ object();\n    }", "\r\n", DisplayName = "Gap behind new, CRLF")]
+    [DataRow("    System.Type M()\n    {\n        return typeof(System.Collections.Generic.Dictionary</* c */,>);\n    }", "\n", DisplayName = "Omitted type arguments, LF")]
+    [DataRow("    object M(int x)\n    {\n        return new { A = x += /* c */ 3 };\n    }", "\n", DisplayName = "Assignment in an anonymous-object member, LF")]
+    public async Task VerifyNoFixIsOfferedForAShapeOfTheJoinedGapsInTheType(string member, string endOfLine)
+    {
+        var source = $"class C\n{{\n    private int _a, {{|RH7101:_b|}};\n\n{member}\n}}";
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

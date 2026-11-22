@@ -1662,8 +1662,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix of a chain whose root stands behind a comment that leads its line joins the first link onto
-    /// the root's line and gives the chain the layout the formatter gives it
+    /// Verifies that the fix of a chain whose root stands behind a comment that leads a continuation line joins the first link
+    /// onto the root's line and gives the chain the layout the formatter gives it
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1676,23 +1676,23 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         const string testData = """
                                 class C
                                 {
-                                    string M(string s)
+                                    void M(string s)
                                     {
-                                        return
-                                        /* c */ s
-                                            {|RH5112:.|}Trim()
-                                            .ToUpper();
+                                        _ =
+                                            /* c */ s
+                                                {|RH5112:.|}Trim()
+                                                .ToUpper();
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  class C
                                  {
-                                     string M(string s)
+                                     void M(string s)
                                      {
-                                         return
-                                         /* c */ s.Trim()
-                                                  .ToUpper();
+                                         _ =
+                                             /* c */ s.Trim()
+                                                      .ToUpper();
                                      }
                                  }
                                  """;

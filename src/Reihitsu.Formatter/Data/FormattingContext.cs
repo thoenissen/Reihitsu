@@ -53,6 +53,10 @@ internal record FormattingContext
     /// <param name="targetFirstTokenColumn">
     /// The column of the target's first token in its document, or <see langword="null"/> when the root has no such target
     /// </param>
+    /// <param name="rootLineStartColumn">
+    /// The column, in its document, of the first token or comment on the line on which the formatting root's first token
+    /// stands, or <see langword="null"/> when the caller supplies none
+    /// </param>
     public FormattingContext(string endOfLine,
                              int baseIndentLevel = 0,
                              bool preserveRootDocumentationBoundary = false,
@@ -63,7 +67,8 @@ internal record FormattingContext
                              RootConstruct rootConstruct = RootConstruct.None,
                              bool formatsRegionDirectives = true,
                              SyntaxAnnotation targetAnnotation = null,
-                             int? targetFirstTokenColumn = null)
+                             int? targetFirstTokenColumn = null,
+                             int? rootLineStartColumn = null)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
@@ -76,6 +81,7 @@ internal record FormattingContext
         FormatsRegionDirectives = formatsRegionDirectives;
         TargetAnnotation = targetAnnotation;
         TargetFirstTokenColumn = targetFirstTokenColumn;
+        RootLineStartColumn = rootLineStartColumn;
     }
 
     #endregion // Constructor
@@ -160,6 +166,15 @@ internal record FormattingContext
     /// supplies it; every other entry point leaves it at <see langword="null"/>
     /// </summary>
     public int? TargetFirstTokenColumn { get; }
+
+    /// <summary>
+    /// The line-start column (FMT-PIPE-024): the column, in its document, of the first token or comment on the line on which
+    /// the formatting root's first token stands. The indentation phase measures a continuation line whose construct starts on
+    /// that line from it (FMT-INDENT-034). Only <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/>, for its target, and
+    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentWithContextAsync"/>, for its context, supply it; every other entry
+    /// point leaves it at <see langword="null"/>, which measures that line from the root's first token
+    /// </summary>
+    public int? RootLineStartColumn { get; }
 
     #endregion // Properties
 

@@ -27,7 +27,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  public int M()
                                  {
                                      return 1 /// stray
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -87,7 +87,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                     public int M()
                                     {
                                         return 1 /// stray
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -108,7 +108,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                              public class C
                              {
                                  private int Value => 1 /// stray
-                                 ;
+                                     ;
                              }
                              """;
 
@@ -193,7 +193,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  {
                                      return 1 /* a
                                      b */ /// stray
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -215,7 +215,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  {
                                      return 1 /// a
                                      /// b
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -237,7 +237,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  public int M()
                                  {
                                      return 1    /// stray
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -259,7 +259,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                     public int M()
                                     {
                                         return 1 /// stray
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -281,7 +281,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  {
                                      return 1 /// stray
 
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -291,7 +291,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                     public int M()
                                     {
                                         return 1 /// stray
-                                        ;
+                                            ;
                                     }
                                 }
                                 """;
@@ -314,7 +314,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                      return 1 /// stray
                              #if DEBUG
                              #endif
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -338,7 +338,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                              #if NEVER
                                      + 2
                              #endif
-                                     ;
+                                         ;
                                  }
                              }
                              """;
@@ -361,7 +361,7 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
                                  public int M()
                                  {
                                      return 1 /// stray
-                                     /* b */ ;
+                                         /* b */ ;
                                  }
                              }
                              """;

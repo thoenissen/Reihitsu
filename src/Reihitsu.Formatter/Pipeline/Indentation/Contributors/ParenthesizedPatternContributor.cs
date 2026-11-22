@@ -43,6 +43,22 @@ internal sealed class ParenthesizedPatternContributor : ILayoutContributor
 
         LayoutComputer.SetIfFirstOnLine(openParen, anchorColumn, ParenthesizedPatternSource, model);
         LayoutComputer.SetIfFirstOnLine(closeParen, anchorColumn, ParenthesizedPatternSource, model);
+
+        // The pattern inside the parentheses, whatever kind of pattern it is, stands one level right of the opening
+        // parenthesis (FMT-INDENT-026); the opening brace of a multi-line property pattern there is the recursive pattern
+        // contributor's, which gives it the same column
+        var contentFirstToken = parenthesizedPattern.Pattern.GetFirstToken();
+
+        if (contentFirstToken.Parent is PropertyPatternClauseSyntax propertyClause
+            && LayoutComputer.GetLine(propertyClause.OpenBraceToken) != LayoutComputer.GetLine(propertyClause.CloseBraceToken))
+        {
+            return;
+        }
+
+        LayoutComputer.SetIfFirstOnLine(contentFirstToken,
+                                        LayoutComputer.GetAdjustedColumn(openParen, model) + FormattingContext.IndentSize,
+                                        ParenthesizedPatternSource,
+                                        model);
     }
 
     #endregion // ILayoutContributor

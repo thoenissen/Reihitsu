@@ -70,12 +70,12 @@ public class DocumentationCommentRequirementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the specification example: a documentation comment followed by a semicolon stays where it was written,
-    /// and the semicolon on the line behind it takes its declaration's column
+    /// and the semicolon on the line behind it is a continuation line of its declaration
     /// </summary>
     [TestMethod]
     [Requirement("FMT-DOC-003")]
-    [Requirement("FMT-INDENT-002")]
-    public void StrandedDocumentationBeforeSemicolonStaysOnItsLineAndSemicolonTakesDeclarationColumn()
+    [Requirement("FMT-INDENT-034")]
+    public void StrandedDocumentationBeforeSemicolonStaysOnItsLineAndSemicolonIsAContinuationLine()
     {
         // Arrange
         const string input = """
@@ -89,7 +89,7 @@ public class DocumentationCommentRequirementTests : FormatterTestsBase
                                 class C
                                 {
                                     int A => 1 /// stray
-                                    ;
+                                        ;
                                 }
                                 """;
 
