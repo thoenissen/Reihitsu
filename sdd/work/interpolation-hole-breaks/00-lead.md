@@ -28,5 +28,5 @@
 
 ## State
 
-- Last step: skeptic (01-skeptic.md, verdict proceed; no output questions).
-- Next: spec author (clarification) → test implementer.
+- Last step: spec author (02-spec-author.md, FMT-BREAK-044 added).
+- Next: test implementer.
