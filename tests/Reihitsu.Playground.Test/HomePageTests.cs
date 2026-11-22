@@ -176,8 +176,8 @@ public class HomePageTests
 
     /// <summary>
     /// Verifies that assistive technology announces the input as "Input" and the output as "Formatted output": each pane's
-    /// accessible name is the text of its label, given by <c>aria-labelledby</c>, by <c>aria-label</c>, or by a label for a
-    /// labelable element
+    /// accessible name is the text of its label, given by <c>aria-labelledby</c> or <c>aria-label</c> on an element whose role
+    /// may be named, or by a label for a labelable element
     /// </summary>
     [TestMethod]
     [Requirement("PLAY-002")]
@@ -423,27 +423,31 @@ public class HomePageTests
     /// <summary>
     /// Gets the accessible name of an element from the attributes and labels a name is computed from: the text of the elements
     /// <c>aria-labelledby</c> names, else <c>aria-label</c>, else the text of a <c>label</c> whose <c>for</c> names the element
-    /// when the element is labelable
+    /// when the element is labelable. The two ARIA attributes count only when the element's role may be named: ARIA 1.2
+    /// prohibits naming the roles in <see cref="IsNamingProhibited"/>, and assistive technology may ignore such a name
     /// </summary>
     /// <param name="page">The rendered page</param>
     /// <param name="element">The element</param>
     /// <returns>The accessible name, or an empty string when it has none</returns>
     private static string GetAccessibleName(IRenderedComponent<Home> page, IElement element)
     {
-        var labelledBy = element.GetAttribute("aria-labelledby");
-
-        if (string.IsNullOrWhiteSpace(labelledBy) == false)
+        if (IsNamingProhibited(element) == false)
         {
-            return string.Join(" ",
-                               labelledBy.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
-                                         .Select(id => NormalizeWhitespace(page.Find($"[id='{id}']").TextContent)));
-        }
+            var labelledBy = element.GetAttribute("aria-labelledby");
 
-        var label = element.GetAttribute("aria-label");
+            if (string.IsNullOrWhiteSpace(labelledBy) == false)
+            {
+                return string.Join(" ",
+                                   labelledBy.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+                                             .Select(id => NormalizeWhitespace(page.Find($"[id='{id}']").TextContent)));
+            }
 
-        if (string.IsNullOrWhiteSpace(label) == false)
-        {
-            return NormalizeWhitespace(label);
+            var label = element.GetAttribute("aria-label");
+
+            if (string.IsNullOrWhiteSpace(label) == false)
+            {
+                return NormalizeWhitespace(label);
+            }
         }
 
         var labelable = element.LocalName is "button" or "input" or "meter" or "output" or "progress" or "select" or "textarea";
@@ -456,6 +460,21 @@ public class HomePageTests
         }
 
         return string.Empty;
+    }
+
+    /// <summary>
+    /// Determines whether ARIA 1.2 prohibits naming the element's role by <c>aria-label</c> or <c>aria-labelledby</c>. The role
+    /// is the first token of an explicit <c>role</c>; without one, HTML-AAM maps <c>div</c>, <c>pre</c>, and <c>span</c> to
+    /// <c>generic</c>
+    /// </summary>
+    /// <param name="element">The element</param>
+    /// <returns><see langword="true"/> when a name from <c>aria-label</c> or <c>aria-labelledby</c> is prohibited</returns>
+    private static bool IsNamingProhibited(IElement element)
+    {
+        var explicitRole = element.GetAttribute("role")?.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var role = explicitRole ?? (element.LocalName is "div" or "pre" or "span" ? "generic" : null);
+
+        return role is "caption" or "code" or "deletion" or "emphasis" or "generic" or "insertion" or "none" or "paragraph" or "presentation" or "strong" or "subscript" or "superscript";
     }
 
     /// <summary>
