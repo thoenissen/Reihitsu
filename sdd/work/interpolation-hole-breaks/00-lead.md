@@ -60,4 +60,5 @@
 - Spec author (18) done.
 - Test implementer (19) done: 11 failing as expected.
 - Implementer (20) done, 45c7597, all green.
-- Next: cleaner (21, incl. #4) → spec checker → auditor (delta) → validator. → validator.
+- Cleaner (21) done, clean, #4 fixed.
+- Next: spec checker → auditor (delta) → validator. → validator.
