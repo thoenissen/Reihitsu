@@ -11,7 +11,7 @@ This spec covers the phase that rewrites syntax shape before any layout is decid
 
 ## Non-goals
 
-- Line breaks, spacing, and indentation of the rewritten code, apart from the separators and the field split's layout that FMT-STRUCT-026 names. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001).
+- Line breaks, spacing, and indentation of the rewritten code, apart from the separators and the field split's layout that FMT-STRUCT-026 names. The phase only builds the new shape; later phases lay it out (FMT-PIPE-001). Where FMT-BREAK-044 forbids a line break — inside an interpolation of a non-verbatim interpolated string before C# 11 — a transform that would write one there leaves that construct as written; that requirement states this phase's part and takes precedence over the requirements of this spec.
 - Braces for `while`, `for`, `foreach`, `using`, `lock`, `fixed`, and `do` bodies. The phase braces `if` and `else` bodies only; other unbraced bodies are left as they are.
 - Braces for switch sections — FMT-SWITCH owns them.
 - Expression-bodied properties, indexers, accessors, and lambdas. They are never turned into block bodies.

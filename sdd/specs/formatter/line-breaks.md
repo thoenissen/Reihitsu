@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `ContinuationJoinRewriter`, `JoinedGap`, `JoinedGapUtilities`, `PatternLineStartUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-016, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-024, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-SWITCH-017, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-019, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-016, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-024, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-009, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-001, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-SWITCH-017, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-019, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -4322,7 +4322,14 @@ class C
 
 ### FMT-BREAK-044 — No line break is written into a non-verbatim interpolation before C# 11
 
-When the language version is C# 10 or earlier (FMT-PIPE-008), the formatter MUST NOT write a line break between two tokens that stand, at any depth, between the braces of an interpolation of an interpolated string that is not verbatim — one whose `InterpolatedStringExpressionSyntax` starts with `$"`, not with `$@"` or `@$"`. This takes precedence over every other requirement of this spec that would break a line there, such as the braces of a lambda or an anonymous method (FMT-BREAK-002), the statements of its block (FMT-BREAK-006), or an object initializer (FMT-BREAK-021). It also binds the blank-line phase, which takes it as the one statement of its part: since a blank line is written with a line break, that phase inserts no blank line there, and this takes precedence over every blank-line requirement that would insert one, such as the blank line in front of a `return` that is not the first statement of its block (FMT-BLANK-001), so `F(() => { var a = 1; return a; })` keeps its line. Every other phase's requirements still apply inside the interpolation, and the switch-case brace phase braces no switch there (FMT-SWITCH-017). The conditions are each needed:
+When the language version is C# 10 or earlier (FMT-PIPE-008), the formatter MUST NOT write a line break between two tokens that stand, at any depth, between the braces of an interpolation of an interpolated string that is not verbatim — one whose `InterpolatedStringExpressionSyntax` starts with `$"`, not with `$@"` or `@$"`. This takes precedence over every other requirement of this spec that would break a line there, such as the braces of a lambda or an anonymous method (FMT-BREAK-002), the statements of its block (FMT-BREAK-006), or an object initializer (FMT-BREAK-021). It binds every other phase that writes a line break as well, and takes precedence over that phase's requirements:
+
+- *Structural transforms*: a transform that would write a line break there — the separator FMT-STRUCT-026 writes between a token the transform creates and a comment behind it that leads the next token, such as the `{` or `}` that the brace transform of FMT-STRUCT-001 inserts in front of a delimited documentation comment — is not applied to that construct, which stays as written. The transform still rewrites every construct for which it writes no line break there, so `if (b) return 1;` is still braced.
+- *Documentation-comment phase*: it moves no documentation comment onto a new line there (FMT-DOC-001); the comment stays where it was written.
+- *Switch-case brace phase*: it braces no switch there (FMT-SWITCH-017).
+- *Blank-line phase*: since a blank line is written with a line break, it inserts no blank line there, and this takes precedence over every blank-line requirement that would insert one, such as the blank line in front of a `return` that is not the first statement of its block (FMT-BLANK-001), so `F(() => { var a = 1; return a; })` keeps its line.
+
+This requirement is the one statement of the structural, documentation-comment, and blank-line parts. Every other requirement still applies inside the interpolation. The conditions are each needed:
 
 - *Not verbatim*: an interpolation of a verbatim interpolated string that no interpolation of a non-verbatim one contains is laid out as the other requirements state, in every language version.
 - *At any depth*: a token inside a verbatim interpolated string, a lambda, or a nested interpolated string that stands inside the interpolation of a non-verbatim one is covered as well; a token of a lambda or block that merely contains a non-verbatim interpolated string, outside its interpolations, is not.
@@ -4330,7 +4337,7 @@ When the language version is C# 10 or earlier (FMT-PIPE-008), the formatter MUST
 
 This requirement only withholds line breaks; a line break the input already holds in such an interpolation is not its subject.
 
-Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break, at any depth (CS8967), and the parser does not report it as a syntax error, so a line break written there turns a compiling file into one that does not compile (FMT-PIPE-003). The interpolations of a verbatim interpolated string accept line breaks in every language version. Code that compiles before C# 11 already has each such interpolation on one line, so the phase never has to join one.
+Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break, at any depth (CS8967), and the parser does not report it as a syntax error, so a line break written there turns a compiling file into one that does not compile (FMT-PIPE-003). The interpolations of a verbatim interpolated string accept line breaks in every language version. Code that compiles before C# 11 already has each such interpolation on one line, so the phase never has to join one. In such an interpolation, a documentation comment is the only trivia that can lead a token on the line: an ordinary delimited comment trails the token in front of it, and a single-line comment, a directive, or disabled text would end the line. A `/** … */` comment there is a rare input, so the structural and documentation-comment phases leave the construct as written rather than model a layout for it.
 
 Example — the same input under C# 10 and under C# 11:
 
@@ -4424,6 +4431,107 @@ class C
         });
 
         return a + b + c + d + e;
+    }
+}
+```
+
+Example — a delimited documentation comment inside the interpolation, under C# 10 and under C# 11:
+
+```csharp
+using System;
+
+class C
+{
+    int F(Func<int> f)
+    {
+        return f();
+    }
+
+    string M(bool b)
+    {
+        var x = $"a {F(() => { var a = 1; /** d */ return a; })} b";
+        var y = $"a {F(() => { if (b) /** d */ return 1; return 2; })} b";
+        var z = $"a {F(() => { if (b) return 1; /** d */ return 2; })} b";
+        var w = $"a {F(() => { if (b) return 1; return 2; })} b";
+
+        return x + y + z + w;
+    }
+}
+```
+
+C# 10 — the comment of `x` stays behind `var a = 1;`, and the `if` of `y` and of `z` stays unbraced, because its braces would need a line break in front of the comment; the `if` of `w` needs none and is braced, with the spacing that FMT-SPACE-002 and FMT-SPACE-009 give inside the interpolation:
+
+```csharp
+using System;
+
+class C
+{
+    int F(Func<int> f)
+    {
+        return f();
+    }
+
+    string M(bool b)
+    {
+        var x = $"a {F(() => { var a = 1; /** d */ return a; })} b";
+        var y = $"a {F(() => { if (b) /** d */ return 1; return 2; })} b";
+        var z = $"a {F(() => { if (b) return 1; /** d */ return 2; })} b";
+        var w = $"a {F(() => { if (b) {return 1; }return 2; })} b";
+
+        return x + y + z + w;
+    }
+}
+```
+
+C# 11:
+
+```csharp
+using System;
+
+class C
+{
+    int F(Func<int> f)
+    {
+        return f();
+    }
+
+    string M(bool b)
+    {
+        var x = $"a {F(() =>
+                       {
+                           var a = 1;
+
+                           /** d */ return a;
+                       })} b";
+        var y = $"a {F(() =>
+                       {
+                           if (b)
+                           {
+                               /** d */ return 1;
+                           }
+
+                           return 2;
+                       })} b";
+        var z = $"a {F(() =>
+                       {
+                           if (b)
+                           {
+                               return 1;
+                           }
+
+                           /** d */ return 2;
+                       })} b";
+        var w = $"a {F(() =>
+                       {
+                           if (b)
+                           {
+                               return 1;
+                           }
+
+                           return 2;
+                       })} b";
+
+        return x + y + z + w;
     }
 }
 ```
