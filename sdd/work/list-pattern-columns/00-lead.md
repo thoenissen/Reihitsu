@@ -54,4 +54,5 @@ Issue comments relevant to the run (summarized):
 - Skeptic done (2a8cb38). Decisions 3–6.
 - Spec author 03 done (fbf4bae): decisions 3–6 carried out; #1634 change doc deleted; FMT-INDENT-036/037/038 retired.
 - Batch 1 answered: all A.
-- Next: spec author 05 (record answers in change docs' Decisions, Status: Accepted), then test implementer.
+- Spec author 05 done (52e40b7): change docs Accepted.
+- Next: test implementer (06).
