@@ -301,6 +301,36 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         await Verify(testCode, fixedCode, Diagnostics(RH4107ProtectedFieldCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that the fix writes a leading acronym of the protected field name in lowercase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4107-002")]
+    public async Task FixWritesALeadingAcronymInLowercase()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    protected int {|RH4107:HTTPClient|};
+
+                                    public int Get() => HTTPClient;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     protected int _httpClient;
+
+                                     public int Get() => _httpClient;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

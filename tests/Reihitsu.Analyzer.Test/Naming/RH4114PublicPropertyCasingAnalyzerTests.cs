@@ -372,13 +372,13 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     }
 
     /// <summary>
-    /// Verifies that a property override whose rename would cascade to an override in another source type of a property declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// Verifies that a public property override of a property declared in a referenced assembly is not reported, and neither is an override of it in another source type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-CASING-009")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedWhenTheRenameCascadesToAPropertyOverrideOfAReferencedAssemblyProperty()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4114-001")]
+    public async Task APropertyOverrideOfAReferencedAssemblyPropertyIsNotReported()
     {
         const string metaSource = """
                                   namespace Meta
@@ -395,28 +395,28 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
 
                                 public class Middle : MetaBase
                                 {
-                                    public override int {|RH4114:count|} => 0;
+                                    public override int count => 0;
                                 }
 
                                 public class Leaf : Middle
                                 {
-                                    public override int {|RH4114:count|} => 1;
+                                    public override int count => 1;
                                 }
                                 """;
 
         var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
 
-        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     /// <summary>
-    /// Verifies that a property override whose rename would cascade to a source base type's implementation of an interface property declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// Verifies that an implicit implementation of an interface property declared in a referenced assembly is not reported, and neither is an override of it in another source type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-CASING-009")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedWhenTheRenameCascadesToAnImplementationOfAReferencedAssemblyInterfaceProperty()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4114-001")]
+    public async Task AnImplementationOfAReferencedAssemblyInterfacePropertyAndItsOverrideAreNotReported()
     {
         const string metaSource = """
                                   namespace Meta
@@ -433,18 +433,18 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
 
                                 public class Middle : IMeta
                                 {
-                                    public virtual int {|RH4114:count|} => 0;
+                                    public virtual int count => 0;
                                 }
 
                                 public class Leaf : Middle
                                 {
-                                    public override int {|RH4114:count|} => 1;
+                                    public override int count => 1;
                                 }
                                 """;
 
         var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
 
-        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     /// <summary>
@@ -860,6 +860,45 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                 """;
 
         await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that neither part of a partial property that implicitly implements an interface property declared in a
+    /// referenced assembly is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4114-001")]
+    public async Task NeitherPartOfAPartialPropertyThatImplementsAReferencedAssemblyInterfacePropertyIsReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IMeta
+                                      {
+                                          int count { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public partial class C : IMeta
+                                {
+                                    public partial int count { get; }
+                                }
+
+                                public partial class C
+                                {
+                                    public partial int count => 0;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     #endregion // Tests

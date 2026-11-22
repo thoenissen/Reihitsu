@@ -786,12 +786,13 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a method bound to a native entry point by its own name keeps its diagnostic but gets no fix, while a method whose literal entry point stays is renamed
+    /// Verifies that a method bound to a native entry point by its own name is not reported, while a method whose literal entry point stays is reported and renamed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
-    public async Task FixIsWithheldForANativeEntryPointTakenFromTheMethodName()
+    public async Task ANativeEntryPointTakenFromTheMethodNameIsNotReportedAndALiteralEntryPointIsRenamed()
     {
         const string testCode = """
                                 using System.Runtime.InteropServices;
@@ -799,10 +800,10 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 public static class C
                                 {
                                     [DllImport("libc")]
-                                    public static extern int {|RH4103:getpid|}();
+                                    public static extern int getpid();
 
                                     [DllImport("libc", EntryPoint = "getppid")]
-                                    public static extern int {|RH4103:getppid|}();
+                                    public static extern int {|RH4103:parentId|}();
                                 }
                                 """;
 
@@ -812,30 +813,24 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                  public static class C
                                  {
                                      [DllImport("libc")]
-                                     public static extern int {|RH4103:getpid|}();
+                                     public static extern int getpid();
 
                                      [DllImport("libc", EntryPoint = "getppid")]
-                                     public static extern int Getppid();
+                                     public static extern int ParentId();
                                  }
                                  """;
 
-        await Verify(testCode,
-                     fixedCode,
-                     test =>
-                     {
-                         // The diagnostic whose fix is withheld stays and is marked in the expected source
-                         test.FixedState.MarkupHandling = MarkupMode.Allow;
-                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
-                     });
+        await Verify(testCode, fixedCode);
     }
 
     /// <summary>
-    /// Verifies that a method declared with <c>DllImport</c> and no entry point keeps its diagnostic but gets no fix, also when it is called
+    /// Verifies that a method declared with <c>DllImport</c> and no entry point is not reported, also when it is called, because the runtime binds it by its name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedForADllImportMethodWithoutEntryPoint()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4103-001")]
+    public async Task ADllImportMethodWithoutEntryPointIsNotReported()
     {
         const string testCode = """
                                 using System.Runtime.InteropServices;
@@ -843,7 +838,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 internal static class Native
                                 {
                                     [DllImport("libc")]
-                                    internal static extern int {|RH4103:getpid|}();
+                                    internal static extern int getpid();
 
                                     internal static int Current()
                                     {
@@ -852,7 +847,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 }
                                 """;
 
-        await Verify(testCode, testCode);
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -918,12 +913,13 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a <c>partial</c> method declared with <c>LibraryImport</c> and no entry point keeps its diagnostic but gets no fix. No source generator runs in the test, so the missing implementation is reported before and after
+    /// Verifies that a <c>partial</c> method declared with <c>LibraryImport</c> and no entry point is not reported. No source generator runs in the test, so the missing implementation is reported by the compiler
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedForALibraryImportMethodWithoutEntryPoint()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4103-001")]
+    public async Task ALibraryImportMethodWithoutEntryPointIsNotReported()
     {
         const string testCode = """
                                 using System.Runtime.InteropServices;
@@ -931,11 +927,11 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 internal static partial class Native
                                 {
                                     [LibraryImport("libc")]
-                                    internal static partial int {|CS8795:{|RH4103:getpid|}|}();
+                                    internal static partial int {|CS8795:getpid|}();
                                 }
                                 """;
 
-        await Verify(testCode, testCode);
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -970,27 +966,26 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that an override whose rename would cascade to an override in another source type of a member declared in a referenced assembly keeps its diagnostic but gets no fix, because that other type would no longer compile
+    /// Verifies that an interface method whose rename would cascade to its implementation, which overrides a member declared in a referenced assembly, keeps its diagnostic but gets no fix, because the implementing type would no longer compile; the implementation itself is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenTheRenameCascadesToAnOverrideOfAReferencedAssemblyMember()
     {
         const string testCode = """
                                 using Meta;
 
-                                public class Middle : MetaBase
+                                public interface IWorker
                                 {
-                                    public override void {|RH4103:process|}()
-                                    {
-                                    }
+                                    void {|RH4103:process|}();
                                 }
 
-                                public class Leaf : Middle
+                                public class Middle : MetaBase, IWorker
                                 {
-                                    public override void {|RH4103:process|}()
+                                    public override void process()
                                     {
                                     }
                                 }
@@ -1002,19 +997,20 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a direct override of a member declared in a referenced assembly keeps its diagnostic but gets no fix, because the renamed override would override nothing
+    /// Verifies that a direct override of a member declared in a referenced assembly is not reported, because the referenced assembly dictates its name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-CASING-009")]
-    public async Task NoFixIsOfferedForADirectOverrideOfAReferencedAssemblyMember()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4103-001")]
+    public async Task ADirectOverrideOfAReferencedAssemblyMemberIsNotReported()
     {
         const string testCode = """
                                 using Meta;
 
                                 public class Middle : MetaBase
                                 {
-                                    public override void {|RH4103:process|}()
+                                    public override void process()
                                     {
                                     }
                                 }
@@ -1022,15 +1018,16 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
 
         var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
 
-        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     /// <summary>
-    /// Verifies that an override chain declared entirely in source is renamed together, so the fix stays offered
+    /// Verifies that every method of an override chain declared entirely in source is reported and renamed together, so the fix stays offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-CASING-014")]
     public async Task FixRenamesAnOverrideChainDeclaredInSourceTogether()
     {
         const string testCode = """
@@ -1079,27 +1076,27 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that an override whose rename would cascade to a source base type's implementation of an interface declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// Verifies that an implicit implementation of an interface method declared in a referenced assembly is not reported, and neither is an override of that implementation in another source type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-CASING-009")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedWhenTheRenameCascadesToAnImplementationOfAReferencedAssemblyInterface()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4103-001")]
+    public async Task AnImplementationOfAReferencedAssemblyInterfaceAndItsOverrideAreNotReported()
     {
         const string testCode = """
                                 using Meta;
 
                                 public class Middle : IMeta
                                 {
-                                    public virtual void {|RH4103:process|}()
+                                    public virtual void process()
                                     {
                                     }
                                 }
 
                                 public class Leaf : Middle
                                 {
-                                    public override void {|RH4103:process|}()
+                                    public override void process()
                                     {
                                     }
                                 }
@@ -1107,15 +1104,16 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
 
         var reference = await CompiledAssemblyReference.CreateAsync("Meta", MetaAssemblySource);
 
-        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     /// <summary>
-    /// Verifies that a method that a derived source type uses to implement an interface declared in a referenced assembly keeps its diagnostic but gets no fix, because the derived type would no longer implement the interface
+    /// Verifies that a method that a derived source type uses to implement an interface declared in a referenced assembly keeps its diagnostic but gets no fix, because the derived type would no longer implement the interface; the method's own type does not implement the interface, so its name is not dictated
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenADerivedTypeImplementsAReferencedAssemblyInterfaceWithTheMethod()
     {
@@ -1214,10 +1212,11 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it, because that method would then call another native function
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it, because that method would then call another native function; the implementation itself is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenTheRenameCascadesToADllImportImplementationWithoutEntryPoint()
     {
@@ -1232,7 +1231,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 public class Native : INative
                                 {
                                     [DllImport("libc")]
-                                    public static extern int {|RH4103:getpid|}();
+                                    public static extern int getpid();
                                 }
                                 """;
 
@@ -1266,10 +1265,11 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>LibraryImport</c> method without entry point that implements it. No source generator runs in the test, so the missing implementation is reported before and after
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>LibraryImport</c> method without entry point that implements it, which itself is not reported. No source generator runs in the test, so the missing implementation is reported before and after
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenTheRenameCascadesToALibraryImportImplementationWithoutEntryPoint()
     {
@@ -1284,7 +1284,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 public partial class Native : INative
                                 {
                                     [LibraryImport("libc")]
-                                    public static partial int {|CS8795:{|RH4103:getpid|}|}();
+                                    public static partial int {|CS8795:getpid|}();
                                 }
                                 """;
 
@@ -1292,10 +1292,11 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a static virtual interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it
+    /// Verifies that a static virtual interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it, which itself is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenTheRenameOfAStaticVirtualMethodCascadesToADllImportImplementation()
     {
@@ -1313,7 +1314,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 public class Native : INative
                                 {
                                     [DllImport("libc")]
-                                    public static extern int {|RH4103:getpid|}();
+                                    public static extern int getpid();
                                 }
                                 """;
 
@@ -1321,10 +1322,11 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it in another project
+    /// Verifies that a static abstract interface method keeps its diagnostic but gets no fix when the rename would reach a <c>DllImport</c> method without entry point that implements it in another project, which itself is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenTheRenameCascadesToADllImportImplementationInADependentProject()
     {
@@ -1341,7 +1343,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 public class Native : INative
                                 {
                                     [DllImport("libc")]
-                                    public static extern int {|RH4103:getpid|}();
+                                    public static extern int getpid();
                                 }
                                 """;
 
@@ -1545,18 +1547,19 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that an override keeps its diagnostic but gets no fix when the rename would reach the overridden method of a referenced project, whose document references it in an excluded <c>#if</c> branch
+    /// Verifies that an override of a method of a referenced project is not reported, and that the overridden method keeps its diagnostic but gets no fix when its document references it in an excluded <c>#if</c> branch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-CASING-014")]
     [Requirement("SHARED-FIX-003")]
     public async Task NoFixIsOfferedWhenTheRenameCascadesFromAnOverrideToAMethodOfAReferencedProjectReferencedInExcludedCode()
     {
         const string leafCode = """
                                 public class Leaf : Base
                                 {
-                                    public override void {|RH4103:process|}()
+                                    public override void process()
                                     {
                                     }
                                 }
@@ -1642,11 +1645,12 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that an override is renamed together with the overridden method of a referenced project when no excluded code names either name, so the fix stays offered across projects
+    /// Verifies that an override of a method of a referenced project is not reported, and that the fix of the overridden method renames the override with it when no excluded code names either name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-007")]
+    [Requirement("SHARED-CASING-014")]
     public async Task FixRenamesAnOverrideTogetherWithTheOverriddenMethodOfAReferencedProject()
     {
         const string baseCode = """
@@ -1680,7 +1684,7 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
         const string leafCode = """
                                 public class Leaf : Base
                                 {
-                                    public override void {|RH4103:process|}()
+                                    public override void process()
                                     {
                                     }
                                 }
@@ -1703,6 +1707,151 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                          test.TestState.AdditionalProjectReferences.Add("BaseProject");
                          test.FixedState.AdditionalProjects["BaseProject"].Sources.Add(("/BaseProject/Base.cs", fixedBaseCode));
                          test.FixedState.AdditionalProjectReferences.Add("BaseProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that overrides and implicit implementations of members declared in a referenced assembly are not reported,
+    /// also through a second level of overrides declared in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4103-001")]
+    public async Task MethodsWhoseNamesAReferencedAssemblyDictatesAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public abstract class MetaBase
+                                      {
+                                          public abstract void process();
+
+                                          public abstract (int first, int second) pair();
+                                      }
+
+                                      public interface IMeta
+                                      {
+                                          void run();
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public class Worker : MetaBase, IMeta
+                                {
+                                    public override void process()
+                                    {
+                                    }
+
+                                    public override (int first, int second) pair() => default;
+
+                                    public void run()
+                                    {
+                                    }
+                                }
+
+                                public class Leaf : Worker
+                                {
+                                    public override void process()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that an implementation of a static abstract interface method declared in a referenced assembly is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4103-001")]
+    public async Task AnImplementationOfAStaticAbstractMethodOfAReferencedAssemblyIsNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IFactory
+                                      {
+                                          static abstract int create();
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public class Factory : IFactory
+                                {
+                                    public static int create()
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that an implementation of an interface method of a referenced project is not reported, and that the fix of
+    /// the interface method, which is reported in its own project, renames the implementation with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("SHARED-CASING-007")]
+    public async Task AnImplementationOfAnInterfaceMethodOfAReferencedProjectIsNotReportedAndRenamedWithIt()
+    {
+        const string contractCode = """
+                                    public interface IContract
+                                    {
+                                        void {|RH4103:run|}();
+                                    }
+                                    """;
+
+        const string fixedContractCode = """
+                                         public interface IContract
+                                         {
+                                             void Run();
+                                         }
+                                         """;
+
+        const string testCode = """
+                                public class Impl : IContract
+                                {
+                                    public void run()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Impl : IContract
+                                 {
+                                     public void Run()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Contracts"].Sources.Add(("/Contracts/IContract.cs", contractCode));
+                         test.TestState.AdditionalProjectReferences.Add("Contracts");
+                         test.FixedState.AdditionalProjects["Contracts"].Sources.Add(("/Contracts/IContract.cs", fixedContractCode));
+                         test.FixedState.AdditionalProjectReferences.Add("Contracts");
                      });
     }
 

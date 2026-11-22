@@ -1053,6 +1053,170 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                             });
     }
 
+    /// <summary>
+    /// Verifies that the fix writes a leading acronym of the field name in lowercase, and keeps the case of the acronym's
+    /// last letter when a lowercase letter follows it directly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4106-004")]
+    public async Task FixWritesALeadingAcronymInLowercase()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:HTTPClient|};
+                                    private int {|RH4106:XMLParser|};
+                                    private int {|RH4106:IOStream|};
+                                    private int {|RH4106:HTTP2Client|};
+                                    private int {|RH4106:ABc|};
+                                    private int {|RH4106:URLs|};
+
+                                    public int Sum => HTTPClient + XMLParser + IOStream + HTTP2Client + ABc + URLs;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _httpClient;
+                                     private int _xmlParser;
+                                     private int _ioStream;
+                                     private int _http2Client;
+                                     private int _aBc;
+                                     private int _urLs;
+
+                                     public int Sum => _httpClient + _xmlParser + _ioStream + _http2Client + _aBc + _urLs;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the leading run of uppercase letters the fix lowercases ends with the first word, so the words behind an
+    /// underscore keep their case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-006")]
+    [Requirement("RH4106-004")]
+    public async Task FixTakesTheLeadingUppercaseRunFromTheFirstWordOnly()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:A_B|};
+                                    private int {|RH4106:A_B_Cd|};
+                                    private int {|RH4106:m_HTTPClient|};
+                                    private int {|RH4106:X_Y_Z|};
+                                    private int {|RH4106:XML_Parser|};
+
+                                    public int Sum => A_B + A_B_Cd + m_HTTPClient + X_Y_Z + XML_Parser;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _aB;
+                                     private int _aBCd;
+                                     private int _mHTTPClient;
+                                     private int _xYZ;
+                                     private int _xmlParser;
+
+                                     public int Sum => _aB + _aBCd + _mHTTPClient + _xYZ + _xmlParser;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field with a leading acronym, whose derived name equals the derived name of another field of the
+    /// class, is skipped by Fix All together with that field, while a single fix renames the first and is then withheld for
+    /// the second
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-010")]
+    [Requirement("RH4106-007")]
+    public async Task FixAllSkipsAFieldWithALeadingAcronymThatCollidesWithAnotherField()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:HTTPClient|};
+                                    private int {|RH4106:HttpClient|};
+
+                                    public int Sum => HTTPClient + HttpClient;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _httpClient;
+                                     private int {|RH4106:HttpClient|};
+
+                                     public int Sum => _httpClient + HttpClient;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics whose fix is withheld stay and are marked in the expected sources
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.Sources.Add(testCode);
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that a combining mark, a letter number, and connector punctuation other than <c>_</c> are accepted behind the
+    /// prefix, while a name whose first letter behind the prefix is uppercase is still reported and keeps its combining mark
+    /// in the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-003")]
+    [Requirement("SHARED-CASING-006")]
+    public async Task UnderlineCamelCaseAcceptsCombiningMarksLetterNumbersAndConnectorPunctuation()
+    {
+        const string acute = "\u0301";
+        const string twelve = "\u216B";
+        const string undertie = "\u203F";
+
+        const string testCode = $$"""
+                                  public class C
+                                  {
+                                      private int _cafe{{acute}};
+                                      private int _class{{twelve}};
+                                      private int _order{{undertie}}line;
+                                      private int {|RH4106:_Re{{acute}}sume|};
+
+                                      public int Sum => _cafe{{acute}} + _class{{twelve}} + _order{{undertie}}line + _Re{{acute}}sume;
+                                  }
+                                  """;
+
+        const string fixedCode = $$"""
+                                   public class C
+                                   {
+                                       private int _cafe{{acute}};
+                                       private int _class{{twelve}};
+                                       private int _order{{undertie}}line;
+                                       private int _re{{acute}}sume;
+
+                                       public int Sum => _cafe{{acute}} + _class{{twelve}} + _order{{undertie}}line + _re{{acute}}sume;
+                                   }
+                                   """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

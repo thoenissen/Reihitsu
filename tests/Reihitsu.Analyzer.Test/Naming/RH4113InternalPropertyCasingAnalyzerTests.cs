@@ -305,13 +305,13 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that a property override whose rename would cascade to an override in another source type of a property declared in a referenced assembly keeps its diagnostic but gets no fix
+    /// Verifies that an internal property override of a property declared in a referenced assembly is not reported, and neither is an override of it in another source type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-CASING-009")]
-    [Requirement("SHARED-FIX-003")]
-    public async Task NoFixIsOfferedWhenTheRenameCascadesToAPropertyOverrideOfAReferencedAssemblyProperty()
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4113-001")]
+    public async Task APropertyOverrideOfAReferencedAssemblyPropertyIsNotReported()
     {
         const string metaSource = """
                                   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestProject")]
@@ -330,18 +330,18 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
 
                                 public class Middle : MetaBase
                                 {
-                                    internal override int {|RH4113:count|} => 0;
+                                    internal override int count => 0;
                                 }
 
                                 public class Leaf : Middle
                                 {
-                                    internal override int {|RH4113:count|} => 1;
+                                    internal override int count => 1;
                                 }
                                 """;
 
         var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
 
-        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(reference));
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
     #endregion // Tests
