@@ -835,5 +835,386 @@ public class RH4116TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4116Tup
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a record's positional parameter are not reported when the
+    /// <c>Deconstruct</c> method the compiler declares for the record implicitly implements a <c>Deconstruct</c> method declared in
+    /// a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterWhoseDeconstructImplementsAReferencedAssemblyDeconstructAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IDecon
+                                      {
+                                          void Deconstruct(out (int first, int second) Pair);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record R((int first, int second) Pair) : IDecon;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple types of a record struct's and a readonly record struct's positional
+    /// parameters are not reported when the <c>Deconstruct</c> method the compiler declares for them implicitly implements a
+    /// <c>Deconstruct</c> method declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordStructPositionalParameterWhoseDeconstructImplementsAReferencedAssemblyDeconstructAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IDecon
+                                      {
+                                          void Deconstruct(out int Count, out (int first, int second) Pair);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record struct S(int Count, (int first, int second) Pair) : IDecon;
+
+                                public readonly record struct T(int Count, (int first, int second) Pair) : IDecon;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types nested in the types of a record's, a record struct's, and a readonly
+    /// record struct's positional parameters, as a type argument, as the element type of an array, and inside another tuple
+    /// type, are not reported when the <c>Deconstruct</c> method the compiler declares for them implicitly implements a
+    /// <c>Deconstruct</c> method declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesNestedInTheTypeOfARecordPositionalParameterWhoseDeconstructIsDictatedAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IDecon
+                                      {
+                                          void Deconstruct(out System.Collections.Generic.List<(int first, int second)> All, out (int low, int high)[] Ranges, out (int count, (int x, int y) point) Nested);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                using Meta;
+
+                                public record R(List<(int first, int second)> All, (int low, int high)[] Ranges, (int count, (int x, int y) point) Nested) : IDecon;
+
+                                public record struct S(List<(int first, int second)> All, (int low, int high)[] Ranges, (int count, (int x, int y) point) Nested) : IDecon;
+
+                                public readonly record struct T(List<(int first, int second)> All, (int low, int high)[] Ranges, (int count, (int x, int y) point) Nested) : IDecon;
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a positional parameter are reported when the <c>Deconstruct</c>
+    /// method the compiler declares for the record or record struct implements a <c>Deconstruct</c> method declared in source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterWhoseDeconstructImplementsASourceDeconstructAreReported()
+    {
+        const string testCode = """
+                                public interface ILocalDecon
+                                {
+                                    void Deconstruct(out (int {|RH4116:first|}, int {|RH4116:second|}) Pair);
+                                }
+
+                                public record R((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : ILocalDecon;
+
+                                public record struct S((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : ILocalDecon;
+
+                                public readonly record struct T((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : ILocalDecon;
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a positional parameter are reported when the record declares its own
+    /// <c>Deconstruct</c> method, so the compiler declares none from the positional parameters, while the element names of the
+    /// declared method's out parameter, which implements a <c>Deconstruct</c> method declared in a referenced assembly, are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterAreReportedWhenTheRecordDeclaresItsOwnDeconstruct()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IDecon
+                                      {
+                                          void Deconstruct(out (int first, int second) Pair);
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public record R((int {|RH4116:first|}, int {|RH4116:second|}) Pair) : IDecon
+                                {
+                                    public void Deconstruct(out (int first, int second) Pair) => Pair = this.Pair;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of a positional parameter are reported when no member the compiler
+    /// declares for it implements a member declared outside the compilation, although the record's generated equality method
+    /// implements <see cref="System.IEquatable{T}"/>, which is declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfARecordPositionalParameterAreReportedAlthoughTheGeneratedEqualsImplementsIEquatable()
+    {
+        const string testCode = """
+                                using System;
+
+                                public record R((int {|RH4116:low|}, int {|RH4116:high|}) Range) : IEquatable<R>;
+
+                                public record struct S((int {|RH4116:low|}, int {|RH4116:high|}) Range) : IEquatable<S>;
+
+                                public readonly record struct T((int {|RH4116:low|}, int {|RH4116:high|}) Range) : IEquatable<T>;
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types in the type and the parameter types of an indexer that implements an
+    /// interface indexer declared in a referenced assembly, implicitly or explicitly, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfAnIndexerThatImplementsAReferencedAssemblyIndexerAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IIndexed
+                                      {
+                                          (int first, int second) this[(int low, int high) key, System.Collections.Generic.List<(int x, int y)> points] { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                using Meta;
+
+                                public class Implicit : IIndexed
+                                {
+                                    public (int first, int second) this[(int low, int high) key, List<(int x, int y)> points] => default;
+                                }
+
+                                public class Explicit : IIndexed
+                                {
+                                    (int first, int second) IIndexed.this[(int low, int high) key, List<(int x, int y)> points] => default;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of tuple types in the type and the parameter types of an indexer are reported when it
+    /// implements an interface indexer declared in source, or nothing, next to an indexer that implements one declared in a
+    /// referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesInTheSignatureOfAnIndexerThatIsNotDictatedAreReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IIndexed
+                                      {
+                                          (int first, int second) this[(int low, int high) key] { get; }
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using Meta;
+
+                                public interface ILocalIndexed
+                                {
+                                    (int {|RH4116:first|}, int {|RH4116:second|}) this[string name, (int {|RH4116:low|}, int {|RH4116:high|}) key] { get; }
+                                }
+
+                                public class Mixed : IIndexed, ILocalIndexed
+                                {
+                                    public (int first, int second) this[(int low, int high) key] => default;
+
+                                    public (int {|RH4116:first|}, int {|RH4116:second|}) this[string name, (int {|RH4116:low|}, int {|RH4116:high|}) key] => default;
+
+                                    public (int {|RH4116:first|}, int {|RH4116:second|}) this[int index, (int {|RH4116:low|}, int {|RH4116:high|}) key] => default;
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of an event declared with accessors that implements an interface event
+    /// declared in a referenced assembly, implicitly or explicitly, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfAnEventWithAccessorsThatImplementsAReferencedAssemblyEventAreNotReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IMeta
+                                      {
+                                          event System.Action<(int first, int second)> changed;
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System;
+
+                                using Meta;
+
+                                public class Implicit : IMeta
+                                {
+                                    public event Action<(int first, int second)> changed
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+
+                                public class Explicit : IMeta
+                                {
+                                    event Action<(int first, int second)> IMeta.changed
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
+    /// <summary>
+    /// Verifies that the element names of the tuple type of an event declared with accessors are reported when it implements an
+    /// interface event declared in source, or nothing, next to an event that implements one declared in a referenced assembly
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-014")]
+    [Requirement("RH4116-001")]
+    public async Task TupleElementNamesOfAnEventWithAccessorsThatIsNotDictatedAreReported()
+    {
+        const string metaSource = """
+                                  namespace Meta
+                                  {
+                                      public interface IMeta
+                                      {
+                                          event System.Action<(int first, int second)> changed;
+                                      }
+                                  }
+                                  """;
+
+        const string testCode = """
+                                using System;
+
+                                using Meta;
+
+                                public interface ILocal
+                                {
+                                    event Action<(int {|RH4116:low|}, int {|RH4116:high|})> moved;
+                                }
+
+                                public class Mixed : IMeta, ILocal
+                                {
+                                    public event Action<(int first, int second)> changed
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public event Action<(int {|RH4116:low|}, int {|RH4116:high|})> moved
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public event Action<(int {|RH4116:x|}, int {|RH4116:y|})> other
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+
+        var reference = await CompiledAssemblyReference.CreateAsync("Meta", metaSource);
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
+    }
+
     #endregion // Tests
 }
