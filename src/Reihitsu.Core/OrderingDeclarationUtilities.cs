@@ -247,7 +247,7 @@ public static class OrderingDeclarationUtilities
     /// target member up to the moved member, and the text behind the moved member, each in itself, and puts the moved
     /// member in front of the target member's leading trivia. The move counts as changing the order as well when the
     /// moved or crossed span holds a conditional directive, and a type that a conditional directive in a declaration
-    /// of it or in front of the spans may give a layout counts as one whose field order sets its layout
+    /// of it or in front of the moved fields may give a layout counts as one whose field order sets its layout
     /// (SHARED-ORDER-008)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -319,7 +319,7 @@ public static class OrderingDeclarationUtilities
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive or whose body holds one in front of the spans, or if the spans hold a conditional directive</returns>
+    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive or whose body holds one in front of the moved fields, or if the spans hold a conditional directive</returns>
     internal static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
