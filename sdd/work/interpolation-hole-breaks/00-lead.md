@@ -33,6 +33,8 @@
 | 16 | Implementer (round 1) | Nested `if` in a C# 10 hole with a trailing doc comment: inner body braced without a line break | Accept untested; rare class under decision 12 | Output compiles; no further guard for a rare class | Rare class; unchanged requirements | a0888e4 |
 | 17 | Auditor (round 1 audit) | Finding #3 repeats #1's class (brace transform in a C# 10 `$"` hole with a doc comment; nested bodies) | Architecture finding, refuse the class by its cause (not a repair round): below C# 11, the control-flow brace transform braces no if/else body inside an interpolation of a `$"` string that holds a documentation comment anywhere in it; the round-1 per-brace separator check is replaced by this, not kept beside it. Supersedes decision 16. Spec author amends FMT-BREAK-044's structural part; test implementer adds nested members (if, else, three levels) and holding tests and re-derives the round-1 structural expectations; implementer replaces the guard | Repeated class; one cheap check on the cause (a doc comment in the hole) instead of per-cell logic | Rare class left as written; unchanged FMT-BREAK-044/FMT-PIPE-003 decide | (architecture repair) |
 | 18 | Auditor (round 1 audit) | Finding #4: summaries of `DocumentationCommentFormattingPhase` and `RelocateOffPositionDocumentationComments` say "every documentation comment" | Cleaner fixes the comments after the implementer | Code comments | Text only | (cleaner) |
+| 19 | Spec author (decision 17) | Which interpolation counts for "holds a documentation comment" | Any non-verbatim interpolation that contains the body | Wider refusal, by the cause; matches the any-depth predicate | Rare class left as written | 7babdbe |
+| 20 | Spec author (decision 17) | Doc comment only in a sibling hole of the same string | Does not refuse the wrap (example `w`) | The comment is outside every interpolation containing the body | Rare class; unchanged requirements | 7babdbe |
 
 ## Follow-up candidates
 
@@ -55,4 +57,5 @@
 - Round 1: cleaner done (15-cleaner.md, clean).
 - Round 1: spec checker done (16-spec-checker.md, consistent).
 - Round 1 audit done (17-auditor.md, audited 15526cc): #1, #2 closed; #3 (repeats #1 → decision 17, architecture), #4 (text).
-- Next: spec author (18) + test implementer (19) in parallel → implementer (20) → cleaner (21, incl. #4) → spec checker → auditor (delta) → validator. → validator.
+- Spec author (18) done.
+- Next: test implementer (19) → implementer (20) → cleaner (21, incl. #4) → spec checker → auditor (delta) → validator. → validator.
