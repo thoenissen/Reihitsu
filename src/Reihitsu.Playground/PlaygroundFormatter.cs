@@ -46,8 +46,8 @@ public static class PlaygroundFormatter
     }
 
     /// <summary>
-    /// Parses C# source with the options of PLAY-005; formatting, the error list, and the highlighting of the input all read
-    /// the tree this returns
+    /// Parses C# source with the options of PLAY-005; formatting, the error list, and the highlighting of the input and of the
+    /// output all read the tree this returns
     /// </summary>
     /// <param name="source">The C# source to parse</param>
     /// <returns>The syntax tree</returns>
