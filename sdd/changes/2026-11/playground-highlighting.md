@@ -12,7 +12,7 @@ The Playground's two panes show C# with syntax highlighting, keep every line on 
 
 - Both panes colour their text by the C# syntax tree the page already builds with Roslyn: keywords, identifiers, string and character literals, numbers, comments, preprocessor directives, and disabled text each get their own colour (PLAY-010). The output becomes a read-only highlighted code view instead of a text area; the input stays a text area, with the browser's own editing and undo, whose highlighting lies under its text (PLAY-002, PLAY-011).
 - The input's colours follow every keystroke; the output still changes only on "Format" (PLAY-011, PLAY-004 unchanged).
-- Neither pane wraps a line; a pane whose lines are wider than the pane scrolls horizontally (PLAY-012).
+- Neither pane wraps a line; a pane whose lines are wider than the pane scrolls horizontally, and the output pane can be reached with the keyboard to scroll it, as the output text area could before (PLAY-012).
 - The message below the button becomes an alert box (PLAY-013). For a syntax error it keeps its sentence and lists every syntax error below it, one line each, as `line <line>, column <column> — <ID>: <message>` (PLAY-006).
 - The input marks the span of each syntax error, and the span of the shape the formatter refuses as unsupported, with a red wavy underline. Code hidden in another build configuration gets no mark, because the formatter reports no location for it (PLAY-014).
 

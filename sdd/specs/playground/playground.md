@@ -207,7 +207,7 @@ Example — typing `class C{` into an empty input colours `class` as a keyword a
 
 ### PLAY-012 — Lines do not wrap
 
-The panes MUST NOT wrap a line: each line of the text MUST stay on one visual line, and a pane whose text is wider than the pane MUST scroll horizontally.
+The panes MUST NOT wrap a line: each line of the text MUST stay on one visual line, and a pane whose text is wider than the pane MUST scroll horizontally. The output pane MUST be a stop in the keyboard's tab order, so a user without a pointer can reach it and scroll it; the input text area is one already.
 
 Why: Where the formatter breaks a line is its main output; a soft wrap in a pane looks like a line break the formatter wrote.
 
@@ -217,7 +217,7 @@ Example — input:
 public class Sample { public int Add(int first, int second, int third, int fourth, int fifth, int sixth, int seventh) { return first + second + third + fourth + fifth + sixth + seventh; } }
 ```
 
-The input shows one line and scrolls horizontally; the output's line `    public int Add(int first, int second, int third, int fourth, int fifth, int sixth, int seventh)` stays one line too.
+The input shows one line and scrolls horizontally; the output's line `    public int Add(int first, int second, int third, int fourth, int fifth, int sixth, int seventh)` stays one line too. Pressing Tab from the input reaches the output pane, and the arrow keys then scroll it.
 
 ### PLAY-013 — The message is an alert box
 
