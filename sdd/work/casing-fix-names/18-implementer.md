@@ -1,5 +1,5 @@
 Role: implementer
-Commit: (this commit; see `git log -1 -- sdd/work/casing-fix-names/18-implementer.md`)
+Commit: b7651b3
 Verdict: tests pass
 
 Structural repair for auditor `16-auditor.md` finding 3 and its architecture finding, built to lead decision 4, against the tests of `17-test-implementer.md`. The prompt carried no intended fix, suspected cause, or hoped-for verdict beyond pointing at decision 4.
