@@ -551,27 +551,15 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a switch section with two statements in a lambda in the interpolation does not get a line break into
-    /// the interpolation under C# 10, whichever shape the switch-case brace phase gives the switch, and that the result is
-    /// stable
+    /// Verifies that a switch with a multi-line section in a lambda in the interpolation is left as written under C# 10:
+    /// the switch-case brace phase inserts no braces, and no line break is written into the interpolation
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-044")]
     [Requirement("FMT-PIPE-003")]
-    public void SwitchSectionWithTwoStatementsInInterpolationGetsNoLineBreakInCSharp10()
+    public void SwitchSectionWithTwoStatementsInInterpolationStaysAsWrittenInCSharp10()
     {
-        const string statement = "var s = $\"a {F(() => { switch (x) { case 1: G(); G(); return 1; default: return 2; } })} b\";";
-
-        var input = Build(statement, "int x");
-
-        foreach (var endOfLine in _lineEndings)
-        {
-            var output = FormatWithPipeline(input, endOfLine, At(LanguageVersion.CSharp10));
-            var line = output.Split(endOfLine).Single(candidate => candidate.TrimStart().StartsWith("var s = ", StringComparison.Ordinal));
-
-            Assert.EndsWith(" b\";", line, $"The interpolation must stay on the line of its statement under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output}");
-        }
-
-        AssertSecondPassIsStable(input, At(LanguageVersion.CSharp10));
+        AssertKept("var s = $\"a {F(() => { switch (x) { case 1: G(); G(); return 1; default: return 2; } })} b\";", parameters: "int x");
     }
 
     /// <summary>
