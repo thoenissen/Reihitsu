@@ -45,4 +45,4 @@
 - Cleaner done (06, 1cb0e2a): clean, 0 warnings.
 - Spec checker done (07, f32e03b): consistent, no findings.
 - Auditor done (08, 57ab48d) at audited SHA 3b066662: findings (1: accessibility in GetMember, 2: untested field branch).
-- Repair round 1 of 3: test implementer (09) → implementer (10) → cleaner → spec checker → auditor (repair only) → validator.
+- Repair round 1 of 3: test implementer (09, done 2bf27de/670609e: 3 tests, 2 fail as intended) → implementer (10) → cleaner → spec checker → auditor (repair only) → validator.
