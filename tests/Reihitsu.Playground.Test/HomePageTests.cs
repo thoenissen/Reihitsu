@@ -1,4 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
+
+using AngleSharp.Dom;
 
 using Bunit;
 
@@ -90,14 +93,14 @@ public class HomePageTests
             page.Find("#playground-input").Input("class C{int x;}");
             page.Find("button").Click();
 
-            Assert.AreEqual("class C\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual("class C\n{\n    int x;\n}", PlaygroundMarkup.GetOutputText(page));
             Assert.IsEmpty(context.JSInterop.Invocations, "Formatting must not call into JavaScript.");
         }
     }
 
     /// <summary>
-    /// Verifies that the page shows an editable input text area and a read-only output text area side by side, both
-    /// without spell checking, with the "Format" button below them
+    /// Verifies that the page shows an editable input text area without spell checking and a read-only output code view side
+    /// by side, with the "Format" button below them
     /// </summary>
     [TestMethod]
     [Requirement("PLAY-002")]
@@ -111,24 +114,81 @@ public class HomePageTests
             Assert.HasCount(2, columns);
 
             var inputLabel = columns[0].QuerySelector("label");
-            var input = columns[0].QuerySelector("textarea");
+            var input = columns[0].QuerySelector("#playground-input");
             var outputLabel = columns[1].QuerySelector("label");
-            var output = columns[1].QuerySelector("textarea");
+            var output = columns[1].QuerySelector("#playground-output");
 
             Assert.AreEqual("Input", inputLabel?.TextContent);
-            Assert.AreEqual("playground-input", input?.Id);
+            Assert.AreEqual("TEXTAREA", input?.TagName, "The input must be a text area, which keeps the browser's own editing, selection, and undo.");
             Assert.AreEqual("false", input?.GetAttribute("spellcheck"));
             Assert.IsFalse(input?.HasAttribute("readonly") ?? true, "The input must be editable.");
+            Assert.IsFalse(input?.HasAttribute("disabled") ?? true, "The input must be editable.");
 
             Assert.AreEqual("Formatted output", outputLabel?.TextContent);
-            Assert.AreEqual("playground-output", output?.Id);
-            Assert.AreEqual("false", output?.GetAttribute("spellcheck"));
-            Assert.IsTrue(output?.HasAttribute("readonly") ?? false, "The output must be read-only.");
+            Assert.IsNotNull(output, "The output must be in the second column.");
+            Assert.AreNotEqual("TEXTAREA", output.TagName, "The output must be a code view, not a text area.");
+            Assert.AreNotEqual("INPUT", output.TagName, "The output must be a code view, not an input.");
+            Assert.IsEmpty(output.QuerySelectorAll("textarea, input, [contenteditable]:not([contenteditable='false'])"), "The output must not be editable.");
+            Assert.IsTrue(output.GetAttribute("contenteditable") is null or "false", "The output must not be editable.");
 
             var button = page.Find("button");
 
             Assert.AreEqual("Format", button.TextContent);
             Assert.AreEqual("playground-grid", button.PreviousElementSibling?.ClassName, "The button must follow the editors.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the output's text is exactly the output text, so selecting and copying it gives that text, and that no
+    /// rule of the stylesheet makes the output unselectable
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-002")]
+    public void OutputTextIsSelectableAndExactlyTheOutputText()
+    {
+        using (var context = new BunitContext())
+        {
+            const string input = "class C\n{\n\tint  x = 1 ;\n\n}\n";
+
+            var page = context.Render<Home>();
+
+            PlaygroundMarkup.Format(page, "class C{int x;}");
+
+            Assert.AreEqual("class C\n{\n    int x;\n}", PlaygroundMarkup.GetOutputText(page));
+
+            // An input with a syntax error is shown unchanged, so every character of it, tabs and blank lines included, must reach the output
+            PlaygroundMarkup.Format(page, input + "int");
+
+            Assert.AreEqual(input + "int", PlaygroundMarkup.GetOutputText(page));
+
+            foreach (var dark in new[] { false, true })
+            {
+                var document = PlaygroundStyles.CreateDocument(page.Markup, dark);
+                var output = document.QuerySelector("#playground-output");
+
+                foreach (var element in output.GetDescendants().OfType<IElement>().Prepend(output))
+                {
+                    Assert.AreNotEqual("none", PlaygroundStyles.GetComputed(document, element, "user-select"), "The output's text must be selectable.");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that assistive technology announces the input as "Input" and the output as "Formatted output": each pane's
+    /// accessible name is the text of its label, given by <c>aria-labelledby</c> or <c>aria-label</c> on an element whose role
+    /// may be named, or by a label for a labelable element
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-002")]
+    public void PanesAreNamedByTheirLabels()
+    {
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
+
+            Assert.AreEqual("Input", GetAccessibleName(page, page.Find("#playground-input")), "The input must be named by its label.");
+            Assert.AreEqual("Formatted output", GetAccessibleName(page, page.Find("#playground-output")), "The output must be named by its label.");
         }
     }
 
@@ -144,7 +204,7 @@ public class HomePageTests
             var page = context.Render<Home>();
 
             Assert.AreEqual(ExampleSource, page.Find("#playground-input").GetAttribute("value"));
-            Assert.AreEqual(FormattedExampleSource, page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual(FormattedExampleSource, PlaygroundMarkup.GetOutputText(page));
             Assert.IsEmpty(page.FindAll(".playground-message"), "The example must format without a message.");
         }
     }
@@ -164,12 +224,12 @@ public class HomePageTests
             page.Find("#playground-input").Input("class C{int x;}");
 
             Assert.AreEqual("class C{int x;}", page.Find("#playground-input").GetAttribute("value"));
-            Assert.AreEqual(FormattedExampleSource, page.Find("#playground-output").GetAttribute("value"), "Typing must not format.");
+            Assert.AreEqual(FormattedExampleSource, PlaygroundMarkup.GetOutputText(page), "Typing must not format.");
             Assert.IsEmpty(page.FindAll(".playground-message"), "Typing half-written code must not show the syntax error message.");
 
             page.Find("button").Click();
 
-            Assert.AreEqual("class C\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual("class C\n{\n    int x;\n}", PlaygroundMarkup.GetOutputText(page));
         }
     }
 
@@ -191,8 +251,8 @@ public class HomePageTests
 
             var message = page.Find(".playground-message");
 
-            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
-            Assert.AreEqual(SyntaxErrorMessage, message.TextContent);
+            Assert.AreEqual(input, PlaygroundMarkup.GetOutputText(page));
+            Assert.AreSequenceEqual(new[] { SyntaxErrorMessage, "line 1, column 28 — CS1002: ; expected" }, PlaygroundMarkup.GetMessageLines(page));
             Assert.AreEqual("BUTTON", message.PreviousElementSibling?.TagName, "The message must appear below the button.");
         }
     }
@@ -217,7 +277,7 @@ public class HomePageTests
             page.Find("button").Click();
 
             Assert.IsEmpty(page.FindAll(".playground-message"));
-            Assert.AreEqual("public class Sample\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual("public class Sample\n{\n    int x;\n}", PlaygroundMarkup.GetOutputText(page));
         }
     }
 
@@ -240,8 +300,8 @@ public class HomePageTests
 
             var message = page.Find(".playground-message");
 
-            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
-            Assert.AreEqual("The input contains syntax the formatter does not support and was left unchanged: line 5, column 13 — a comment between a variable declaration's own tokens.", message.TextContent);
+            Assert.AreEqual(input, PlaygroundMarkup.GetOutputText(page));
+            Assert.AreSequenceEqual(new[] { "The input contains syntax the formatter does not support and was left unchanged: line 5, column 13 — a comment between a variable declaration's own tokens." }, PlaygroundMarkup.GetMessageLines(page));
             Assert.AreEqual("BUTTON", message.PreviousElementSibling?.TagName, "The message must appear below the button.");
         }
     }
@@ -266,7 +326,7 @@ public class HomePageTests
             page.Find("button").Click();
 
             Assert.IsEmpty(page.FindAll(".playground-message"));
-            Assert.AreEqual("public class Sample\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual("public class Sample\n{\n    int x;\n}", PlaygroundMarkup.GetOutputText(page));
         }
     }
 
@@ -287,8 +347,8 @@ public class HomePageTests
 
             var message = page.Find(".playground-message");
 
-            Assert.AreEqual(HiddenCodeSource, page.Find("#playground-output").GetAttribute("value"));
-            Assert.AreEqual(HiddenCodeMessage, message.TextContent);
+            Assert.AreEqual(HiddenCodeSource, PlaygroundMarkup.GetOutputText(page));
+            Assert.AreSequenceEqual(new[] { HiddenCodeMessage }, PlaygroundMarkup.GetMessageLines(page));
             Assert.AreEqual("BUTTON", message.PreviousElementSibling?.TagName, "The message must appear below the button.");
         }
     }
@@ -313,7 +373,7 @@ public class HomePageTests
             page.Find("button").Click();
 
             Assert.IsEmpty(page.FindAll(".playground-message"));
-            Assert.AreEqual("public class Sample\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual("public class Sample\n{\n    int x;\n}", PlaygroundMarkup.GetOutputText(page));
         }
     }
 
@@ -334,8 +394,8 @@ public class HomePageTests
             page.Find("#playground-input").Input(input);
             page.Find("button").Click();
 
-            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
-            Assert.AreEqual(HiddenCodeMessage, page.Find(".playground-message").TextContent);
+            Assert.AreEqual(input, PlaygroundMarkup.GetOutputText(page));
+            Assert.AreSequenceEqual(new[] { HiddenCodeMessage }, PlaygroundMarkup.GetMessageLines(page));
         }
     }
 
@@ -355,9 +415,66 @@ public class HomePageTests
             page.Find("#playground-input").Input(input);
             page.Find("button").Click();
 
-            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
-            Assert.AreEqual(SyntaxErrorMessage, page.Find(".playground-message").TextContent);
+            Assert.AreEqual(input, PlaygroundMarkup.GetOutputText(page));
+            Assert.AreEqual(SyntaxErrorMessage, PlaygroundMarkup.GetMessageLines(page)[0]);
         }
+    }
+
+    /// <summary>
+    /// Gets the accessible name of an element from the attributes and labels a name is computed from: the text of the elements
+    /// <c>aria-labelledby</c> names, else <c>aria-label</c>, else the text of a <c>label</c> whose <c>for</c> names the element
+    /// when the element is labelable. The two ARIA attributes count only when the element's role may be named: ARIA 1.2
+    /// prohibits naming the roles in <see cref="IsNamingProhibited"/>, and assistive technology may ignore such a name
+    /// </summary>
+    /// <param name="page">The rendered page</param>
+    /// <param name="element">The element</param>
+    /// <returns>The accessible name, or an empty string when it has none</returns>
+    private static string GetAccessibleName(IRenderedComponent<Home> page, IElement element)
+    {
+        if (IsNamingProhibited(element) == false)
+        {
+            var labelledBy = element.GetAttribute("aria-labelledby");
+
+            if (string.IsNullOrWhiteSpace(labelledBy) == false)
+            {
+                return string.Join(" ",
+                                   labelledBy.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+                                             .Select(id => NormalizeWhitespace(page.Find($"[id='{id}']").TextContent)));
+            }
+
+            var label = element.GetAttribute("aria-label");
+
+            if (string.IsNullOrWhiteSpace(label) == false)
+            {
+                return NormalizeWhitespace(label);
+            }
+        }
+
+        var labelable = element.LocalName is "button" or "input" or "meter" or "output" or "progress" or "select" or "textarea";
+
+        if (labelable && string.IsNullOrEmpty(element.Id) == false)
+        {
+            var labels = page.FindAll($"label[for='{element.Id}']");
+
+            return string.Join(" ", labels.Select(item => NormalizeWhitespace(item.TextContent)));
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Determines whether ARIA 1.2 prohibits naming the element's role by <c>aria-label</c> or <c>aria-labelledby</c>. The role
+    /// is the first token of an explicit <c>role</c>; without one, HTML-AAM maps <c>div</c>, <c>pre</c>, and <c>span</c> to
+    /// <c>generic</c>
+    /// </summary>
+    /// <param name="element">The element</param>
+    /// <returns><see langword="true"/> when a name from <c>aria-label</c> or <c>aria-labelledby</c> is prohibited</returns>
+    private static bool IsNamingProhibited(IElement element)
+    {
+        var explicitRole = element.GetAttribute("role")?.Split(' ', System.StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        var role = explicitRole ?? (element.LocalName is "div" or "pre" or "span" ? "generic" : null);
+
+        return role is "caption" or "code" or "deletion" or "emphasis" or "generic" or "insertion" or "none" or "paragraph" or "presentation" or "strong" or "subscript" or "superscript";
     }
 
     /// <summary>
