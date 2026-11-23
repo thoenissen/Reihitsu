@@ -11,17 +11,27 @@
 <div class="playground-grid">
     <div class="playground-column">
         <label for="playground-input">Input</label>
-        <textarea id="playground-input" spellcheck="false" @bind="_input" @bind:event="oninput"></textarea>
+        <div class="playground-editor">
+            <div class="playground-editor-layers">
+                <pre class="playground-code playground-input-copy" aria-hidden="true">@_inputHighlighting.Content</pre>
+                <textarea id="playground-input" class="playground-code" spellcheck="false" wrap="off" @bind="_input" @bind:event="oninput" @bind:after="OnInputChanged"></textarea>
+            </div>
+        </div>
     </div>
     <div class="playground-column">
-        <label for="playground-output">Formatted output</label>
-        <textarea id="playground-output" spellcheck="false" readonly value="@_output"></textarea>
+        <label id="playground-output-label">Formatted output</label>
+        <pre id="playground-output" class="playground-code playground-output" role="region" tabindex="0" aria-labelledby="playground-output-label">@_outputContent</pre>
     </div>
 </div>
 
 <button type="button" @onclick="FormatInput">Format</button>
 
-@if (_errorMessage.Length > 0)
+@if (_messageLines.Count > 0)
 {
-    <p class="playground-message">@_errorMessage</p>
+    <div class="playground-message" role="alert">
+        @foreach (var line in _messageLines)
+        {
+            <div>@line</div>
+        }
+    </div>
 }

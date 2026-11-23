@@ -1,4 +1,12 @@
-﻿using Reihitsu.Formatter;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+
+using Microsoft.AspNetCore.Components;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Playground.Pages;
 
@@ -20,18 +28,36 @@ public partial class Home
     private string _input = ExampleSource;
 
     /// <summary>
-    /// The most recently formatted output
+    /// The most recently formatted output, coloured by its syntax tree
     /// </summary>
-    private string _output = string.Empty;
+    private RenderFragment _outputContent;
 
     /// <summary>
-    /// A message describing why the input could not be formatted, or an empty string when the last format succeeded
+    /// The lines of the message describing why the input could not be formatted; empty when the last format succeeded
     /// </summary>
-    private string _errorMessage = string.Empty;
+    private List<string> _messageLines = [];
+
+    /// <summary>
+    /// The input coloured by its syntax tree, with the marks of the last format until the first change of the input (PLAY-014)
+    /// </summary>
+    private PlaygroundHighlighting _inputHighlighting;
 
     #endregion // Fields
 
     #region Methods
+
+    /// <summary>
+    /// Formats the one-based line and column of the first character of a location, a tab counted as one column
+    /// (PLAY-006, PLAY-008)
+    /// </summary>
+    /// <param name="location">The location</param>
+    /// <returns>The text <c>line &lt;line&gt;, column &lt;column&gt;</c></returns>
+    private static string FormatPosition(Location location)
+    {
+        var start = location.GetLineSpan().StartLinePosition;
+
+        return $"line {start.Line + 1}, column {start.Character + 1}";
+    }
 
     /// <summary>
     /// Creates the message for an input the formatter refuses as unsupported, with the one-based line and column of the
@@ -41,36 +67,64 @@ public partial class Home
     /// <returns>The message</returns>
     private static string CreateUnsupportedMessage(UnsupportedSyntax unsupported)
     {
-        var start = unsupported.Location.GetLineSpan().StartLinePosition;
-
-        return $"The input contains syntax the formatter does not support and was left unchanged: line {start.Line + 1}, column {start.Character + 1} — {unsupported.Reason}.";
+        return $"The input contains syntax the formatter does not support and was left unchanged: {FormatPosition(unsupported.Location)} — {unsupported.Reason}.";
     }
 
     /// <summary>
-    /// Formats the current input and updates the output and error message
+    /// Creates the message line of one syntax error, with the parser's message in English (PLAY-006)
+    /// </summary>
+    /// <param name="error">The error</param>
+    /// <returns>The message line</returns>
+    private static string CreateErrorLine(Diagnostic error)
+    {
+        return $"{FormatPosition(error.Location)} — {error.Id}: {error.GetMessage(CultureInfo.InvariantCulture)}";
+    }
+
+    /// <summary>
+    /// Formats the current input and updates the output, the message, and the input's marks
     /// </summary>
     private void FormatInput()
     {
         var result = PlaygroundFormatter.Format(_input);
+        var errors = result.Errors ?? [];
 
-        _output = result.Text;
+        List<TextSpan> marks;
+
+        _outputContent = PlaygroundHighlighter.Highlight(result.Text, []).Content;
 
         if (result.Formatted)
         {
-            _errorMessage = string.Empty;
+            _messageLines = [];
+            marks = [];
         }
         else if (result.Unsupported != null)
         {
-            _errorMessage = CreateUnsupportedMessage(result.Unsupported);
+            _messageLines = [CreateUnsupportedMessage(result.Unsupported)];
+            marks = [PlaygroundHighlighter.GetMarkSpan(result.Unsupported.Location.SourceSpan, _input)];
         }
         else if (result.HoldsHiddenCode)
         {
-            _errorMessage = "The input contains code hidden in another build configuration and was left unchanged.";
+            // The formatter reports no location for hidden code, so nothing is marked (PLAY-014)
+            _messageLines = ["The input contains code hidden in another build configuration and was left unchanged."];
+            marks = [];
         }
         else
         {
-            _errorMessage = "The input contains syntax errors and was left unchanged.";
+            _messageLines = ["The input contains syntax errors and was left unchanged.", .. errors.Select(CreateErrorLine)];
+            marks = errors.Select(error => PlaygroundHighlighter.GetMarkSpan(error.Location.SourceSpan, _input))
+                          .ToList();
         }
+
+        _inputHighlighting = PlaygroundHighlighter.Highlight(_input, marks, _inputHighlighting);
+    }
+
+    /// <summary>
+    /// Colours the input again at a change of it and removes every mark, because a mark can point at code it was not about
+    /// after an edit; the message stays until the next format (PLAY-014)
+    /// </summary>
+    private void OnInputChanged()
+    {
+        _inputHighlighting = PlaygroundHighlighter.Highlight(_input, [], _inputHighlighting);
     }
 
     #endregion // Methods

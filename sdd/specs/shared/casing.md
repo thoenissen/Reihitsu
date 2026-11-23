@@ -1612,12 +1612,13 @@ class C
 A member is *dictated* when it, or a member it overrides through any number of levels, overrides or implements — implicitly or explicitly — a member declared outside the compilation that declares it: in a referenced assembly, or in another project of the solution. A rule that uses this spec MUST NOT report:
 
 - the name of a dictated method, property, or event;
+- the name of a positional parameter of a record whose member is dictated: the property the compiler declares for the parameter, or, when the compiler declares none because the record declares or inherits a member of the parameter's name, that member;
 - an element name of a tuple type in the signature of a dictated member — its return type, the types of its parameters, or the type of a property, indexer, or event —, wherever the tuple type stands in that type: as the type itself, as a type argument, as the element type of an array, or as an element of another tuple type;
 - the name of a method or local function declared with `[DllImport]`, or of a method declared with `[LibraryImport]`, whose attribute has no `EntryPoint` argument.
 
-A member implements an interface member only when its own type implements that interface. A member that becomes the implementation of an interface member only because a derived type names the interface in its base list, while the member's own type does not implement it, is not dictated by that interface member, and is reported as its rule states. A member that overrides or implements only members declared in its own compilation, through every level, is not dictated and is reported as its rule states. A method or local function whose `[DllImport]` or `[LibraryImport]` attribute has an `EntryPoint` argument is reported as its rule states, whatever the argument's value.
+A member implements an interface member only when its own type implements that interface. A member that becomes the implementation of an interface member only because a derived type names the interface in its base list, while the member's own type does not implement it, is not dictated by that interface member, and is reported as its rule states. A member that overrides or implements only members declared in its own compilation, through every level, is not dictated and is reported as its rule states. A method or local function whose `[DllImport]` or `[LibraryImport]` attribute has an `EntryPoint` argument is reported as its rule states, whatever the argument's value. A positional parameter of a record whose member is not dictated is reported as its rule states, also when that member is declared in another compilation: a parameter that matches a property it inherits from a base record of a referenced assembly, which overrides and implements nothing, is reported.
 
-Why: The author cannot choose these names. The compiler requires an override and an implicit implementation to repeat the name of the member it overrides or implements, and an override or implementation to repeat the tuple element names of that member's signature; only the declaration in the other compilation could change them, and a fix in this compilation cannot rename it. When the attribute names no entry point, the runtime looks the native function up by the method's name, so another name calls another function. A diagnostic that cannot be resolved without breaking the build or the native binding has no actionable outcome. The boundary is the compilation, not the solution: in the IDE another project of the solution is a compilation whose members are declared in source, and in a command-line build it is a referenced assembly, so deciding by the declaring compilation gives both the same diagnostics. A member that overrides a dictated member repeats its name as well, so the chain is followed through every level. The member that another project of the solution declares is reported in that project, and its fix renames the dictated members with it (SHARED-CASING-007). A member implements on behalf of a derived type only through that derived type, which the analyzer of the member's own type cannot always see, so only the member's own type decides; the fix of such a member stays withheld as SHARED-CASING-009 states. The tuple element names of a dictated member's signature are those of the member it overrides or implements after its type arguments are substituted; a name that a type argument written in this compilation supplies is reported where that type argument is written, so the author can still choose it, and is reported once.
+Why: The author cannot choose these names. The compiler requires an override and an implicit implementation to repeat the name of the member it overrides or implements, and an override or implementation to repeat the tuple element names of that member's signature; only the declaration in the other compilation could change them, and a fix in this compilation cannot rename it. When the attribute names no entry point, the runtime looks the native function up by the method's name, so another name calls another function. A diagnostic that cannot be resolved without breaking the build or the native binding has no actionable outcome. The boundary is the compilation, not the solution: in the IDE another project of the solution is a compilation whose members are declared in source, and in a command-line build it is a referenced assembly, so deciding by the declaring compilation gives both the same diagnostics. A member that overrides a dictated member repeats its name as well, so the chain is followed through every level. The member that another project of the solution declares is reported in that project, and its fix renames the dictated members with it (SHARED-CASING-007). A member implements on behalf of a derived type only through that derived type, which the analyzer of the member's own type cannot always see, so only the member's own type decides; the fix of such a member stays withheld as SHARED-CASING-009 states. The compiler names the property it declares for a record's positional parameter after the parameter, so the parameter's name is that property's name, and renaming the parameter renames the property. When the record declares or inherits a member of the parameter's name, the compiler declares no property and matches the parameter to that member; renaming the parameter alone gives the record a second public property next to the dictated one, which changes its equality, `ToString`, `with`, and every consumer that reads its properties, and the dictated member's own name cannot change, so that diagnostic has no acceptable outcome either. A matching member that is only declared in another compilation, without overriding or implementing anything there, is not dictated: the exemption covers names a contract fixes, not every name another compilation chose. The tuple element names of a dictated member's signature are those of the member it overrides or implements after its type arguments are substituted; a name that a type argument written in this compilation supplies is reported where that type argument is written, so the author can still choose it, and is reported once.
 
 Example — RH4102, RH4103, RH4114, and RH4116, with a referenced assembly that declares:
 
@@ -1668,6 +1669,52 @@ public class Leaf : Worker
 ```
 
 is not reported. `Leaf.process` overrides `Worker.process`, which is declared in source, but `Worker.process` overrides `MetaBase.process`. The same holds when `MetaBase` and `IMeta` are declared in another project of the solution, and for a property of the protected or internal group (RH4112, RH4113) that overrides a property declared there.
+
+Example — positional parameters of records, for RH4114 and RH4120, with a referenced assembly that declares:
+
+```csharp
+public interface INamed
+{
+    string name { get; }
+}
+
+public abstract record MetaRecord
+{
+    public abstract string title { get; init; }
+}
+
+public record MetaPerson(string name);
+```
+
+```csharp
+public record Person(string name) : INamed;
+
+public record struct Point(string name) : INamed;
+
+public record Item(string title) : MetaRecord;
+
+public interface ILocal
+{
+    string {|RH4114:code|} { get; }
+}
+
+public record Local(string {|RH4120:code|}) : ILocal;
+
+public record Holder(string {|RH4120:name|});
+
+public record Sub(string {|RH4120:other|}) : Holder(other), INamed;
+
+public record Derived(string name) : Person(name);
+
+public record Annotated(string name) : INamed
+{
+    public string name { get; init; } = name;
+}
+
+public record Inherited(string {|RH4120:name|}) : MetaPerson(name);
+```
+
+The parameters `name` of `Person` and `Point` and `title` of `Item` are not reported: the property the compiler declares for `Person.name` and `Point.name` implicitly implements `INamed.name`, and the one it declares for `Item.title` overrides `MetaRecord.title`, both declared in the referenced assembly. `Derived.name` and `Annotated.name` are not reported either: the compiler declares no property for them, because `Derived` inherits the property `name` from `Person` and `Annotated` declares one, and in both cases that property implements `INamed.name`. `Local.code` is reported, because `ILocal` is declared in source. `Holder.name` is reported, because `Holder` does not implement `INamed`; its property implements `INamed.name` only for `Sub`. `Inherited.name` is reported: it matches the property `name` that `Inherited` inherits from `MetaPerson`, which is declared in the referenced assembly but overrides and implements nothing, so it is not dictated. The same holds when `INamed`, `MetaRecord`, and `MetaPerson` are declared in another project of the solution.
 
 Example — a chain inside the compilation, for RH4103:
 
