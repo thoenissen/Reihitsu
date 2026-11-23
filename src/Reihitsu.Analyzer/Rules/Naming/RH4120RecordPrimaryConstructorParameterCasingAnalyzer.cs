@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -49,6 +51,18 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzer : CasingAnaly
         {
             yield return (parameter.Identifier.ValueText, parameter.Identifier.GetLocation());
         }
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The parameter's name is dictated when the member it stands for is dictated: the property the compiler declares for
+    /// it, or the member of its name the record declares or inherits and can access
+    /// </remarks>
+    private protected override bool IsDictatedName(SyntaxNode node, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        return node is ParameterSyntax parameter
+               && semanticModel.GetDeclaredSymbol(parameter, cancellationToken) is IParameterSymbol { ContainingSymbol: IMethodSymbol { ContainingType: { } recordType } }
+               && IsDictatedMember(RecordPositionalParameterUtilities.GetMember(semanticModel.Compilation, recordType, parameter));
     }
 
     #endregion // CasingAnalyzerBase
