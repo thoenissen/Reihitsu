@@ -5,7 +5,7 @@
 | ID prefix | FMT-SWITCH |
 | Status | Active |
 | Code owners | `SwitchCaseBracePhase`, `SwitchCaseBraceRewriter` |
-| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021, FMT-SPACE-001, FMT-BLANK-010, FMT-BLANK-014, FMT-BLANK-018, FMT-BLANK-007, FMT-BREAK-008, FMT-PIPE-025 |
+| Uses | FMT-PIPE-002, FMT-PIPE-003, SHARED-BLANK-004, FMT-PIPE-013, FMT-BLANK-011, FMT-PIPE-004, FMT-PIPE-001, FMT-BREAK-012, FMT-BREAK-015, FMT-BREAK-021, FMT-SPACE-001, FMT-BLANK-010, FMT-BLANK-014, FMT-BLANK-018, FMT-BLANK-007, FMT-BREAK-008, FMT-PIPE-025, FMT-PIPE-008, FMT-BREAK-044 |
 
 This spec covers when the formatter wraps the statements of the sections of a `switch` statement in a `{ … }` block: which sections make a switch braced, what goes inside the block, and every guard that leaves a section or a whole switch as it is.
 
@@ -1558,6 +1558,175 @@ class C
                 }
                 break;
         }
+    }
+}
+```
+
+### FMT-SWITCH-017 — A switch inside a non-verbatim interpolation is left unbraced before C# 11
+
+When the language version is C# 10 or earlier (FMT-PIPE-008), the formatter MUST NOT brace any section of a `switch` statement that stands, at any depth, inside an interpolation of an interpolated string that is not verbatim, as FMT-BREAK-044 defines that position and its conditions; this takes precedence over FMT-SWITCH-001. The conditions are each needed:
+
+- *Not verbatim*: a switch that stands only inside interpolations of verbatim interpolated strings is braced as FMT-SWITCH-001 states, in every language version (`b` below).
+- *Inside the interpolation*: a switch that merely contains a non-verbatim interpolated string is braced as FMT-SWITCH-001 states (`c` below).
+- *C# 10 or earlier*: with C# 11 or later, FMT-SWITCH-001 applies to every switch.
+
+Why: The braces the phase inserts start lines of their own (FMT-SWITCH-015), and before C# 11 such an interpolation cannot contain a line break (FMT-BREAK-044), so braced output would not compile (FMT-PIPE-003). Placing the inserted braces on the switch's line instead would give them a placement of their own for a shape people seldom write (`AGENTS.md`, *Code-fix coverage*), so the switch is left as written; since FMT-SWITCH-001 gives all sections of a switch one shape, no section of it is braced.
+
+Example — the same input under C# 10 and under C# 11:
+
+```csharp
+using System;
+
+class C
+{
+    int F(Func<int> f)
+    {
+        return f();
+    }
+
+    void G()
+    {
+    }
+
+    string M(int x)
+    {
+        var a = $"a {F(() => { switch (x) { case 1: G(); G(); return 1; default: return 2; } })} b";
+        var b = $@"a {F(() => { switch (x) { case 1: G(); G(); return 1; default: return 2; } })} b";
+        var c = F(() => { switch (x) { case 1: G(); return $"{x}".Length; default: return 2; } });
+
+        return a + b + c;
+    }
+}
+```
+
+C# 10 — the switch of `a` stays as written; the switch of `b` stands inside a verbatim interpolation only, and the switch of `c` merely contains a non-verbatim interpolated string, so both are braced:
+
+```csharp
+using System;
+
+class C
+{
+    int F(Func<int> f)
+    {
+        return f();
+    }
+
+    void G()
+    {
+    }
+
+    string M(int x)
+    {
+        var a = $"a {F(() => { switch (x) { case 1: G(); G(); return 1; default: return 2; } })} b";
+        var b = $@"a {F(() =>
+                        {
+                            switch (x)
+                            {
+                                case 1:
+                                    {
+                                        G();
+                                        G();
+
+                                        return 1;
+                                    }
+                                default:
+                                    {
+                                        return 2;
+                                    }
+                            }
+                        })} b";
+        var c = F(() =>
+                  {
+                      switch (x)
+                      {
+                          case 1:
+                              {
+                                  G();
+
+                                  return $"{x}".Length;
+                              }
+                          default:
+                              {
+                                  return 2;
+                              }
+                      }
+                  });
+
+        return a + b + c;
+    }
+}
+```
+
+C# 11 — every switch is braced:
+
+```csharp
+using System;
+
+class C
+{
+    int F(Func<int> f)
+    {
+        return f();
+    }
+
+    void G()
+    {
+    }
+
+    string M(int x)
+    {
+        var a = $"a {F(() =>
+                       {
+                           switch (x)
+                           {
+                               case 1:
+                                   {
+                                       G();
+                                       G();
+
+                                       return 1;
+                                   }
+                               default:
+                                   {
+                                       return 2;
+                                   }
+                           }
+                       })} b";
+        var b = $@"a {F(() =>
+                        {
+                            switch (x)
+                            {
+                                case 1:
+                                    {
+                                        G();
+                                        G();
+
+                                        return 1;
+                                    }
+                                default:
+                                    {
+                                        return 2;
+                                    }
+                            }
+                        })} b";
+        var c = F(() =>
+                  {
+                      switch (x)
+                      {
+                          case 1:
+                              {
+                                  G();
+
+                                  return $"{x}".Length;
+                              }
+                          default:
+                              {
+                                  return 2;
+                              }
+                      }
+                  });
+
+        return a + b + c;
     }
 }
 ```

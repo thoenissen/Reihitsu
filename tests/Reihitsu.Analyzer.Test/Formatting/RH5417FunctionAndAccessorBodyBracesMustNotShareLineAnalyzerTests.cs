@@ -1225,6 +1225,27 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies the one-line body of a lambda that holds a non-verbatim interpolated string, outside its interpolations, is
+    /// reported when the code is compiled with C# 10, because the body itself does not stand inside an interpolation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-005")]
+    public async Task LambdaBodyHoldingAnInterpolatedStringIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    string M() => ((Func<string>)(() => {|RH5417:{|} return $"{1}"; }))();
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
     /// Verifies the SHARED-FIX-007 example: a member that shares its line with the fixed member gets a line of its own,
     /// and the fixed member that shares its line with an earlier member starts on the next line, without blank lines, under
     /// LF and CRLF
