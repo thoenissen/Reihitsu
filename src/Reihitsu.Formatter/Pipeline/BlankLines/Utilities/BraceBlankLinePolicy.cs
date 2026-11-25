@@ -14,7 +14,8 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 /// line stands (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019), which are also the tokens behind an own-line comment that no
 /// blank line separates from it (FMT-BLANK-020), the comment glued to a token (FMT-BLANK-018), and the one classification of a
 /// comment's position relative to the token behind it that FMT-BLANK-011, FMT-BLANK-018, and FMT-BLANK-020 read. The
-/// blank-line subphases read these facts from here
+/// blank-line subphases read these facts from here, and the indentation phase reads the closing delimiters of patterns and
+/// collection expressions from here as well (FMT-INDENT-006), so both phases treat the same closing tokens alike
 /// </summary>
 internal static class BraceBlankLinePolicy
 {
@@ -42,7 +43,8 @@ internal static class BraceBlankLinePolicy
     /// Determines whether the blank lines directly before a token are removed (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019):
     /// every opening and closing brace other than the opening brace of a block statement that follows a statement, the
     /// <c>else</c>, <c>catch</c>, and <c>finally</c> keywords, the <c>while</c> keyword of a do statement, the closing bracket
-    /// of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern. The same set
+    /// of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern or a positional
+    /// pattern clause. The same set
     /// decides whether the blank lines above a comment glued to the token are removed (FMT-BLANK-018), and whether the blank
     /// lines between an own-line comment and the token are removed (FMT-BLANK-020)
     /// </summary>
@@ -124,7 +126,10 @@ internal static class BraceBlankLinePolicy
 
     /// <summary>
     /// Determines whether a token is the closing bracket of a collection expression or a list pattern, or the closing
-    /// parenthesis of a parenthesized pattern, before which no blank line stands (FMT-BLANK-019)
+    /// parenthesis of a parenthesized pattern or a positional pattern clause: the closing delimiters of the constructs
+    /// that are laid out one element per line (FMT-BREAK-022, FMT-INDENT-025). No blank line stands before such a token
+    /// (FMT-BLANK-019), and a comment in front of it is indented one level deeper than the token (FMT-INDENT-006); this is
+    /// the one statement of that set, which the blank-line and the indentation phase both read
     /// </summary>
     /// <param name="token">The token to inspect, still part of the visited tree</param>
     /// <returns><see langword="true"/> if the token is such a closing bracket or parenthesis</returns>
@@ -133,7 +138,7 @@ internal static class BraceBlankLinePolicy
         return token.Kind() switch
                {
                    SyntaxKind.CloseBracketToken => token.Parent is CollectionExpressionSyntax or ListPatternSyntax,
-                   SyntaxKind.CloseParenToken => token.Parent is ParenthesizedPatternSyntax,
+                   SyntaxKind.CloseParenToken => token.Parent is ParenthesizedPatternSyntax or PositionalPatternClauseSyntax,
                    _ => false,
                };
     }
