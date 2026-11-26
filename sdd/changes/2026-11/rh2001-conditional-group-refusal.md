@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH2001-010 (changed: any `#if`, `#elif`, `#else`, or `#endif` in the leading trivia of the first modifier, or of the token behind a property without an initializer, withholds the fix; the whole-member test and its nesting clause are retired), RH2001-004 (clarified: its coverage sentence and its sentence on the directives above the first modifier point to the new RH2001-010), RH2001-009 (clarified: its pointer to RH2001-010, and its last example, which showed the fix kept for a group of whole members, is removed), SHARED-FIX-009 (clarified: no fix reads an excluded branch as members any more; its RH2001 references and example now say so) |
 | Depends on | [The member-moving fixes refuse every conditional group in the moved and the crossed span](ordering-move-refuses-conditional-groups.md) |
@@ -103,6 +103,82 @@ class C
 ```
 
 After: RH2001 is reported on `Value`, and no code fix is offered.
+
+### 3 · A conditional group that wraps the property itself
+
+Input, with `NET` defined — a property without an initializer, as multi-targeting code writes it:
+
+```csharp
+#define NET
+class C
+{
+#if NET
+    private int Value { get; }
+#endif
+
+    int Read() => Value;
+}
+```
+
+Before (`main`):
+
+```csharp
+#define NET
+class C
+{
+#if NET
+    private readonly int _value;
+#endif
+
+    int Read() => _value;
+}
+```
+
+After: RH2001 is reported on `Value`, and no code fix is offered. The group's `#if` stands in front of the first modifier, and its `#endif` behind a property without an initializer.
+
+```csharp
+#define NET
+class C
+{
+#if NET
+    private int {|RH2001:Value|} { get; }
+#endif
+
+    int Read() => Value;
+}
+```
+
+The same holds for a property with an initializer, where only the `#if` in front of the first modifier withholds the fix. Input, with `NET` defined:
+
+```csharp
+#define NET
+class C
+{
+    int Read() => Value;
+
+#if NET
+    private static int Value { get; } = 5;
+#endif
+}
+```
+
+Before (`main`):
+
+```csharp
+#define NET
+class C
+{
+    int Read() => _value;
+
+#if NET
+    private static readonly int _value = 5;
+#endif
+}
+```
+
+After: RH2001 is reported on `Value`, and no code fix is offered.
+
+The same shape without a modifier, `#if NET` / `int Value { get; }` / `#endif`, is withheld on `main` already (RH2001-009), so both forms now agree. The maintainer's answer covers this case: it withholds the fix for any `#if` group directly in front of the property, whatever the group holds.
 
 ### Unchanged
 
