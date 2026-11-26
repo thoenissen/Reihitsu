@@ -33,6 +33,7 @@ None yet.
 | 3 | skeptic | #1963: route only the issue's two methods (A), every token-to-node read (B), or also the token-to-token reads (C)? | B: one helper for "trailing trivia of a token, then leading trivia of the next node's first token", used by all five token-to-node reads; the token-to-token helpers stay as they are; the shape facts in the binary and arrow summaries survive | A misses the issue's own Done-when; the token-to-token read is a different read and widening to it is scope the issue does not need | Same spans read, precheck output unchanged | - |
 | 4 | audit 1 | Auditor findings #1 (dead null check in `DeclarationHoldsConditionalDirective`) and #2 (duplicated DataRows in `CommentPositionUtilitiesTests`) | Repair round 1: #1 to the implementer, #2 to the test implementer (one test keeps the expected values and the fixture guard; dropping "tests pass unchanged" for that test is fine for an agent-filed goal) | Both PR-introduced, low, same requirement | Internal code and test structure only | - |
 | 5 | audit 1 | Auditor hints: summaries in `ListElementInteriorJoinRewriter`/`ListElementAligner` that name constructs via `FindOwningConstruct`, and the `SyntaxIndentationUtilities` class summary not naming analyzer callers | Take both into repair round 1 with the implementer (comment-only) | The move made those summaries less accurate; a few comment lines in files the run touches or depends on | Comments only | - |
+| 6 | audit 2 | Auditor hint 3 (`token` parameter doc in `ListElementInteriorUtilities` says "Token" while one caller passes `default`) | Not taken | Pre-existing wording the run does not change; an inline comment already explains it; not worth a text-only proof round | Comment only | - |
 
 ## Follow-up candidates
 
@@ -48,3 +49,4 @@ None yet.
 - Spec checker done (05-spec-checker.md, b9f5260): consistent, no findings. Next: auditor.
 - Audit 1 (06-auditor.md, 1ec5848) on 69b7681, main 68f236e: findings (2 low). Repair round 1: test implementer (07), then implementer (08), cleaner, spec checker, auditor on the repair.
 - Repair 1: test implementer (07, f2fc24d), implementer (08, 845272c), both green. Next: cleaner (09), spec checker (10), auditor on repair (11).
+- Audit 2 (11-auditor.md, a174bb6): pass. Audited SHA c8413eea0fa69a65bf4f802ea305f2597d94f17f. Next: validator (12), then publish.
