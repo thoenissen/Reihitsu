@@ -133,7 +133,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// <summary>
     /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
     /// marker starts in the column of its opening quotes. Every shifted line shifts by the same number of columns
-    /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>, as the analyzer measures it), by the shift rule the formatter also applies
+    /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>, as the analyzer measures it; zero for a literal that
+    /// is aligned behind a tab, RH5202-009), by the shift rule the formatter also applies
     /// (<see cref="RawStringLiteralUtilities.GetShiftedIndentation"/>): spaces are added in front of it, or up to that many
     /// leading whitespace characters are removed. When the whitespace in front of the closing marker holds a tab, every
     /// line that starts in the literal's own text, not in one of its holes, also gets its leading whitespace within the
@@ -156,8 +157,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var delta = RawStringLiteralUtilities.GetClosingLineShift(sourceText, node);
 
-        if (root == null
-            || delta == 0)
+        if (root == null)
         {
             return document;
         }

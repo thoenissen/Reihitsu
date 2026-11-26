@@ -82,15 +82,25 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// <summary>
     /// Checks the alignment of a multi-line raw string literal: it is reported when its closing marker does not start
     /// in the column of its opening quotes, measured as the code fix measures it
-    /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>)
+    /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>), or when it starts there behind whitespace that holds
+    /// a tab (<see cref="RawStringLiteralUtilities.HasTabInLeadingWhitespace"/>, RH5202-009), whose stripped indentation
+    /// the code fix and the formatter write as spaces
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="literal">The raw string literal expression or interpolated raw string expression</param>
     private void CheckRawStringAlignment(SyntaxNodeAnalysisContext context, SyntaxNode literal)
     {
         var sourceText = literal.SyntaxTree.GetText(context.CancellationToken);
+        var openingLine = sourceText.Lines.GetLineFromPosition(literal.Span.Start);
+        var closingLine = sourceText.Lines.GetLineFromPosition(literal.Span.End);
 
-        if (RawStringLiteralUtilities.GetClosingLineShift(sourceText, literal) != 0)
+        if (openingLine.LineNumber == closingLine.LineNumber)
+        {
+            return;
+        }
+
+        if (RawStringLiteralUtilities.GetClosingLineShift(sourceText, literal) != 0
+            || RawStringLiteralUtilities.HasTabInLeadingWhitespace(sourceText.ToString(closingLine.Span)))
         {
             context.ReportDiagnostic(CreateDiagnostic(literal.GetLocation()));
         }
