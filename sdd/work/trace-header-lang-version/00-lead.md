@@ -34,4 +34,5 @@
 
 - Done: spec author (01, d686d38, pushed). LANE CHECK after 01: confirmed (diff needs only tooling).
 - Done: skeptic (02, 30ac09d): #1924 proceed; #1949 proceed; no output questions.
-- Next: spec author amendment (decision 6, Status: Accepted) as 03, then test implementer.
+- Done: spec author amendment (03, 11bad04); both change docs Accepted. No output questions, no stop.
+- Next: test implementer (04).
