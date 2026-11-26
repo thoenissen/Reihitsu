@@ -30,6 +30,7 @@
 | 6 | lead | Re-run the skeptic on the amended spec | Yes, fresh skeptic on 03's amendment before batch 2 | Answer 3A added shapes and a FMT-UNSUP-003 reading no skeptic has checked; its questions join batch 2 so the run stops once | Process only | — |
 | 7 | batch 2 | CLI reason wording (delegated by the maintainer) | Two reasons: `a comment or directive behind an assignment operator or the = of a declaration` (assignment operators, property/declarator/enum-member/parameter `=`), and `a comment or directive behind the = of an attribute argument or a using alias` (name-equals `=`) | Each message names what the user wrote; the maintainer allowed two messages | Maintainer delegated the choice explicitly | — |
 | 8 | test implementer (06) | When to repair the FMT-BREAK-030 / FMT-INDENT-030 examples and their pinned test | After the implementer, in one spec-author + test-implementer pass before the cleaner | Keeps the shared tree free of parallel edits during the implementer's builds | Spec examples and a phase-alone test; outputs follow the answered shape | — |
+| 9 | pre-audit merge | Run the cleaner after the merge conflict resolution | Skip it | The conflicts and their resolution touched only two spec Markdown files (`Uses` rows); no C# file was resolved by hand, and main's C# arrives as merged on main | No compiled or formatted file changed by the resolution | 71519cb |
 | 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
@@ -49,7 +50,9 @@
 - Done: implementer (07, 0f0adb0, 7c3f1c9): all tests green in Debug; 019 walk and five join refusals deleted.
 - Done: decision-8 worklist — spec author (08, 25ef89b), test implementer (09, 8f6368d).
 - Done: cleaner (10, 8e64333): clean, Release 0 warnings.
-- Now: spec checker (11), then auditor, validator.
+- Done: spec checker (11, ed3177f): consistent, no findings.
+- Done: merged origin/main eed7195 (71519cb); conflicts only in `Uses` rows, resolved by spec author (12, 0a728ea).
+- Now: build, auditor (13), validator.
 - (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
