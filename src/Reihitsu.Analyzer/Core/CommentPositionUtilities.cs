@@ -291,7 +291,7 @@ internal static class CommentPositionUtilities
     /// Determines whether a gap inside a region belongs to a construct nested in the region rather than to the region
     /// itself. A gap directly before one of the region's own tokens, or before the first token of one of its
     /// elements, always belongs to the region. Any other gap belongs to the innermost construct between the token after
-    /// it and the region that lays out its own lines, as decided by <see cref="IsOwningConstruct"/>
+    /// it and the region that lays out its own lines, as decided by <see cref="SyntaxIndentationUtilities.IsOwningConstruct"/>
     /// </summary>
     /// <param name="region">Region node</param>
     /// <param name="nextToken">Token after the gap</param>
@@ -319,41 +319,13 @@ internal static class CommentPositionUtilities
 
         for (var node = nextToken.Parent; node != null && node != region; node = node.Parent)
         {
-            if (IsOwningConstruct(node, nextToken))
+            if (SyntaxIndentationUtilities.IsOwningConstruct(node, nextToken))
             {
                 return true;
             }
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether a node lays out the line of a token inside it itself - a brace scope, an initializer, an
-    /// anonymous object, a switch expression, the interior of a collection expression, a recursive, list, or
-    /// parenthesized pattern, an interpolation hole, or the clauses of a query. This is the same decision the
-    /// formatter's <c>ListElementInteriorUtilities.IsOwningConstruct</c> makes before it joins a line inside a list
-    /// element, and must stay in step with it
-    /// </summary>
-    /// <param name="node">Node on the path from the token to the region</param>
-    /// <param name="token">Token</param>
-    /// <returns><see langword="true"/> if the node owns the token's line</returns>
-    internal static bool IsOwningConstruct(SyntaxNode node, SyntaxToken token)
-    {
-        return node switch
-               {
-                   CollectionExpressionSyntax collection => token != collection.OpenBracketToken,
-                   InitializerExpressionSyntax
-                   or AnonymousObjectCreationExpressionSyntax
-                   or SwitchExpressionSyntax
-                   or RecursivePatternSyntax
-                   or ListPatternSyntax
-                   or ParenthesizedPatternSyntax
-                   or AccessorListSyntax
-                   or InterpolationSyntax
-                   or QueryBodySyntax => true,
-                   _ => SyntaxIndentationUtilities.IsIndentingScope(node)
-               };
     }
 
     /// <summary>

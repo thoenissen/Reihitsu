@@ -194,7 +194,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : ReihitsuCod
         var declarationEnd = usingDeclaration.Span.End;
 
         return SyntaxTriviaUtilities.SplitsDirectivePair(root, usingDeclaration.FullSpan.End, closeBraceToken.FullSpan.Start)
-               || closeBraceToken.LeadingTrivia.Any(trivia => trivia.GetStructure() is ConditionalDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax
+               || closeBraceToken.LeadingTrivia.Any(trivia => SyntaxTriviaUtilities.IsConditionalDirective(trivia)
                                                               && trivia.GetStructure() is DirectiveTriviaSyntax directive
                                                               && directive.GetRelatedDirectives().Any(related => related.IsKind(SyntaxKind.IfDirectiveTrivia) && related.SpanStart > declarationEnd));
     }

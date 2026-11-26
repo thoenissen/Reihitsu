@@ -16,17 +16,8 @@ internal static class ConditionalGroupUnitUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether the directive is an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns><see langword="true"/> if the directive belongs to a conditional group</returns>
-    internal static bool IsConditionalDirective(DirectiveTriviaSyntax directive)
-    {
-        return directive is ConditionalDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax;
-    }
-
-    /// <summary>
-    /// Gets the conditional directives that start inside a span of the tree
+    /// Gets the conditional directives (<see cref="SyntaxTriviaUtilities.IsConditionalDirective"/>) that start inside a
+    /// span of the tree
     /// </summary>
     /// <param name="root">Root of the tree</param>
     /// <param name="span">Span</param>
@@ -34,10 +25,10 @@ internal static class ConditionalGroupUnitUtilities
     internal static List<DirectiveTriviaSyntax> GetConditionalDirectives(SyntaxNode root, TextSpan span)
     {
         return root.DescendantTrivia(span)
-                   .Where(trivia => span.Contains(trivia.SpanStart))
+                   .Where(trivia => span.Contains(trivia.SpanStart)
+                                    && SyntaxTriviaUtilities.IsConditionalDirective(trivia))
                    .Select(trivia => trivia.GetStructure())
                    .OfType<DirectiveTriviaSyntax>()
-                   .Where(IsConditionalDirective)
                    .ToList();
     }
 

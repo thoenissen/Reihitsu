@@ -56,7 +56,7 @@ internal static class ListElementInteriorUtilities
 
             // Every token of the node that may be joined lies behind the node's first token, so a collection expression
             // owns it whichever token it is
-            if (IsOwningConstruct(current, default))
+            if (SyntaxIndentationUtilities.IsOwningConstruct(current, default))
             {
                 return false;
             }
@@ -66,9 +66,8 @@ internal static class ListElementInteriorUtilities
     }
 
     /// <summary>
-    /// Finds the innermost construct between a token and its list element that lays out the lines inside it - a brace
-    /// scope, an initializer, an anonymous object, a switch expression, the interior of a collection expression, a
-    /// recursive, list, or parenthesized pattern, an interpolation hole, or the clauses of a query
+    /// Finds the innermost construct between a token and its list element that lays out the lines inside it, as decided
+    /// by <see cref="SyntaxIndentationUtilities.IsOwningConstruct"/>
     /// </summary>
     /// <param name="token">The token</param>
     /// <param name="element">The list element containing the token</param>
@@ -77,37 +76,13 @@ internal static class ListElementInteriorUtilities
     {
         for (var node = token.Parent; node != null && node != element; node = node.Parent)
         {
-            if (IsOwningConstruct(node, token))
+            if (SyntaxIndentationUtilities.IsOwningConstruct(node, token))
             {
                 return node;
             }
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Determines whether a node on the path from a token to its list element lays out the token's line itself
-    /// </summary>
-    /// <param name="node">The node on the path</param>
-    /// <param name="token">The token</param>
-    /// <returns><see langword="true"/> if the node owns the token's line; otherwise, <see langword="false"/></returns>
-    private static bool IsOwningConstruct(SyntaxNode node, SyntaxToken token)
-    {
-        return node switch
-               {
-                   CollectionExpressionSyntax collection => token != collection.OpenBracketToken,
-                   InitializerExpressionSyntax
-                   or AnonymousObjectCreationExpressionSyntax
-                   or SwitchExpressionSyntax
-                   or RecursivePatternSyntax
-                   or ListPatternSyntax
-                   or ParenthesizedPatternSyntax
-                   or AccessorListSyntax
-                   or InterpolationSyntax
-                   or QueryBodySyntax => true,
-                   _ => SyntaxIndentationUtilities.IsIndentingScope(node)
-               };
     }
 
     #endregion // Methods

@@ -137,6 +137,35 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
+    /// Determines whether a node on the path from a token to the construct around it lays out the token's line itself -
+    /// an indenting scope (<see cref="IsIndentingScope"/>), an initializer, an anonymous object, a switch expression, the
+    /// interior of a collection expression behind its <c>[</c>, a recursive, list, or parenthesized pattern, an accessor
+    /// list, an interpolation hole, or the clauses of a query. The analyzers decide with it which gaps of a comment region
+    /// belong to a nested construct, and the formatter decides with it which lines inside a list element it joins and
+    /// aligns with the element, so both draw the same boundary
+    /// </summary>
+    /// <param name="node">Node on the path from the token to the construct around it</param>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if the node owns the token's line</returns>
+    public static bool IsOwningConstruct(SyntaxNode node, SyntaxToken token)
+    {
+        return node switch
+               {
+                   CollectionExpressionSyntax collection => token != collection.OpenBracketToken,
+                   InitializerExpressionSyntax
+                   or AnonymousObjectCreationExpressionSyntax
+                   or SwitchExpressionSyntax
+                   or RecursivePatternSyntax
+                   or ListPatternSyntax
+                   or ParenthesizedPatternSyntax
+                   or AccessorListSyntax
+                   or InterpolationSyntax
+                   or QueryBodySyntax => true,
+                   _ => IsIndentingScope(node)
+               };
+    }
+
+    /// <summary>
     /// Determines whether any ancestor of a node, all the way to the root, is an object initializer or an
     /// anonymous object - not only the nearest one. Both are anchor-derived rather than level-derived: their
     /// members align to a token's own column plus one indentation size, not to a multiple of
