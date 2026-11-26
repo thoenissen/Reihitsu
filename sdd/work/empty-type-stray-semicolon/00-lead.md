@@ -47,4 +47,5 @@
 - Test implementer 04: tests written (49f88f0, handover 0bc6f0a); new-behavior tests fail as expected.
 - Implementer 05: test disputed (9ee01ab, handover bed96da); all other tests pass.
 - Test implementer 06: decisions 5, 6 done (715d3df).
-- Next: cleaner (07).
+- Cleaner 07: clean (0d2d025).
+- Next: spec checker (08).
