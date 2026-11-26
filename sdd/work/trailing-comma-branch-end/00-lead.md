@@ -28,4 +28,4 @@
 ## State
 
 - Last step: spec author 01 (9e96bfa), skeptic 02 (0ee6074). Output question batch 1 answered: C.
-- Next: spec author (fresh, 03) rewrites change doc/spec for C + decisions 2-3, Status Accepted; then test implementer.
+- Spec author 03 done (6a6112c), change doc Accepted. Next: test implementer (04).
