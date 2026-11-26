@@ -440,15 +440,51 @@ public class RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a union with braces followed by a semicolon is not reported, since it ends with its semicolon
+    /// Verifies that a one-line and a multi-line empty union followed by a semicolon are reported, and that the fix writes
+    /// one semicolon behind each header
     /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-EMPTY-001")]
-    public async Task UnionWithBracesAndSemicolonIsNotReported()
+    [Requirement("SHARED-EMPTY-005")]
+    [Requirement("RH5418-001")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionWithBracesAndSemicolonIsReportedAndFixed(string endOfLine)
     {
         const string testCode = """
-                                union S1(int, string) { };
+                                union {|RH5418:S1|}(int, string) { };
+
+                                union {|RH5418:U|}(int, string)
+                                {
+                                };
+                                """;
+
+        const string fixedCode = """
+                                 union S1(int, string);
+
+                                 union U(int, string);
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union with a comment between its closing brace and the semicolon behind it is reported, and that no
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task UnionWithCommentBetweenClosingBraceAndSemicolonIsReportedWithoutFix()
+    {
+        const string testCode = """
+                                union {|RH5418:U|}(int, string)
+                                {
+                                } /* note */;
                                 """;
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
