@@ -47,3 +47,4 @@ None yet.
 - Cleaner done (04-cleaner.md, 0524ace): clean, Release 0 warnings. Next: spec checker.
 - Spec checker done (05-spec-checker.md, b9f5260): consistent, no findings. Next: auditor.
 - Audit 1 (06-auditor.md, 1ec5848) on 69b7681, main 68f236e: findings (2 low). Repair round 1: test implementer (07), then implementer (08), cleaner, spec checker, auditor on the repair.
+- Repair 1: test implementer (07, f2fc24d), implementer (08, 845272c), both green. Next: cleaner (09), spec checker (10), auditor on repair (11).
