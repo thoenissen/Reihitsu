@@ -31,7 +31,7 @@ Theme: T11 part A (line-break joins, extension blocks, switch arms, one-owner re
 Runs, in order:
 - **Formatter/LineBreakPhase one-owner refactors, first in their files:** `#1517 #1519 #1654 #862 #1937` (#1937 after #1935 and 1.6.0's indentation runs).
 - **Formatter/unowned joins (one OQ round):** `#1639 #1645 #1646 #1648 #1652 #1653 #1829 #1830 #1927` → after #953 (1.6.0). #1645 may already be shipped by #1920: check and close first. #1927's inputs are run before its output question.
-- **Formatter/extension blocks (owner set once, OQ):** `#1636 #1785 #1446 #1845`.
+- **Formatter/extension blocks (owner set once, OQ):** `#1636 #1785 #1446 #1845 #1959 #1960` (#1959 2A and #1960 3C/4A decided).
 - **Formatter/lists and switch arms:** `#956` (narrowed, OQ) `#955 #1442` (#956 before #1739 in 1.10.0).
 - **Analyzer/RH1001–RH1002 equality judgement:** `#1290` → `#1295 #1296 #1297`.
 - **Analyzer/small widenings:** `#973 #968 #1298 #1299 #1300 #1338 #1350 #1452`.
@@ -48,7 +48,7 @@ Theme: T1 code-fix layout (partial write-back, shared lines); T11 part B attribu
 Runs, in order:
 - **Formatter entry point/partial write-back design, first:** `#1774 #1140` (escalation A/B/C; the design gate of the release). Output questions come in two rounds: at start #1774 #1447 #1549 #1552 #1554 #1606 #1689 #1777; after the design #1140 #1773 #1775.
 - **Node-level write-back:** `#1521 #1474 #1684 #1835` → after #1774 (#1684 may close if it needs the layout-only mode).
-- **Shared-line members and hand-laid fixes:** `#1773 #1775 #1447 #1443 #1758` → after #1774 (#1443 re-checked against #1760 first; #1758 before #1739 in 1.10.0).
+- **Shared-line members and hand-laid fixes:** `#1773 #1775 #1447 #1443 #1758 #1957 #1961` → after #1774 (#1957 narrowed to the line ending; #1443 re-checked against #1760 first; #1758 before #1739 in 1.10.0).
 - **Formatter/attribute-list layout (OQ):** `#1549 #1552 #1554 #1557 #1131`; `#1555` judged there (check on `main`, close if no reachable difference).
 - **Code fixes/decided output extensions:** `#1435 #1436 #1437 #1689 #1777` (#1689 carries #1601's raw-string remainder, cheap checks only).
 - **Core and code-fix cleanups:** `#1032 #1475 #1582 #1583 #1740 #1789`.

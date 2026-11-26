@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-26 · #1960 · 3C: the formatter removes a `;` behind a type's closing brace (new structural transform); 4A: with a comment, directive, or disabled text between `}` and `;` the `;` stays, nothing indented, the blank line in front of the comment stays (FMT-BLANK-011). Commented on #1960 and #1959 (RH5404 fix result without `;`).
 - 2026-11-26 · #1956–#1963 · triage 1A: #1956 #1958 #1963 → 1.6.0 (`/squad #1956 #1958 #1963`, start now); #1957 #1961 → 1.8.0 (shared-line run); #1959 #1960 → 1.7.0 (extension-block run); #1962 closed as duplicate of #962 (input added to #962). #1959: 2A (RH5404 reports and fixes `class C { int _x; };`). #1960: questions 3/4 open — the maintainer asked whether the formatter could simply remove the `;`.
 - 2026-11-26 · #1948 #1949 #1950 · triage 1A: #1948 → 1.6.0 (own analyzer run, start now); #1949 → 1.6.0, joins #1924 (`/squad #1924 #1949`); #1950 → 1.7.0, own Playground run after #976; commented on #1949 #1950.
 - 2026-11-22 · #1935 #1936 #1937 #1939 #1943 · triage "as you recommend": #1935 #1936 #1939 #1943 → 1.6.0, #1937 → 1.7.0; #1935 A (blank line before positional `)` removed), #1939 A (dictated positional parameter not reported), #1943 A (RH2001 fix withheld for an adjacent `#if` group); #1936 rides with #1472.
@@ -40,6 +41,7 @@ Notes for the runs (evidence in the batch file, not decided): #1275 likely narro
 
 ## Status
 
+Status 2026-11-26 (s): 3C, 4A recorded (maintainer asked about the blank line in 4A: FMT-BLANK-011 keeps it, applied so); commented on #1960 #1959. Batch started: merges #1944 #1951–#1955 #1964 read, no PR open; re-check of `#1568 #1698 #1567`, #1771, #1589 and the start-now conflicts delegated (`inventory/batch-2026-11-26.md`).
 Status 2026-11-26 (r): answer 1A, 2A applied (milestones, comments on #962 #1956 #1957 #1959 #1961 #1962, #1962 closed as duplicate). Asked back 3/4 (#1960) with a new option: 3A `};` joined, 3B `}⏎;` at column 0, 3C remove the `;` behind a type's closing brace (new structural transform, like FMT-STRUCT-019's comma removal; rec. C); 4 with comment/directive between `}` and `;`: 4A keep as written at column 0, no blank line, the `;` stays (rec.), 4B remove the `;` anyway, comment stays on its line.
 Status 2026-11-26 (q): triage of #1956–#1963 asked (`inventory/triage-2026-11-26.md`, main at 76b09a12). 1 placements — #1956 #1958 #1963 → 1.6.0 one maintenance run `/squad #1956 #1958 #1963`, start now; #1957 #1961 → 1.8.0 join `#1773 #1775 #1447 #1443 #1758` (shared `BlankLineCodeFixUtilities.cs`); #1959 #1960 → 1.7.0 join `#1636 #1785 #1446 #1845` (RH5404 files shared with #1446); #1962 → close as duplicate of #962, input added to #962 (1A apply / 1B change rows; rec. 1A). 2 RH5404 `class C { int _x; };` reported+fixed (A) or not (B); rec. A. 3 formatter `}⏎;` → `};` (A) or `}⏎;` kept (B), today indented; rec. A. 4 comment/directive between `}` and `;`: kept as written at column 0, no blank line (A) or as main (B); rec. A. Side find: six PRs merged today (#1944 #1951 #1952 #1953 #1954 #1955) — batch after the answer.
 Status 2026-11-26 (p): triage of #1956–#1963 started; assessment delegated (`inventory/triage-2026-11-26.md`). Nothing asked yet.
@@ -58,4 +60,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Wait for the answer to 3/4 (#1960, status r). Then comment on #1960 with the decision (and on #1959 if 3C changes its fix result to `}` without `;`), record it, update `roadmap.md` (1.7.0: #1959 #1960 join `#1636 #1785 #1446 #1845`; 1.8.0: #1957 #1961 join `#1773 #1775 #1447 #1443 #1758`). Then `/coordinator batch`: merges #1944 #1951–#1955 unblock `#1568 #1698 #1567` and #1771.
+Finish the batch of 2026-11-26 (s): read `inventory/batch-2026-11-26.md` (re-run the re-check if missing), rebuild `Plan`, answer with the start-now set.
