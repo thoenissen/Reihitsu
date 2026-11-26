@@ -26,7 +26,7 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | Drop issue goals: directive bullets 2–3, RH5416 test change, rule-page update, SHARED-TRAIL-002/DIAG-008 refs | Dropped | Bullet 2 contradicts accepted SHARED-DIAG-008; bullet 3 already holds and is pinned; rule pages already cover the form | Directive behavior stays as on `main`; no output changes | 9af7865 |
-| 2 | Skeptic | Limit SHARED-EMPTY-003 comment sentence to a brace with no `;` behind it; cite #1169 Q2 instead of "#912 Q2" in change doc | Take both; route to spec author with the batch-1 answers | Removes a reading conflict with SHARED-EMPTY-005 | Wording only; output unaffected | pending |
+| 2 | Skeptic | Limit SHARED-EMPTY-003 comment sentence to a brace with no `;` behind it; cite #1169 Q2 instead of "#912 Q2" in change doc | Take both; route to spec author with the batch-1 answers | Removes a reading conflict with SHARED-EMPTY-005 | Wording only; output unaffected | 9e559c8 |
 | 3 | Skeptic | Declare unsupported / refuse? | Neither; withhold fix for comment/directive between `}` and `;` (cheap trivia check) | Declaring deletes no special case | Withholding is a rare-class refusal; reported case asked as output question | — |
 
 ## Follow-up candidates
@@ -38,6 +38,6 @@
 
 ## State
 
-- Last step: skeptic 02 (proceed narrower, d1c3c94).
+- Last step: spec author 03 (answers recorded, change doc Accepted, 9e559c8).
 - Done: output-question batch 1 answered `1A, 2A, 3A, 4A, 5A` (Q1 base forms + fix, Q2 RH5418, Q3 comment/directive between `}` and `;`, Q4 formatter, Q5 nested via other fixes).
-- Next after answers: route answers + decision 2 to a fresh spec author (prior agent large, cache cold), status Accepted; then test implementer (03).
+- Next: test implementer (04).
