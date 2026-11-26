@@ -41,4 +41,5 @@
 - Spec checker consistent (5b7a784). main up to date, build green.
 - Auditor (0af97c7, audited head 5b79d15): findings #1, #2 (medium/low). Repair round 1 of 3.
 - Repair round 1: spec author 09 (4fd4bc4), test implementer 10 (c2ed10a).
-- Next: cleaner, spec checker, auditor on the repair (audited base 5b79d15).
+- Cleaner 11 clean, spec checker 12 consistent.
+- Next: auditor on repair round 1 (since 5b79d15).
