@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-EMPTY-001, SHARED-EMPTY-005, FMT-STRUCT-017, FMT-STRUCT-018 |
 | Depends on | [Rules judge the code the current build compiles](report-across-conditional-directives.md) |
@@ -19,7 +19,7 @@ Now such a declaration is an empty brace body like any other:
 
 ## Why
 
-The maintainer decided the question under principle P11 (#912, question 2 of the empty-type spec questions): `class C { };` is the construct the rules name, an empty type with a brace body, and skipping it is the rules' own gap. Expected: reported, and the fix writes `class C;`. The stray semicolon says nothing — behind the braces it declares no member, and behind a semicolon declaration it would be a second semicolon, which does not compile — so the conversion drops it into the one semicolon it writes.
+The maintainer decided the question under principle P11 (#1169, question 2, decided under #912): `class C { };` is the construct the rules name, an empty type with a brace body, and skipping it is the rules' own gap. Expected: reported, and the fix writes `class C;`. The stray semicolon says nothing — behind the braces it declares no member, and behind a semicolon declaration it would be a second semicolon, which does not compile — so the conversion drops it into the one semicolon it writes.
 
 A comment, directive, or disabled text between the closing brace and the semicolon has no place in `class C;`: it would have to move in front of the semicolon or behind it, which changes what it stands next to. The braces stay, as they do for a comment inside the body (SHARED-FIX-003).
 
@@ -204,6 +204,16 @@ class H
 The rule pages of RH5412 to RH5416 and RH5418 do not change: they already say to replace the empty brace body with a semicolon, which covers this form.
 
 ## Decisions
+
+### The maintainer approved every visible output change
+
+The maintainer answered the output questions as follows.
+
+- **The empty body followed by a semicolon (RH5412 to RH5416): reported and fixed.** `class A⏎{⏎};`, `class B { };`, `class C⏎{⏎}⏎;`, and `class D⏎{⏎}; // note` are reported on the name, and the fix writes `class A;`, `class B;`, `class C;`, and `class D; // note`, rather than staying unreported as on `main`.
+- **Unions (RH5418): the same.** `union U(int, string)⏎{⏎};` is reported, and the fix writes `union U(int, string);`.
+- **A comment or directive between the closing brace and the semicolon: reported, no fix.** `} /* note */;`, `} // note⏎;`, and a `#region`/`#endregion` pair between `}` and `;` are reported without a code fix, rather than staying unreported or having the comment moved behind the new semicolon.
+- **The formatter: converts the same shapes.** `reihitsu-format` writes the outputs of the fix above and leaves a declaration with a comment or directive between `}` and `;` as written.
+- **Other formatter-backed fixes: convert a nested type.** RH5404's fix on `class H { class I { }; }` writes `class I;` inside `H`, rather than `class I⏎{⏎};`.
 
 ### The issue's directive goals are already decided
 

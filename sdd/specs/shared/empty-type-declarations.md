@@ -99,7 +99,7 @@ is not reported.
 
 ### SHARED-EMPTY-003 — The fix writes the semicolon declaration
 
-The code fix MUST replace the braces with a semicolon directly after the declaration's header, as FMT-STRUCT-017 does. A comment that followed the closing brace on its line MUST follow the semicolon.
+The code fix MUST replace the braces with a semicolon directly after the declaration's header, as FMT-STRUCT-017 does. When no semicolon follows the closing brace, a comment that followed the closing brace on its line MUST follow the semicolon; when one does, SHARED-EMPTY-005 decides.
 
 Why: The semicolon declaration is the form the diagnostic asks for, and it declares the same type. A comment behind the closing brace describes the whole declaration and stays at its end.
 
