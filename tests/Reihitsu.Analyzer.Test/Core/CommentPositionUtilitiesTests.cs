@@ -36,43 +36,6 @@ public class CommentPositionUtilitiesTests
     #region Tests
 
     /// <summary>
-    /// Verifies that the analyzer decides ownership of a gap inside a list element exactly like the formatter does
-    /// before it joins the line of the token after the gap
-    /// </summary>
-    /// <param name="statement">Statement containing the <c>/*X*/</c> marker comment inside an argument</param>
-    [TestMethod]
-    [DataRow("Run(new\n/*X*/{ A = 1 });")]
-    [DataRow("Run(new System.Collections.Generic.List<int>()\n/*X*/{ 1 });")]
-    [DataRow("Run(o\n/*X*/switch { _ => 1 });")]
-    [DataRow("Run(o is string\n/*X*/{ Length: 1 });")]
-    [DataRow("Run(o is\n/*X*/(1 or 2));")]
-    [DataRow("Run(items is\n/*X*/[1]);")]
-    [DataRow("Run([1,\n/*X*/2]);")]
-    [DataRow("Run(1 +\n/*X*/[2].Length);")]
-    [DataRow("Run((System.Action)(() =>\n/*X*/{\n}));")]
-    [DataRow("Run((System.Func<int>)(() =>\n/*X*/1));")]
-    [DataRow("Run(from item in items\n/*X*/where item > 0 select item);")]
-    [DataRow("Run(from item\n/*X*/in items select item);")]
-    [DataRow("Run($\"{a /*X*/}\");")]
-    [DataRow("Run(a\n/*X*/&& b);")]
-    [DataRow("Run(items.Where(item => item > 0)\n/*X*/.ToList());")]
-    public void IsOwnedByNestedConstructMatchesFormatterOwnership(string statement)
-    {
-        var comment = GetMarkerComment(statement);
-
-        Assert.IsTrue(CommentPositionUtilities.TryGetSurroundingTokens(comment, out _, out var nextToken));
-
-        var element = nextToken.Parent.AncestorsAndSelf().First(ListElementInteriorUtilities.IsListElement);
-
-        Assert.AreNotEqual(element.GetFirstToken(), nextToken, "The fixture must not place the marker on the boundary before an element.");
-
-        var isOwnedByFormatter = ListElementInteriorUtilities.FindOwningConstruct(nextToken, element) != null;
-        var isOwnedByAnalyzer = CommentPositionUtilities.IsOwnedByNestedConstruct(element.Parent, nextToken);
-
-        Assert.AreEqual(isOwnedByFormatter, isOwnedByAnalyzer);
-    }
-
-    /// <summary>
     /// Verifies that a gap inside a list element belongs to a nested construct exactly when the token after the gap is one of the
     /// tokens of a construct that lays out its own lines, for the analyzer and the formatter alike: an anonymous object, an
     /// initializer, a switch expression, a property pattern, a parenthesized pattern, a list pattern, a collection expression after
@@ -106,6 +69,7 @@ public class CommentPositionUtilitiesTests
 
         var element = nextToken.Parent.AncestorsAndSelf().First(ListElementInteriorUtilities.IsListElement);
 
+        Assert.AreNotEqual(element.GetFirstToken(), nextToken, "The fixture must not place the marker on the boundary before an element.");
         Assert.AreEqual(isOwned, CommentPositionUtilities.IsOwnedByNestedConstruct(element.Parent, nextToken), "Analyzer");
         Assert.AreEqual(isOwned, ListElementInteriorUtilities.FindOwningConstruct(nextToken, element) != null, "Formatter");
     }
