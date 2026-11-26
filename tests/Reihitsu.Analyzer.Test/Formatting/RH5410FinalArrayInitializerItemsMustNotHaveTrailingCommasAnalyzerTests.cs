@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -184,8 +185,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
 
     /// <summary>
     /// Verifies that the trailing comma is reported without a code fix when a conditional-compilation block carrying a
-    /// further element follows the final active item, and that, where the symbol is defined, the comma of the item
-    /// inside the block is reported without a code fix
+    /// further element follows the final active item
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -193,40 +193,71 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     [Requirement("SHARED-DIAG-008")]
     public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsReportedWithoutFix()
     {
-        const string withoutSymbol = """
-                                     internal class Example
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new[]
+                                        {
+                                            1{|RH5410:,|}
+                                #if SYMBOL
+                                            2,
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that, where the symbol is defined, the comma of the final item inside the conditional block, in front of
+    /// its <c>#endif</c>, is reported and removed by the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-004")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyCommaOfFinalItemInsideConditionalBlockIsFixedWhereTheSymbolIsDefined()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new[]
+                                        {
+                                            1,
+                                #if SYMBOL
+                                            2{|RH5410:,|}
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
                                      {
-                                         private static void Method()
+                                         var values = new[]
                                          {
-                                             var values = new[]
-                                             {
-                                                 1{|RH5410:,|}
-                                     #if SYMBOL
-                                                 2,
-                                     #endif
-                                             };
-                                         }
+                                             1,
+                                 #if SYMBOL
+                                             2
+                                 #endif
+                                         };
                                      }
-                                     """;
+                                 }
+                                 """;
 
-        const string withSymbol = """
-                                  internal class Example
-                                  {
-                                      private static void Method()
-                                      {
-                                          var values = new[]
-                                          {
-                                              1,
-                                  #if SYMBOL
-                                              2{|RH5410:,|}
-                                  #endif
-                                          };
-                                      }
-                                  }
-                                  """;
-
-        await VerifyNoCodeFixIsOffered(withoutSymbol);
-        await VerifyNoCodeFixIsOffered(withSymbol, DocumentationMode.Parse, "SYMBOL");
+        await Verify(testData,
+                     fixedData,
+                     test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("SYMBOL"))
+                                                                                      : solution));
     }
 
     /// <summary>
@@ -257,6 +288,87 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
 
         await Verify(testData);
         await VerifyWithPreprocessorSymbols(testData, "SYMBOL");
+    }
+
+    /// <summary>
+    /// Verifies the change's example of an array initializer: the comma in front of the <c>#endif</c> of an active block is
+    /// reported and removed by the code fix, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCommaInFrontOfEndIfOfAnActiveBlockIsReportedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int[] _numbers = new[]
+                                                             {
+                                                                 1,
+                                #if !X
+                                                                 2{|RH5410:,|}
+                                #endif
+                                                             };
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int[] _numbers = new[]
+                                                              {
+                                                                  1,
+                                 #if !X
+                                                                  2
+                                 #endif
+                                                              };
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData));
+    }
+
+    /// <summary>
+    /// Verifies that the comma of an inner array initializer in front of an <c>#endif</c> and the comma of the outer
+    /// initializer are both reported and removed by Fix All
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyInnerCommaInFrontOfEndIfAndOuterCommaAreReportedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int[][] _numbers = new[]
+                                                               {
+                                                                   new[]
+                                                                   {
+                                                                       1,
+                                #if !X
+                                                                       2{|RH5410:,|}
+                                #endif
+                                                                   }{|RH5410:,|}
+                                                               };
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int[][] _numbers = new[]
+                                                                {
+                                                                    new[]
+                                                                    {
+                                                                        1,
+                                 #if !X
+                                                                        2
+                                 #endif
+                                                                    }
+                                                                };
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>

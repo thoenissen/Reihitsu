@@ -2859,6 +2859,59 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         Assert.Contains("},\n#pragma warning disable CS0169\n        _b;\n#pragma warning restore CS0169\n}", fixedSource.Replace("\r\n", "\n"));
     }
 
+    /// <summary>
+    /// Verifies the change's example of a code fix that formats a collection initializer through the formatter: the comma in
+    /// front of the <c>#endif</c> behind an active <c>#else</c> branch stays, since the formatter keeps a trailing comma in
+    /// front of every conditional directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCodeFixKeepsTrailingCommaInFrontOfEndIfBehindActiveElseBranch()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var list = {|#0:new List<int> { 1,
+                                #if X
+                                            2,
+                                #else
+                                            3,
+                                #endif
+                                        }|};
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Collections.Generic;
+
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var list = new List<int>
+                                                     {
+                                                         1,
+                                  #if X
+                                              2,
+                                  #else
+                                                         3,
+                                  #endif
+                                                     };
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

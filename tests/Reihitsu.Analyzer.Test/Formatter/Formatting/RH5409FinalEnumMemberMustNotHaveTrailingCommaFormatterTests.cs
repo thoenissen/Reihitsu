@@ -91,5 +91,57 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaFormatterTests : Forma
         await VerifyFormatterKeepsReportedShape(input);
     }
 
+    /// <summary>
+    /// Verifies the specification example of a comma in front of an <c>#endif</c> behind an active <c>#else</c> branch: the
+    /// comma is reported, and the formatter keeps it as written under LF and CRLF, although the code fix removes it, so
+    /// formatting does not clear the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCommaAtTheEndOfAnActiveElseBranchIsReportedAndKeptByTheFormatter()
+    {
+        const string input = """
+                             enum Level
+                             {
+                                 Low,
+                             #if DEBUG
+                                 Trace,
+                             #else
+                                 High{|RH5409:,|}
+                             #endif
+                             }
+                             """;
+
+        await VerifyFormatterKeepsReportedShape(input);
+    }
+
+    /// <summary>
+    /// Verifies that the comma behind the last member of an active branch, in front of an <c>#elif</c> whose branch the
+    /// build excludes, is reported, and that the formatter keeps it as written under LF and CRLF, although the code fix
+    /// removes it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCommaInFrontOfElifIsReportedAndKeptByTheFormatter()
+    {
+        const string input = """
+                             enum E
+                             {
+                                 A,
+                             #if !X
+                                 B{|RH5409:,|}
+                             #elif Y
+                                 C,
+                             #endif
+                             }
+                             """;
+
+        await VerifyFormatterKeepsReportedShape(input);
+    }
+
     #endregion // Tests
 }

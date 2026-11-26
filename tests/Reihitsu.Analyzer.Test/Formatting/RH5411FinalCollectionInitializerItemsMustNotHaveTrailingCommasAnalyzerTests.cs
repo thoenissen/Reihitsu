@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -179,8 +180,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
 
     /// <summary>
     /// Verifies that the trailing comma is reported without a code fix when a conditional-compilation block carrying a
-    /// further element follows the final active item, and that, where the symbol is defined, the comma of the item
-    /// inside the block is reported without a code fix
+    /// further element follows the final active item
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -188,44 +188,77 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     [Requirement("SHARED-DIAG-008")]
     public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsReportedWithoutFix()
     {
-        const string withoutSymbol = """
-                                     using System.Collections.Generic;
+        const string testData = """
+                                using System.Collections.Generic;
 
-                                     internal class Example
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>
+                                        {
+                                            1{|RH5411:,|}
+                                #if SYMBOL
+                                            2,
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that, where the symbol is defined, the comma of the final item inside the conditional block, in front of
+    /// its <c>#endif</c>, is reported and removed by the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-004")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyCommaOfFinalItemInsideConditionalBlockIsFixedWhereTheSymbolIsDefined()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var values = new List<int>
+                                        {
+                                            1,
+                                #if SYMBOL
+                                            2{|RH5411:,|}
+                                #endif
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
                                      {
-                                         private static void Method()
+                                         var values = new List<int>
                                          {
-                                             var values = new List<int>
-                                             {
-                                                 1{|RH5411:,|}
-                                     #if SYMBOL
-                                                 2,
-                                     #endif
-                                             };
-                                         }
+                                             1,
+                                 #if SYMBOL
+                                             2
+                                 #endif
+                                         };
                                      }
-                                     """;
+                                 }
+                                 """;
 
-        const string withSymbol = """
-                                  using System.Collections.Generic;
-
-                                  internal class Example
-                                  {
-                                      private static void Method()
-                                      {
-                                          var values = new List<int>
-                                          {
-                                              1,
-                                  #if SYMBOL
-                                              2{|RH5411:,|}
-                                  #endif
-                                          };
-                                      }
-                                  }
-                                  """;
-
-        await VerifyNoCodeFixIsOffered(withoutSymbol);
-        await VerifyNoCodeFixIsOffered(withSymbol, DocumentationMode.Parse, "SYMBOL");
+        await Verify(testData,
+                     fixedData,
+                     test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("SYMBOL"))
+                                                                                      : solution));
     }
 
     /// <summary>
@@ -258,6 +291,53 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
 
         await Verify(testData);
         await VerifyWithPreprocessorSymbols(testData, "SYMBOL");
+    }
+
+    /// <summary>
+    /// Verifies the change's example of a collection initializer: the comma in front of the <c>#endif</c> behind an active
+    /// <c>#else</c> branch is reported and removed by the code fix, which leaves the excluded branch as written, under LF
+    /// and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCommaAtTheEndOfAnActiveElseBranchIsReportedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    private List<int> _numbers = new List<int>
+                                                                 {
+                                                                     1,
+                                #if X
+                                                                     2,
+                                #else
+                                                                     3{|RH5411:,|}
+                                #endif
+                                                                 };
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     private List<int> _numbers = new List<int>
+                                                                  {
+                                                                      1,
+                                 #if X
+                                                                      2,
+                                 #else
+                                                                      3
+                                 #endif
+                                                                  };
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData));
     }
 
     /// <summary>

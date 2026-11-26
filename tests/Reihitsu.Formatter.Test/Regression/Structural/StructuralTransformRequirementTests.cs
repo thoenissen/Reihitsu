@@ -371,6 +371,83 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example of enum trailing commas: the comma after the last member is removed, a comment
+    /// behind it stays on the last member, and the comma in front of an <c>#if</c> and the comma in front of an
+    /// <c>#endif</c> behind an active <c>#else</c> branch are both kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
+    public void SpecificationExampleOfEnumTrailingCommasKeepsCommasInFrontOfConditionalDirectives()
+    {
+        // Arrange
+        const string input = """
+                             enum Color
+                             {
+                                 Red,
+                                 Green,
+                             }
+
+                             enum Size
+                             {
+                                 Small,
+                                 Large, // largest
+                             }
+
+                             enum Mode
+                             {
+                                 A,
+                             #if DEBUG
+                                 B,
+                             #endif
+                             }
+
+                             enum Level
+                             {
+                                 Low,
+                             #if DEBUG
+                                 Trace,
+                             #else
+                                 High,
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                enum Color
+                                {
+                                    Red,
+                                    Green
+                                }
+
+                                enum Size
+                                {
+                                    Small,
+                                    Large // largest
+                                }
+
+                                enum Mode
+                                {
+                                    A,
+                                #if DEBUG
+                                    B,
+                                #endif
+                                }
+
+                                enum Level
+                                {
+                                    Low,
+                                #if DEBUG
+                                    Trace,
+                                #else
+                                    High,
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that the trailing comma of an object initializer, an anonymous object creation, and a collection
     /// expression is kept, while the one of an array initializer beside them is removed
     /// </summary>
