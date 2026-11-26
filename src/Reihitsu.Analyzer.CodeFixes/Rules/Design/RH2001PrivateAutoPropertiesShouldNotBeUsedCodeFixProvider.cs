@@ -494,7 +494,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
                    .Skip(1)
                    .SelectMany(modifier => modifier.LeadingTrivia)
                    .Concat(node.Type.GetLeadingTrivia())
-                   .Any(IsConditionalDirective);
+                   .Any(SyntaxTriviaUtilities.IsConditionalDirective);
     }
 
     /// <summary>
@@ -508,19 +508,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     private static bool HasConditionalDirectiveNextToTheProperty(PropertyDeclarationSyntax node)
     {
         return (node.Modifiers.Count > 0
-                && node.Modifiers[0].LeadingTrivia.Any(IsConditionalDirective))
+                && node.Modifiers[0].LeadingTrivia.Any(SyntaxTriviaUtilities.IsConditionalDirective))
                || (node.Initializer == null
-                   && node.GetLastToken().GetNextToken().LeadingTrivia.Any(IsConditionalDirective));
-    }
-
-    /// <summary>
-    /// Determines whether the trivia is an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> directive
-    /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is a conditional directive</returns>
-    private static bool IsConditionalDirective(SyntaxTrivia trivia)
-    {
-        return trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia;
+                   && node.GetLastToken().GetNextToken().LeadingTrivia.Any(SyntaxTriviaUtilities.IsConditionalDirective));
     }
 
     /// <summary>

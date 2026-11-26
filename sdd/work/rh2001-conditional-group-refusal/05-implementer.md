@@ -46,3 +46,16 @@ _None._
 
 ## Follow-up candidates
 - The conditional-directive kind test exists as three small private/internal copies (`SyntaxTriviaUtilities`, `ConditionalGroupUnitUtilities`, RH2001 fix). Consolidating into one public Core predicate is a small internal cleanup (≈10 lines), outside this issue.
+
+## Continuation — lead decision 5 (adjacent cleanup)
+
+Commit: this section's commit (`git log -1 -- sdd/work/rh2001-conditional-group-refusal/05-implementer.md`). Verdict: tests pass. No behavior change.
+
+| File | What changed |
+|---|---|
+| `src/Reihitsu.Core/SyntaxTriviaUtilities.cs` | `IsConditionalDirective(SyntaxTrivia)` changed from `private` to `public` (same body: `#if`/`#elif`/`#else`/`#endif`), moved among the public members next to `IsRegionDirective`, and its summary names the four kinds. Its two internal callers are unchanged |
+| `src/Reihitsu.Analyzer.CodeFixes/Rules/Design/RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs` | Private `IsConditionalDirective` copy deleted; `HasConditionalDirectiveBetweenModifiers` and `HasConditionalDirectiveNextToTheProperty` call `SyntaxTriviaUtilities.IsConditionalDirective` |
+
+New public member: `SyntaxTriviaUtilities.IsConditionalDirective` (it was private; it is no new logic). `ConditionalGroupUnitUtilities.IsConditionalDirective(DirectiveTriviaSyntax)` stays as is: it takes a directive node, not trivia, and was outside the decision's scope. Round delta: `git diff --shortstat` 2 files, 16 insertions(+), 26 deletions(-).
+
+Tests run (Debug): RH2001 filter 305/305 passed; `--project core` 887/887 passed; `--project architecture` 198/198 passed. Build succeeded; `scripts/format.sh` changed 0 of 2 files.
