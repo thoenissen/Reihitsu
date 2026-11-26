@@ -62,7 +62,8 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Keeps a collection initializer on the same line as the assignment operator
+    /// Keeps a collection initializer on the same line as the assignment operator. The gap behind the operator holds no comment,
+    /// directive, or disabled text: the precheck refuses an input that holds one there (FMT-UNSUP-020)
     /// </summary>
     /// <param name="node">The assignment expression to normalize</param>
     /// <returns>The updated assignment expression</returns>
@@ -75,16 +76,12 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.OperatorToken, initializer.GetFirstToken()))
-        {
-            return node;
-        }
-
         return node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia)));
     }
 
     /// <summary>
-    /// Keeps a collection expression on the same line as the assignment operator
+    /// Keeps a collection expression on the same line as the assignment operator. The gap behind the operator holds no comment,
+    /// directive, or disabled text: the precheck refuses an input that holds one there (FMT-UNSUP-020)
     /// </summary>
     /// <param name="node">The assignment expression to normalize</param>
     /// <returns>The updated assignment expression</returns>
@@ -98,12 +95,6 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         var operatorToken = node.OperatorToken;
         var openBracket = node.Right.GetFirstToken();
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, openBracket))
-        {
-            return node;
-        }
-
         var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken, openBracket);
         var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
@@ -165,7 +156,8 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Moves an assignment value onto the operator line, for <c>=</c> and every compound assignment operator alike
-    /// (FMT-BREAK-016, FMT-PIPE-014)
+    /// (FMT-BREAK-016, FMT-PIPE-014). The gap behind the operator holds no comment, directive, or disabled text: the precheck
+    /// refuses an input that holds one there (FMT-UNSUP-020)
     /// </summary>
     /// <param name="node">The assignment expression to normalize</param>
     /// <returns>The updated assignment expression</returns>
@@ -185,11 +177,6 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.OperatorToken, rightFirstToken))
-        {
-            return node;
-        }
-
         var operatorToken = node.OperatorToken;
         var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken, rightFirstToken);
         var newRightFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
@@ -201,7 +188,8 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Keeps a collection expression on the same line as the equals token
+    /// Keeps a collection expression on the same line as the equals token. The gap behind the <c>=</c> holds no comment,
+    /// directive, or disabled text: the precheck refuses an input that holds one there (FMT-UNSUP-020)
     /// </summary>
     /// <param name="node">The equals-value clause to normalize</param>
     /// <returns>The updated equals-value clause</returns>
@@ -215,12 +203,6 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         var equalsToken = node.EqualsToken;
         var openBracket = node.Value.GetFirstToken();
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(equalsToken, openBracket))
-        {
-            return node;
-        }
-
         var newEqualsToken = NormalizeTrailingTriviaToSameLine(equalsToken, openBracket);
         var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
@@ -231,7 +213,8 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Moves an equals-value clause value onto the equals line
+    /// Moves an equals-value clause value onto the equals line. The gap behind the <c>=</c> holds no comment, directive, or
+    /// disabled text: the precheck refuses an input that holds one there (FMT-UNSUP-020)
     /// </summary>
     /// <param name="node">The equals-value clause to normalize</param>
     /// <returns>The updated equals-value clause</returns>
@@ -246,11 +229,6 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         var valueFirstToken = node.Value.GetFirstToken();
 
         if (valueFirstToken == default || LineBreakTriviaUtilities.HasLeadingEndOfLine(valueFirstToken) == false)
-        {
-            return node;
-        }
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.EqualsToken, valueFirstToken))
         {
             return node;
         }
