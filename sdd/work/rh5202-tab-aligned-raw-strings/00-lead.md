@@ -33,6 +33,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Auditor 15 (968166b): PASS. Audited SHA 689a88dfa36de0a9558977d2b72357eb660e8c8a. Auditor hint (other code fixes may share the FindNode pattern) is unverified, not a follow-up candidate. Next: validator 16.
 - Spec checker 14 (87cdf91): consistent. Next: auditor 15 on repair only.
 - Cleaner 13 done (62d998c): clean. Next: spec checker 14.
 - Implementer 12 done (e80be2a, 0e25259, 06f04ec): FindNode innermost-for-tie; guard removed; summaries. All green. Next: cleaner 13.
