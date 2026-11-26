@@ -545,6 +545,17 @@ public class UnsupportedLinkDotNameCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that of a comment in the trailing trivia of the <c>.</c> and a comment in the leading trivia of the member name, the
+    /// one in the trailing trivia, which comes first in the text, is reported
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-016")]
+    public void CommentInTheTrailingTriviaOfTheDotIsReportedBeforeOneInFrontOfTheName()
+    {
+        AssertUnsupportedFor(LinkDotNameCommentReason, WrapInMethod("        Use(t. // first\n            // second\n            Length);"), "// first");
+    }
+
+    /// <summary>
     /// Verifies that of a comment between a dot and its member name and a comment of another shape, the first in the text is
     /// reported, also when both stand in one link
     /// </summary>

@@ -14,6 +14,32 @@ namespace Reihitsu.Core.Test;
 [TestClass]
 public class SyntaxTriviaUtilitiesTests
 {
+    #region Constants
+
+    /// <summary>
+    /// A source that holds one directive of every kind, each on its own line
+    /// </summary>
+    private const string AllDirectiveKindsSource = """
+                                                   #define A
+                                                   #undef B
+                                                   #if A
+                                                   #region R
+                                                   #endregion
+                                                   #elif B
+                                                   #else
+                                                   #endif
+                                                   #pragma warning disable CS0168
+                                                   #nullable enable
+                                                   #line default
+                                                   #warning W
+                                                   #error E
+                                                   class C
+                                                   {
+                                                   }
+                                                   """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1044,6 +1070,33 @@ public class SyntaxTriviaUtilitiesTests
         var token = GetTokenAt(source, "int target");
 
         Assert.IsFalse(SyntaxTriviaUtilities.HasCommentDirectlyAbove(token));
+    }
+
+    /// <summary>
+    /// Verifies that exactly the <c>#if</c>, <c>#elif</c>, <c>#else</c>, and <c>#endif</c> directives are conditional directives
+    /// </summary>
+    /// <param name="directive">The text of the directive</param>
+    /// <param name="isConditional">Whether the directive is a conditional directive</param>
+    [TestMethod]
+    [DataRow("#if A", true)]
+    [DataRow("#elif B", true)]
+    [DataRow("#else", true)]
+    [DataRow("#endif", true)]
+    [DataRow("#define A", false)]
+    [DataRow("#undef B", false)]
+    [DataRow("#region R", false)]
+    [DataRow("#endregion", false)]
+    [DataRow("#pragma warning disable CS0168", false)]
+    [DataRow("#nullable enable", false)]
+    [DataRow("#line default", false)]
+    [DataRow("#warning W", false)]
+    [DataRow("#error E", false)]
+    public void IsConditionalDirectiveRecognizesExactlyTheConditionalDirectives(string directive, bool isConditional)
+    {
+        var trivia = GetRoot(AllDirectiveKindsSource).DescendantTrivia()
+                                                     .Single(candidate => candidate.IsDirective && candidate.ToFullString().TrimEnd() == directive);
+
+        Assert.AreEqual(isConditional, SyntaxTriviaUtilities.IsConditionalDirective(trivia));
     }
 
     #endregion // Tests

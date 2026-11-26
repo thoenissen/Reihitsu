@@ -512,6 +512,17 @@ public class UnsupportedBinaryOperatorCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that of a comment in the trailing trivia of the operator and a comment in the leading trivia of the right operand's
+    /// first token, the one in the trailing trivia, which comes first in the text, is reported
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-011")]
+    public void CommentInTheTrailingTriviaOfTheOperatorIsReportedBeforeOneInFrontOfTheOperand()
+    {
+        AssertUnsupportedFor(BinaryOperatorCommentReason, WrapInMethod("        var x = i + // first\n                // second\n                j;"), "// first");
+    }
+
+    /// <summary>
     /// Verifies that of a comment behind a binary operator and a comment of another shape, the first in the text is reported
     /// </summary>
     [TestMethod]

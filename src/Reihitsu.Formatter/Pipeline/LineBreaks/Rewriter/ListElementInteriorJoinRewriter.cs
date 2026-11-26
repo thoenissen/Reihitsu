@@ -33,9 +33,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// argument list, an element access, a conditional element access, or a null-forgiving operator, and between the
 /// <c>?</c> and the <c>[</c> of a conditional element access (<see cref="AttachedPartLineStartRewriter"/>) -, operator wraps of binary, conditional, member-access, postfix,
 /// is-pattern, and assignment expressions, multi-line literals, attribute-list placement, and every line inside a
-/// construct <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names - brace scopes, initializers, switch
-/// expressions, patterns, collection expression interiors, interpolation holes, and the clauses after a query's first
-/// <c>from</c>. When a new rewriter takes ownership of a gap inside a list element, that gap has to be excluded here as
+/// construct that lays out its own lines (<see cref="SyntaxIndentationUtilities.IsOwningConstruct"/>) - brace scopes,
+/// initializers, anonymous objects, switch expressions, patterns, collection expression interiors, accessor lists,
+/// interpolation holes, and the clauses after a query's first <c>from</c>. When a new rewriter takes ownership of a gap inside a list element, that gap has to be excluded here as
 /// well, or this rewriter and the new owner would disagree about the same line break.
 /// </para>
 /// <para>

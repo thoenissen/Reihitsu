@@ -448,10 +448,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// <returns>The first such trivia, or <see langword="null"/></returns>
     private static SyntaxTrivia? FindTriviaBehindConditionalOperator(ConditionalExpressionSyntax conditional)
     {
-        return FindFirstUnsupportedOperatorTrivia(conditional.QuestionToken.TrailingTrivia)
-                   ?? FindFirstUnsupportedOperatorTrivia(conditional.WhenTrue.GetFirstToken().LeadingTrivia)
-                   ?? FindFirstUnsupportedOperatorTrivia(conditional.ColonToken.TrailingTrivia)
-                   ?? FindFirstUnsupportedOperatorTrivia(conditional.WhenFalse.GetFirstToken().LeadingTrivia);
+        return FindTriviaBehindToken(conditional.QuestionToken, conditional.WhenTrue)
+                   ?? FindTriviaBehindToken(conditional.ColonToken, conditional.WhenFalse);
     }
 
     /// <summary>
@@ -464,8 +462,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// <returns>The first such trivia, or <see langword="null"/></returns>
     private static SyntaxTrivia? FindTriviaBehindBinaryOperator(BinaryExpressionSyntax binary)
     {
-        return FindFirstUnsupportedOperatorTrivia(binary.OperatorToken.TrailingTrivia)
-                   ?? FindFirstUnsupportedOperatorTrivia(binary.Right.GetFirstToken().LeadingTrivia);
+        return FindTriviaBehindToken(binary.OperatorToken, binary.Right);
     }
 
     /// <summary>
@@ -478,8 +475,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// <returns>The first such trivia, or <see langword="null"/></returns>
     private static SyntaxTrivia? FindTriviaBehindExpressionBodyArrow(ArrowExpressionClauseSyntax arrowExpressionClause)
     {
-        return FindFirstUnsupportedOperatorTrivia(arrowExpressionClause.ArrowToken.TrailingTrivia)
-                   ?? FindFirstUnsupportedOperatorTrivia(arrowExpressionClause.Expression.GetFirstToken().LeadingTrivia);
+        return FindTriviaBehindToken(arrowExpressionClause.ArrowToken, arrowExpressionClause.Expression);
     }
 
     /// <summary>
@@ -603,8 +599,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
             return null;
         }
 
-        return FindFirstUnsupportedOperatorTrivia(dotToken.TrailingTrivia)
-                   ?? FindFirstUnsupportedOperatorTrivia(name.GetFirstToken().LeadingTrivia);
+        return FindTriviaBehindToken(dotToken, name);
     }
 
     /// <summary>
@@ -747,12 +742,15 @@ internal sealed class PrecheckPhase : IFormattingPhase
 
     /// <summary>
     /// Finds the first comment, directive, or disabled text between a token and the node behind it: in the trailing trivia of
-    /// the token, or in the leading trivia of the node's first token (FMT-UNSUP-020 to FMT-UNSUP-022). The token and the node
-    /// belong to one node, so an input that holds the token holds the whole gap, and one that holds only the node behind it
-    /// holds none of it (FMT-UNSUP-003)
+    /// the token, or in the leading trivia of the node's first token, read in that order. It is the one statement of this read
+    /// for every gap between a token and the node behind it: a conditional operator and its branch (FMT-UNSUP-008), a binary
+    /// operator and its right operand (FMT-UNSUP-011), the arrow of an expression body and its expression (FMT-UNSUP-012), the
+    /// <c>.</c> of a link and its name (FMT-UNSUP-016), and an assignment operator, a <c>=</c>, or a switch arm's <c>=&gt;</c> and
+    /// the node behind it (FMT-UNSUP-020 to FMT-UNSUP-022). The token and the node belong to one node, so an input that holds
+    /// the token holds the whole gap, and one that holds only the node behind it holds none of it (FMT-UNSUP-003)
     /// </summary>
-    /// <param name="token">The assignment operator, the <c>=</c>, or the <c>=&gt;</c></param>
-    /// <param name="behind">The right operand, the value, the arm's expression, or the alias's target</param>
+    /// <param name="token">The operator, the <c>.</c>, the <c>=</c>, or the <c>=&gt;</c></param>
+    /// <param name="behind">The node behind the token</param>
     /// <returns>The first such trivia, or <see langword="null"/></returns>
     private static SyntaxTrivia? FindTriviaBehindToken(SyntaxToken token, SyntaxNode behind)
     {

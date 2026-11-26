@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Utilities;
@@ -81,8 +82,8 @@ internal static class ListElementAligner
     /// <summary>
     /// Aligns every line that starts inside an element at a token other than the element's first token with that
     /// first token. A line inside a construct that lays out its own lines - as
-    /// <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names them, the same constructs whose interior
-    /// wraps the line-break phase keeps - is left to that construct; the clauses of a query are the query clause
+    /// <see cref="SyntaxIndentationUtilities.IsOwningConstruct"/> decides, the same constructs whose interior wraps the
+    /// line-break phase keeps - is left to that construct; the clauses of a query are the query clause
     /// contributor's (FMT-INDENT-035), and a line inside a clause is a continuation line of that clause (FMT-INDENT-034). The
     /// alignment is a fallback (<see cref="LayoutModel.SetUnlessPlaced"/>): a construct inside the element whose contributor
     /// places the line, such as a wrapped binary operator, a conditional, or a chain link, is the line's only owner
