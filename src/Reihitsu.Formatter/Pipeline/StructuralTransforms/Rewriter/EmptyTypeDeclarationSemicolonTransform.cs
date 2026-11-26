@@ -45,14 +45,20 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     #region Methods
 
     /// <summary>
-    /// Creates a semicolon token that preserves the trailing trivia from the removed close brace
+    /// Creates the declaration's one semicolon. It keeps the trailing trivia of the semicolon that followed the
+    /// removed close brace, or of the close brace when no semicolon followed it; the whitespace and line breaks
+    /// between the close brace and a following semicolon go with them (FMT-STRUCT-017)
     /// </summary>
-    /// <param name="closeBraceToken">Close brace token</param>
+    /// <param name="declaration">Declaration whose braces are removed</param>
     /// <returns>The replacement semicolon token</returns>
-    private static SyntaxToken CreateSemicolonToken(SyntaxToken closeBraceToken)
+    private static SyntaxToken CreateSemicolonToken(TypeDeclarationSyntax declaration)
     {
+        var trailingTrivia = declaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken)
+                                 ? declaration.SemicolonToken.TrailingTrivia
+                                 : declaration.CloseBraceToken.TrailingTrivia;
+
         // Built with explicit trivia, so the created token carries no elastic trivia (FMT-STRUCT-026)
-        return SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, closeBraceToken.TrailingTrivia);
+        return SyntaxFactory.Token(default, SyntaxKind.SemicolonToken, trailingTrivia);
     }
 
     /// <summary>
@@ -67,7 +73,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     }
 
     /// <summary>
-    /// Converts the declaration from brace form to semicolon form
+    /// Converts the declaration from brace form to semicolon form, replacing a semicolon that followed the braces
     /// </summary>
     /// <typeparam name="TDeclaration">Declaration type</typeparam>
     /// <param name="declaration">Declaration</param>
@@ -76,7 +82,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
         where TDeclaration : TypeDeclarationSyntax
     {
         var tokenBeforeOpenBrace = SyntaxTokenNavigationUtilities.GetPreviousToken(declaration.OpenBraceToken);
-        var semicolonToken = CreateSemicolonToken(declaration.CloseBraceToken);
+        var semicolonToken = CreateSemicolonToken(declaration);
         var updatedDeclaration = declaration;
 
         if (tokenBeforeOpenBrace.IsKind(SyntaxKind.None) == false)

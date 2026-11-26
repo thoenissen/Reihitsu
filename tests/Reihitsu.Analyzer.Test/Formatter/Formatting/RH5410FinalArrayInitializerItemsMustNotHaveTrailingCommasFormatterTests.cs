@@ -109,5 +109,32 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
         await VerifyFormatterKeepsReportedShape(input);
     }
 
+    /// <summary>
+    /// Verifies the change's example of an array initializer: the comma in front of the <c>#endif</c> of an active block is
+    /// reported, and the formatter keeps it as written under LF and CRLF, although the code fix removes it, so formatting
+    /// does not clear the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCommaInFrontOfEndIfOfAnActiveBlockIsReportedAndKeptByTheFormatter()
+    {
+        const string input = """
+                             class C
+                             {
+                                 private int[] _numbers = new[]
+                                                          {
+                                                              1,
+                             #if !X
+                                                              2{|RH5410:,|}
+                             #endif
+                                                          };
+                             }
+                             """;
+
+        await VerifyFormatterKeepsReportedShape(input);
+    }
+
     #endregion // Tests
 }

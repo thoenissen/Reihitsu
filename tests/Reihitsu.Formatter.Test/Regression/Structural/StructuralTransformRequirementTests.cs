@@ -346,7 +346,48 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an empty type body holding a comment or a directive keeps its braces
+    /// Verifies the example of FMT-STRUCT-017 for a semicolon behind the closing brace: a multi-line and a one-line empty
+    /// body followed by a semicolon, an empty body whose semicolon stands on the next line, and one whose semicolon carries a
+    /// comment become one semicolon behind the header, with the comment behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
+    public void EmptyTypeBodyFollowedByASemicolonBecomesOneSemicolon()
+    {
+        // Arrange
+        const string input = """
+                             class A
+                             {
+                             };
+
+                             class B { };
+
+                             class C
+                             {
+                             }
+                             ;
+
+                             class D
+                             {
+                             }; // note
+                             """;
+        const string expected = """
+                                class A;
+
+                                class B;
+
+                                class C;
+
+                                class D; // note
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an empty type body holding a comment or a directive keeps its braces, and that an empty body with a
+    /// comment between its closing brace and the semicolon behind it keeps its braces and that semicolon
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-018")]
@@ -364,10 +405,91 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
                              #if DEBUG
                              #endif
                              }
+
+                             class Behind
+                             {
+                             } /* note */;
                              """;
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of enum trailing commas: the comma after the last member is removed, a comment
+    /// behind it stays on the last member, and the comma in front of an <c>#if</c> and the comma in front of an
+    /// <c>#endif</c> behind an active <c>#else</c> branch are both kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
+    public void SpecificationExampleOfEnumTrailingCommasKeepsCommasInFrontOfConditionalDirectives()
+    {
+        // Arrange
+        const string input = """
+                             enum Color
+                             {
+                                 Red,
+                                 Green,
+                             }
+
+                             enum Size
+                             {
+                                 Small,
+                                 Large, // largest
+                             }
+
+                             enum Mode
+                             {
+                                 A,
+                             #if DEBUG
+                                 B,
+                             #endif
+                             }
+
+                             enum Level
+                             {
+                                 Low,
+                             #if DEBUG
+                                 Trace,
+                             #else
+                                 High,
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                enum Color
+                                {
+                                    Red,
+                                    Green
+                                }
+
+                                enum Size
+                                {
+                                    Small,
+                                    Large // largest
+                                }
+
+                                enum Mode
+                                {
+                                    A,
+                                #if DEBUG
+                                    B,
+                                #endif
+                                }
+
+                                enum Level
+                                {
+                                    Low,
+                                #if DEBUG
+                                    Trace,
+                                #else
+                                    High,
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

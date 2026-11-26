@@ -48,6 +48,29 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsFormatterTests : Fo
     }
 
     /// <summary>
+    /// Verifies that the formatter converts an empty class followed by a semicolon to one semicolon, which the analyzer no
+    /// longer reports
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
+    public async Task VerifyFormatterFixesEmptyClassFollowedByASemicolon()
+    {
+        const string input = """
+                             internal class {|#0:Example|}
+                             {
+                             };
+                             """;
+        const string fixedData = """
+                                 internal class Example;
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying that the formatter does not rewrite commented classes
     /// </summary>
     [TestMethod]

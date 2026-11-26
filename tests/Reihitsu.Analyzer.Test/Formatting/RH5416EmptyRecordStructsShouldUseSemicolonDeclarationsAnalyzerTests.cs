@@ -217,6 +217,38 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
                      Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a multi-line and a one-line empty record struct followed by a semicolon are reported, and that the fix writes
+    /// one semicolon behind each header
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-005")]
+    [Requirement("RH5416-001")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task VerifyEmptyRecordStructFollowedByASemicolonIsReportedAndFixed(string endOfLine)
+    {
+        const string testData = """
+                                record struct {|#0:S|}(int Value)
+                                {
+                                };
+
+                                record struct {|#1:T|} { };
+                                """;
+        const string fixedData = """
+                                 record struct S(int Value);
+
+                                 record struct T;
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region Methods

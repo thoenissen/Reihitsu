@@ -114,6 +114,36 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
+    /// Verifies that fixing a single-line class that holds an empty class followed by a semicolon gives the nested class the
+    /// semicolon declaration the formatter writes, with one semicolon, and that the fix writes the document's line break,
+    /// which the file-scoped namespace in front of the class carries
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task VerifyNestedEmptyTypeFollowedByASemicolonConvergesToSemicolonDeclaration(string endOfLine)
+    {
+        const string testData = """
+                                namespace N;
+
+                                class {|RH5404:H|} { class I { }; }
+                                """;
+        const string fixedData = """
+                                 namespace N;
+
+                                 class H
+                                 {
+                                     class I;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies that the inserted line breaks match the document's detected CRLF end-of-line sequence instead of
     /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
     /// </summary>

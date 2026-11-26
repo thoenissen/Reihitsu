@@ -69,9 +69,10 @@ public abstract class TrailingCommaRemovalCodeFixProviderBase : ReihitsuCodeFixP
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            // Another build can compile an element behind a conditional directive or excluded code between the comma and
-            // the closing brace, and that element needs the comma, so the fix is withheld there (SHARED-TRAIL-002)
-            if (TrailingCommaCodeFixHelper.CommaPrecedesConditionalCompilationBoundary(root, diagnostic.Location.SourceSpan))
+            // Another build that compiles the comma can compile an element behind an #if between the comma and the closing
+            // brace, and that element needs the comma, so the fix is withheld there (SHARED-TRAIL-002); an #elif, #else, or
+            // #endif there only ends the comma's branch and leaves the fix offered (SHARED-TRAIL-004)
+            if (TrailingCommaCodeFixHelper.CommaPrecedesIfDirective(root, diagnostic.Location.SourceSpan))
             {
                 continue;
             }

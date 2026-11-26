@@ -263,7 +263,11 @@ internal sealed class RawStringLineShifts
     /// <summary>
     /// Determines whether a line starts with the opening brace of an interpolation hole, so no text of the interpolated
     /// string stands in front of the brace on that line. The predicate does not check that the string is raw: only lines
-    /// that move reach it, and a line of a non-raw string gets no shift, so every hole it sees belongs to a raw string
+    /// that move reach it, and a line of a non-raw string gets no shift, so every hole it sees belongs to a raw string.
+    /// The test is deliberately limited to the opening brace and is not
+    /// <see cref="FormattingTextAnalysisUtilities.IsInterpolationBrace"/>: the indentation in front of an opening brace
+    /// that starts a line is text of the literal, while the indentation in front of a closing brace that starts a line
+    /// is leading trivia inside the hole, which the trivia edit moves
     /// </summary>
     /// <param name="token">The token that holds the line's start</param>
     /// <param name="lineStart">The position at which the line starts</param>
