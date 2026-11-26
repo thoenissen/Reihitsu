@@ -16,8 +16,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | Skeptic | Switch `RawStringLineShifts.IsHoleOpeningLine` to `IsInterpolationBrace`? | No: keep the open-brace-only test and state in its doc comment why it is not the Core check (the issue's own fallback); `Closes #1722` | The skeptic's swap broke `RawStringMovedLineStartTests.HoleLineStartingWithTheHolesClosingBraceAtColumnZeroMovesRight`; the checks differ by design | A comment only; output unchanged, proven by verify-text-only for that file | |
-| 2 | Skeptic | Take in the adjacent fix: `SingleSpaceSpacingRule.RequiresSpaceBeforeBrace` restates the Core check | Yes, adjacent fix under Scope | One line, same component, existing tests pin it (test implementer confirms or adds one), meets the issue's "one statement per policy" goal | Same predicate after the brace-kind guard; no output change | |
+| 1 | Skeptic | Switch `RawStringLineShifts.IsHoleOpeningLine` to `IsInterpolationBrace`? | No: keep the open-brace-only test and state in its doc comment why it is not the Core check (the issue's own fallback); `Closes #1722` | The skeptic's swap broke `RawStringMovedLineStartTests.HoleLineStartingWithTheHolesClosingBraceAtColumnZeroMovesRight`; the checks differ by design | A comment only; output unchanged, proven by verify-text-only for that file | 8ef5087 |
+| 2 | Skeptic | Take in the adjacent fix: `SingleSpaceSpacingRule.RequiresSpaceBeforeBrace` restates the Core check | Yes, adjacent fix under Scope | One line, same component, existing tests pin it (test implementer confirms or adds one), meets the issue's "one statement per policy" goal | Same predicate after the brace-kind guard; no output change | 8ef5087 |
 
 ## Follow-up candidates
 
@@ -25,5 +25,5 @@
 
 ## State
 
-- Last step: test implementer (02-test-implementer.md, no new test; pinning tests named).
-- Next: implementer (decisions 1 and 2).
+- Last step: implementer (03-implementer.md, tests pass, 8ef5087).
+- Next: cleaner, then spec checker.
