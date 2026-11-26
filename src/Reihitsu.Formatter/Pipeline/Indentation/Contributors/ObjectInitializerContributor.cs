@@ -120,7 +120,7 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
             case InitializerExpressionSyntax { Parent: AssignmentExpressionSyntax assignment } initializer:
                 {
                     // A brace that starts its line takes the column of the assigned member; the members and the
-                    // closing brace then follow the brace where it stands, which is behind a comment that leads its line
+                    // closing brace then follow the brace where it stands
                     if (LayoutComputer.IsFirstOnLine(initializer.OpenBraceToken))
                     {
                         var memberColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
