@@ -131,5 +131,36 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
         await VerifyFormatterKeepsReportedShape(input);
     }
 
+    /// <summary>
+    /// Verifies the change's example of a collection initializer: the comma in front of the <c>#endif</c> behind an active
+    /// <c>#else</c> branch is reported, and the formatter keeps it as written under LF and CRLF, although the code fix
+    /// removes it, so formatting does not clear the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
+    [Requirement("SHARED-TRAIL-004")]
+    public async Task VerifyCommaAtTheEndOfAnActiveElseBranchIsReportedAndKeptByTheFormatter()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 private List<int> _numbers = new List<int>
+                                                              {
+                                                                  1,
+                             #if X
+                                                                  2,
+                             #else
+                                                                  3{|RH5411:,|}
+                             #endif
+                                                              };
+                             }
+                             """;
+
+        await VerifyFormatterKeepsReportedShape(input);
+    }
+
     #endregion // Tests
 }

@@ -448,7 +448,9 @@ public static class SyntaxTriviaUtilities
     /// <c>#elif</c>, <c>#else</c>, <c>#endif</c>) or disabled text. A rewrite that deletes a trailing separator
     /// because the parsed, active syntax list makes the preceding element look final is only valid for the
     /// preprocessor-symbol configuration in effect when the tree was parsed — under a different configuration,
-    /// text the parser disabled can become active and follow that element without a separator. The predicate
+    /// text the parser disabled can become active and follow that element without a separator. This holds for an
+    /// <c>#if</c>; a gap that holds only <c>#elif</c>, <c>#else</c>, or <c>#endif</c> is kept as well by the formatter's
+    /// decision (FMT-STRUCT-019), not because of this argument. The predicate
     /// is deliberately textual: it does not evaluate which branch is reachable, because that case-by-case
     /// reasoning about symbol configurations is what let the unsafe removal through in the first place.
     /// <see cref="GetPositionSensitiveDirectives"/> and <see cref="ContainsRegionDirectives"/> are excluded on

@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-BREAK-041, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-BREAK-041, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DIAG-010, SHARED-DOC-004, SHARED-TRAIL-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -855,9 +855,9 @@ is left unchanged.
 
 ### FMT-STRUCT-019 — Enums have no trailing comma
 
-The formatter MUST remove the comma after the last member of an enum and keep the comma's trivia, such as a trailing comment, on the last member. The comma's trivia is its leading and its trailing trivia: a comment written on the last member's line in front of the comma stays behind the last member whichever token's trivia carries it — the last member's trailing trivia, as for `/* c */` and for every comment in the documentation mode `None`, or the comma's leading trivia, as for a `/** */` comment in the documentation modes `Parse` and `Diagnose`, where the parser puts no documentation comment into trailing trivia. It MUST keep the comma when a conditional directive lies between it and the closing brace.
+The formatter MUST remove the comma after the last member of an enum and keep the comma's trivia, such as a trailing comment, on the last member. The comma's trivia is its leading and its trailing trivia: a comment written on the last member's line in front of the comma stays behind the last member whichever token's trivia carries it — the last member's trailing trivia, as for `/* c */` and for every comment in the documentation mode `None`, or the comma's leading trivia, as for a `/** */` comment in the documentation modes `Parse` and `Diagnose`, where the parser puts no documentation comment into trailing trivia. It MUST keep the comma when a conditional directive lies between it and the closing brace. This holds for every kind of conditional directive, also where the only ones in that gap are `#elif`, `#else`, and `#endif` and the trailing-comma code fix removes the comma (SHARED-TRAIL-004): the formatter keeps it there, so formatting does not clear that diagnostic, and neither does a code fix that formats a node holding the list through the formatter.
 
-Why: The analyzer rule RH5409 reports the trailing comma; without it, the last member reads as the end of the list. A conditional directive in that gap means a different member may be last in another configuration, where the comma is still needed.
+Why: The analyzer rule RH5409 reports the trailing comma; without it, the last member reads as the end of the list. A conditional directive in that gap means a different member may be last in another configuration, where the comma is still needed. The formatter keeps the comma in front of every conditional directive by the maintainer's decision, also where the trailing-comma fix shows from the kinds of the directives that no build needs it. SHARED-DIAG-010 does not cover the trailing-comma rules: their fix removes the comma from the text itself and does not lay the code out as the formatter does, so the rules report a comma that the formatter keeps, and their fix removes it.
 
 Example:
 
@@ -879,6 +879,16 @@ enum Mode
     A,
 #if DEBUG
     B,
+#endif
+}
+
+enum Level
+{
+    Low,
+#if DEBUG
+    Trace,
+#else
+    High,
 #endif
 }
 ```
@@ -903,7 +913,19 @@ enum Mode
     B,
 #endif
 }
+
+enum Level
+{
+    Low,
+#if DEBUG
+    Trace,
+#else
+    High,
+#endif
+}
 ```
+
+In a build that does not define `DEBUG`, the comma behind `A` in `Mode` stands in front of an `#if` and the comma behind `High` in `Level` in front of an `#endif`; the formatter keeps both, although the RH5409 code fix removes the one behind `High` (SHARED-TRAIL-004).
 
 Example — in the documentation mode `Parse`, `/** largest */` is the comma's leading trivia and `/* largest */` the last member's trailing trivia; both stay behind the last member:
 

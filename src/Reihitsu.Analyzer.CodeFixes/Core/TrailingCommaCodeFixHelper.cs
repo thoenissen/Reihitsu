@@ -17,19 +17,30 @@ internal static class TrailingCommaCodeFixHelper
     #region Methods
 
     /// <summary>
-    /// Determines whether a conditional-compilation directive or code such a directive excludes lies between the trailing
-    /// comma represented by the provided diagnostic span and the token behind it, so that another build can compile an
-    /// element that needs the comma (SHARED-TRAIL-002)
+    /// Determines whether an <c>#if</c> directive lies between the trailing comma represented by the provided diagnostic
+    /// span and the token behind it — one the analyzed build reads or one in code another directive excludes — so that
+    /// another build that compiles the comma can compile an element behind it that needs the comma (SHARED-TRAIL-002).
+    /// An <c>#elif</c>, <c>#else</c>, or <c>#endif</c> there, and the code such a directive excludes, only end the branch
+    /// that holds the comma, so they do not keep the comma from being removed (SHARED-TRAIL-004). The check reads the
+    /// kinds of the directives only, never their conditions (SHARED-FIX-009)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <returns><see langword="true"/> if such a directive or such code follows the comma, or the span holds no comma</returns>
-    public static bool CommaPrecedesConditionalCompilationBoundary(SyntaxNode root, TextSpan diagnosticSpan)
+    /// <returns><see langword="true"/> if an <c>#if</c> directive follows the comma, or the span holds no comma</returns>
+    public static bool CommaPrecedesIfDirective(SyntaxNode root, TextSpan diagnosticSpan)
     {
         var commaToken = root.FindToken(diagnosticSpan.Start);
 
-        return commaToken.IsKind(SyntaxKind.CommaToken) == false
-               || SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(root, TextSpan.FromBounds(commaToken.Span.End, commaToken.GetNextToken().SpanStart));
+        if (commaToken.IsKind(SyntaxKind.CommaToken) == false)
+        {
+            return true;
+        }
+
+        var gap = TextSpan.FromBounds(commaToken.Span.End, commaToken.GetNextToken().SpanStart);
+
+        return root.DescendantTrivia(gap, descendIntoTrivia: true)
+                   .Any(trivia => gap.Contains(trivia.SpanStart)
+                                  && trivia.IsKind(SyntaxKind.IfDirectiveTrivia));
     }
 
     /// <summary>

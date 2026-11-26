@@ -71,8 +71,9 @@ public abstract class TrailingCommaAnalyzerBase<TNode> : DiagnosticAnalyzerBase
         }
 
         // The list is judged as the analyzed build compiles it: a comma behind the last compiled element is reported also
-        // when a conditional directive or excluded code follows it, and the fix withholds itself there (SHARED-TRAIL-002,
-        // SHARED-DIAG-008)
+        // when conditional directives or excluded code follow it. The fix withholds itself only when an "#if" lies between
+        // the comma and the closing brace; an "#elif", "#else", or "#endif" alone leaves it offered (SHARED-TRAIL-002,
+        // SHARED-TRAIL-004, SHARED-DIAG-008)
         context.ReportDiagnostic(CreateDiagnostic(lastItem.AsToken().GetLocation()));
     }
 
