@@ -49,4 +49,5 @@
 - Repair round 1 (PR-introduced): worklist = the self-hosting failure, routed to the test implementer (owner of the self-hosting test harness) as 10. Then cleaner, spec checker, auditor (repair only), validator.
 - Done: test implementer repair (10, 4bb901b): harness now adds transitive project references; line-count rows 18/18.
 - Done: cleaner (11, b0843f8): clean.
-- Next: spec checker (12).
+- Done: spec checker (12, e400a9f): consistent.
+- Next: auditor on repair only (13).
