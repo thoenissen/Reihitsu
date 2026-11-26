@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing.Rules;
 
 /// <summary>
@@ -37,7 +39,7 @@ internal sealed class SingleSpaceSpacingRule : ISpacingRule
             return false;
         }
 
-        return token.Parent is not InterpolationSyntax;
+        return FormattingTextAnalysisUtilities.IsInterpolationBrace(token) == false;
     }
 
     /// <summary>
