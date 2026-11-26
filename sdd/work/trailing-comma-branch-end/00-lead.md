@@ -28,4 +28,4 @@
 ## State
 
 - Last step: spec author 01 (9e96bfa), skeptic 02 (0ee6074). Output question batch 1 answered: C.
-- Spec author 03 done (6a6112c), change doc Accepted. Test implementer 04 done (217d49f, 5ba43c3; 17 analyzer tests red as expected). Implementer 05 done (c18eef4). Next: cleaner (06), spec checker (07).
+- Spec author 03 done (6a6112c), change doc Accepted. Test implementer 04 done (217d49f, 5ba43c3; 17 analyzer tests red as expected). Implementer 05 done (c18eef4). Cleaner 06 clean (3e033ff). Spec checker 07 (7ca858f): 1 finding (RH5409/5410/5411 spec Uses rows miss SHARED-TRAIL-004). Repair round 1: spec author 08, spec checker 09, then auditor.
