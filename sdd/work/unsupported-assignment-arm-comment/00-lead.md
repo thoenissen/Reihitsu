@@ -15,6 +15,9 @@
   - Q1 compound assignment operators → **B**: every assignment operator is refused, a property initializer's `=` included; the existing arm/anonymous-member assignment shape (FMT-UNSUP-019) is folded in, and its reason changes to the new one. Declared in this work.
   - Q2 deconstruction declaration `var (a, b) = // c⏎t;` → **A**: refused. Declared in this work.
   - Q3 (escalation 10) the remaining `=` gaps — a comment/directive/disabled text behind an enum member's `=`, a parameter default's `=`, and a directive/disabled text behind a variable declarator's `=` → **A**: declared unsupported **in this work** (not in a change of its own).
+- Batch 2 (2026-11-26): first reply "unsupported", asked back; then: both cases (attribute-argument `=` and using-alias `=`) are unsupported, and the lead decides the message, possibly two different messages.
+  - Q2 → **B**: a comment, directive, or disabled text behind the `=` of an attribute argument or of a using alias is declared unsupported, in this work (on the maintainer's explicit answer; it deletes no special case).
+  - Q1 → delegated to the lead: see decision 7.
 
 ## Decisions taken
 
@@ -25,6 +28,7 @@
 | 4 | skeptic | Issue goals "a CLI test per input" / "a code-fix test per input" | One precheck test per input (CLI path already pinned by CLI-019 end-to-end tests); one test per affected fix plus the must-stay-offered cases | Coverage first | Tests only | — |
 | 5 | spec author (03) | Does an equals-value clause formatted on its own hold the whole gap (refused) | Yes, pending the skeptic's check of the amendment: no caller formats a bare clause (RH5111 formats the declaration/list/enum, RH5303 the object creation), and it lets both equals-value refusals go | Deletes refusals; direct-call examples retargeted | No caller reaches a bare clause (AGENTS.md, Supported inputs) | 0106e32 |
 | 6 | lead | Re-run the skeptic on the amended spec | Yes, fresh skeptic on 03's amendment before batch 2 | Answer 3A added shapes and a FMT-UNSUP-003 reading no skeptic has checked; its questions join batch 2 so the run stops once | Process only | — |
+| 7 | batch 2 | CLI reason wording (delegated by the maintainer) | Two reasons: `a comment or directive behind an assignment operator or the = of a declaration` (assignment operators, property/declarator/enum-member/parameter `=`), and `a comment or directive behind the = of an attribute argument or a using alias` (name-equals `=`) | Each message names what the user wrote; the maintainer allowed two messages | Maintainer delegated the choice explicitly | — |
 | 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
@@ -37,8 +41,8 @@
 - Batch 1 answered (1B, 2A, 3A).
 - Done: spec-author amendment (03, commits 0106e32, 4f7624a). Open output questions from 03: reason wording; attribute-argument / using-alias `=`.
 - Done: skeptic on the amendment (04, f182d14): proceed; decision 5 confirmed; one spec wording fix (FMT-UNSUP-020 equals-value bullet: the gap belongs to the shape for every owner) and RH5305 in the change doc's still-offered list; extra existing tests that break are listed in 04.
-- Batch 2 asked (waiting): Q1 reason wording (03 OQ1); Q2 attribute-argument / using-alias `=` (03 OQ2).
-- After the answers: spec-author follow-up (answers + 04's wording fix + RH5305 + Status Accepted), then test implementer with 02/03/04 lists of tests to update.
+- Batch 2 answered (Q2 B; Q1 delegated → decision 7).
+- Now: spec-author follow-up (answers + 04's wording fix + RH5305 + Status Accepted), then test implementer with 02/03/04 lists of tests to update.
 - (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
