@@ -36,6 +36,9 @@
 
 - Batch 1 answered (1B, 2A, 3A).
 - Done: spec-author amendment (03, commits 0106e32, 4f7624a). Open output questions from 03: reason wording; attribute-argument / using-alias `=`.
-- Now: fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
+- Done: skeptic on the amendment (04, f182d14): proceed; decision 5 confirmed; one spec wording fix (FMT-UNSUP-020 equals-value bullet: the gap belongs to the shape for every owner) and RH5305 in the change doc's still-offered list; extra existing tests that break are listed in 04.
+- Batch 2 asked (waiting): Q1 reason wording (03 OQ1); Q2 attribute-argument / using-alias `=` (03 OQ2).
+- After the answers: spec-author follow-up (answers + 04's wording fix + RH5305 + Status Accepted), then test implementer with 02/03/04 lists of tests to update.
+- (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
