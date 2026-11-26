@@ -19,7 +19,7 @@ Repair round 2. Inputs: `00-lead.md` (decisions 6 and 7), `05-implementer.md`, `
 
 ## Production diff size
 
-`git diff --shortstat origin/main...HEAD -- src`: 3 files changed, 18 insertions(+), 11 deletions(-) (round 1: 2 files, +15/-5). Round delta (e80be2a): 3 files, +7/-10. No new type or member.
+`git diff --shortstat origin/main...HEAD -- src`: 3 files changed, 15 insertions(+), 8 deletions(-) (round 1: 2 files, +15/-5). Round delta (e80be2a): 3 files, +7/-10. No new type or member.
 
 ## Deleted special cases
 
