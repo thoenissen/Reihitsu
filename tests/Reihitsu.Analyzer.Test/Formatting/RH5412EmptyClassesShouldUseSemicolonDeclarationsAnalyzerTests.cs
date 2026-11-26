@@ -946,16 +946,17 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that two one-line empty classes with a semicolon behind their braces on one line are both fixed, each to one
-    /// semicolon, and that the second class starts on a line of its own
+    /// Verifies that two one-line empty classes with a semicolon behind their braces, each on a line of its own, are both
+    /// fixed, each to one semicolon, also by Fix All in one iteration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-EMPTY-005")]
-    public async Task VerifyTwoEmptyClassesWithSemicolonsOnOneLineAreFixed()
+    public async Task VerifyTwoEmptyClassesWithSemicolonsOnTheirOwnLinesAreFixed()
     {
         const string testData = """
-                                class {|#0:A|} { }; class {|#1:B|} { };
+                                class {|#0:A|} { };
+                                class {|#1:B|} { };
                                 """;
         const string fixedData = """
                                  class A;
