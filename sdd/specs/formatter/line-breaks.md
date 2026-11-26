@@ -2220,7 +2220,7 @@ In every gap between two tokens that this phase leaves on separate lines, whethe
 
 Why: Blank lines are decided by FMT-BLANK alone, in the blank-line phase, which runs after this phase (FMT-PIPE-001). A phase that also decided them would make one decision in two places (FMT-PIPE-025): the blank-line phase would have to undo a blank line this phase inserted, or restore one it removed. Keeping the count hands every blank line to FMT-BLANK as the author wrote it.
 
-Example — run alone, this phase leaves the input below unchanged, with the blank line above the block statement and the blank line above the comment glued to the initializer's brace:
+Example — run alone, this phase leaves the input below unchanged, with the blank line above the block statement and the blank line above the comment glued to the brace of the creation's initializer:
 
 ```csharp
 class C
@@ -2235,12 +2235,9 @@ class C
         }
 
         var p = new P
-                {
-                    Child =
 
-                    /* c */ {
-                                X = 2
-                            }
+                /* c */ {
+                    X = 2
                 };
     }
 }
