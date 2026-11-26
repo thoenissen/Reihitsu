@@ -25,5 +25,5 @@
 
 ## State
 
-- Last step: spec checker (05-spec-checker.md, consistent); Release build green; main at eed7195 (branch up to date).
-- Next: auditor, then validator, issue manager, publish.
+- Last step: auditor (06-auditor.md, pass, no findings). Audited SHA: a5dd6d4.
+- Next: validator and issue manager, then publish.
