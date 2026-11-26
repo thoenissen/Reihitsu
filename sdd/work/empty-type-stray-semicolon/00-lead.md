@@ -15,6 +15,11 @@
 | # | Question | Answer |
 |---|---|---|
 | 1 | Escalation 8: split #1275 and #1837? | A — split; this run is #1275 only |
+| 2 | Batch 1, Q1: RH5412–RH5416 report `};` forms (A–D incl. `}⏎;` and trailing comment) and fix to `class X;` / `class D; // note` | 1A |
+| 3 | Batch 1, Q2: RH5418 union same shape reported and fixed to `union U(int, string);` | 2A |
+| 4 | Batch 1, Q3: comment or directive (`/* */`, `//`, `#region`/`#endregion`) between `}` and `;` → reported, no fix | 3A |
+| 5 | Batch 1, Q4: formatter converts the same shapes; leaves comment/directive-between case as written | 4A |
+| 6 | Batch 1, Q5: other formatter-backed fixes (e.g. RH5404) convert nested `class I { };` to `class I;` | 5A |
 
 ## Decisions taken
 
@@ -34,5 +39,5 @@
 ## State
 
 - Last step: skeptic 02 (proceed narrower, d1c3c94).
-- Waiting: output-question batch 1 (Q1 base forms + fix, Q2 RH5418, Q3 comment/directive between `}` and `;`, Q4 formatter, Q5 nested via other fixes).
-- Next after answers: route answers + decision 2 to spec author (continue a3af192561c2bf905 if small, else fresh), status Accepted; then test implementer (03).
+- Done: output-question batch 1 answered `1A, 2A, 3A, 4A, 5A` (Q1 base forms + fix, Q2 RH5418, Q3 comment/directive between `}` and `;`, Q4 formatter, Q5 nested via other fixes).
+- Next after answers: route answers + decision 2 to a fresh spec author (prior agent large, cache cold), status Accepted; then test implementer (03).
