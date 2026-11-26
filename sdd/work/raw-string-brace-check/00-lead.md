@@ -16,12 +16,14 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Switch `RawStringLineShifts.IsHoleOpeningLine` to `IsInterpolationBrace`? | No: keep the open-brace-only test and state in its doc comment why it is not the Core check (the issue's own fallback); `Closes #1722` | The skeptic's swap broke `RawStringMovedLineStartTests.HoleLineStartingWithTheHolesClosingBraceAtColumnZeroMovesRight`; the checks differ by design | A comment only; output unchanged, proven by verify-text-only for that file | |
+| 2 | Skeptic | Take in the adjacent fix: `SingleSpaceSpacingRule.RequiresSpaceBeforeBrace` restates the Core check | Yes, adjacent fix under Scope | One line, same component, existing tests pin it (test implementer confirms or adds one), meets the issue's "one statement per policy" goal | Same predicate after the brace-kind guard; no output change | |
 
 ## Follow-up candidates
 
-(none)
+- `IsOwningConstruct` duplicated in `src/Reihitsu.Analyzer/Core/CommentPositionUtilities.cs` and `src/Reihitsu.Formatter/Pipeline/Core/Utilities/ListElementInteriorUtilities.cs`; shared owner would be `Reihitsu.Core` (01-skeptic.md)
 
 ## State
 
-- Last step: claim, prepare.sh green (SDK 11.0.100 installed).
-- Next: skeptic.
+- Last step: skeptic (01-skeptic.md, proceed narrower).
+- Next: test implementer (coverage check of the spacing-rule brace exemption).
