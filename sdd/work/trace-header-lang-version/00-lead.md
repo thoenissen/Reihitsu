@@ -44,4 +44,5 @@
 - Done: cleaner (06, 7277ac1): clean.
 - Done: spec checker (07, d74ec74): consistent.
 - Done: auditor (08, 12736e9): pass, no findings. Audited SHA: ec68841 (handover at 12736e9).
-- Next: validator (09).
+- Done: validator (09, d659c32): FAIL. Self-hosting line-count rows (RH2008, RH2111): the self-hosting compilation of `Reihitsu.Tooling` cannot resolve `Reihitsu.Formatter` / `LanguageVersionResolver` (CS0234, CS0103 in `CodeFixRunCommand.cs`). Default run green.
+- Repair round 1 (PR-introduced): worklist = the self-hosting failure, routed to the test implementer (owner of the self-hosting test harness) as 10. Then cleaner, spec checker, auditor (repair only), validator.
