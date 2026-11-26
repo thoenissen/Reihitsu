@@ -13,6 +13,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Change RH5202's message or titles for the new case? | No change | Message names no column or alignment, already covers tabs; maintainer delegated the choice | Message unchanged | 649c1db |
+| 2 | Spec author | Report condition | A tab in front of the closing quotes (same as FMT-RAW-010); content-line tabs alone do not report | Matches the formatter's rewrite, as option A demands | Covered by maintainer answer A | 649c1db |
 
 ## Follow-up candidates
 
@@ -20,4 +22,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author.
+- Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
+- Next: skeptic (02). Then accept change doc; visible output changes are covered by answer A (no batch expected unless skeptic raises one).
