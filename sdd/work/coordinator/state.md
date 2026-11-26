@@ -39,6 +39,7 @@ Notes for the runs (evidence in the batch file, not decided): #1275 likely narro
 
 ## Status
 
+Status 2026-11-26 (q): triage of #1956–#1963 asked (`inventory/triage-2026-11-26.md`, main at 76b09a12). 1 placements — #1956 #1958 #1963 → 1.6.0 one maintenance run `/squad #1956 #1958 #1963`, start now; #1957 #1961 → 1.8.0 join `#1773 #1775 #1447 #1443 #1758` (shared `BlankLineCodeFixUtilities.cs`); #1959 #1960 → 1.7.0 join `#1636 #1785 #1446 #1845` (RH5404 files shared with #1446); #1962 → close as duplicate of #962, input added to #962 (1A apply / 1B change rows; rec. 1A). 2 RH5404 `class C { int _x; };` reported+fixed (A) or not (B); rec. A. 3 formatter `}⏎;` → `};` (A) or `}⏎;` kept (B), today indented; rec. A. 4 comment/directive between `}` and `;`: kept as written at column 0, no blank line (A) or as main (B); rec. A. Side find: six PRs merged today (#1944 #1951 #1952 #1953 #1954 #1955) — batch after the answer.
 Status 2026-11-26 (p): triage of #1956–#1963 started; assessment delegated (`inventory/triage-2026-11-26.md`). Nothing asked yet.
 Status 2026-11-26 (o): batch — merges #1942 #1945 #1946 #1947 read; #1566 #1939 dropped as predecessors; #1948 and `#1924 #1949` added to the start-now set (13 runs); nothing newly unblocked (the chain waits for #1926, #1771 for #1943).
 Status 2026-11-26 (n): triage answered 1A; milestones set (#1948 #1949 → 1.6.0, #1950 → 1.7.0); commented on #1949 #1950.
@@ -55,4 +56,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Finish the triage of #1956–#1963: read `inventory/triage-2026-11-26.md` (re-run the assessment if it is missing), ask the placements and output questions in one message. Then `/coordinator batch` after the next merges (first expected: #1926).
+Wait for the answer to the triage of 2026-11-26 (q). On 1A: milestones #1956 #1958 #1963 → 14, #1957 #1961 → 16, #1959 #1960 → 15 (no labels to add); close #1962 as duplicate of #962 (`state_reason: duplicate`) with a comment, and comment on #962 with #1962's input; comment on #1959/#1960 with answers 2–4 and on #1957/#1961 with their run; record decisions; update `Plan` and `roadmap.md` (1.7.0, 1.8.0 runs). Then `/coordinator batch` (merges #1944 #1951–#1955 unblock `#1568 #1698 #1567` and #1771).
