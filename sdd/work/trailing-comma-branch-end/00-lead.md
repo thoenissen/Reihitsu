@@ -19,6 +19,8 @@
 | 2 | skeptic | Change-doc reason for withholding on an `#if` in excluded code | Keep withholding; reason becomes "rare class, withheld" | Skeptic showed the pairing argument is wrong | Behavior unchanged; text only | pending |
 | 3 | skeptic | SHARED-TRAIL-004 Why overclaims vs SHARED-FIX-009 | Qualify the clause | Accuracy | Spec text only | pending |
 | 4 | skeptic | Change doc code-fix section | Superseded by answer C: the formatter and the formatter-delegating fixes stay unchanged; change doc says so | Answer C | Covered by maintainer answer | pending |
+| 6 | repair 1 | Name SHARED-TRAIL-004 in the rule specs' opening sentence too | Yes | Otherwise the sentence reads as if SHARED-TRAIL-003 alone decides | Spec text only | 07fb40b |
+| 7 | repair 1 | Cleaner after a spec-only repair | Skipped | No C# file changed | none | — |
 | 5 | skeptic | Issue's "Before" refers to an earlier change | "Before" is plain `main` | Change landed | none | — |
 
 ## Follow-up candidates
@@ -28,4 +30,4 @@
 ## State
 
 - Last step: spec author 01 (9e96bfa), skeptic 02 (0ee6074). Output question batch 1 answered: C.
-- Spec author 03 done (6a6112c), change doc Accepted. Test implementer 04 done (217d49f, 5ba43c3; 17 analyzer tests red as expected). Implementer 05 done (c18eef4). Cleaner 06 clean (3e033ff). Spec checker 07 (7ca858f): 1 finding (RH5409/5410/5411 spec Uses rows miss SHARED-TRAIL-004). Repair round 1: spec author 08, spec checker 09, then auditor.
+- Spec author 03 done (6a6112c), change doc Accepted. Test implementer 04 done (217d49f, 5ba43c3; 17 analyzer tests red as expected). Implementer 05 done (c18eef4). Cleaner 06 clean (3e033ff). Spec checker 07 (7ca858f): 1 finding (RH5409/5410/5411 spec Uses rows miss SHARED-TRAIL-004). Repair round 1: spec author 08 done (07fb40b). Next: spec checker 09, then auditor 10.
