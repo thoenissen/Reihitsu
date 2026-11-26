@@ -31,6 +31,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Spec checker 09 (a398986): consistent. main not ahead; build green. Next: auditor (10).
 - Spec author 08 done (9347b0b). Next: spec checker 09.
 - Spec checker 07 (bb50cd4): 1 finding (RH5202-009 wording). Repair round 1: spec author 08, then spec checker 09, then auditor.
 - Cleaner 06 done (7ae2792): clean, 0 warnings. Next: spec checker (07).
