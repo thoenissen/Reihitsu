@@ -36,6 +36,7 @@ Notes for the runs (evidence in the batch file, not decided): #1275 likely narro
 
 ## Status
 
+Status 2026-11-26 (m): triage of #1948 #1949 #1950 (no inventory file; three issues read directly). Asked: 1 placements — #1948 → 1.6.0, own analyzer run, start now (gap left by #1945: the RH5301/RH5303/RH5206 fixes make no progress below C# 11 while the diagnostic stays); #1949 → 1.6.0, joins #1924 as `/squad #1924 #1949` (both trace/fixture tooling, #1924 not started); #1950 → 1.7.0, own Playground run after #976 (`Home.razor`) (1A apply / 1B change rows; rec. 1A). No output questions.
 Status 2026-11-22 (l): batch — merges #1933 #1934 #1938 #1940 read; graph rebuilt; #1936 moved to the #1400 run; start-now set given (15 runs).
 Status 2026-11-22 (k): triage of #1935–#1943 applied as recommended (`inventory/triage-2026-11-22b.md`); milestones set; commented on all five. Batch next in the same session.
 Status 2026-11-22 (j): batch — merges #1920 #1921 #1922 #1923 #1932 read; graph rebuilt; start-now set given (13 runs).
@@ -48,4 +49,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Maintainer starts the start-now runs. After merges: `/coordinator batch`.
+Wait for the answer to the triage of 2026-11-26 (m). On `1A`: set milestones (#1948 #1949 → 1.6.0 (14), #1950 → 1.7.0 (15)), add no labels (all three already carry their group label), comment on #1949 (joins #1924) and #1950 (runs after #976), record the decision, update `Plan` (open count, start-now `#1924 #1949` and `#1948`). Then `/coordinator batch`.
