@@ -30,4 +30,5 @@
 ## Worklist / next step
 
 - Output-question batch before test implementer: nothing open (answer A covers all), no stop.
-- Next: test implementer (handovers 01–03).
+- Test implementer done (04, 0f77939): 28 failing cases reproduce; Fix All tests rewritten (follows answer A).
+- Next: implementer.
