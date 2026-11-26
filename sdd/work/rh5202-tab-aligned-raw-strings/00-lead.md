@@ -15,6 +15,7 @@
 |---|---|---|---|---|---|---|
 | 1 | Spec author | Change RH5202's message or titles for the new case? | No change | Message names no column or alignment, already covers tabs; maintainer delegated the choice | Message unchanged | 649c1db |
 | 2 | Spec author | Report condition | A tab in front of the closing quotes (same as FMT-RAW-010); content-line tabs alone do not report | Matches the formatter's rewrite, as option A demands | Covered by maintainer answer A | 649c1db |
+| 3 | Skeptic | Escalate declaring "tab in front of a multi-line raw string's closing quotes" unsupported (escalation 10)? | Not an option, no escalation | Tab-indented code is commonly written; AGENTS.md says a refusal for commonly written code is not covered by the unsupported-shape rule, and the maintainer already answered A (report and fix) | Nothing declared; outputs follow answer A | – |
 
 ## Follow-up candidates
 
@@ -23,4 +24,6 @@
 ## Worklist / next step
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
-- Next: skeptic (02). Then accept change doc; visible output changes are covered by answer A (no batch expected unless skeptic raises one).
+- Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- WAITING: output-question batch 1 sent to maintainer: Q1 smart-tab literal (A report / B not), Q2 rule page (A unchanged / B add sentence). After answer: route to spec author (amend + Status Accepted), then test implementer.
+- Old next: skeptic (02). Then accept change doc; visible output changes are covered by answer A (no batch expected unless skeptic raises one).
