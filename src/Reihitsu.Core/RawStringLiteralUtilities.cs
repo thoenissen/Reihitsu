@@ -102,7 +102,8 @@ public static class RawStringLiteralUtilities
     /// <summary>
     /// Determines whether the whitespace at the start of a line holds a tab. Applied to the line of a multi-line raw string
     /// literal's closing marker, it decides whether the indentation the compiler strips from the literal is written as
-    /// spaces (<see cref="GetStrippedIndentationSpacesWidth"/>)
+    /// spaces (<see cref="GetStrippedIndentationSpacesWidth"/>), and whether the RH5202 analyzer reports a literal whose
+    /// closing marker already starts in the column of its opening quotes (RH5202-009)
     /// </summary>
     /// <param name="lineText">The text of the line, without its line break</param>
     /// <returns><see langword="true"/> if the leading whitespace holds a tab</returns>

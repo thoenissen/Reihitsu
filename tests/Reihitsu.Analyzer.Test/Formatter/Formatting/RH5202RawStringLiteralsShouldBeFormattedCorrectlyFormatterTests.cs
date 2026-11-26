@@ -331,26 +331,27 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
     }
 
     /// <summary>
-    /// Verifies that the formatter does not move a literal the analyzer finds aligned, 12 spaces and four tabs, and writes its
-    /// four tabs as spaces, while the analyzer reports nothing before or after
+    /// Verifies that the formatter does not move a literal standing in the column of its opening quotes behind 12 spaces and
+    /// four tabs, which the analyzer reports, writes its four tabs as spaces, and the analyzer reports nothing on the formatted code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("FMT-RAW-006")]
     [Requirement("FMT-RAW-010")]
-    public async Task VerifyFormatterWritesTabsOfLiteralAlignedByTheAnalyzersMeasureAsSpaces()
+    [Requirement("RH5202-009")]
+    public async Task VerifyFormatterWritesTabsOfLiteralAlignedByTheAnalyzersMeasureAsSpacesAndClearsTheDiagnostic()
     {
-        var input = WithWhitespace(""""
+        var input = WithWhitespace("""""
                                    class C
                                    {
                                        void M()
                                        {
-                                           var a = """
+                                           var a = {|#0:"""
                                                →→→→x
-                                               →→→→""";
+                                               →→→→"""|};
                                        }
                                    }
-                                   """");
+                                   """"");
         var fixedData = WithWhitespace(""""
                                        class C
                                        {
@@ -363,7 +364,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
                                        }
                                        """");
 
-        await VerifyFormatter(input, fixedData);
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -117,13 +118,159 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyTabIndentationTest
     }
 
     /// <summary>
-    /// Verifies that a literal whose closing quotes stand in the column of the opening quotes behind 12 spaces and four tabs,
-    /// counting each tab as one column, is not reported
+    /// Verifies the specification example: a literal whose closing quotes stand in the column of the opening quotes behind 12
+    /// spaces and four tabs, counting each tab as one column, is reported, and the fix moves no line and writes the tabs in
+    /// front of <c>x</c> and of the closing quotes as spaces
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5202-007")]
-    public async Task VerifyLiteralAlignedInCharactersBehindTabsIsNotReported()
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-009")]
+    public async Task VerifyLiteralAlignedInCharactersBehindTabsIsReportedAndItsTabsAreWrittenAsSpaces()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →→→→x
+                                            →→→→"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an interpolated literal aligned in characters behind 12 spaces and five tabs is
+    /// reported, and the fix writes the whitespace within the width as spaces and keeps the three spaces in front of
+    /// <c>Hello</c> and the two tabs in front of <c>World</c>, which lie behind the width
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyInterpolatedLiteralAlignedInCharactersBehindTabsIsReportedAndKeepsTheWhitespaceBehindTheWidth()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = {|RH5202:$"""
+                                            →→→→→   Hello {name}
+                                            →→→→→→→World
+                                            →→→→→"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $"""
+                                                      Hello {name}
+                                                   →→World
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a literal written with two tabs for the indentation and eight spaces for the
+    /// alignment, standing in the column of the opening quotes counted in characters, is reported, and the fix writes the
+    /// whitespace in front of <c>x</c> and of the closing quotes as 10 spaces and keeps the tabs on the lines outside the literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyLiteralIndentedWithTabsAndAlignedWithSpacesIsReportedAndItsTabsAreWrittenAsSpaces()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                →void M()
+                                →{
+                                →→var a = {|RH5202:"""
+                                →→        x
+                                →→        """|};
+                                →}
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                  →void M()
+                                  →{
+                                  →→var a = """
+                                            x
+                                            """;
+                                  →}
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that a literal aligned in characters behind spaces, a tab, and spaces is reported, and that the fix writes the tab
+    /// in front of <c>x</c> and of the closing quotes as a space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyLiteralAlignedBehindATabBetweenSpacesIsReportedAndItsTabIsWrittenAsASpace()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →   x
+                                            →   """|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a literal whose closing quotes stand behind 16 spaces is not reported, also when the
+    /// tab in front of <c>x</c> is part of its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyAlignedLiteralWithoutATabInFrontOfTheClosingQuotesAndATabOnAContentLineIsNotReported()
     {
         const string testData = """"
                                 class C
@@ -131,14 +278,361 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyTabIndentationTest
                                     void M()
                                     {
                                         var a = """
-                                            →→→→x
-                                            →→→→""";
+                                                →x
+                                                """;
                                     }
                                 }
                                 """";
 
         await Verify(Expand(testData));
         await Verify(NormalizeToCarriageReturnLineFeed(Expand(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that a literal whose closing quotes stand behind 16 spaces is not reported when a whitespace-only content line
+    /// holds a tab within the width of the closing whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyAlignedLiteralWithoutATabInFrontOfTheClosingQuotesAndATabOnAWhitespaceOnlyLineIsNotReported()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                x
+                                        →
+                                                """;
+                                    }
+                                }
+                                """";
+
+        // The compiler rejects a whitespace-only line whose whitespace differs from the closing line's, so the tab stands in code
+        // that does not compile; the analyzer still does not report the literal
+        var compilerError = DiagnosticResult.CompilerError("CS9003")
+                                            .WithSpan(7, 1, 7, 10)
+                                            .WithArguments(@"\t", @"\u0020");
+
+        await Verify(Expand(testData), compilerError);
+        await Verify(NormalizeToCarriageReturnLineFeed(Expand(testData)), compilerError);
+    }
+
+    /// <summary>
+    /// Verifies that a UTF-8 literal aligned in characters behind tabs is reported, and that the fix writes its tabs as spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyUtf8LiteralAlignedInCharactersBehindTabsIsReportedAndItsTabsAreWrittenAsSpaces()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →→→→x
+                                            →→→→"""u8|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """u8;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that an interpolated literal with two dollar signs, aligned in characters behind tabs, is reported, and that
+    /// the fix writes its tabs as spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyLiteralWithTwoDollarSignsAlignedInCharactersBehindTabsIsReportedAndItsTabsAreWrittenAsSpaces()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = $$"""
+                                            →→→→→→{{name}}
+                                            →→→→→→""";
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $$"""
+                                                    {{name}}
+                                                    """;
+                                      }
+                                  }
+                                  """";
+
+        // The markup parser reads "$$" as a position marker, so the source carries no markup and the diagnostic is given by its span
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            await Verify(ConvertEndOfLine(Expand(testData), endOfLine),
+                         ConvertEndOfLine(Expand(resultData), endOfLine),
+                         test =>
+                         {
+                             test.TestState.MarkupHandling = MarkupMode.None;
+                             test.FixedState.MarkupHandling = MarkupMode.None;
+                         },
+                         Diagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId).WithSpan(5, 17, 7, 22)
+                                                                                                           .WithMessage(MessageFormat));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a literal aligned in characters behind 12 spaces, three tabs, and a no-break space is reported, and that
+    /// the fix writes the tabs and the no-break space as spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyLiteralAlignedBehindTabsAndANoBreakSpaceIsReportedAndBothAreWrittenAsSpaces()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →→→¤x
+                                            →→→¤"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a literal aligned in characters behind tabs writes a whitespace-only content line of 12 spaces and
+    /// two tabs, shorter than the width, as 14 spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-007")]
+    [Requirement("RH5202-009")]
+    public async Task VerifyFixOfLiteralAlignedBehindTabsWritesAWhitespaceOnlyLineShorterThanTheWidthAsOneSpacePerCharacter()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →→→→x
+                                            →→
+                                            →→→→"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                  ··············
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an interpolated literal aligned in characters behind tabs writes the content line in front of a
+    /// multi-line hole as spaces and leaves the line that starts inside the hole as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyFixOfInterpolatedLiteralAlignedBehindTabsLeavesTheLineThatStartsInsideAHole()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M(int name)
+                                    {
+                                        var a = {|RH5202:$"""
+                                            →→→→→{name
+                                        + 1}
+                                            →→→→→"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M(int name)
+                                      {
+                                          var a = $"""
+                                                   {name
+                                          + 1}
+                                                   """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyFixUnderBothLineEndings(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that a literal aligned in characters behind tabs in a document whose line breaks are all a lone carriage return is
+    /// reported and fixed in one application, and that the analyzer no longer reports it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyLiteralAlignedInCharactersBehindTabsIsFixedInOneApplicationWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →→→→x
+                                            →→→→"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await VerifyCodeFixWithEndOfLine(Expand(testData), Expand(resultData), "\r");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All corrects two literals aligned in characters behind tabs in one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyFixAllCorrectsEveryLiteralAlignedInCharactersBehindTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""
+                                            →→→→x
+                                            →→→→"""|};
+                                        var b = {|#1:"""
+                                            →→→→y
+                                            →→→→"""|};
+                                    }
+                                }
+                                """";
+        const string resultData = """"
+                                  class C
+                                  {
+                                      void M()
+                                      {
+                                          var a = """
+                                                  x
+                                                  """;
+                                          var b = """
+                                                  y
+                                                  """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(Expand(testData), Expand(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
+        await Verify(NormalizeToCarriageReturnLineFeed(Expand(testData)), NormalizeToCarriageReturnLineFeed(Expand(resultData)), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that single-line raw string literals on lines indented with tabs are not reported: RH5202-009 judges only a
+    /// multi-line literal, and a single-line literal has no closing line of its own whose whitespace could hold a tab. The test
+    /// pins that outcome for the rule as a whole; it does not single out the check that excludes single-line literals
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifySingleLineRawStringLiteralsOnLinesIndentedWithTabsAreNotReported()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                →void M()
+                                →{
+                                →→var a = """x""";
+                                →→var b = $"""{1}""";
+                                →}
+                                }
+                                """";
+
+        await Verify(Expand(testData));
+        await Verify(NormalizeToCarriageReturnLineFeed(Expand(testData)));
+    }
+
+    /// <summary>
+    /// Verifies that the fix's result for a literal aligned in characters behind tabs is the formatter's layout of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-009")]
+    public async Task VerifyFixMatchesFormatterForALiteralAlignedInCharactersBehindTabs()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            →→→→x
+                                            →→→→"""|};
+                                    }
+                                }
+                                """";
+
+        await VerifyCodeFixMatchesFormatter(Expand(testData));
     }
 
     /// <summary>
