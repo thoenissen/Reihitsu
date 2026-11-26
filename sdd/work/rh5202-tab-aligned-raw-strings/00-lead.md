@@ -22,6 +22,8 @@
 | 3 | Skeptic | Escalate declaring "tab in front of a multi-line raw string's closing quotes" unsupported (escalation 10)? | Not an option, no escalation | Tab-indented code is commonly written; AGENTS.md says a refusal for commonly written code is not covered by the unsupported-shape rule, and the maintainer already answered A (report and fix) | Nothing declared; outputs follow answer A | – |
 | 4 | Spec checker 07 | Repair round 1: RH5202-009 'within or behind the width' wording (within side is CS9003, no compiling input) | Route to fresh spec author; skip the cleaner for this round because only spec text changes; then spec checker again | Spec-only text fix | Spec wording is internal | (repair) |
 | 5 | Spec author 08 | Keep explanatory sentence on why 'within the width' cannot occur | Keep | Avoids reader assuming the case was forgotten; states no result | Spec text internal | 9347b0b |
+| 6 | Auditor 10 | Finding 1: fix not registered when FindNode returns a wrapper with the literal's span (argument, tuple/collection element, constant pattern, attribute argument); pre-existing, exposed by the run | Take in as adjacent fix (repair round 2): tests first, then implementer | Defect against unchanged RH5202-003/-009 (fix MUST be offered for every reported literal); one-line change in a component the run changes; gets tests | Brings output to an unchanged requirement | (repair) |
+| 7 | Auditor 10 | Findings 2 (redundant one-line guard) and 3 (two summaries) | Route to implementer (production code + its comments); test implementer corrects the boundary test's stated purpose | PR-introduced | Internal | (repair) |
 
 ## Follow-up candidates
 
@@ -31,6 +33,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Auditor 10 (308d6e5) audited 2948188 on base eed7195: findings 1 (high), 2, 3 (low). Repair round 2: test implementer 11 → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - Spec checker 09 (a398986): consistent. main not ahead; build green. Next: auditor (10).
 - Spec author 08 done (9347b0b). Next: spec checker 09.
 - Spec checker 07 (bb50cd4): 1 finding (RH5202-009 wording). Repair round 1: spec author 08, then spec checker 09, then auditor.
