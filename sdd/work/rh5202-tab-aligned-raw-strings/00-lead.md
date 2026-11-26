@@ -29,6 +29,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Test implementer 04 done (5c9281f, 1960169): 23 RH5202 tests fail on unchanged code (missing diagnostics), rest pass. Note for spec checker: RH5202-009's 'within the width' content-tab clause is unreachable in compiling code (CS9003). Next: implementer (05).
 - Spec author 03 done (3cc6502): change doc Accepted, RH5202-009 clarified with smart-tab example, rule page sentence added. Next: test implementer (04).
 - Batch 1 answered (see Maintainer answers). Lead accepts the change doc. Next: fresh spec author (03) records answers in change doc Decisions + spec example, adds rule-page sentence, sets Status: Accepted; then test implementer (04).
 - (was) output-question batch 1 sent to maintainer: Q1 smart-tab literal (A report / B not), Q2 rule page (A unchanged / B add sentence). After answer: route to spec author (amend + Status Accepted), then test implementer.
