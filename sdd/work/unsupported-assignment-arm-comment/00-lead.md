@@ -47,7 +47,8 @@
 - Done: test implementer (06, 4f0282c, 2205e54): 181 formatter + 33 analyzer tests red for the intended reason; architecture green.
 - Open worklist after the implementer (same requirement, PR-introduced): spec author — FMT-BREAK-030 example `Child =⏎⏎/* c */ {` (now refused; use the FMT-BLANK-018 carrier) and FMT-INDENT-030's mention of the nested-initializer anchor; test implementer — move `LineBreakPhaseBlankLineTests.KeepsBlankLinesAboveBlockStatementAndGluedComment` with the example. Decision 8.
 - Done: implementer (07, 0f0adb0, 7c3f1c9): all tests green in Debug; 019 walk and five join refusals deleted.
-- Now: decision-8 worklist — spec author (08), then test implementer (09); then cleaner.
+- Done: decision-8 worklist — spec author (08, 25ef89b), test implementer (09, 8f6368d).
+- Now: cleaner (10), then spec checker, auditor, validator.
 - (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
