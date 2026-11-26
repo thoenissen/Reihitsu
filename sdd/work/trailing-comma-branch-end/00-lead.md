@@ -21,6 +21,7 @@
 | 4 | skeptic | Change doc code-fix section | Superseded by answer C: the formatter and the formatter-delegating fixes stay unchanged; change doc says so | Answer C | Covered by maintainer answer | pending |
 | 6 | repair 1 | Name SHARED-TRAIL-004 in the rule specs' opening sentence too | Yes | Otherwise the sentence reads as if SHARED-TRAIL-003 alone decides | Spec text only | 07fb40b |
 | 7 | repair 1 | Cleaner after a spec-only repair | Skipped | No C# file changed | none | — |
+| 8 | audit | Auditor's non-blocking hint: summary of `SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary` now overstates its reason | Reword in the cleaner's comment pass | Text-only; the run made it stale | Comment only, proved by verify-text-only | pending |
 | 5 | skeptic | Issue's "Before" refers to an earlier change | "Before" is plain `main` | Change landed | none | — |
 
 ## Follow-up candidates
@@ -30,4 +31,4 @@
 ## State
 
 - Last step: spec author 01 (9e96bfa), skeptic 02 (0ee6074). Output question batch 1 answered: C.
-- Spec author 03 done (6a6112c), change doc Accepted. Test implementer 04 done (217d49f, 5ba43c3; 17 analyzer tests red as expected). Implementer 05 done (c18eef4). Cleaner 06 clean (3e033ff). Spec checker 07 (7ca858f): 1 finding (RH5409/5410/5411 spec Uses rows miss SHARED-TRAIL-004). Repair round 1: spec author 08 done (07fb40b). Next: spec checker 09, then auditor 10.
+- Spec author 03 done (6a6112c), change doc Accepted. Test implementer 04 done (217d49f, 5ba43c3; 17 analyzer tests red as expected). Implementer 05 done (c18eef4). Cleaner 06 clean (3e033ff). Spec checker 07 (7ca858f): 1 finding (RH5409/5410/5411 spec Uses rows miss SHARED-TRAIL-004). Repair round 1: spec author 08 done (07fb40b). Spec checker 09 consistent (8b6a8d6). Auditor 10 PASS on audited SHA 8b6a8d6f012e185fc723357ab82bcf643f335930 (main eed7195) with comment findings (FC-031, 3 comments) → cleaner 11, then verify-text-only vs audited SHA, then validator 12, publish.
