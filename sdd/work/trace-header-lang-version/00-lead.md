@@ -28,6 +28,7 @@
 | 8 | Test implementer | If `FixtureRunner.HasSyntaxErrors` gains a version parameter, may `FixtureRunnerTests` call sites be updated? | Yes: the implementer may update the call (arguments only, no assertion) and names it in its handover | Signature change of an internal tooling method; assertions unchanged | Tooling test only | |
 | 9 | Implementer | `FixtureRunner.RunAsync` call sites in `FixtureRunnerTests` (11) also needed the new version argument | Ratified: `LanguageVersion.Latest` added to the calls, no assertion or input changed; no test-only overload | Same behavior as before; avoids dead production code | Tooling tests only | 21e6421 |
 | 10 | Implementer | Preview-warning and invalid-value hint text repeated in `Program`, trace, apply-fix | Not a follow-up: the change doc sets per-tool wording; sharing would add a member to the shipped formatter assembly for message text | Intentional per-tool messages | Tooling messages only | 21e6421 |
+| 11 | Spec checker | Optional: `AGENTS.md` trace synopsis lacks `--lang-version` | Leave as is | Summary line, not wrong; `scripts/README.md` is the full statement of the options | Repository instructions only | |
 
 ## Follow-up candidates
 
@@ -41,4 +42,5 @@
 - Done: test implementer (04, 4b9a8c9): tests written for both; fail for stated reasons.
 - Done: implementer (05, 21e6421/8495f09): all tests pass.
 - Done: cleaner (06, 7277ac1): clean.
-- Next: spec checker (07).
+- Done: spec checker (07, d74ec74): consistent.
+- Next: auditor (08).
