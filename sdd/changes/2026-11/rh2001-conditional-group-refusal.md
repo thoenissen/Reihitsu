@@ -104,6 +104,56 @@ class C
 
 After: RH2001 is reported on `Value`, and no code fix is offered.
 
+The fix is withheld the same way when only the group's `#endif` stands behind the property, and its `#if` in front of an earlier member — a group around several members with the property last, as multi-targeting code writes it. Input, with `NET` defined:
+
+```csharp
+#define NET
+class C
+{
+#if NET
+    private int _a;
+
+    private int B { get; }
+#endif
+
+    int Read() => _a + B;
+}
+```
+
+Before (`main`):
+
+```csharp
+#define NET
+class C
+{
+#if NET
+    private int _a;
+
+    private readonly int _b;
+#endif
+
+    int Read() => _a + _b;
+}
+```
+
+After: RH2001 is reported on `B`, and no code fix is offered.
+
+```csharp
+#define NET
+class C
+{
+#if NET
+    private int _a;
+
+    private int {|RH2001:B|} { get; }
+#endif
+
+    int Read() => _a + B;
+}
+```
+
+This is the mirror of the `#endif` alone in front of the first modifier in section 1. A property in the middle of such a group, with a member in front of it and one behind it inside the group, keeps the fix (*Unchanged*): no directive of the group stands next to it.
+
 ### 3 · A conditional group that wraps the property itself
 
 Input, with `NET` defined — a property without an initializer, as multi-targeting code writes it:
@@ -178,11 +228,59 @@ class C
 
 After: RH2001 is reported on `Value`, and no code fix is offered.
 
+The same holds when the property is the active `#else` branch of a group whose excluded `#if` branch holds another whole member: the `#else` stands in front of the first modifier, and the `#endif` behind a property without an initializer. Input, without `NET` defined:
+
+```csharp
+class C
+{
+#if NET
+    private int _a;
+#else
+    private int B { get; }
+#endif
+    private int _d;
+
+    int Read() => _d + B;
+}
+```
+
+Before (`main`):
+
+```csharp
+class C
+{
+#if NET
+    private int _a;
+#else
+    private readonly int _b;
+#endif
+    private int _d;
+
+    int Read() => _d + _b;
+}
+```
+
+After: RH2001 is reported on `B`, and no code fix is offered.
+
+```csharp
+class C
+{
+#if NET
+    private int _a;
+#else
+    private int {|RH2001:B|} { get; }
+#endif
+    private int _d;
+
+    int Read() => _d + B;
+}
+```
+
 The same shape without a modifier, `#if NET` / `int Value { get; }` / `#endif`, is withheld on `main` already (RH2001-009), so both forms now agree. The maintainer's answer covers this case: it withholds the fix for any `#if` group directly in front of the property, whatever the group holds.
 
 ### Unchanged
 
-A group in front of an earlier member, a group that wraps the whole type with no directive next to the property, and a group behind a property with an initializer keep the fix, with the output `main` gives:
+A group in front of an earlier member, a group that wraps the whole type with no directive next to the property, a group around several members with a member of it in front of the property and one behind it, and a group behind a property with an initializer keep the fix, with the output `main` gives:
 
 ```csharp
 class C
@@ -230,7 +328,7 @@ Issue #1943, output question 1, answered **A** in the issue comment of 2026-11-2
 
 ### "Directly in front of" and "directly behind" are read as one token's leading trivia
 
-"In front of the property" is the leading trivia of the property's first modifier, which holds every trivia from the token in front of the property — the end of the previous member, or the type body's opening brace — up to that modifier, also across blank lines. "Behind the property" is the leading trivia of the token behind the property's last token: the first token of the next member, or the type body's closing brace. These are the two places RH2001-010 already read, so the reading of the answer moves no boundary; only the test of what the group holds is dropped. A group with one directive there and another elsewhere, such as an `#endif` in front of the first modifier whose `#if` stands in front of an earlier member, withholds the fix, because a directive of it stands there.
+"In front of the property" is the leading trivia of the property's first modifier, which holds every trivia from the token in front of the property — the end of the previous member, or the type body's opening brace — up to that modifier, also across blank lines. "Behind the property" is the leading trivia of the token behind the property's last token: the first token of the next member, or the type body's closing brace. These are the two places RH2001-010 already read, so the reading of the answer moves no boundary; only the test of what the group holds is dropped. A group with one directive there and another elsewhere, such as an `#endif` in front of the first modifier whose `#if` stands in front of an earlier member, or an `#endif` behind a property without an initializer whose `#if` stands in front of an earlier member, withholds the fix, because a directive of it stands there.
 
 ### The non-conditional directives keep the fix
 
