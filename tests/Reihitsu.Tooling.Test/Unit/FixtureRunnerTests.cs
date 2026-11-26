@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Tooling.Enumerations;
@@ -55,6 +56,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -80,6 +82,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.CarriageReturnLineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -96,8 +99,8 @@ public sealed class FixtureRunnerTests
     public void HasSyntaxErrorsDetectsUnparseableSource()
     {
         // Act
-        var unparseable = FixtureRunner.HasSyntaxErrors("internal class Sample\n{\n", TestContext.CancellationToken);
-        var parseable = FixtureRunner.HasSyntaxErrors(CombinedFieldSource, TestContext.CancellationToken);
+        var unparseable = FixtureRunner.HasSyntaxErrors("internal class Sample\n{\n", LanguageVersion.Latest, TestContext.CancellationToken);
+        var parseable = FixtureRunner.HasSyntaxErrors(CombinedFieldSource, LanguageVersion.Latest, TestContext.CancellationToken);
 
         // Assert
         Assert.IsTrue(unparseable);
@@ -121,6 +124,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -145,6 +149,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -171,6 +176,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.CarriageReturnLineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -195,6 +201,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -220,6 +227,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -249,6 +257,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   10,
                                                   "Fixture.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -275,6 +284,7 @@ public sealed class FixtureRunnerTests
                                                   FixtureLineEndings.LineFeed,
                                                   3,
                                                   "A.cs",
+                                                  LanguageVersion.Latest,
                                                   TestContext.CancellationToken);
 
         // Assert
@@ -299,6 +309,7 @@ public sealed class FixtureRunnerTests
                                                                                                                 FixtureLineEndings.LineFeed,
                                                                                                                 10,
                                                                                                                 "Mismatch.cs",
+                                                                                                                LanguageVersion.Latest,
                                                                                                                 TestContext.CancellationToken));
 
         // Assert
@@ -324,6 +335,7 @@ public sealed class FixtureRunnerTests
                                                                                                                 FixtureLineEndings.LineFeed,
                                                                                                                 10,
                                                                                                                 "Mismatch.cs",
+                                                                                                                LanguageVersion.Latest,
                                                                                                                 TestContext.CancellationToken));
 
         // Assert

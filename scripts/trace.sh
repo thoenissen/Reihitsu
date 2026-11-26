@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Traces which top-level formatter phases change one C# file across repeated passes.
 #
-#   scripts/trace.sh <file> [--passes N] [--no-install]
+#   scripts/trace.sh <file> [--passes N] [--lang-version <version>] [--no-install]
 #
 # The input file is never modified. Paths are resolved against the caller's
 # working directory, not the repository root.

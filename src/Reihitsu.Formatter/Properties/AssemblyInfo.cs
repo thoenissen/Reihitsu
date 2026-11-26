@@ -5,4 +5,5 @@
 [assembly: InternalsVisibleTo("Reihitsu.Cli")]
 [assembly: InternalsVisibleTo("Reihitsu.Cli.Test")]
 [assembly: InternalsVisibleTo("Reihitsu.Formatter.Test")]
+[assembly: InternalsVisibleTo("Reihitsu.Tooling")]
 [assembly: InternalsVisibleTo("Reihitsu.ArchitectureTests")]

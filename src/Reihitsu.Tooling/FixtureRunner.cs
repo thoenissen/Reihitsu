@@ -62,6 +62,10 @@ public static class FixtureRunner
     /// The fixture's on-disk relative path, forward-slash separated. Used both as the
     /// document identity the first iteration analyzes and to identify the fixture in tooling-failure messages
     /// </param>
+    /// <param name="languageVersion">
+    /// C# language version of every parse: the check whether the fixture parses, the project in which the analyzer reports and
+    /// the code fix runs, and the check whether a fix result parses
+    /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The observations of this fixture and line-ending arm</returns>
     public static async Task<FixtureRunResult> RunAsync(CodeFixTarget target,
@@ -69,11 +73,12 @@ public static class FixtureRunner
                                                         string lineEnding,
                                                         int maximumIterations,
                                                         string fixturePath,
+                                                        LanguageVersion languageVersion,
                                                         CancellationToken cancellationToken = default)
     {
         var normalized = FixtureLineEndings.Normalize(source, lineEnding);
 
-        if (HasSyntaxErrors(normalized, cancellationToken))
+        if (HasSyntaxErrors(normalized, languageVersion, cancellationToken))
         {
             return Create(FixtureOutcome.ParseError, 0, 0, normalized, normalized, lineEnding, fixturePath);
         }
@@ -89,6 +94,7 @@ public static class FixtureRunner
                                                     lineEnding,
                                                     maximumIterations,
                                                     fixturePath,
+                                                    languageVersion,
                                                     state,
                                                     cancellationToken).ConfigureAwait(false);
 
@@ -120,7 +126,7 @@ public static class FixtureRunner
             state.Current = iteration.AppliedSource;
             state.DocumentPath = iteration.AppliedDocumentPath;
 
-            if (HasSyntaxErrors(state.Current, cancellationToken))
+            if (HasSyntaxErrors(state.Current, languageVersion, cancellationToken))
             {
                 return Create(FixtureOutcome.InvalidResult,
                               state.Iterations,
@@ -137,12 +143,13 @@ public static class FixtureRunner
     /// Determines whether the provided source contains syntax errors
     /// </summary>
     /// <param name="source">Source to parse</param>
+    /// <param name="languageVersion">C# language version the source is parsed for</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when the source does not parse cleanly; otherwise, <see langword="false"/></returns>
-    public static bool HasSyntaxErrors(string source, CancellationToken cancellationToken = default)
+    public static bool HasSyntaxErrors(string source, LanguageVersion languageVersion, CancellationToken cancellationToken = default)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source,
-                                                    new CSharpParseOptions(LanguageVersion.Latest),
+                                                    new CSharpParseOptions(languageVersion),
                                                     cancellationToken: cancellationToken);
 
         return syntaxTree.GetDiagnostics(cancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
@@ -160,6 +167,7 @@ public static class FixtureRunner
     /// The fixture's on-disk relative path, used to identify the fixture in
     /// tooling-failure messages
     /// </param>
+    /// <param name="languageVersion">C# language version of the project the fixture is analyzed and fixed in</param>
     /// <param name="state">Current source, document path, iteration count, and first action count</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A terminal result or the source, document path, and action count for the next iteration</returns>
@@ -168,12 +176,13 @@ public static class FixtureRunner
                                                                                                                                                             string lineEnding,
                                                                                                                                                             int maximumIterations,
                                                                                                                                                             string fixturePath,
+                                                                                                                                                            LanguageVersion languageVersion,
                                                                                                                                                             (string Current, string DocumentPath, int Iterations, int RegisteredActions) state,
                                                                                                                                                             CancellationToken cancellationToken)
     {
         using (var workspace = new AdhocWorkspace())
         {
-            var (document, documentId, projectId) = CreateDocument(workspace, state.Current, state.DocumentPath);
+            var (document, documentId, projectId) = CreateDocument(workspace, state.Current, state.DocumentPath, languageVersion);
 
             var reported = await AnalyzeAsync(document, target, cancellationToken).ConfigureAwait(false);
 
@@ -408,7 +417,8 @@ public static class FixtureRunner
     /// a constant. The project also carries a global analyzer config that disables both tree-level arms of
     /// Roslyn's generated-code heuristic (file name and leading comment — see
     /// <see cref="DisableGeneratedCodeHeuristicConfig"/>), so a fixture that looks generated by either signal is
-    /// still analyzed like every other fixture. Every fixture is the project's only document, so a code fix that
+    /// still analyzed like every other fixture. The project parses with the requested language version, which the analyzer
+    /// and the formatter inside the code fix read. Every fixture is the project's only document, so a code fix that
     /// inspects sibling documents (RH4001's own collision guard, for example) never observes another fixture.
     /// References come from the running host rather than from a package restore, so the runner needs no network
     /// access
@@ -416,8 +426,9 @@ public static class FixtureRunner
     /// <param name="workspace">Workspace hosting the document</param>
     /// <param name="source">Fixture source</param>
     /// <param name="documentPath">Forward-slash separated document path the fixture is currently analyzed under</param>
+    /// <param name="languageVersion">C# language version of the project's parse options</param>
     /// <returns>The created document, its identifier, and its project's identifier</returns>
-    private static (Document Document, DocumentId DocumentId, ProjectId ProjectId) CreateDocument(AdhocWorkspace workspace, string source, string documentPath)
+    private static (Document Document, DocumentId DocumentId, ProjectId ProjectId) CreateDocument(AdhocWorkspace workspace, string source, string documentPath, LanguageVersion languageVersion)
     {
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
@@ -434,7 +445,7 @@ public static class FixtureRunner
                                                                "FixtureProject",
                                                                "FixtureProject",
                                                                LanguageNames.CSharp,
-                                                               parseOptions: new CSharpParseOptions(LanguageVersion.Latest),
+                                                               parseOptions: new CSharpParseOptions(languageVersion),
                                                                metadataReferences: references))
                                 .AddDocument(documentId, name, SourceText.From(source), folders, documentPath)
                                 .AddAnalyzerConfigDocument(configId, ".globalconfig", SourceText.From(DisableGeneratedCodeHeuristicConfig), filePath: AnalyzerConfigPath);

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs the code-fix surface of one diagnostic ID over a directory of fixtures.
 #
-#   scripts/apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N] [--no-install]
+#   scripts/apply-fix.sh <diagnostic-id> <fixture-directory> [--max-iterations N] [--lang-version <version>] [--no-install]
 #
 # Every C# file below the directory is analyzed and fixed under LF and under CRLF, and each
 # arm reports a status token plus the unified diff the fix produced. The fixtures are only

@@ -44,7 +44,7 @@ internal static class PipelineTraceCommand
                                                  TextWriter error,
                                                  CancellationToken cancellationToken = default)
     {
-        if (TryParseArguments(args, out var filePath, out var passes, out var showHelp, out var parseError) == false)
+        if (TryParseArguments(args, out var filePath, out var passes, out var languageVersion, out var showHelp, out var parseError) == false)
         {
             await error.WriteLineAsync($"trace: {parseError}", cancellationToken).ConfigureAwait(false);
             PrintUsage(error);
@@ -59,9 +59,16 @@ internal static class PipelineTraceCommand
             return ExitCodes.Success;
         }
 
+        if (languageVersion.ExceedingValue != null)
+        {
+            var newestVersion = languageVersion.Resolved.ToDisplayString();
+
+            await error.WriteLineAsync($"trace: Warning: C# language version '{languageVersion.ExceedingValue}' is newer than the newest supported version {newestVersion}; formatting for {newestVersion}.", cancellationToken).ConfigureAwait(false);
+        }
+
         try
         {
-            return await ExecuteCoreAsync(filePath, passes, output, error, cancellationToken).ConfigureAwait(false);
+            return await ExecuteCoreAsync(filePath, passes, languageVersion.Resolved, output, error, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -82,12 +89,14 @@ internal static class PipelineTraceCommand
     /// </summary>
     /// <param name="filePath">Input file path</param>
     /// <param name="passes">Maximum number of formatting passes</param>
+    /// <param name="languageVersion">Resolved C# language version every pass is parsed and formatted for</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="error">Standard error writer</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The trace command exit code</returns>
     private static async Task<int> ExecuteCoreAsync(string filePath,
                                                     int passes,
+                                                    LanguageVersion languageVersion,
                                                     TextWriter output,
                                                     TextWriter error,
                                                     CancellationToken cancellationToken)
@@ -117,33 +126,35 @@ internal static class PipelineTraceCommand
 
         await output.WriteLineAsync($"Tracing {fullPath} (maximum passes: {passes})", cancellationToken).ConfigureAwait(false);
 
-        return TracePasses(fileRead.Content, fullPath, filePath.Replace('\\', '/'), passes, output, error, cancellationToken);
+        return TracePasses(fileRead.Content, fullPath, passes, languageVersion, output, error, cancellationToken);
     }
 
     /// <summary>
     /// Runs formatting passes until the source stabilizes or the pass limit is reached
     /// </summary>
     /// <param name="currentContent">Initial source text</param>
-    /// <param name="fullPath">Absolute input path</param>
-    /// <param name="displayPath">Path displayed in diffs</param>
+    /// <param name="fullPath">Absolute input path, which also names the file in every diff header</param>
     /// <param name="passes">Maximum number of passes</param>
+    /// <param name="languageVersion">Resolved C# language version every pass is parsed and formatted for</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="error">Standard error writer</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The trace command exit code</returns>
     private static int TracePasses(string currentContent,
                                    string fullPath,
-                                   string displayPath,
                                    int passes,
+                                   LanguageVersion languageVersion,
                                    TextWriter output,
                                    TextWriter error,
                                    CancellationToken cancellationToken)
     {
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
+
         for (var pass = 1; pass <= passes; pass++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var syntaxTree = CSharpSyntaxTree.ParseText(currentContent, path: fullPath, cancellationToken: cancellationToken);
+            var syntaxTree = CSharpSyntaxTree.ParseText(currentContent, parseOptions, fullPath, cancellationToken: cancellationToken);
             var root = syntaxTree.GetRoot(cancellationToken);
             var invalidExitCode = GetInvalidTraceExitCode(syntaxTree, root, fullPath, pass, output, error);
 
@@ -156,9 +167,9 @@ internal static class PipelineTraceCommand
 
             var passInput = currentContent;
             var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root),
-                                                languageVersion: LanguageVersionResolver.Resolve(syntaxTree.Options));
+                                                languageVersion: languageVersion);
 
-            var passResult = ExecuteFormattingPass(root, context, displayPath, pass, output, error, cancellationToken);
+            var passResult = ExecuteFormattingPass(root, context, fullPath, pass, output, error, cancellationToken);
 
             if (passResult.Success == false)
             {
@@ -256,7 +267,7 @@ internal static class PipelineTraceCommand
     /// </summary>
     /// <param name="root">Input root</param>
     /// <param name="context">Formatting context</param>
-    /// <param name="displayPath">Path displayed in diffs</param>
+    /// <param name="fullPath">Absolute input path, which names the file in every diff header</param>
     /// <param name="pass">Current pass number</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="error">Standard error writer</param>
@@ -264,7 +275,7 @@ internal static class PipelineTraceCommand
     /// <returns>The pass status, formatted root, and number of phases that changed source text</returns>
     private static (bool Success, SyntaxNode Root, int ChangedPhaseCount) ExecuteFormattingPass(SyntaxNode root,
                                                                                                 FormattingContext context,
-                                                                                                string displayPath,
+                                                                                                string fullPath,
                                                                                                 int pass,
                                                                                                 TextWriter output,
                                                                                                 TextWriter error,
@@ -290,7 +301,7 @@ internal static class PipelineTraceCommand
                                                         }
 
                                                         observedChanges++;
-                                                        WritePhaseChange(output, displayPath, pass, phaseName, before, after);
+                                                        WritePhaseChange(output, fullPath, pass, phaseName, before, after);
                                                     },
                                                     cancellationToken);
 
@@ -316,16 +327,18 @@ internal static class PipelineTraceCommand
     }
 
     /// <summary>
-    /// Writes the diff or line-ending change produced by one formatter phase
+    /// Writes the diff or line-ending change produced by one formatter phase. The diff header names the file as the diff of
+    /// <c>reihitsu-format --dry-run</c> does, relative to the current directory when the file lies inside it and by its full
+    /// path otherwise
     /// </summary>
     /// <param name="output">Standard output writer</param>
-    /// <param name="displayPath">Path displayed in diffs</param>
+    /// <param name="fullPath">Absolute input path</param>
     /// <param name="pass">Current pass number</param>
     /// <param name="phaseName">Formatter phase name</param>
     /// <param name="before">Input text</param>
     /// <param name="after">Output text</param>
     private static void WritePhaseChange(TextWriter output,
-                                         string displayPath,
+                                         string fullPath,
                                          int pass,
                                          string phaseName,
                                          string before,
@@ -333,7 +346,7 @@ internal static class PipelineTraceCommand
     {
         output.WriteLine($"== Pass {pass}: {phaseName} ==");
 
-        var diff = DiffGenerator.Generate(displayPath, before, after);
+        var diff = new DefaultDiffGenerator().Generate(fullPath, before, after);
 
         if (diff.Length > 0)
         {
@@ -389,7 +402,7 @@ internal static class PipelineTraceCommand
     /// <param name="writer">Writer that receives the usage text</param>
     private static void PrintUsage(TextWriter writer)
     {
-        writer.WriteLine("usage: trace <file> [--passes <positive-integer>]");
+        writer.WriteLine("usage: trace <file> [--passes <positive-integer>] [--lang-version <version>]");
         writer.WriteLine("       trace --help");
     }
 
@@ -399,21 +412,27 @@ internal static class PipelineTraceCommand
     /// <param name="args">Arguments to parse</param>
     /// <param name="filePath">The single input file path</param>
     /// <param name="passes">Maximum number of formatting passes</param>
+    /// <param name="languageVersion">
+    /// Resolved C# language version, the newest supported one without <c>--lang-version</c>, and the option's value when it
+    /// names a version newer than that
+    /// </param>
     /// <param name="showHelp">Whether usage should be printed</param>
     /// <param name="error">Argument error when parsing fails</param>
     /// <returns><see langword="true"/> when the arguments are valid; otherwise, <see langword="false"/></returns>
     private static bool TryParseArguments(string[] args,
                                           out string filePath,
                                           out int passes,
+                                          out (LanguageVersion Resolved, string ExceedingValue) languageVersion,
                                           out bool showHelp,
                                           out string error)
     {
         filePath = null;
         passes = DefaultPasses;
+        languageVersion = (LanguageVersionResolver.MaxSupportedLanguageVersion, null);
         showHelp = false;
         error = null;
 
-        var state = (PassesSpecified: false, PathsOnly: false, ShowHelp: false);
+        var state = (PassesSpecified: false, LanguageVersionSpecified: false, PathsOnly: false, ShowHelp: false);
 
         var argumentIndex = 0;
 
@@ -426,6 +445,7 @@ internal static class PipelineTraceCommand
                                  argument,
                                  ref filePath,
                                  ref passes,
+                                 ref languageVersion,
                                  ref state,
                                  out error) == false)
             {
@@ -458,6 +478,7 @@ internal static class PipelineTraceCommand
     /// <param name="argument">Current argument</param>
     /// <param name="filePath">Parsed input file path</param>
     /// <param name="passes">Parsed pass limit</param>
+    /// <param name="languageVersion">Parsed language version</param>
     /// <param name="state">Mutable option parsing state</param>
     /// <param name="error">Argument error when parsing fails</param>
     /// <returns><see langword="true"/> when the argument is valid; otherwise, <see langword="false"/></returns>
@@ -466,7 +487,8 @@ internal static class PipelineTraceCommand
                                          string argument,
                                          ref string filePath,
                                          ref int passes,
-                                         ref (bool PassesSpecified, bool PathsOnly, bool ShowHelp) state,
+                                         ref (LanguageVersion Resolved, string ExceedingValue) languageVersion,
+                                         ref (bool PassesSpecified, bool LanguageVersionSpecified, bool PathsOnly, bool ShowHelp) state,
                                          out string error)
     {
         error = null;
@@ -488,6 +510,11 @@ internal static class PipelineTraceCommand
         if (state.PathsOnly == false && argument == "--passes")
         {
             return TryParsePasses(args, ref argumentIndex, ref passes, ref state, out error);
+        }
+
+        if (state.PathsOnly == false && argument == "--lang-version")
+        {
+            return TryParseLanguageVersion(args, ref argumentIndex, ref languageVersion, ref state, out error);
         }
 
         if (state.PathsOnly == false && argument.StartsWith('-'))
@@ -521,7 +548,7 @@ internal static class PipelineTraceCommand
     private static bool TryParsePasses(string[] args,
                                        ref int argumentIndex,
                                        ref int passes,
-                                       ref (bool PassesSpecified, bool PathsOnly, bool ShowHelp) state,
+                                       ref (bool PassesSpecified, bool LanguageVersionSpecified, bool PathsOnly, bool ShowHelp) state,
                                        out string error)
     {
         error = null;
@@ -543,6 +570,54 @@ internal static class PipelineTraceCommand
         }
 
         state.PassesSpecified = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Parses the value of the <c>--lang-version</c> option, which is always the argument behind it, and resolves it as
+    /// <c>reihitsu-format</c> does
+    /// </summary>
+    /// <param name="args">Complete argument array</param>
+    /// <param name="argumentIndex">Index of the option value</param>
+    /// <param name="languageVersion">Resolved language version and the value when it names a version newer than the newest supported one</param>
+    /// <param name="state">Mutable option parsing state</param>
+    /// <param name="error">Argument error when parsing fails</param>
+    /// <returns><see langword="true"/> when the option is valid; otherwise, <see langword="false"/></returns>
+    private static bool TryParseLanguageVersion(string[] args,
+                                                ref int argumentIndex,
+                                                ref (LanguageVersion Resolved, string ExceedingValue) languageVersion,
+                                                ref (bool PassesSpecified, bool LanguageVersionSpecified, bool PathsOnly, bool ShowHelp) state,
+                                                out string error)
+    {
+        error = null;
+
+        if (state.LanguageVersionSpecified)
+        {
+            error = "--lang-version may only be specified once.";
+
+            return false;
+        }
+
+        // LanguageVersionFacts.TryParse would accept a missing value as the default version, which is why it never sees one.
+        if (argumentIndex >= args.Length)
+        {
+            error = "missing value for --lang-version.";
+
+            return false;
+        }
+
+        var value = args[argumentIndex++];
+
+        if (LanguageVersionFacts.TryParse(value, out var requestedVersion) == false)
+        {
+            error = $"invalid value for --lang-version: '{value}'. Expected a C# language version such as 12, 12.0, latest, or preview.";
+
+            return false;
+        }
+
+        languageVersion = (LanguageVersionResolver.Resolve(requestedVersion), LanguageVersionResolver.ExceedsMaximum(requestedVersion) ? value : null);
+        state.LanguageVersionSpecified = true;
 
         return true;
     }
