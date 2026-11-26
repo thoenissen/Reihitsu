@@ -180,13 +180,53 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a comment leads the line of a nested initializer's opening brace, takes the column of the
-    /// assigned member, and the member and the closing brace follow the brace behind the comment
+    /// Verifies the spec example: a comment leads the line of a complex element initializer's opening brace, takes the
+    /// element's column, 33, the brace stands in column 41, and the elements and the closing brace follow the brace
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-023")]
     [Requirement("FMT-INDENT-030")]
-    public void NestedInitializerAlignsToItsBraceBehindCommentThatLeadsTheLine()
+    public void ComplexElementOfAFieldInitializerAlignsToItsBraceBehindCommentThatLeadsTheLine()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 Dictionary<int, int> D = new()
+                                                          {
+                                                              /* c */ {
+                                                              3,
+                                                              4
+                                                              }
+                                                          };
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Dictionary<int, int> D = new()
+                                                             {
+                                                                 /* c */ {
+                                                                             3,
+                                                                             4
+                                                                         }
+                                                             };
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of the opening brace of a nested initializer assigned to a member stands behind the
+    /// <c>=</c> of the assignment, so the input is refused and returned unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-020")]
+    public void NestedInitializerBehindCommentThatLeadsTheLineIsUnsupported()
     {
         const string input = """
                              class P
@@ -210,71 +250,46 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class P
-                                {
-                                    public int X { get; set; }
 
-                                    public P Child { get; set; } = new P();
-                                }
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var p = new P
-                                                {
-                                                    Child =
-                                                    /* c */ {
-                                                                X = 2
-                                                            }
-                                                };
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* c */");
     }
 
     /// <summary>
-    /// Verifies the other side of the nested initializer's qualifier: a comment on the line above leaves the opening brace at
-    /// the start of its line, in the column of the assigned member, and the member and the closing brace follow that column
+    /// Verifies that a comment on the line above the opening brace of a nested initializer assigned to a member stands behind the
+    /// <c>=</c> of the assignment, so the input is refused and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-023")]
-    [Requirement("FMT-INDENT-030")]
-    public void NestedInitializerBelowCommentOnTheLineAboveKeepsItsBraceAtTheMemberColumn()
+    [Requirement("FMT-UNSUP-020")]
+    public void NestedInitializerBelowCommentOnTheLineAboveIsUnsupported()
     {
-        const string source = """
-                              class C
-                              {
-                                  void M()
-                                  {
-                                      var p = new P
-                                              {
-                                                  Child =
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var p = new P
+                                             {
+                                                 Child =
 
-                                                  // c
-                                                  {
-                                                      X = 2
-                                                  }
-                                              };
-                                  }
-                              }
-                              """;
+                                                 // c
+                                                 {
+                                                     X = 2
+                                                 }
+                                             };
+                                 }
+                             }
+                             """;
 
-        AssertRuleResult(source);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies the change doc's row for an array initializer: the comment keeps the column of its line, the opening brace
-    /// stands behind it, and the elements and the closing brace follow the brace. A property initializer carries the array
-    /// initializer, because a comment in front of a variable declaration's value makes the input unsupported
+    /// Verifies that a comment in front of the opening brace of a property's array initializer stands behind the <c>=</c> of the
+    /// property's initializer, so the input is refused and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-023")]
-    [Requirement("FMT-INDENT-030")]
-    public void ArrayInitializerAlignsToItsBraceBehindCommentThatLeadsTheLine()
+    [Requirement("FMT-UNSUP-020")]
+    public void ArrayInitializerOfAPropertyBehindCommentThatLeadsTheLineIsUnsupported()
     {
         const string input = """
                              class C
@@ -286,44 +301,32 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                  };
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int[] B { get; } =
-                                        /* c */ {
-                                                    1,
-                                                    2
-                                                };
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* c */");
     }
 
     /// <summary>
-    /// Verifies the other side of the array initializer's row: a comment on the line above leaves the opening brace at the start
-    /// of its line, and the elements and the closing brace follow the line's column. A property initializer carries the array
-    /// initializer, because a comment in front of a variable declaration's value makes the input unsupported
+    /// Verifies that a comment on the line above the opening brace of a property's array initializer stands behind the <c>=</c>
+    /// of the property's initializer, so the input is refused and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-INDENT-023")]
-    [Requirement("FMT-INDENT-030")]
-    public void ArrayInitializerBelowCommentOnTheLineAboveKeepsItsBraceAtTheLineColumn()
+    [Requirement("FMT-UNSUP-020")]
+    public void ArrayInitializerOfAPropertyBelowCommentOnTheLineAboveIsUnsupported()
     {
-        const string source = """
-                              class C
-                              {
-                                  int[] B { get; } =
+        const string input = """
+                             class C
+                             {
+                                 int[] B { get; } =
 
-                                      // c
-                                      {
-                                          1,
-                                          2
-                                      };
-                              }
-                              """;
+                                     // c
+                                     {
+                                         1,
+                                         2
+                                     };
+                             }
+                             """;
 
-        AssertRuleResult(source);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "// c");
     }
 
     /// <summary>
@@ -357,7 +360,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a collection expression: the opening bracket stands behind the comment in column 20,
-    /// and the elements and the closing bracket follow it
+    /// and the elements and the closing bracket follow it.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-025")]
@@ -369,11 +374,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  List<int> M()
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ [
                                      1,
                                      2
-                                     ];
+                                     ]);
                                  }
                              }
                              """;
@@ -382,11 +387,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     List<int> M()
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ [
                                                         1,
                                                         2
-                                                    ];
+                                                    ]);
                                     }
                                 }
                                 """;
@@ -396,7 +401,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the other side of the collection expression's row: a comment on the line above leaves the opening bracket at the
-    /// start of its line
+    /// start of its line.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-025")]
@@ -408,13 +415,13 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                               {
                                   List<int> M()
                                   {
-                                      _ =
+                                      _ = (
 
                                           // c
                                           [
                                               1,
                                               2
-                                          ];
+                                          ]);
                                   }
                               }
                               """;
@@ -453,7 +460,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for an object creation: <c>new</c> stands behind the comment in column 20, the braces align
-    /// to it, and the member starts one level deeper
+    /// to it, and the member starts one level deeper.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-022")]
@@ -465,11 +474,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  P M()
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ new P
                                      {
                                      X = 2
-                                     };
+                                     });
                                  }
                              }
                              """;
@@ -478,11 +487,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     P M()
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ new P
                                                     {
                                                         X = 2
-                                                    };
+                                                    });
                                     }
                                 }
                                 """;
@@ -492,7 +501,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a collection creation: <c>new</c> stands behind the comment in column 20, the braces
-    /// align to it, and the element starts one level deeper
+    /// align to it, and the element starts one level deeper.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-022")]
@@ -504,11 +515,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  List<int> M()
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ new List<int>
                                      {
                                      2
-                                     };
+                                     });
                                  }
                              }
                              """;
@@ -517,11 +528,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     List<int> M()
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ new List<int>
                                                     {
                                                         2
-                                                    };
+                                                    });
                                     }
                                 }
                                 """;
@@ -531,7 +542,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for an anonymous object: <c>new</c> stands behind the comment in column 20, the braces align
-    /// to it, and the member starts one level deeper
+    /// to it, and the member starts one level deeper.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-024")]
@@ -543,11 +556,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  object M()
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ new
                                      {
                                      X = 1
-                                     };
+                                     });
                                  }
                              }
                              """;
@@ -556,11 +569,11 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     object M()
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ new
                                                     {
                                                         X = 1
-                                                    };
+                                                    });
                                     }
                                 }
                                 """;
@@ -574,7 +587,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a switch expression: its governing expression stands behind the comment in column 20,
-    /// the braces align to it, and the arms start one level deeper
+    /// the braces align to it, and the arms start one level deeper.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-027")]
@@ -586,12 +601,12 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  int M(int v)
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ v switch
                                      {
                                      1 => 2,
                                      _ => 3
-                                     };
+                                     });
                                  }
                              }
                              """;
@@ -600,12 +615,12 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     int M(int v)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ v switch
                                                     {
                                                         1 => 2,
                                                         _ => 3
-                                                    };
+                                                    });
                                     }
                                 }
                                 """;
@@ -615,7 +630,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a lambda: its parameter list stands behind the comment in column 20, the braces of the
-    /// block body align to it, and the statement starts one level deeper
+    /// block body align to it, and the statement starts one level deeper.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-028")]
@@ -627,10 +644,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  Action M()
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ () =>
                                      {
-                                     M();
+                                     M());
                                      };
                                  }
                              }
@@ -640,10 +657,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     Action M()
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ () =>
                                                     {
-                                                        M();
+                                                        M());
                                                     };
                                     }
                                 }
@@ -654,7 +671,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a wrapped binary expression: the left operand stands behind the comment in column 20,
-    /// and the wrapped operator aligns to it
+    /// and the wrapped operator aligns to it.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-018")]
@@ -666,9 +685,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  bool M(bool a, bool b)
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ a
-                                     && b;
+                                     && b);
                                  }
                              }
                              """;
@@ -677,9 +696,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     bool M(bool a, bool b)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ a
-                                                    && b;
+                                                    && b);
                                     }
                                 }
                                 """;
@@ -689,7 +708,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a conditional expression: the condition stands behind the comment in column 20, and the
-    /// wrapped branches start one level deeper
+    /// wrapped branches start one level deeper.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-020")]
@@ -701,10 +722,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  int M(bool a)
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ a
                                      ? 1
-                                     : 2;
+                                     : 2);
                                  }
                              }
                              """;
@@ -713,10 +734,10 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     int M(bool a)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ a
                                                         ? 1
-                                                        : 2;
+                                                        : 2);
                                     }
                                 }
                                 """;
@@ -726,7 +747,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a method chain: the chain starts behind the comment, and the wrapped link aligns to the
-    /// first link, <c>.Trim</c>, in column 21
+    /// first link, <c>.Trim</c>, in column 21.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-029")]
@@ -738,9 +761,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  string M(string s)
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ s.Trim()
-                                     .ToUpper();
+                                     .ToUpper());
                                  }
                              }
                              """;
@@ -749,9 +772,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     string M(string s)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ s.Trim()
-                                                     .ToUpper();
+                                                     .ToUpper());
                                     }
                                 }
                                 """;
@@ -761,7 +784,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the change doc's row for a wrapped pattern combinator: the pattern's <c>is</c> stands behind the comment in
-    /// column 22, and the wrapped <c>or</c> aligns to it
+    /// column 22, and the wrapped <c>or</c> aligns to it.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment
+    /// operator makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-019")]
@@ -773,9 +798,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                              {
                                  bool M(object o)
                                  {
-                                     _ =
+                                     _ = (
                                      /* c */ o is int
-                                     or long;
+                                     or long);
                                  }
                              }
                              """;
@@ -784,9 +809,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                                 {
                                     bool M(object o)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ o is int
-                                                      or long;
+                                                      or long);
                                     }
                                 }
                                 """;

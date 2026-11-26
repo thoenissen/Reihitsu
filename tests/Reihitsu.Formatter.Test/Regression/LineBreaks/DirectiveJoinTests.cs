@@ -67,16 +67,34 @@ public class DirectiveJoinTests
         Assert.AreEqual(input, actual, "The join must be skipped so the directive is preserved on its own line.");
     }
 
+    /// <summary>
+    /// Asserts that the formatter refuses the input as unsupported before the line-break phase runs, parsing with <c>DEBUG</c>
+    /// defined: the input is returned unchanged with the given reason
+    /// </summary>
+    /// <param name="input">The C# source text</param>
+    /// <param name="reason">The reason the formatter has to give</param>
+    private void AssertRefusedAsUnsupported(string input, string reason)
+    {
+        var parseOptions = new CSharpParseOptions(preprocessorSymbols: _preprocessorSymbols);
+        var tree = CSharpSyntaxTree.ParseText(input, parseOptions, cancellationToken: TestContext.CancellationToken);
+
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+
+        Assert.AreEqual(input, result.Output.ToString(), "The formatter must return a refused input unchanged.");
+        Assert.AreEqual(reason, result.Unsupported?.Reason);
+    }
+
     #endregion // Methods
 
     #region Tests
 
     /// <summary>
-    /// Verifies that an assignment value is not collapsed across a directive after the operator
+    /// Verifies that a directive behind an assignment operator is refused as unsupported before the line-break phase runs, so the
+    /// join behind the operator never meets it
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void AssignmentValueIsNotCollapsedAcrossDirective()
+    [Requirement("FMT-UNSUP-020")]
+    public void DirectiveBehindAssignmentOperatorIsRefusedBeforeTheJoin()
     {
         const string input = """
                              x =
@@ -85,7 +103,7 @@ public class DirectiveJoinTests
                              #endif
                              """;
 
-        AssertUnchanged(input);
+        AssertRefusedAsUnsupported(input, "a comment or directive behind an assignment operator or the = of a declaration");
     }
 
     /// <summary>
@@ -106,11 +124,12 @@ public class DirectiveJoinTests
     }
 
     /// <summary>
-    /// Verifies that a variable initializer is not collapsed across a directive after the equals token
+    /// Verifies that a directive behind the equals token of a variable declarator is refused as unsupported before the line-break
+    /// phase runs, so the join behind the equals token never meets it
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void VariableInitializerIsNotCollapsedAcrossDirective()
+    [Requirement("FMT-UNSUP-020")]
+    public void DirectiveBehindVariableInitializerEqualsIsRefusedBeforeTheJoin()
     {
         const string input = """
                              var value =
@@ -119,7 +138,7 @@ public class DirectiveJoinTests
                              #endif
                              """;
 
-        AssertUnchanged(input);
+        AssertRefusedAsUnsupported(input, "a comment or directive behind an assignment operator or the = of a declaration");
     }
 
     /// <summary>

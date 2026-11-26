@@ -24,22 +24,28 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the spec example: an equals-value target whose <c>new</c> stands behind the last line of a multi-line comment
-    /// is laid out from <c>new</c> where it stands, because the target holds no variable declaration, while document-level
-    /// formatting refuses the document for the comment behind the declaration's <c>=</c>
+    /// Verifies the spec example: an object-creation target whose <c>new</c> stands behind the last line of a multi-line comment
+    /// is laid out from <c>new</c> where it stands, because the target holds neither the variable declaration nor its <c>=</c>,
+    /// while document-level formatting refuses the document for the comment behind the declaration's <c>=</c>, and the
+    /// equals-value clause as target is refused for the comment behind its <c>=</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-INDENT-030")]
     [Requirement("FMT-UNSUP-003")]
-    public async Task EqualsValueTargetBehindTheLastLineOfAMultiLineCommentIsLaidOutFromNewWhereItStands()
+    public async Task ObjectCreationTargetBehindTheLastLineOfAMultiLineCommentIsLaidOutFromNewWhereItStands()
     {
         const string input = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = /* a\n                   b */ new List<int>\n          {\n            1\n          };\n    }\n}";
         const string expected = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = /* a\n                   b */ new List<int>\n                        {\n                            1\n                        };\n    }\n}";
 
-        await AssertFormatsTarget(input, expected, SelectSingle<EqualsValueClauseSyntax>);
+        await AssertFormatsTarget(input, expected, SelectSingle<ObjectCreationExpressionSyntax>);
         AssertUnsupported(input, "/* a\n                   b */");
+
+        var root = await CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRootAsync(TestContext.CancellationToken);
+        var clause = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+
+        Assert.AreEqual(AssignmentCommentReason, ReihitsuFormatter.FindUnsupportedSyntax(clause)?.Reason);
     }
 
     /// <summary>
@@ -208,9 +214,10 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that formatting a chain with an equals-value clause as context aligns the wrapped link under the first link of a
-    /// chain behind the last line of a multi-line comment, because the context holds no variable declaration, while
-    /// document-level formatting refuses the document for the comment behind the declaration's <c>=</c>
+    /// Verifies that formatting a chain with the value of an equals-value clause as context aligns the wrapped link under the
+    /// first link of a chain behind the last line of a multi-line comment, because the context holds neither the variable
+    /// declaration nor its <c>=</c>, while document-level formatting refuses the document for the comment behind the
+    /// declaration's <c>=</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -224,7 +231,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
         await AssertFormatsTargetWithContext(input,
                                              expected,
                                              root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
-                                             SelectSingle<EqualsValueClauseSyntax>);
+                                             root => root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
         AssertUnsupported(input, "/* a\n                   b */");
     }
 
@@ -615,8 +622,8 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain target formatted with an equals-value clause as context, whose wrapped link follows a line break
-    /// other than the document's line ending, aligns the wrapped link under the first link behind the last line of a
+    /// Verifies that a chain target formatted with the value of an equals-value clause as context, whose wrapped link follows a
+    /// line break other than the document's line ending, aligns the wrapped link under the first link behind the last line of a
     /// multi-line comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
@@ -630,7 +637,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
         await AssertFormatsTargetWithForeignLineBreaks(input,
                                                        expected,
                                                        root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
-                                                       SelectSingle<EqualsValueClauseSyntax>);
+                                                       root => root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single().Value);
     }
 
     /// <summary>

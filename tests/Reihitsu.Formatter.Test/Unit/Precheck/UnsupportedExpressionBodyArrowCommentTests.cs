@@ -138,8 +138,7 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the specification example of the other side: comments above a member, inside an expression, behind an expression or
-    /// its semicolon, and behind the arrow of a lambda or of a switch-expression arm do not refuse the input, and the input is
-    /// formatted
+    /// its semicolon, and inside a lambda's expression body do not refuse the input, and the input is formatted
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-012")]
@@ -162,11 +161,6 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
                                  void M(int n)
                                  {
                                      Func<int> f = () => (/* c5 */ 1);
-                                     var s = n switch
-                                     {
-                                         1 => /* c6 */ "one",
-                                         _ => "other",
-                                     };
                                  }
                              }
                              """;
@@ -213,14 +207,15 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the arrow of a switch-expression arm belongs to no expression body: a comment behind it does not refuse the
-    /// input
+    /// Verifies that the arrow of a switch-expression arm belongs to no expression body: a comment behind it is not this shape, and
+    /// the input is refused with the reason of the gap behind a switch arm's arrow
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-012")]
-    public void CommentBehindTheArrowOfASwitchArmIsSupported()
+    [Requirement("FMT-UNSUP-021")]
+    public void CommentBehindTheArrowOfASwitchArmGivesTheReasonOfTheArm()
     {
-        AssertSupported(WrapInClass("    void M()\n    {\n        var s = _v switch\n        {\n            1 => /* c */ \"one\",\n            _ => \"other\",\n        };\n    }"));
+        AssertUnsupportedFor(SwitchArmExpressionCommentReason, WrapInClass("    void M()\n    {\n        var s = _v switch\n        {\n            1 => /* c */ \"one\",\n            _ => \"other\",\n        };\n    }"), "/* c */");
     }
 
     /// <summary>

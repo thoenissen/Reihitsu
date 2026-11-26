@@ -738,6 +738,43 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         Assert.AreEqual(ConvertEndOfLine(resultData, endOfLine), actual);
     }
 
+    /// <summary>
+    /// Verifies the change doc's example: the fix stays offered for a collection expression behind a comment behind a property
+    /// initializer's <c>=</c>, because the collection expression the fix formats holds neither the <c>=</c> nor the comment
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForACollectionExpressionBehindACommentedPropertyInitializerEquals(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int[] L { get; } =
+                                        // a
+                                        {|RH5305:[1,
+                                        2]|};
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int[] L { get; } =
+                                         // a
+                                         [
+                                             1,
+                                             2
+                                         ];
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

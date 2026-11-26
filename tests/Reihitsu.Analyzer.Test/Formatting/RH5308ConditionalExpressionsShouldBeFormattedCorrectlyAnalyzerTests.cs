@@ -1109,7 +1109,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
 
     /// <summary>
     /// Verifies the specification example: the fix formats the conditional as a root of its own that starts behind
-    /// <c>var s = </c>, and the continuation of the compound assignment, whose construct starts on the root's first line, is
+    /// <c>var s = </c>, and the continuation of the parenthesized expression, whose construct starts on the root's first line, is
     /// indented four columns right of where the document begins that line, as whole-document formatting indents it
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
@@ -1126,8 +1126,8 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                 {
                                     int M(int x)
                                     {
-                                        var s = (x += // c
-                                        3) > 0 ? 1 :
+                                        var s = ( // c
+                                        x + 3) > 0 ? 1 :
                                         2;
 
                                         return s;
@@ -1140,8 +1140,8 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   {
                                       int M(int x)
                                       {
-                                          var s = (x += // c
-                                              3) > 0
+                                          var s = ( // c
+                                              x + 3) > 0
                                                       ? 1
                                                       : 2;
 

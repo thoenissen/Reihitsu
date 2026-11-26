@@ -759,6 +759,34 @@ public class RH5201MethodChainsShouldBeAlignedFirstCallTests : BatchCodeFixTests
         await Verify(InChainClass(body, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a comment behind the assignment operator of the statement the fix formats withholds the fix, because the
+    /// formatter refuses that statement, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task NoFixIsOfferedForACommentBehindTheAssignmentOperatorOfTheStatement(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M(string s)
+                                  {
+                                      _ =
+                                          /* c */ s.Trim()
+                                           {|RH5201:.|}ToUpper();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -2859,6 +2859,90 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         Assert.Contains("},\n#pragma warning disable CS0169\n        _b;\n#pragma warning restore CS0169\n}", fixedSource.Replace("\r\n", "\n"));
     }
 
+    /// <summary>
+    /// Verifies that the fix stays offered for a collection creation behind a comment behind a property initializer's <c>=</c>:
+    /// the object creation the fix formats holds neither the <c>=</c> nor the comment, although the document is refused as a whole
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForACollectionCreationBehindACommentedPropertyInitializerEquals(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = /* a */ {|RH5303:new List<int> { 1,
+                                        2 }|};
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = /* a */ new List<int>
+                                                                    {
+                                                                        1,
+                                                                        2
+                                                                    };
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix stays offered for a collection creation behind a comment behind an assignment operator: the object
+    /// creation the fix formats holds neither the operator nor the comment, although the document is refused as a whole
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForACollectionCreationBehindACommentedAssignmentOperator(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        List<int> l;
+                                        l = /* a */ {|RH5303:new List<int> { 1,
+                                            2 }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         List<int> l;
+                                         l = /* a */ new List<int>
+                                                     {
+                                                         1,
+                                                         2
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

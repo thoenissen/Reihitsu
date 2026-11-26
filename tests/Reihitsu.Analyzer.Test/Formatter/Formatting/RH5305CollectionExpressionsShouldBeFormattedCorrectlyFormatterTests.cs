@@ -93,7 +93,8 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
     /// <summary>
     /// Verifies that the formatter aligns the elements and the closing bracket of a collection expression whose opening bracket
-    /// stands behind a comment that leads its line to that bracket, where the analyzer measures it, and clears the diagnostic
+    /// stands behind a comment that leads its line to that bracket, where the analyzer measures it, and clears the diagnostic. The line follows the opening parenthesis of a
+    /// parenthesized expression, because a comment behind an assignment operator makes the input unsupported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -109,12 +110,12 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
                              {
                                  private static void Method(List<int> values)
                                  {
-                                     values =
+                                     values = (
 
                                          /* c */ {|#0:[
                                              1,
                                              2
-                                         ]|};
+                                         ]|});
                                  }
                              }
                              """;
@@ -125,12 +126,12 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
                                  {
                                      private static void Method(List<int> values)
                                      {
-                                         values =
+                                         values = (
 
                                              /* c */ [
                                                          1,
                                                          2
-                                                     ];
+                                                     ]);
                                      }
                                  }
                                  """;

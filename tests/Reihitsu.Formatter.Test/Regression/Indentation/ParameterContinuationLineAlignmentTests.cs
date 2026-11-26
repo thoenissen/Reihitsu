@@ -357,12 +357,13 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a default value after the equals sign and a line comment stays aligned
+    /// Verifies that a line comment behind the <c>=</c> of a parameter's default value refuses the input, which is returned
+    /// unchanged
     /// </summary>
     [TestMethod]
-    public void DefaultValueAfterEqualsAndLineCommentStaysAligned()
+    [Requirement("FMT-UNSUP-020")]
+    public void DefaultValueBehindEqualsAndLineCommentIsUnsupported()
     {
-        // Arrange
         const string input = """
                              namespace Demo;
 
@@ -375,8 +376,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              }
                              """;
 
-        // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "// keep");
     }
 
     /// <summary>

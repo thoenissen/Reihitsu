@@ -409,9 +409,9 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a held line inside a switch expression arm of an argument is not aligned with the argument but left to the
-    /// switch expression, which places it exactly as it does outside an argument: one level deeper than the line of the arm it
-    /// continues
+    /// Verifies that a line held by a comment behind a parenthesis inside a switch expression arm of an argument is not aligned
+    /// with the argument but left to the switch expression, which places it exactly as it does outside an argument: one level
+    /// deeper than the line of the arm it continues
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-013")]
@@ -429,8 +429,8 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                      N(1,
                                        value switch
                                        {
-                                           1 => // keep
-                                               "one",
+                                           1 => ( // keep
+                                               "one"),
                                            _ => "other",
                                        });
                                  }
@@ -442,9 +442,9 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a held line inside an object initializer member of an argument is not aligned with the argument but left to
-    /// the initializer, which places it exactly as it does outside an argument: one level deeper than the line of the member it
-    /// continues
+    /// Verifies that a line held by a comment behind a parenthesis inside an object initializer member of an argument is not
+    /// aligned with the argument but left to the initializer, which places it exactly as it does outside an argument: one level
+    /// deeper than the line of the member it continues
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-013")]
@@ -461,8 +461,8 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                  {
                                      N(new Example
                                        {
-                                           A = // keep
-                                               value,
+                                           A = ( // keep
+                                               value),
                                        });
                                  }
                              }

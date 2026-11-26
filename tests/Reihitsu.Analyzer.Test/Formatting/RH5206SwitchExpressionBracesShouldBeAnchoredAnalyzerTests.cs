@@ -739,6 +739,38 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the change doc's example: the switch expression the fix formats holds a comment behind the <c>=&gt;</c> of an
+    /// arm, which the formatter refuses, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-021")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheArrowOfAnArm(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int v)
+                                  {
+                                      var r = {|RH5206:v switch {
+                              1 => // one
+                              2,
+                              _ => 0
+                              }|};
+
+                                      return r;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

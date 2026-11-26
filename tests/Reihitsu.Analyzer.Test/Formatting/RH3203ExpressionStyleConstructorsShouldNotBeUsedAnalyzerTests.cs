@@ -17,6 +17,35 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
     #region Tests
 
     /// <summary>
+    /// Verifies the change doc's example for constructors: a comment behind an assignment operator in the expression body, which
+    /// the formatter refuses, withholds the fix for either constructor, and both diagnostics stay
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindAnAssignmentOperatorInTheExpressionBody(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _v;
+
+                                  public C() {|RH3203:=> _v = // zero
+                                      0|};
+
+                                  public C(int v) {|RH3203:=> _v += // one
+                                      v|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies the change example: a comment trailing the arrow of a constructor withholds the fix, because the formatter refuses
     /// the constructor it would format, while the diagnostic stays
     /// </summary>

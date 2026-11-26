@@ -60,7 +60,8 @@ public class LeadingTriviaMultiLineDetectionTests
     #region Tests
 
     /// <summary>
-    /// Verifies that a single-line ternary preceded by a comment line is not exploded onto separate lines
+    /// Verifies that a single-line ternary preceded by a comment line behind an opening parenthesis is not exploded onto
+    /// separate lines
     /// </summary>
     [TestMethod]
     public void TernaryWithLeadingCommentLineStaysSingleLine()
@@ -70,9 +71,9 @@ public class LeadingTriviaMultiLineDetectionTests
                              {
                                  int M(bool cond, int a, int b)
                                  {
-                                     var x =
+                                     var x = (
                                          // note
-                                         cond ? a : b;
+                                         cond ? a : b);
 
                                      return x;
                                  }

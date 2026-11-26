@@ -2572,6 +2572,89 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
         await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comment behind the <c>=</c> of an object-initializer member in the initializer's
+    /// value withholds the fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindAnObjectInitializerMembersEquals(string endOfLine)
+    {
+        const string testData = """
+                                class R
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    private R {|RH2001:Value|} { get; } = new R { A = /* three */ 3 };
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind the <c>=&gt;</c> of a switch arm in the initializer's value withholds
+    /// the fix, because the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheArrowOfASwitchArm(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private static int s_mode;
+
+                                    private int {|RH2001:Value|} { get; } = s_mode switch { 1 => /* one */ 2, _ => 0 };
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the change doc's example: a directive between the initializer's <c>=</c> and its value withholds the fix, because
+    /// the formatter refuses the field the fix builds as it refuses the property, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForADirectiveBehindTheInitializersEquals(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; } =
+                                #if DEBUG
+                                        1;
+                                #else
+                                        2;
+                                #endif
+
+                                    int M()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -466,13 +466,13 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment behind the <c>=</c> of an assignment starts a new line and the
-    /// operator stays at the end of the line in front of it
+    /// Verifies that a delimited documentation comment behind the <c>=</c> of an assignment refuses the input as unsupported,
+    /// because it stands between an assignment operator and its right operand
     /// </summary>
     [TestMethod]
-    public void MovesDelimitedDocumentationBehindAssignmentOperator()
+    [Requirement("FMT-UNSUP-020")]
+    public void DelimitedDocumentationBehindAssignmentOperatorIsUnsupported()
     {
-        // Arrange
         const string input = """
                              internal class C
                              {
@@ -486,28 +486,8 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                  internal int N(int x, int y) => x;
                              }
                              """;
-        const string expected = """
-                                internal class C
-                                {
-                                    internal int M(int a, int b, int? n)
-                                    {
-                                        int x;
-                                        x =
 
-                                            /** d */ a;
-
-                                        return x;
-                                    }
-
-                                    internal int N(int x, int y)
-                                    {
-                                        return x;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/** d */");
     }
 
     /// <summary>

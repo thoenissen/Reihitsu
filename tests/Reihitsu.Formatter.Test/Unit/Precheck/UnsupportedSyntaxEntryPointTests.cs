@@ -367,8 +367,9 @@ public class UnsupportedSyntaxEntryPointTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example: the equals-value clause as target holds the <c>=</c> and the comment but not the
-    /// variable declaration, so it is not refused, while the local declaration statement as target and the document are refused
+    /// Verifies the specification example: the object creation as target holds the comment in the leading trivia of its first
+    /// token, but neither the variable declaration nor the <c>=</c> of the equals-value clause, so it is not refused, while the
+    /// equals-value clause, the local declaration statement, and the document are refused
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -382,7 +383,8 @@ public class UnsupportedSyntaxEntryPointTests : FormatterTestsBase
                              {
                                  void M()
                                  {
-                                     var d = /* a */ new List<int> { 1 };
+                                     var d =
+                                         /* a */ new List<int> { 1 };
                                  }
                              }
                              """;
@@ -396,9 +398,15 @@ public class UnsupportedSyntaxEntryPointTests : FormatterTestsBase
                 var document = CreateDocument(workspace, text);
                 var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
 
+                var creationResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single(), TestContext.CancellationToken);
+
+                Assert.IsNull(creationResult.Unsupported, "The object creation holds neither the variable declaration nor the =.");
+
                 var clauseResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single(), TestContext.CancellationToken);
 
-                Assert.IsNull(clauseResult.Unsupported, "The equals-value clause holds no variable declaration.");
+                Assert.AreEqual(text, (await clauseResult.Output.GetTextAsync(TestContext.CancellationToken)).ToString());
+                Assert.AreEqual(AssignmentCommentReason, clauseResult.Unsupported?.Reason);
+                AssertLocationIsShape(clauseResult.Unsupported.Location, text, "/* a */", 0, "the document's");
 
                 var statementResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single(), TestContext.CancellationToken);
 
@@ -455,6 +463,9 @@ public class UnsupportedSyntaxEntryPointTests : FormatterTestsBase
     [DataRow("class C\n{\n    void M()\n    {\n        for (int i = 0, /* c */ j = 0; i < j; i++)\n        {\n        }\n    }\n}")]
     [DataRow("class C\n{\n    // c\n    int _a = 1; // d\n}")]
     [DataRow("class C\n{\n    int P { get; } = /* c */ 1;\n}")]
+    [DataRow("enum E\n{\n    A = /* c */ 1\n}")]
+    [DataRow("class C\n{\n    int M(int v)\n    {\n        return v switch { 1 => /* c */ 2, _ => 0 };\n    }\n}")]
+    [DataRow("using Text = /* c */ System.Text;\n\nclass C\n{\n}")]
     public void FindUnsupportedSyntaxGivesTheAnswerOfThePrecheck(string input)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
@@ -467,9 +478,10 @@ public class UnsupportedSyntaxEntryPointTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FindUnsupportedSyntax"/> answers for the node alone: an equals-value clause that
-    /// holds a comment behind the declaration's <c>=</c> holds no variable declaration and is not refused, and the local
-    /// declaration statement around it is
+    /// Verifies that <see cref="ReihitsuFormatter.FindUnsupportedSyntax"/> answers for the node alone: the value behind the
+    /// declaration's <c>=</c> holds neither the comment nor the <c>=</c> and is not refused, the equals-value clause holds the
+    /// <c>=</c> and the comment and is refused with the reason of FMT-UNSUP-020, and the local declaration statement around it with
+    /// the reason of FMT-UNSUP-004
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-003")]
@@ -478,8 +490,10 @@ public class UnsupportedSyntaxEntryPointTests : FormatterTestsBase
     {
         const string input = "class C\n{\n    void M()\n    {\n        var d = /* a */ 1;\n    }\n}";
         var root = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+        var clause = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
 
-        Assert.IsNull(ReihitsuFormatter.FindUnsupportedSyntax(root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single()));
+        Assert.IsNull(ReihitsuFormatter.FindUnsupportedSyntax(clause.Value));
+        Assert.AreEqual(AssignmentCommentReason, ReihitsuFormatter.FindUnsupportedSyntax(clause)?.Reason);
         AssertReportsComment(ReihitsuFormatter.FindUnsupportedSyntax(root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single()), input, "/* a */");
     }
 

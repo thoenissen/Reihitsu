@@ -3439,7 +3439,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that a wrapped link of a chain whose root stands behind a comment that leads a continuation line is reported when
-    /// it is not aligned under the chain's first link, and that the fix gives the chain the layout the formatter gives it
+    /// it is not aligned under the chain's first link, and that the fix gives the chain the layout the formatter gives it.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment operator
+    /// makes the statement unsupported and withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3455,9 +3457,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                 {
                                     void M(string s)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ s.Trim()
-                                             {|RH5201:.|}ToUpper();
+                                             {|RH5201:.|}ToUpper());
                                     }
                                 }
                                 """;
@@ -3466,9 +3468,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                  {
                                      void M(string s)
                                      {
-                                         _ =
+                                         _ = (
                                              /* c */ s.Trim()
-                                                      .ToUpper();
+                                                      .ToUpper());
                                      }
                                  }
                                  """;
@@ -3481,7 +3483,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// <summary>
     /// Verifies that a wrapped link of a chain whose root stands behind a single-line comment that follows the last line of
     /// a comment spanning several lines is reported when it is not aligned under the chain's first link, and that the fix
-    /// gives the chain the layout the formatter gives it
+    /// gives the chain the layout the formatter gives it.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment operator
+    /// makes the statement unsupported and withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3497,10 +3501,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                 {
                                     void M(string s)
                                     {
-                                        _ =
+                                        _ = (
                                             /* a
                                                b */ /* c */ s.Trim()
-                                             {|RH5201:.|}ToUpper();
+                                             {|RH5201:.|}ToUpper());
                                     }
                                 }
                                 """;
@@ -3509,10 +3513,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                  {
                                      void M(string s)
                                      {
-                                         _ =
+                                         _ = (
                                              /* a
                                                 b */ /* c */ s.Trim()
-                                                              .ToUpper();
+                                                              .ToUpper());
                                      }
                                  }
                                  """;
@@ -3525,7 +3529,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// <summary>
     /// Verifies that the fix of a misaligned link of a chain whose root stands behind a comment that leads a continuation line in
     /// a column deeper than the one the formatter gives that line keeps the comment line as written and aligns the link under the
-    /// chain's first link
+    /// chain's first link.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment operator
+    /// makes the statement unsupported and withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3542,9 +3548,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                 {
                                     void M(string s)
                                     {
-                                        _ =
+                                        _ = (
                                                 /* c */ s.Trim()
-                                                 {|RH5201:.|}ToUpper();
+                                                 {|RH5201:.|}ToUpper());
                                     }
                                 }
                                 """;
@@ -3553,9 +3559,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                  {
                                      void M(string s)
                                      {
-                                         _ =
+                                         _ = (
                                                  /* c */ s.Trim()
-                                                          .ToUpper();
+                                                          .ToUpper());
                                      }
                                  }
                                  """;
@@ -3566,7 +3572,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     /// <summary>
     /// Verifies that the fix of a misaligned link of a chain whose root stands directly behind the last line of a comment
     /// spanning several lines, both comment lines deeper than the column the formatter gives the continuation line, keeps the comment as written
-    /// and aligns the link under the chain's first link
+    /// and aligns the link under the chain's first link.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment operator
+    /// makes the statement unsupported and withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3583,10 +3591,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                 {
                                     void M(string s)
                                     {
-                                        _ =
+                                        _ = (
                                                 /* a
                                                 b */ s.Trim()
-                                                 {|RH5201:.|}ToUpper();
+                                                 {|RH5201:.|}ToUpper());
                                     }
                                 }
                                 """;
@@ -3595,10 +3603,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                  {
                                      void M(string s)
                                      {
-                                         _ =
+                                         _ = (
                                                  /* a
                                                  b */ s.Trim()
-                                                       .ToUpper();
+                                                       .ToUpper());
                                      }
                                  }
                                  """;

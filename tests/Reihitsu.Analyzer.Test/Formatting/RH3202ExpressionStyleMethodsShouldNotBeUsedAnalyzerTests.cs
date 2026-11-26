@@ -21,6 +21,66 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     #region Tests
 
     /// <summary>
+    /// Verifies the change doc's example: the block the fix builds holds a comment behind an assignment operator, which the
+    /// formatter refuses, so no fix is offered for either method and both diagnostics stay
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindAnAssignmentOperatorInTheExpressionBody(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _v;
+
+                                  void Reset() {|RH3202:=> _v = // zero
+                                      0|};
+
+                                  void Add() {|RH3202:=> _v += // one
+                                      1|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the change doc's example: the method the fix formats holds an attribute with a comment behind the <c>=</c> of an
+    /// argument, which the formatter refuses, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-022")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheEqualsOfAnAttributeArgumentOfTheMethod(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class NAttribute : Attribute
+                              {
+                                  public int Name { get; set; }
+                              }
+
+                              class C
+                              {
+                                  [N(Name = /* name */ 1)]
+                                  int M() {|RH3202:=> 1|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies the change example: the fix formats the method it converts, the formatter refuses a method with a comment between
     /// its arrow and its expression, so no fix is offered for either method and both diagnostics stay
     /// </summary>
@@ -480,7 +540,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                 {
                                     private int _value;
 
-
                                     public int GetValue() {|RH3202:=> _value|};
 
                                     public string N() {|RH3202:=>
@@ -494,7 +553,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                   public class C
                                   {
                                       private int _value;
-
 
                                       public int GetValue()
                                       {
@@ -527,7 +585,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                 {
                                     public int GetValue() {|RH3202:=> _value|};
 
-
                                     private int _value;
                                 }
                                 """;
@@ -539,7 +596,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                       {
                                           return _value;
                                       }
-
 
                                       private int _value;
                                   }
@@ -1650,7 +1706,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                 {
                                     public int  First( ) {|RH3202:=> 1|};
 
-
                                     public int Second(  int a ) {|RH3202:=> a|};
                                 }
                                 """;
@@ -1662,7 +1717,6 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                       {
                                           return 1;
                                       }
-
 
                                       public int Second(  int a )
                                       {
