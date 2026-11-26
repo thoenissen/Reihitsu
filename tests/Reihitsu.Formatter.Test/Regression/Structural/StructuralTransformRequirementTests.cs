@@ -346,7 +346,48 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an empty type body holding a comment or a directive keeps its braces
+    /// Verifies the example of FMT-STRUCT-017 for a semicolon behind the closing brace: a multi-line and a one-line empty
+    /// body followed by a semicolon, an empty body whose semicolon stands on the next line, and one whose semicolon carries a
+    /// comment become one semicolon behind the header, with the comment behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
+    public void EmptyTypeBodyFollowedByASemicolonBecomesOneSemicolon()
+    {
+        // Arrange
+        const string input = """
+                             class A
+                             {
+                             };
+
+                             class B { };
+
+                             class C
+                             {
+                             }
+                             ;
+
+                             class D
+                             {
+                             }; // note
+                             """;
+        const string expected = """
+                                class A;
+
+                                class B;
+
+                                class C;
+
+                                class D; // note
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an empty type body holding a comment or a directive keeps its braces, and that an empty body with a
+    /// comment between its closing brace and the semicolon behind it keeps its braces and that semicolon
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-018")]
@@ -364,6 +405,10 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
                              #if DEBUG
                              #endif
                              }
+
+                             class Behind
+                             {
+                             } /* note */;
                              """;
 
         // Act & Assert

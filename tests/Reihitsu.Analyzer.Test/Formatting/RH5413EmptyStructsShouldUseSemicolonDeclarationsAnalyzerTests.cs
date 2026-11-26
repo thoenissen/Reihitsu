@@ -291,6 +291,38 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
     }
 
+    /// <summary>
+    /// Verifies that a multi-line and a one-line empty struct followed by a semicolon are reported, and that the fix writes
+    /// one semicolon behind each header
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-005")]
+    [Requirement("RH5413-001")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task VerifyEmptyStructFollowedByASemicolonIsReportedAndFixed(string endOfLine)
+    {
+        const string testData = """
+                                struct {|#0:B|}
+                                {
+                                };
+
+                                struct {|#1:C|} { };
+                                """;
+        const string fixedData = """
+                                 struct B;
+
+                                 struct C;
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     Diagnostics(RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region Methods

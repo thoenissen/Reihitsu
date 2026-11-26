@@ -49,6 +49,30 @@ public class UnionDeclarationStructuralTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an empty union body followed by a semicolon, on one line and over two lines, becomes one semicolon behind
+    /// the header
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-017")]
+    public void EmptyUnionBodyFollowedByASemicolonBecomesOneSemicolon()
+    {
+        const string input = """
+                             union S1(int, string) { };
+
+                             union U(int, string)
+                             {
+                             };
+                             """;
+        const string expected = """
+                                union S1(int, string);
+
+                                union U(int, string);
+                                """;
+
+        AssertRuleResult(input, expected, _cSharp15);
+    }
+
+    /// <summary>
     /// Verifies that an empty union body on one line and one over two lines become a semicolon
     /// </summary>
     [TestMethod]

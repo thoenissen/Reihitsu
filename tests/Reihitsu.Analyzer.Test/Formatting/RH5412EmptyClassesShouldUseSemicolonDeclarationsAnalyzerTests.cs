@@ -251,8 +251,8 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
 
     /// <summary>
     /// Verifies the specification example of empty bodies: a multi-line and a one-line empty body, a nested empty
-    /// class, and a body that holds only a comment are reported on the name, while the class holding the nested
-    /// class is not
+    /// class, a body that holds only a comment, and a multi-line and a one-line empty body followed by a semicolon are
+    /// reported on the name, while the class holding the nested class is not
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -278,9 +278,15 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                                 {
                                     // reserved
                                 }
+
+                                class {|#4:F|}
+                                {
+                                };
+
+                                class {|#5:G|} { };
                                 """;
 
-        await Verify(testData, Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -313,8 +319,8 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies the specification example of declarations that are not reported: a class with a member and a
-    /// semicolon declaration
+    /// Verifies the specification example of declarations that are not reported: a class with a member, a semicolon
+    /// declaration, and a class with a member and a semicolon behind its closing brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -328,6 +334,11 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                                 }
 
                                 class B;
+
+                                class C
+                                {
+                                    int _x;
+                                };
                                 """;
 
         await Verify(testData);
@@ -765,6 +776,356 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a semicolon behind the braces: a multi-line and a one-line empty body followed
+    /// by a semicolon, an empty body whose semicolon stands on the next line, and one whose semicolon carries a comment are
+    /// reported, and the fix writes one semicolon behind each header, with the comment behind it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-005")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task VerifySpecificationExampleOfSemicolonBehindTheBracesIsFixed(string endOfLine)
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                };
+
+                                class {|#1:B|} { };
+
+                                class {|#2:C|}
+                                {
+                                }
+                                ;
+
+                                class {|#3:D|}
+                                {
+                                }; // note
+                                """;
+        const string fixedData = """
+                                 class A;
+
+                                 class B;
+
+                                 class C;
+
+                                 class D; // note
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine),
+                     ConvertEndOfLine(fixedData, endOfLine),
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an empty class whose semicolon stands on the line below the closing brace removes that line
+    /// break with the braces, and that the result keeps the document's line breaks
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task VerifySemicolonOnTheLineBelowTheClosingBraceIsFixedWithTheDocumentLineBreaks(string endOfLine)
+    {
+        const string testData = """
+                                namespace N;
+
+                                class {|RH5412:C|}
+                                {
+                                }
+                                ;
+
+                                class D
+                                {
+                                    int _x;
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N;
+
+                                 class C;
+
+                                 class D
+                                 {
+                                     int _x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace and a blank line between the closing brace and the semicolon go with the braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyWhitespaceAndBlankLineBetweenClosingBraceAndSemicolonAreRemoved()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                } ;
+
+                                class {|#1:B|}
+                                {
+                                }
+
+                                ;
+                                """;
+        const string fixedData = """
+                                 class A;
+
+                                 class B;
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment behind the semicolon that follows the closing brace follows the new semicolon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyBlockCommentBehindTheSemicolonFollowsTheNewSemicolon()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                }; /* note */
+                                """;
+        const string fixedData = """
+                                 class A; /* note */
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix converts an empty class with a semicolon behind its braces nested in another class, and leaves
+    /// the outer class's braces in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyNestedEmptyClassWithSemicolonBehindTheBracesIsFixed()
+    {
+        const string testData = """
+                                class H
+                                {
+                                    class {|#0:I|}
+                                    {
+                                    };
+                                }
+                                """;
+        const string fixedData = """
+                                 class H
+                                 {
+                                     class I;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that two one-line empty classes with a semicolon behind their braces, each on a line of its own, are both
+    /// fixed, each to one semicolon, also by Fix All in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyTwoEmptyClassesWithSemicolonsOnTheirOwnLinesAreFixed()
+    {
+        const string testData = """
+                                class {|#0:A|} { };
+                                class {|#1:B|} { };
+                                """;
+        const string fixedData = """
+                                 class A;
+                                 class B;
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a comment between the closing brace and the semicolon: a block comment on the
+    /// line of the closing brace and a line comment behind it, with the semicolon on the next line, are reported, and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-004")]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifySpecificationExampleOfCommentBetweenClosingBraceAndSemicolonIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                } /* note */;
+
+                                class {|#1:B|}
+                                {
+                                } // note
+                                ;
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData,
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2)));
+    }
+
+    /// <summary>
+    /// Verifies that a comment on a line of its own between the closing brace and the semicolon is reported, and that no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyCommentOnItsOwnLineBetweenClosingBraceAndSemicolonIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                }
+                                // note
+                                ;
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData,
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat)));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#region</c>/<c>#endregion</c> pair and an empty <c>#if</c> block between the closing brace and the
+    /// semicolon are reported, and that no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyDirectiveBetweenClosingBraceAndSemicolonIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                }
+                                #region R
+                                #endregion
+                                ;
+
+                                class {|#1:B|}
+                                {
+                                }
+                                #if X
+                                #endif
+                                ;
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData,
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2)));
+    }
+
+    /// <summary>
+    /// Verifies that code a conditional directive excludes between the closing brace and the semicolon is reported, and
+    /// that no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    public async Task VerifyDisabledTextBetweenClosingBraceAndSemicolonIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                }
+                                #if X
+                                class B;
+                                #endif
+                                ;
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData,
+                                       test => test.ExpectedDiagnostics.AddRange(Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat)));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment between the closing brace and the semicolon is reported, and that no
+    /// code fix is offered, whether the documentation mode parses it as documentation or as a comment
+    /// </summary>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-EMPTY-005")]
+    [DataRow(DocumentationMode.None)]
+    [DataRow(DocumentationMode.Parse)]
+    [DataRow(DocumentationMode.Diagnose)]
+    public async Task VerifyDocumentationCommentBetweenClosingBraceAndSemicolonIsReportedWithoutCodeFix(DocumentationMode documentationMode)
+    {
+        const string testData = """
+                                class {|RH5412:A|}
+                                {
+                                } /** note */;
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData, documentationMode);
+    }
+
+    /// <summary>
+    /// Verifies that under C# 11 an empty class with a semicolon behind its braces is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5412-001")]
+    public async Task VerifyEmptyClassWithSemicolonBehindTheBracesIsNotReportedUnderCSharp11()
+    {
+        const string testData = """
+                                class A
+                                {
+                                };
+
+                                class B { };
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies that an empty class with a semicolon behind its braces is reported under C# 12, the first version with
+    /// semicolon class declarations
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5412-001")]
+    public async Task VerifyEmptyClassWithSemicolonBehindTheBracesIsReportedUnderCSharp12()
+    {
+        const string testData = """
+                                class {|#0:A|}
+                                {
+                                };
+                                """;
+
+        await Verify(testData,
+                     test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp12)),
                      Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 

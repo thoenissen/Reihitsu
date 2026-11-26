@@ -50,12 +50,11 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
             return false;
         }
 
-        if (typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
-        {
-            return false;
-        }
-
-        if (typeDeclaration.OpenBraceToken.IsMissing || typeDeclaration.CloseBraceToken.IsMissing)
+        // A semicolon declaration has no braces; a semicolon behind the closing brace still leaves the brace body
+        // in place and does not keep the declaration from being reported
+        if (typeDeclaration.OpenBraceToken.IsKind(SyntaxKind.OpenBraceToken) == false
+            || typeDeclaration.OpenBraceToken.IsMissing
+            || typeDeclaration.CloseBraceToken.IsMissing)
         {
             return false;
         }
@@ -98,7 +97,8 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
 
     /// <summary>
     /// Determines whether the declaration contains comments, directives, or other meaningful trivia that
-    /// removing the brace body would discard, either between the header and the open brace or inside the body
+    /// removing the brace body would discard: between the header and the open brace, inside the body, or between
+    /// the closing brace and a semicolon that follows it
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns><see langword="true"/> if meaningful trivia exists that would be lost by the conversion; otherwise, <see langword="false"/></returns>
@@ -107,7 +107,10 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
         return ContainsNonFormattingTrivia(SyntaxTokenNavigationUtilities.GetPreviousToken(typeDeclaration.OpenBraceToken).TrailingTrivia)
                || ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.LeadingTrivia)
                || ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
-               || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia);
+               || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia)
+               || (typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken)
+                   && (ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.TrailingTrivia)
+                       || ContainsNonFormattingTrivia(typeDeclaration.SemicolonToken.LeadingTrivia)));
     }
 
     /// <summary>
