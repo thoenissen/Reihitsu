@@ -25,6 +25,7 @@
 | 5 | Skeptic | Where the fixture runner gets the version clamp | `InternalsVisibleTo("Reihitsu.Tooling")` in `src/Reihitsu.Formatter/Properties/AssemblyInfo.cs`, reuse `LanguageVersionResolver` | A copy would be FC-015; making it public widens the shipped assembly | Internal visibility only | |
 | 6 | Skeptic | Tools' default version | Always parse with the resolved version (`MaxSupportedLanguageVersion` when no option); amend change doc wording | Keeps tools aligned with `format.sh` after a Roslyn upgrade; same as today on Roslyn 5.12.0 | Tooling; identical output today | |
 | 7 | Skeptic | #1924 goals: "trace spec" branch and the claim about the existing test | Dropped | No trace spec exists; the test passes a full path | Tooling | |
+| 8 | Test implementer | If `FixtureRunner.HasSyntaxErrors` gains a version parameter, may `FixtureRunnerTests` call sites be updated? | Yes: the implementer may update the call (arguments only, no assertion) and names it in its handover | Signature change of an internal tooling method; assertions unchanged | Tooling test only | |
 
 ## Follow-up candidates
 
@@ -35,4 +36,5 @@
 - Done: spec author (01, d686d38, pushed). LANE CHECK after 01: confirmed (diff needs only tooling).
 - Done: skeptic (02, 30ac09d): #1924 proceed; #1949 proceed; no output questions.
 - Done: spec author amendment (03, 11bad04); both change docs Accepted. No output questions, no stop.
-- Next: test implementer (04).
+- Done: test implementer (04, 4b9a8c9): tests written for both; fail for stated reasons.
+- Next: implementer (05).
