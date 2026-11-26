@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-021, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-BREAK-041, FMT-INDENT-013, FMT-INDENT-015, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, RH5111-005, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-014, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-021, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-BREAK-041, FMT-INDENT-013, FMT-INDENT-015, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, RH5111-005, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -1473,8 +1473,8 @@ The gap is the trailing trivia of the operator or the `=`, and the leading trivi
 The conditions, each with both sides:
 
 - **Every assignment operator.** The operator is `=` or a compound assignment operator — `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`, `>>>=`, or `??=` — of an assignment expression, wherever the assignment stands: at statement level, in an argument, in a lambda, in a `for` incrementor, in an initializer value, in a switch-expression arm, and in an anonymous-object member. `x = // c⏎y + 1;`, `x += // c⏎3;`, `y ??= /* c */ 0;`, `M(x = /* c */ 1)`, `1 => x -= /* c */ 2`, `new { A = x += // c⏎3 }`, and the ref assignment `r = /* c */ ref y;` are refused. The members of an object initializer, of the initializer of a `with` expression, and of an index initializer are assignment expressions too, whose left operand is the member or the index: `new R { A = /* c */ 3 }`, `r with { A = /* c */ 3 }`, and `new Dictionary<int, int> { [0] = /* c */ 1 }` are refused. So is a deconstruction, which the syntax tree writes as an assignment expression whether its left side declares the variables or not: `(a, b) = /* c */ t;`, `var (a, b) = // c⏎t;`, and `(var a, b) = /* c */ t;` are refused.
-- **Every equals-value clause.** The `=` of a property's initializer (`int[] G { get; } = // c⏎{ 1, 2 };`), of an enum member (`A = // c⏎1`), of a parameter's default value (`int y = /* c */ 1`), and of a variable declarator — of a field, an event field, a local, a `using` or `fixed` statement, or a `for` initializer — is part of the shape. Behind a variable declarator's `=`, FMT-UNSUP-004 refuses a comment with its own reason, so this requirement gives its reason there for a directive and disabled text: `int x =⏎#if DEBUG⏎1;⏎#else⏎2;⏎#endif` is refused.
-- **No other `=`.** The `=` of a name-equals is not part of the shape: an attribute argument (`[N(Name = /* c */ 1)]`) and a using alias (`using Text = // c⏎System.Text;`) are formatted. The `=` of an anonymous-object member declarator and of a `let` clause are FMT-UNSUP-017's (`new { A = /* c */ 1 }`). A comparison such as `==`, `<=`, `>=`, or `!=` is a binary operator, which FMT-UNSUP-011 decides, and the `=>` of a switch arm, an expression body, or a lambda is FMT-UNSUP-021's, FMT-UNSUP-012's, or FMT-UNSUP-017's.
+- **Every equals-value clause.** The `=` of a property's initializer (`int[] G { get; } = // c⏎{ 1, 2 };`), of an enum member (`A = // c⏎1`), of a parameter's default value (`int y = /* c */ 1`), and of a variable declarator — of a field, an event field, a local, a `using` or `fixed` statement, or a `for` initializer — is part of the shape. The gap belongs to the shape for every owner of the clause, with a comment, a directive, or disabled text alike: `int x =⏎#if DEBUG⏎1;⏎#else⏎2;⏎#endif` is refused, and so is an equals-value clause of a declarator formatted without its declaration, with a comment behind its `=`. Where the input also holds the variable declaration, the order rule below gives FMT-UNSUP-004's reason for a comment, and FMT-UNSUP-010's for a directive or disabled text in a field declaration with several declarators.
+- **No other `=`.** The `=` of a name-equals is not part of this shape: the `=` of an attribute argument (`[N(Name = /* c */ 1)]`) and of a using alias (`using Text = // c⏎System.Text;`) are FMT-UNSUP-022's, and the `=` of an anonymous-object member declarator and of a `let` clause are FMT-UNSUP-017's (`new { A = /* c */ 1 }`). A comparison such as `==`, `<=`, `>=`, or `!=` is a binary operator, which FMT-UNSUP-011 decides, and the `=>` of a switch arm, an expression body, or a lambda is FMT-UNSUP-021's, FMT-UNSUP-012's, or FMT-UNSUP-017's.
 - **Behind the operator.** Only the gap between the operator or the `=` and the first token of the right operand or the value counts. A comment in front of the operator (`x /* c */ = 1;`, `int P { get; } /* c */ = 1;`, `int y /* c */ = 1`) or inside the right operand or the value behind its first token (`x = y /* c */ + 1;`, `x = ref /* c */ y;`) does not refuse the input under this requirement.
 - **On any line.** Whether the gap holds a line break does not matter: `x = /* c */ 1;` on one line is refused like `x = // c⏎1;`.
 - **Every such operator.** Each assignment and each equals-value clause is checked with its own operator or `=`, wherever it stands. A token in disabled text is no token of the input.
@@ -1644,25 +1644,14 @@ class C
 Example — the other side: none of these comments refuses the input under this requirement, and the input is formatted:
 
 ```csharp
-using System;
-
-using Text = // c1
-    System.Text;
-
-class NAttribute : Attribute
-{
-    public int Name { get; set; }
-}
-
 class C
 {
-    int P { get; } /* c2 */ = 1;
+    int P { get; } /* c1 */ = 1;
 
-    [N(Name = /* c3 */ 1)]
-    int M(int x, int y /* c4 */ = 1)
+    int M(int x, int y /* c2 */ = 1)
     {
-        x /* c5 */ = 1;
-        x = y /* c6 */ + 1;
+        x /* c3 */ = 1;
+        x = y /* c4 */ + 1;
 
         return x;
     }
@@ -1684,7 +1673,7 @@ A line break alone behind the `=>` is formatted: no requirement joins it (FMT-BR
 
 The `=>` belongs to the arm, so a node-level input that holds the `=>` holds the whole gap.
 
-Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after every other.
+Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after FMT-UNSUP-004 through FMT-UNSUP-020.
 
 The reason the formatter gives for this shape is `a comment or directive behind the => of a switch arm`, and its location is the span of the first comment, directive, or disabled text in that place.
 
@@ -1737,6 +1726,93 @@ class C
         }
 
         return r;
+    }
+}
+```
+
+### FMT-UNSUP-022 — Comments and directives behind the `=` of an attribute argument or a using alias are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the `=` of the name-equals of an attribute argument or of a using alias and the first token behind it: in the trailing trivia of the `=`, or in the leading trivia of the first token of the attribute argument's expression or of the alias's target.
+
+The conditions, each with both sides:
+
+- **An attribute argument or a using alias.** Only a name-equals whose parent is an attribute argument (`[N(Name = /* c */ 1)]`) or a using directive (`using Text = // c⏎System.Text;`, also with `global` and inside a namespace) counts. The `=` of an anonymous-object member declarator, also a name-equals, is FMT-UNSUP-017's (`new { A = /* c */ 1 }`). A named attribute argument written with a colon (`[Obsolete(message: /* c */ "old")]`) has no `=` and is not this shape. The `=` of an assignment or of an equals-value clause is FMT-UNSUP-020's.
+- **Behind the `=`.** Only the gap between the `=` and the first token behind it counts. A comment in front of the `=` (`[N(Name /* c */ = 1)]`, `using Text /* c */ = System.Text;`) or behind the value's first token (`[N(Name = 1 /* c */)]`) does not refuse the input under this requirement.
+- **On any line.** Whether the gap holds a line break does not matter: `[N(Name = /* c */ 1)]` on one line is refused like `[N(Name = // c⏎1)]`.
+- **Every such `=`.** Each attribute argument and each using alias is checked with its own `=`, wherever it stands. A token in disabled text is no token of the input.
+
+A node-level input holds the shape when it holds both the `=` and the comment, directive, or disabled text in the gap: the attribute argument, its attribute, and every node around them do, and so does the using directive. A node-level input that holds the value but not the `=` does not hold the shape, also with the comment in the leading trivia of its first token (FMT-UNSUP-003).
+
+Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after every other. So FMT-UNSUP-004 keeps its reason for a comment behind the `=` of an attribute argument of a field declaration (`[N(Name = /* c */ 1)] private int _e;`), and FMT-UNSUP-010 for a directive there in a field declaration with several declarators.
+
+The reason the formatter gives for this shape is `a comment or directive behind the = of an attribute argument or a using alias`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: The maintainer decided to declare this shape unsupported in this work, next to FMT-UNSUP-020, with a reason of its own: to a user, the `=` of an attribute argument or of a using alias names an argument or a type, and is neither an assignment operator nor the `=` of a declaration. A comment behind the `=` keeps the value off the `=`'s line: the join of FMT-BREAK-015 does not cross it inside an attribute argument (FMT-BREAK-001), and behind a using alias's `=` no requirement joins the gap, so the target starts a continuation line (FMT-INDENT-034). A comment that explains the argument or the alias belongs above the attribute or the directive, or behind the value. Directives and disabled text are part of the shape alike. The shape is the same on one line, so the boundary is a place in the syntax tree. The declaration deletes no special case: the join of FMT-BREAK-015 refuses a comment behind an attribute argument's `=` by the refusal every wrap inside a list element goes through, which the other gaps inside an element keep needing, and no requirement joins the gap behind a using alias's `=`; the shape is declared on the maintainer's explicit answer. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): the join of FMT-BREAK-015 carries only whitespace into it, and the phases that move or merge attributes and using directives move them with their trivia and change none inside them.
+
+Example — each `=` is refused, and the input that holds it is returned unchanged:
+
+```csharp
+using System;
+using Text = // alias
+System.Text;
+
+class NAttribute : Attribute
+{
+    public int Name { get; set; }
+}
+
+class C
+{
+    [N(Name = /* name */ 1)]
+    void M()
+    {
+    }
+}
+```
+
+The location is the span of `// alias`, which starts in line 2, column 14.
+
+Example — an attribute argument alone is refused as well; the input is returned unchanged:
+
+```csharp
+using System;
+
+class NAttribute : Attribute
+{
+    public int Name { get; set; }
+}
+
+class C
+{
+    [N(Name = // name
+    1)]
+    void M()
+    {
+    }
+}
+```
+
+The location is the span of `// name`, which starts in line 10, column 15.
+
+Example — the other side: none of these comments refuses the input under this requirement, and the input is formatted:
+
+```csharp
+using System;
+
+using Text /* c1 */ = System.Text;
+
+class NAttribute : Attribute
+{
+    public int Name { get; set; }
+}
+
+class C
+{
+    [Obsolete(message: /* c2 */ "old")]
+    [N(Name /* c3 */ = 1)]
+    [N(Name = 1 /* c4 */)]
+    void M()
+    {
     }
 }
 ```
