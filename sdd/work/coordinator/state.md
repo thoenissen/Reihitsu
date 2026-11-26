@@ -17,30 +17,28 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (+#1956 #1958 #1963; merges of today not yet read): #1085 #1086 #1087 #1088 #1089 #1090 #1275 #1399 #1400 #1472 #1567 #1568 #1589 #1607 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1936 #1943 #1948 #1949.
+Open in 1.6.0 (23): #1085 #1086 #1087 #1088 #1089 #1090 #1399 #1400 #1567 #1568 #1589 #1607 #1698 #1771 #1836 #1912 #1924 #1936 #1948 #1949 #1956 #1958 #1963.
 
-Merged since the previous batch: #1942 (#1941), #1945 (#1566), #1946 (#1935), #1947 (#1939).
+Merged since the previous batch: #1944 (#1926), #1951 (#1943), #1952 (#1722), #1953 (#1925), #1954 (#1275), #1955 (#1837), #1964 (cleanup). #1472 closed by the maintainer without a PR.
 
-Runs in progress: #1926 (PR #1944, claim). No claim PR exists for the other start-now runs; they are treated as not started.
+Runs in progress: none (no PR open). The start-now runs below have no claim PR and are treated as not started.
 
-Dependency graph: `inventory/batch-2026-11-22b.md` (main at 1788f94d), updated by this file's lines below (main at eed7195c).
+Dependency graph: `inventory/batch-2026-11-26.md` (main at 68f236ea).
 
-Start now: `#1956 #1958 #1963` · `#1943` · `#1275 #1837` · `#1472` · `#1722` · `#1925` · `#1924 #1949` · `#1912` · `#1836` · `#1086` · `#1089` · `#1090` · `#1948`.
+Start now: `#1956 #1958 #1963` · `#1924 #1949` · `#1912` · `#1836` · `#1771` · `#1086` · `#1089` · `#1090` · `#1948`.
 
 After merges:
-- after #1926 → `#1568 #1698 #1567` → `#1399` → `#1400 #1936` (serial on `indentation.md`; #1566 merged)
+- after #1956 #1958 #1963 and #1912 → `#1568 #1698 #1567` (shares `PrecheckPhase.cs` with #1963 via #1567 option A, and `RH5112…AnalyzerTests.cs` with #1912 via #1568 option B) → `#1399` → `#1400 #1936` (serial on `indentation.md`)
 - after #1912 → `#1607`
 - after #1086 → `#1085`
-- after #1090 (and #1925 if it rewords RH5202's message, #1924 #1949 if it adds a spec) → `#1087 #1088`
-- after #1943 → `#1771` (escalation 9 first; #1939 merged)
-- after #1836, #1275 #1837, #1926, #1943 → `#1589` alone (or 1.7.0)
+- after #1090 and #1771 (and #1924 #1949 only if it adds a spec) → `#1087 #1088` (new link: `casing.md`, and the new rule's fix derives from `CasingCodeFixProviderBase<T>`, which #1771 restructures)
+- after #1836 → `#1589`
 
-Notes for the runs (evidence in the batch file, not decided): #1275 likely narrows to `class C⏎{⏎};`; #1567 partly done (return-type gap remains); #1771's file pointer is stale (`CasingRenameSafetyUtilities.cs`). #1948: rules RH5301 RH5303 RH5206 RH5103 RH5008 RH5513 RH5104 and their specs, `StringInterpolationUtilities` (Core) reused; no file shared with a run in progress or in the start-now set (none of #1912's 22 test files is one of these rules); premise from a throwaway probe only, the run reproduces first.
-
-1.7.0 addition: #1950 (Playground typing speed) after #976 (`Home.razor`).
+Notes for the runs (evidence in the batch file, not decided): #1567 narrows to an explicit return type (`int⏎(int x) => x`); `static⏎(` is already joined. #1698's Before and option A are stale on main (`// e`, `a`, `}` at column 12, `// f` at 16 with a blank line); the run re-asks. #1568 holds. #1771 holds; escalation 9 comes first inside its run. #1912's search also hits `CodeFixRunCommandTests.cs` and `ApplyFixWrapperPositionalArgumentTests.cs`, which hold no message literals, so they are no shared file with #1924 #1949. #1836's output question is still open.
 
 ## Status
 
+Status 2026-11-26 (t): batch finished — merges #1944 #1951–#1955 #1964 read (#1926 #1943 #1722 #1925 #1275 #1837 done; #1472 closed by the maintainer); graph rebuilt (`inventory/batch-2026-11-26.md`, main at 68f236ea); #1771 joins the start-now set (10 runs); `#1568 #1698 #1567` now wait for #1956 #1958 #1963 and #1912; #1087 #1088 also wait for #1771.
 Status 2026-11-26 (s): 3C, 4A recorded (maintainer asked about the blank line in 4A: FMT-BLANK-011 keeps it, applied so); commented on #1960 #1959. Batch started: merges #1944 #1951–#1955 #1964 read, no PR open; re-check of `#1568 #1698 #1567`, #1771, #1589 and the start-now conflicts delegated (`inventory/batch-2026-11-26.md`).
 Status 2026-11-26 (r): answer 1A, 2A applied (milestones, comments on #962 #1956 #1957 #1959 #1961 #1962, #1962 closed as duplicate). Asked back 3/4 (#1960) with a new option: 3A `};` joined, 3B `}⏎;` at column 0, 3C remove the `;` behind a type's closing brace (new structural transform, like FMT-STRUCT-019's comma removal; rec. C); 4 with comment/directive between `}` and `;`: 4A keep as written at column 0, no blank line, the `;` stays (rec.), 4B remove the `;` anyway, comment stays on its line.
 Status 2026-11-26 (q): triage of #1956–#1963 asked (`inventory/triage-2026-11-26.md`, main at 76b09a12). 1 placements — #1956 #1958 #1963 → 1.6.0 one maintenance run `/squad #1956 #1958 #1963`, start now; #1957 #1961 → 1.8.0 join `#1773 #1775 #1447 #1443 #1758` (shared `BlankLineCodeFixUtilities.cs`); #1959 #1960 → 1.7.0 join `#1636 #1785 #1446 #1845` (RH5404 files shared with #1446); #1962 → close as duplicate of #962, input added to #962 (1A apply / 1B change rows; rec. 1A). 2 RH5404 `class C { int _x; };` reported+fixed (A) or not (B); rec. A. 3 formatter `}⏎;` → `};` (A) or `}⏎;` kept (B), today indented; rec. A. 4 comment/directive between `}` and `;`: kept as written at column 0, no blank line (A) or as main (B); rec. A. Side find: six PRs merged today (#1944 #1951 #1952 #1953 #1954 #1955) — batch after the answer.
@@ -60,4 +58,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Finish the batch of 2026-11-26 (s): read `inventory/batch-2026-11-26.md` (re-run the re-check if missing), rebuild `Plan`, answer with the start-now set.
+On reports of merges: `/coordinator batch`. On new issues without a milestone: `/coordinator triage`.
