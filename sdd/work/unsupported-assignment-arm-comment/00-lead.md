@@ -56,7 +56,8 @@
 - Done: merged origin/main eed7195 (71519cb); conflicts only in `Uses` rows, resolved by spec author (12, 0a728ea).
 - Done: build green; auditor (13, 0c1d326) passed at audited SHA **c5374c2** with one comment-only finding (ObjectInitializerContributor.cs:122-123).
 - Done: cleaner (14, 72ef94a): comment fixed; text-only proof PASS vs c5374c2 (no second audit).
-- Now: validator (15), then issue manager, note, publish.
+- Done: validator (15, a53feeb): pass on d02b9dd.
+- Now: issue manager (16), note, publish.
 - (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
