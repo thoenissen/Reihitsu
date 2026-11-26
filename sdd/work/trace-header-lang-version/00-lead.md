@@ -40,4 +40,5 @@
 - Done: spec author amendment (03, 11bad04); both change docs Accepted. No output questions, no stop.
 - Done: test implementer (04, 4b9a8c9): tests written for both; fail for stated reasons.
 - Done: implementer (05, 21e6421/8495f09): all tests pass.
-- Next: cleaner (06).
+- Done: cleaner (06, 7277ac1): clean.
+- Next: spec checker (07).
