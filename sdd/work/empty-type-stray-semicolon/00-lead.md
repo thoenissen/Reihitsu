@@ -23,9 +23,10 @@
 
 ## Follow-up candidates
 
-(none yet)
+1. RH5404 skips every type declaration with a semicolon, so `class C { int _x; };` is not reported while the formatter breaks it — 01-spec-author.md
+2. Formatter indents a `;` on its own line behind a type's closing brace by four spaces (types with members; empty type with comment before `;`) — 01-spec-author.md
 
 ## State
 
-- Last step: claim, lane, prepare.sh green.
-- Next: spawn spec author (01).
+- Last step: spec author 01 (change doc Draft `sdd/changes/2026-11/empty-type-stray-semicolon.md`, commit 9af7865); lane check ok.
+- Next: skeptic (02), then output-question batch 1 (change doc visible output changes, incl. RH5418 inclusion and comment-between-`}`-and-`;` reported without fix).
