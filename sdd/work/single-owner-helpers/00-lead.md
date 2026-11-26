@@ -42,3 +42,4 @@ None yet.
 - Skeptic done (01-skeptic.md, 7ccb087): all three proceed, no output questions, no follow-ups. Next: test implementer.
 - Test implementer done (02-test-implementer.md, b54a551): tests for all three issues, all green on 1df7506, no follow-ups. Next: implementer.
 - Implementer done (03-implementer.md, 7db988d): all tests green, no follow-ups. Next: cleaner.
+- Cleaner done (04-cleaner.md, 0524ace): clean, Release 0 warnings. Next: spec checker.
