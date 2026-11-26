@@ -51,3 +51,4 @@
 - Spec checker 08: consistent, no findings (67a90ae). main merged: up to date. Build green.
 - Auditor 09: pass, no findings (handover 33fe526). Audited SHA: 6691572f558348d2574e9494ef94024a3d8bc59d.
 - Next: validator (10) and issue manager (11) for follow-up candidates 1–3; then note, delete sdd/work, trigger commit, PR.
+- Issue manager 11: created #1959 (cand. 1), #1960 (cand. 2), #1961 (cand. 3) — e3f1753.
