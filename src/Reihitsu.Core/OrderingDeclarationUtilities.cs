@@ -283,26 +283,6 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether every conditional group with a directive in the token's leading trivia wraps whole members
-    /// of the type body that holds the token (<see cref="ConditionalGroupUnitUtilities.WrapsWholeMembers"/>), with no other conditional group
-    /// inside it (RH2001-010). A group that lies inside a branch of another group is decided by its own branches. The
-    /// active branch is not read, and no condition is evaluated
-    /// </summary>
-    /// <param name="token">Token whose leading trivia is read, such as the first modifier of a member or the token behind a member</param>
-    /// <returns><see langword="true"/> if every such group wraps whole members, also when there is none</returns>
-    public static bool ConditionalGroupsWrapWholeMembers(SyntaxToken token)
-    {
-        var typeDeclaration = token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>();
-
-        return token.LeadingTrivia
-                    .Select(trivia => trivia.GetStructure())
-                    .OfType<DirectiveTriviaSyntax>()
-                    .Where(ConditionalGroupUnitUtilities.IsConditionalDirective)
-                    .All(directive => typeDeclaration != null
-                                      && ConditionalGroupUnitUtilities.WrapsWholeMembers(directive.GetRelatedDirectives(), typeDeclaration));
-    }
-
-    /// <summary>
     /// Determines whether moving a member before another member would change the execution order of
     /// field, event field, or property initializers. Initializers run in declaration order within their execution
     /// context (static initializers in the static constructor, instance initializers in the instance

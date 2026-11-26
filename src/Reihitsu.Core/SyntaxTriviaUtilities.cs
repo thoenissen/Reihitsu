@@ -120,6 +120,19 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the trivia is one of the conditional-compilation directives: <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c>
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a conditional directive; otherwise, <see langword="false"/></returns>
+    public static bool IsConditionalDirective(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia);
+    }
+
+    /// <summary>
     /// Determines whether a trivia is a <c>#region</c> or <c>#endregion</c> directive
     /// </summary>
     /// <param name="trivia">The trivia to check</param>
@@ -665,19 +678,6 @@ public static class SyntaxTriviaUtilities
         }
 
         return nestingLevel != 0;
-    }
-
-    /// <summary>
-    /// Determines whether the trivia is one of the conditional-compilation directives
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a conditional directive; otherwise, <see langword="false"/></returns>
-    private static bool IsConditionalDirective(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia);
     }
 
     /// <summary>
