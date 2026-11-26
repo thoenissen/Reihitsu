@@ -23,7 +23,7 @@
 | 3 | Spec author | Accept change doc | Accepted after the skeptic and the amendment in decision 1; status set with the amendment | No open output questions; answer A covers the visible changes | Covered by a maintainer answer | 4fdf5c1 |
 | 4 | Lead | Continue or spawn fresh spec author for the amendment | Fresh (context growth 86k, cache cold) | lead.md section 4 table | Internal | — |
 | 5 | Implementer | Follow-up candidate: `#if/#elif/#else/#endif` kind check exists as three copies (`SyntaxTriviaUtilities`, `ConditionalGroupUnitUtilities`, RH2001 fix) | Adjacent cleanup in this run: remove the RH2001 fix's private copy by reusing the Core trivia-kind check (one shared statement of the rule, FC-015); implementer continued once | Small, in components the run changes, covered by existing tests, lane unchanged | Internal; no output change | 0cdeed9 |
-| 6 | Auditor (08) | Findings #1 (behind-token `#if`-only / `#endif`-only untested) and #2 (change doc misses `#endif`-alone-behind and active-`#else`-property shapes) | Repair round 1: #2 → spec author (fresh), then #1 → test implementer (fresh), sequential to avoid build collisions | Same requirement; both shapes covered by answer A | Covered by maintainer answer A and RH2001-010 boundary text | (pending) |
+| 6 | Auditor (08) | Findings #1 (behind-token `#if`-only / `#endif`-only untested) and #2 (change doc misses `#endif`-alone-behind and active-`#else`-property shapes) | Repair round 1: #2 → spec author (fresh), then #1 → test implementer (fresh), sequential to avoid build collisions | Same requirement; both shapes covered by answer A | Covered by maintainer answer A and RH2001-010 boundary text | 4fd4bc4, c2ed10a |
 | 7 | Auditor (08) | Hint: in one `#if` group of three properties, first and last lose the fix, middle keeps it | Accept as consequence of answer A; state in PR review notes | Literal reading of answer A | Covered by answer A | — |
 
 ## Follow-up candidates
@@ -40,4 +40,5 @@
 - Cleaner clean (3f2c0d3).
 - Spec checker consistent (5b7a784). main up to date, build green.
 - Auditor (0af97c7, audited head 5b79d15): findings #1, #2 (medium/low). Repair round 1 of 3.
-- Next: spec author repair (#2), then test implementer repair (#1), cleaner, spec checker, auditor (repair only).
+- Repair round 1: spec author 09 (4fd4bc4), test implementer 10 (c2ed10a).
+- Next: cleaner, spec checker, auditor on the repair (audited base 5b79d15).
