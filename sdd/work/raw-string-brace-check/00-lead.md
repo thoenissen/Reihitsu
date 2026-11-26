@@ -25,5 +25,5 @@
 
 ## State
 
-- Last step: implementer (03-implementer.md, tests pass, 8ef5087).
-- Next: cleaner, then spec checker.
+- Last step: cleaner (04-cleaner.md, clean).
+- Next: spec checker, then auditor.
