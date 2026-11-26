@@ -2427,6 +2427,143 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
+    /// Verifies the specification example of a group around several members with the property last: its <c>#if</c>
+    /// stands in front of an earlier member, and only its <c>#endif</c> stands in the leading trivia of the token behind
+    /// a property without an initializer, so the fix is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnEndifAloneBehindAPropertyWithoutAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              class C
+                              {
+                              #if NET
+                                  private int _a;
+
+                                  private int {|RH2001:B|} { get; }
+                              #endif
+
+                                  int Read() => _a + B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group whose <c>#if</c> alone stands in the leading trivia of the token behind a property without
+    /// an initializer, and whose <c>#endif</c> stands behind a later member, withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnIfAloneBehindAPropertyWithoutAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              class C
+                              {
+                                  private int {|RH2001:B|} { get; }
+                              #if NET
+                                  private int _x;
+
+                                  private int _y;
+                              #endif
+
+                                  int Read() => _x + _y + B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a property that is the active <c>#else</c> branch of a group whose
+    /// excluded <c>#if</c> branch holds another whole member: the <c>#else</c> stands in front of the first modifier
+    /// and the <c>#endif</c> behind a property without an initializer, so the fix is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAPropertyThatIsTheActiveElseBranch(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if NET
+                                  private int _a;
+                              #else
+                                  private int {|RH2001:B|} { get; }
+                              #endif
+                                  private int _d;
+
+                                  int Read() => _d + B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a property in the middle of a group around several members keeps the fix: a member of the group
+    /// stands in front of it and one behind it, so no directive of the group stands next to the property
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAPropertyInTheMiddleOfAGroupAroundSeveralMembers(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              class C
+                              {
+                              #if NET
+                                  private int _a;
+
+                                  private int {|RH2001:B|} { get; }
+
+                                  private int _d;
+                              #endif
+
+                                  int Read() => _a + B + _d;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   #define NET
+                                   class C
+                                   {
+                                   #if NET
+                                       private int _a;
+
+                                       private readonly int _b;
+
+                                       private int _d;
+                                   #endif
+
+                                       int Read() => _a + _b + _d;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies the specification example of a group behind a property with an initializer: the property ends in
     /// <c>;</c>, so the excluded <c>static</c> belongs to the next member in every build, and the fix is offered
     /// </summary>
