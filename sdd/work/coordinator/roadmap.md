@@ -36,7 +36,7 @@ Runs, in order:
 - **Analyzer/RH1001–RH1002 equality judgement:** `#1290` → `#1295 #1296 #1297`.
 - **Analyzer/small widenings:** `#973 #968 #1298 #1299 #1300 #1338 #1350 #1452`.
 - **Analyzer/RH3002:** `#877` (item 1) `#1603` → `#1278`.
-- **Playground and formatter query:** `/squad #1816 #1723` (one run; #1816 covers #1723; the new public formatter member is decided there); `#976`.
+- **Playground and formatter query:** `/squad #1816 #1723` (one run; #1816 covers #1723; the new public formatter member is decided there); `#976` → `#1950` (Playground typing speed; shares `Home.razor`).
 - **Docs filler:** `#1291` (spec text, joins any docs run).
 - **Judge in its run:** `#1602` (goal stale; close or re-scope).
 - **Placed later, run not yet planned:** `#1863 #1867 #1875 #1876 #1889 #1905 #1916` (T7 and line-break follow-ups of the 1.5.0 runs; #1905 joins a run of its theme).

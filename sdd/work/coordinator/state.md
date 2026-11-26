@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-26 · #1948 #1949 #1950 · triage 1A: #1948 → 1.6.0 (own analyzer run, start now); #1949 → 1.6.0, joins #1924 (`/squad #1924 #1949`); #1950 → 1.7.0, own Playground run after #976; commented on #1949 #1950.
 - 2026-11-22 · #1935 #1936 #1937 #1939 #1943 · triage "as you recommend": #1935 #1936 #1939 #1943 → 1.6.0, #1937 → 1.7.0; #1935 A (blank line before positional `)` removed), #1939 A (dictated positional parameter not reported), #1943 A (RH2001 fix withheld for an adjacent `#if` group); #1936 rides with #1472.
 - 2026-11-22 · #1924 #1925 #1926 #1927 #1928 #1929 #1930 #1931 · placements as proposed (1A): #1924 #1925 #1926 #1929 → 1.6.0; #1927 → 1.7.0; #1928 → 1.9.0; #1930 #1931 → 1.10.0.
 - 2026-11-22 · #1925 · RH5202 reports and fixes raw strings aligned behind tabs (A).
@@ -14,28 +15,32 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (29): #1085 #1086 #1087 #1088 #1089 #1090 #1275 #1399 #1400 #1472 #1566 #1567 #1568 #1589 #1607 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1935 #1936 #1939 #1941 #1943.
+Open in 1.6.0 (27): #1085 #1086 #1087 #1088 #1089 #1090 #1275 #1399 #1400 #1472 #1567 #1568 #1589 #1607 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1936 #1943 #1948 #1949.
 
-Merged since the previous batch: #1933 (#1542 #1633 #1634 #1647 #1685 #1929), #1934 (#971 #1072 #1434 #1451), #1938 (#1240 #1591), #1940 (#970 #1668).
+Merged since the previous batch: #1942 (#1941), #1945 (#1566), #1946 (#1935), #1947 (#1939).
 
-Runs in progress: #1941 (PR #1942, Playground files, `playground.md`; blocks nothing).
+Runs in progress: #1926 (PR #1944, claim). No claim PR exists for the other start-now runs; they are treated as not started.
 
-Dependency graph: `inventory/batch-2026-11-22b.md` (main at 1788f94d).
+Dependency graph: `inventory/batch-2026-11-22b.md` (main at 1788f94d), updated by this file's lines below (main at eed7195c).
 
-Start now: `#1926` · `#1566` · `#1935` · `#1939` · `#1943` · `#1275 #1837` · `#1472` · `#1722` · `#1925` · `#1924` · `#1912` · `#1836` · `#1086` · `#1089` · `#1090`.
+Start now: `#1943` · `#1275 #1837` · `#1472` · `#1722` · `#1925` · `#1924 #1949` · `#1912` · `#1836` · `#1086` · `#1089` · `#1090` · `#1948`.
 
 After merges:
-- after #1926 and #1566 → `#1568 #1698 #1567` → `#1399` → `#1400 #1936` (serial on `indentation.md`)
+- after #1926 → `#1568 #1698 #1567` → `#1399` → `#1400 #1936` (serial on `indentation.md`; #1566 merged)
 - after #1912 → `#1607`
 - after #1086 → `#1085`
-- after #1090 (and #1925 if it rewords RH5202's message, #1924 if it adds a spec) → `#1087 #1088`
-- after #1939 and #1943 → `#1771` (escalation 9 first)
+- after #1090 (and #1925 if it rewords RH5202's message, #1924 #1949 if it adds a spec) → `#1087 #1088`
+- after #1943 → `#1771` (escalation 9 first; #1939 merged)
 - after #1836, #1275 #1837, #1926, #1943 → `#1589` alone (or 1.7.0)
 
-Notes for the runs (evidence in the batch file, not decided): #1275 likely narrows to `class C⏎{⏎};` (item 2 decided otherwise by SHARED-EMPTY-001, item 3 holds); #1567 partly done (return-type gap remains); #1771's file pointer is stale (`CasingRenameSafetyUtilities.cs`). #1936 moved from the #1472 run to the #1400 run (`indentation.md` shared with #1926; comment on #1936).
+Notes for the runs (evidence in the batch file, not decided): #1275 likely narrows to `class C⏎{⏎};`; #1567 partly done (return-type gap remains); #1771's file pointer is stale (`CasingRenameSafetyUtilities.cs`). #1948: rules RH5301 RH5303 RH5206 RH5103 RH5008 RH5513 RH5104 and their specs, `StringInterpolationUtilities` (Core) reused; no file shared with a run in progress or in the start-now set (none of #1912's 22 test files is one of these rules); premise from a throwaway probe only, the run reproduces first.
+
+1.7.0 addition: #1950 (Playground typing speed) after #976 (`Home.razor`).
 
 ## Status
 
+Status 2026-11-26 (o): batch — merges #1942 #1945 #1946 #1947 read; #1566 #1939 dropped as predecessors; #1948 and `#1924 #1949` added to the start-now set (13 runs); nothing newly unblocked (the chain waits for #1926, #1771 for #1943).
+Status 2026-11-26 (n): triage answered 1A; milestones set (#1948 #1949 → 1.6.0, #1950 → 1.7.0); commented on #1949 #1950.
 Status 2026-11-26 (m): triage of #1948 #1949 #1950 (no inventory file; three issues read directly). Asked: 1 placements — #1948 → 1.6.0, own analyzer run, start now (gap left by #1945: the RH5301/RH5303/RH5206 fixes make no progress below C# 11 while the diagnostic stays); #1949 → 1.6.0, joins #1924 as `/squad #1924 #1949` (both trace/fixture tooling, #1924 not started); #1950 → 1.7.0, own Playground run after #976 (`Home.razor`) (1A apply / 1B change rows; rec. 1A). No output questions.
 Status 2026-11-22 (l): batch — merges #1933 #1934 #1938 #1940 read; graph rebuilt; #1936 moved to the #1400 run; start-now set given (15 runs).
 Status 2026-11-22 (k): triage of #1935–#1943 applied as recommended (`inventory/triage-2026-11-22b.md`); milestones set; commented on all five. Batch next in the same session.
@@ -49,4 +54,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Wait for the answer to the triage of 2026-11-26 (m). On `1A`: set milestones (#1948 #1949 → 1.6.0 (14), #1950 → 1.7.0 (15)), add no labels (all three already carry their group label), comment on #1949 (joins #1924) and #1950 (runs after #976), record the decision, update `Plan` (open count, start-now `#1924 #1949` and `#1948`). Then `/coordinator batch`.
+The maintainer starts the start-now runs. `/coordinator batch` after the next merges (first expected: #1926, which unblocks `#1568 #1698 #1567`).
