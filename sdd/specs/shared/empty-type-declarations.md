@@ -20,9 +20,9 @@ This spec covers the rules that report a type declaration with an empty brace bo
 
 ### SHARED-EMPTY-001 — A brace body without members is reported
 
-A rule that uses this spec MUST report a declaration of its kind whose braces enclose no member that the analyzed build compiles — nothing but whitespace, line breaks, comments, preprocessor directives, and code that a conditional directive excludes — and that ends with its closing brace, when the project's C# version is at least the version the rule names. It MUST report one diagnostic per declaration, located on the declaration's name. A comment after the declaration's header, around the opening brace, or before the closing brace MUST NOT keep the declaration from being reported, and neither MUST a directive or excluded code in the body: the rule judges the members the analyzed build compiles (SHARED-DIAG-008).
+A rule that uses this spec MUST report a declaration of its kind whose braces enclose no member that the analyzed build compiles — nothing but whitespace, line breaks, comments, preprocessor directives, and code that a conditional directive excludes — when the project's C# version is at least the version the rule names. It MUST report one diagnostic per declaration, located on the declaration's name. A comment after the declaration's header, around the opening brace, or before the closing brace MUST NOT keep the declaration from being reported, and neither MUST a directive or excluded code in the body: the rule judges the members the analyzed build compiles (SHARED-DIAG-008). A semicolon behind the closing brace MUST NOT keep the declaration from being reported either: the declaration still has its brace body, and SHARED-EMPTY-005 decides what the fix does with the semicolon.
 
-Why: A type without members says everything on its declaration line. The two braces add lines but no information, and the semicolon declaration states "no members" directly. A comment does not make the type less empty; SHARED-EMPTY-004 decides what it means for the fix.
+Why: A type without members says everything on its declaration line. The two braces add lines but no information, and the semicolon declaration states "no members" directly. A semicolon behind the closing brace changes none of that: the compiler accepts it as the declaration's end, but the body is still there. A comment does not make the type less empty; SHARED-EMPTY-004 decides what it means for the fix.
 
 Example — RH5412, for classes:
 
@@ -44,6 +44,12 @@ class {|RH5412:E|}
 {
     // reserved
 }
+
+class {|RH5412:F|}
+{
+};
+
+class {|RH5412:G|} { };
 ```
 
 `C` has the member `D` and is not reported.
@@ -82,6 +88,11 @@ class A
 }
 
 class B;
+
+class C
+{
+    int _x;
+};
 ```
 
 is not reported.
@@ -130,6 +141,56 @@ class {|RH5412:C|}
 {
     // reserved
 }
+```
+
+is reported, and no code fix is offered.
+
+### SHARED-EMPTY-005 — A semicolon behind the braces becomes the one semicolon
+
+When a semicolon follows the closing brace of a declaration that SHARED-EMPTY-001 reports, the code fix MUST remove the braces and that semicolon and write one semicolon directly after the declaration's header, as FMT-STRUCT-017 does; whitespace and line breaks between the closing brace and the semicolon go with them. A comment that followed that semicolon on its line MUST follow the new semicolon. When a comment, directive, or disabled text lies between the closing brace and the semicolon, FMT-STRUCT-018 keeps the braces and SHARED-EMPTY-004 withholds the fix.
+
+Why: The semicolon behind the braces declares nothing, and behind a semicolon declaration a second one would not compile, so the declaration keeps exactly one semicolon. A comment behind it describes the whole declaration and stays at its end, as a comment behind the closing brace does (SHARED-EMPTY-003). A comment between the brace and the semicolon has no place in the semicolon declaration that keeps what it stood next to.
+
+Example — RH5412:
+
+```csharp
+class {|RH5412:A|}
+{
+};
+
+class {|RH5412:B|} { };
+
+class {|RH5412:C|}
+{
+}
+;
+
+class {|RH5412:D|}
+{
+}; // note
+```
+
+```csharp
+class A;
+
+class B;
+
+class C;
+
+class D; // note
+```
+
+Example — RH5412, a comment between the closing brace and the semicolon:
+
+```csharp
+class {|RH5412:A|}
+{
+} /* note */;
+
+class {|RH5412:B|}
+{
+} // note
+;
 ```
 
 is reported, and no code fix is offered.

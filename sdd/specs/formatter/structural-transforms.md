@@ -757,9 +757,9 @@ Why: Accessor and get-only member shapes are a separate decision a code fix did 
 
 ### FMT-STRUCT-017 — Empty types use a semicolon declaration
 
-The formatter MUST replace the empty brace body of a class, struct, or interface with a semicolon from C# 12 on, of a record class from C# 9 on, of a record struct from C# 10 on, and of a union declaration from C# 15 on. An empty enum MUST keep its braces.
+The formatter MUST replace the empty brace body of a class, struct, or interface with a semicolon from C# 12 on, of a record class from C# 9 on, of a record struct from C# 10 on, and of a union declaration from C# 15 on, also when a semicolon follows the closing brace. Such a semicolon MUST be removed with the braces, so the declaration ends with exactly one semicolon; a comment that followed it on its line MUST follow the new semicolon. An empty enum MUST keep its braces.
 
-Why: `class C;` says "no members" without two lines of braces; the analyzer rules RH5412 to RH5416 and RH5418 report the braced form. Each kind is gated by the version that allows its semicolon form (FMT-PIPE-008); an enum has no such form. A union declaration has a semicolon form from the version that introduces it, C# 15, and its case-type list already says what the type holds, so an empty body adds nothing to it either.
+Why: `class C;` says "no members" without two lines of braces; the analyzer rules RH5412 to RH5416 and RH5418 report the braced form. Each kind is gated by the version that allows its semicolon form (FMT-PIPE-008); an enum has no such form. A semicolon behind the closing brace leaves the body in place — the compiler accepts it as the declaration's end — and behind the new semicolon it would be a second one, which does not compile. A union declaration has a semicolon form from the version that introduces it, C# 15, and its case-type list already says what the type holds, so an empty body adds nothing to it either.
 
 Example:
 
@@ -826,9 +826,38 @@ union V<T>(T, string)
 
 FMT-STRUCT-018 keeps the braces of a union whose empty body holds a comment or a directive, as it keeps a class's.
 
+Example — a semicolon behind the closing brace:
+
+```csharp
+class A
+{
+};
+
+class B { };
+
+class C
+{
+}
+;
+
+class D
+{
+}; // note
+```
+
+```csharp
+class A;
+
+class B;
+
+class C;
+
+class D; // note
+```
+
 ### FMT-STRUCT-018 — An empty body with trivia keeps its braces
 
-The formatter MUST keep the braces of an empty type declaration when anything other than whitespace and line breaks lies after the declaration header, before or after the opening brace, or before the closing brace.
+The formatter MUST keep the braces of an empty type declaration when anything other than whitespace and line breaks lies after the declaration header, before or after the opening brace, before the closing brace, or between the closing brace and a semicolon that follows it. The semicolon then stays behind the closing brace.
 
 Why: The braces are the only place such a comment or directive can stay; removing them would delete it. The decision is `EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely` in `Reihitsu.Core`, which the analyzer code fixes use too.
 
@@ -849,6 +878,10 @@ class Directive
 #if DEBUG
 #endif
 }
+
+class Behind
+{
+} /* note */;
 ```
 
 is left unchanged.
