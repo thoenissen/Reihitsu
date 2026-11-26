@@ -43,4 +43,5 @@
 - Repair round 1: spec author 09 (4fd4bc4), test implementer 10 (c2ed10a).
 - Cleaner 11 clean, spec checker 12 consistent.
 - Auditor 13 pass. Audited SHA: 9fc0054a0d4f2693eb6b7b6529e5a104f6a57293.
-- Next: validator; issue manager for FC1, FC2; then note, delete sdd/work, trigger, PR.
+- Issue manager 15: FC1 → #1957 (bug), FC2 → #1958.
+- Next: validator result; then note, delete sdd/work, trigger, PR.
