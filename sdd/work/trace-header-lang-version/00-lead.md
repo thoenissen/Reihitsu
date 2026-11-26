@@ -22,6 +22,9 @@
 | 2 | Spec author | #1924 header: follow the `--dry-run` rule (CLI-024) or keep `a/<path>` | Follow CLI-024, sharing its code | One statement of the rule; trace is a repository tool, not `reihitsu-format` (`sdd/specs/cli/reihitsu-format.md`) | The trace is repository tooling, not a visible surface | d686d38 |
 | 3 | Spec author | #1949 apply-fix `preview` handling, repeated option, printing the version | Lower `preview` like `reihitsu-format`; repeated option is an error; version not printed | Matches CLI-004 and existing `--passes`/`--max-iterations` handling | Repository tooling only | d686d38 |
 | 4 | Spec author | Change docs list no visible output change | Accept once the skeptic has run | Tooling surfaces only | No visible surface touched | d686d38 |
+| 5 | Skeptic | Where the fixture runner gets the version clamp | `InternalsVisibleTo("Reihitsu.Tooling")` in `src/Reihitsu.Formatter/Properties/AssemblyInfo.cs`, reuse `LanguageVersionResolver` | A copy would be FC-015; making it public widens the shipped assembly | Internal visibility only | |
+| 6 | Skeptic | Tools' default version | Always parse with the resolved version (`MaxSupportedLanguageVersion` when no option); amend change doc wording | Keeps tools aligned with `format.sh` after a Roslyn upgrade; same as today on Roslyn 5.12.0 | Tooling; identical output today | |
+| 7 | Skeptic | #1924 goals: "trace spec" branch and the claim about the existing test | Dropped | No trace spec exists; the test passes a full path | Tooling | |
 
 ## Follow-up candidates
 
@@ -30,4 +33,5 @@
 ## Worklist / next step
 
 - Done: spec author (01, d686d38, pushed). LANE CHECK after 01: confirmed (diff needs only tooling).
-- Next: skeptic (02), running.
+- Done: skeptic (02, 30ac09d): #1924 proceed; #1949 proceed; no output questions.
+- Next: spec author amendment (decision 6, Status: Accepted) as 03, then test implementer.
