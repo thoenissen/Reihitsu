@@ -5,9 +5,9 @@
 | ID prefix | SHARED-TRAIL |
 | Status | Active |
 | Code owners | `TrailingCommaAnalyzerBase<TNode>`, `TrailingCommaRemovalCodeFixProviderBase`, `TrailingCommaCodeFixHelper` |
-| Uses | FMT-STRUCT-019, FMT-STRUCT-020, SHARED-DIAG-008, SHARED-FIX-009 |
+| Uses | FMT-STRUCT-019, FMT-STRUCT-020, SHARED-DIAG-008, SHARED-FIX-003, SHARED-FIX-009 |
 
-This spec covers the rules that report a comma after the last element of a brace-delimited list: which comma is reported, when a conditional directive withholds the fix, and what the code fix removes. Each rule that uses this spec names the kind of list it checks. The formatter's counterparts are FMT-STRUCT-019 and FMT-STRUCT-020.
+This spec covers the rules that report a comma after the last element of a brace-delimited list: which comma is reported, when a conditional directive withholds the fix and when it does not, and what the code fix removes. Each rule that uses this spec names the kind of list it checks. The formatter's counterparts are FMT-STRUCT-019 and FMT-STRUCT-020.
 
 ## Non-goals
 
@@ -46,11 +46,13 @@ enum G
 
 Only the comma after `B` in `E` is reported.
 
-### SHARED-TRAIL-002 — A comma in front of a conditional directive is reported without a fix
+### SHARED-TRAIL-002 — A comma in front of a conditional directive is reported, and an `#if` behind it withholds the fix
 
-A rule that uses this spec MUST judge the elements that the analyzed build compiles (SHARED-DIAG-008): a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes, between the comma after the last element and the closing brace MUST NOT keep the comma from being reported, and the code fix MUST NOT be offered for it (SHARED-DIAG-008). Any other directive there, such as `#region` or `#pragma`, MUST NOT keep the comma from being reported either, and the fix stays offered (SHARED-TRAIL-003). FMT-STRUCT-019 and FMT-STRUCT-020 keep the comma in the conditional case.
+A rule that uses this spec MUST judge the elements that the analyzed build compiles (SHARED-DIAG-008): a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes, between the comma after the last element and the closing brace MUST NOT keep the comma from being reported. When an `#if` directive lies there, whether the analyzed build reads it or it stands in code another directive excludes, the code fix MUST NOT be offered for the comma (SHARED-DIAG-008); when the only conditional directives there are `#elif`, `#else`, and `#endif`, the fix is offered (SHARED-TRAIL-004). Any other directive there, such as `#region` or `#pragma`, MUST NOT keep the comma from being reported either, and the fix stays offered (SHARED-TRAIL-003). FMT-STRUCT-019 and FMT-STRUCT-020 keep the comma where an `#if` withholds the fix.
 
-Why: In the analyzed build, the element in front of the comma is the last one, so the comma is a trailing comma there; another build is judged when it is analyzed. Another build can compile a further element behind the directive, which then needs the comma, so removing it could break that build, and finding out would mean working out that build (SHARED-FIX-009); the author decides by hand, for example by writing the comma inside the branch, in front of the element that needs it. A `#region` or `#pragma` directive never adds an element, so the comma in front of it is a trailing comma in every configuration, and removing it keeps every build intact.
+"Between the comma and the closing brace" means the comma's trailing trivia and the closing brace's leading trivia: the gap the comma would leave behind. A directive in front of the comma, such as the `#if` that opens the branch the comma stands in, is not in the gap.
+
+Why: In the analyzed build, the element in front of the comma is the last one, so the comma is a trailing comma there; another build is judged when it is analyzed. An `#if` behind the comma opens a group whose branch a build that compiles the comma can take, and that branch can hold a further element, which then needs the comma; removing it could break that build, and finding out would mean working out that build (SHARED-FIX-009). The author decides by hand, for example by writing the comma inside the branch, in front of the element that needs it. A `#region` or `#pragma` directive never adds an element, so the comma in front of it is a trailing comma in every configuration, and removing it keeps every build intact.
 
 Example — RH5409, in a build that does not define `DEBUG`:
 
@@ -74,14 +76,33 @@ enum F
 
 Both commas are reported. No code fix is offered for the comma in `E`; the fix removes the comma in `F`.
 
-Example — the same enum `E` in a build that defines `DEBUG`: `B` is the last member, and the `#endif` lies between its comma and the brace, so that comma is reported, and no code fix is offered; the comma behind `A` is not a trailing comma in this build:
+Example — RH5409, in a build that does not define `X`: the comma behind `B` stands in front of an `#endif` and of a further `#if`, so it is reported and no code fix is offered:
 
 ```csharp
 enum E
 {
     A,
-#if DEBUG
+#if !X
     B{|RH5409:,|}
+#endif
+#if Y
+    C,
+#endif
+}
+```
+
+Example — RH5409, in a build that does not define `X`: the `#if Y` stands in code that the `#else` excludes, and it still withholds the fix:
+
+```csharp
+enum E
+{
+    A,
+#if !X
+    B{|RH5409:,|}
+#else
+#if Y
+    C,
+#endif
 #endif
 }
 ```
@@ -132,5 +153,87 @@ enum F
 {
     A
     // last
+}
+```
+
+### SHARED-TRAIL-004 — The fix removes a comma whose branch ends behind it
+
+When conditional directives lie between the comma after the last element and the closing brace (SHARED-TRAIL-002) and each of them is an `#elif`, an `#else`, or an `#endif` — no `#if`, neither one the analyzed build reads nor one in code another directive excludes — the code fix MUST be offered and MUST remove the comma as SHARED-TRAIL-003 specifies. It MUST leave every directive, its line, and the code the directives exclude as written. The fix decides this from the kinds of the directives in the gap, never from their conditions (SHARED-FIX-009).
+
+Why: Without an `#if` in the gap, each directive there either ends a conditional group or starts another branch of a group that holds the comma. A build that compiles the comma takes every branch that holds it, so it skips each branch that an `#elif` or an `#else` behind the comma starts, and behind an `#endif` it reads on in the branch of the enclosing group that holds the comma, as the analyzed build does, where nothing but trivia and directives stands in front of the closing brace. So no build that compiles the comma compiles an element behind it: the comma is a trailing comma in each of them, removing it keeps every build intact (SHARED-FIX-003), and a build that does not compile the comma does not see the change. Reading the kinds of the directives is a cheap check that needs no condition; an `#if` that stands in an excluded branch could be told apart only by pairing it with the directives around it, so it withholds the fix, which is rare.
+
+Example — RH5409, in a build that defines `DEBUG`: `B` is the last member, and only an `#endif` lies between its comma and the brace:
+
+```csharp
+enum E
+{
+    A,
+#if DEBUG
+    B{|RH5409:,|}
+#endif
+}
+```
+
+```csharp
+enum E
+{
+    A,
+#if DEBUG
+    B
+#endif
+}
+```
+
+The comma behind `A` is not a trailing comma in this build and is not reported; in a build without `DEBUG`, it is reported with no code fix, as SHARED-TRAIL-002 shows.
+
+Example — RH5409, in a build that does not define `X`: the comma behind `C` stands in front of an `#endif`; the comma behind `B`, in the excluded branch, stays as written:
+
+```csharp
+enum E
+{
+    A,
+#if X
+    B,
+#else
+    C{|RH5409:,|}
+#endif
+}
+```
+
+```csharp
+enum E
+{
+    A,
+#if X
+    B,
+#else
+    C
+#endif
+}
+```
+
+Example — RH5409, in a build that does not define `X`: the comma behind `B` stands in front of an `#elif`:
+
+```csharp
+enum E
+{
+    A,
+#if !X
+    B{|RH5409:,|}
+#elif Y
+    C,
+#endif
+}
+```
+
+```csharp
+enum E
+{
+    A,
+#if !X
+    B
+#elif Y
+    C,
+#endif
 }
 ```

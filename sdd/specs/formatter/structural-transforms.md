@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-BREAK-041, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-BREAK-041, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DOC-004, SHARED-TRAIL-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -855,9 +855,9 @@ is left unchanged.
 
 ### FMT-STRUCT-019 — Enums have no trailing comma
 
-The formatter MUST remove the comma after the last member of an enum and keep the comma's trivia, such as a trailing comment, on the last member. The comma's trivia is its leading and its trailing trivia: a comment written on the last member's line in front of the comma stays behind the last member whichever token's trivia carries it — the last member's trailing trivia, as for `/* c */` and for every comment in the documentation mode `None`, or the comma's leading trivia, as for a `/** */` comment in the documentation modes `Parse` and `Diagnose`, where the parser puts no documentation comment into trailing trivia. It MUST keep the comma when a conditional directive lies between it and the closing brace.
+The formatter MUST remove the comma after the last member of an enum and keep the comma's trivia, such as a trailing comment, on the last member. The comma's trivia is its leading and its trailing trivia: a comment written on the last member's line in front of the comma stays behind the last member whichever token's trivia carries it — the last member's trailing trivia, as for `/* c */` and for every comment in the documentation mode `None`, or the comma's leading trivia, as for a `/** */` comment in the documentation modes `Parse` and `Diagnose`, where the parser puts no documentation comment into trailing trivia. It MUST keep the comma when an `#if` directive lies between it and the closing brace, whether the formatted build reads it or it stands in code another directive excludes. When the only conditional directives in that gap are `#elif`, `#else`, and `#endif`, it MUST remove the comma and leave every directive, its line, and the code the directives exclude as written; it decides this from the kinds of the directives, never from their conditions (SHARED-TRAIL-004).
 
-Why: The analyzer rule RH5409 reports the trailing comma; without it, the last member reads as the end of the list. A conditional directive in that gap means a different member may be last in another configuration, where the comma is still needed.
+Why: The analyzer rule RH5409 reports the trailing comma; without it, the last member reads as the end of the list. An `#if` in that gap means a different member may be last in another configuration, where the comma is still needed. Without an `#if` there, no configuration that compiles the comma compiles a member behind it, so removing the comma keeps every configuration intact (SHARED-TRAIL-004).
 
 Example:
 
@@ -879,6 +879,16 @@ enum Mode
     A,
 #if DEBUG
     B,
+#endif
+}
+
+enum Level
+{
+    Low,
+#if DEBUG
+    Trace,
+#else
+    High,
 #endif
 }
 ```
@@ -903,7 +913,19 @@ enum Mode
     B,
 #endif
 }
+
+enum Level
+{
+    Low,
+#if DEBUG
+    Trace,
+#else
+    High
+#endif
+}
 ```
+
+In a build that does not define `DEBUG`, the comma behind `A` in `Mode` stands in front of an `#if` and stays, while the comma behind `High` in `Level` stands in front of an `#endif` and is removed; `Trace,` is code the `#if` excludes and stays as written.
 
 Example — in the documentation mode `Parse`, `/** largest */` is the comma's leading trivia and `/* largest */` the last member's trailing trivia; both stay behind the last member:
 
