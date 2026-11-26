@@ -29,8 +29,8 @@
 | 2 | Skeptic | Limit SHARED-EMPTY-003 comment sentence to a brace with no `;` behind it; cite #1169 Q2 instead of "#912 Q2" in change doc | Take both; route to spec author with the batch-1 answers | Removes a reading conflict with SHARED-EMPTY-005 | Wording only; output unaffected | 9e559c8 |
 | 3 | Skeptic | Declare unsupported / refuse? | Neither; withhold fix for comment/directive between `}` and `;` (cheap trivia check) | Declaring deletes no special case | Withholding is a rare-class refusal; reported case asked as output question | — |
 | 4 | Test implementer | Formatter tests for comment/directive between `}` and `;` pin order and idempotency, not columns | Accept | FMT-STRUCT-018 does not decide the kept `;`'s column; that indentation is follow-up candidate 2 | Output there unchanged from `main` | 49f88f0 |
-| 5 | Implementer | RH5404 nested test, CRLF row: input has no line break, so the formatter uses `Environment.NewLine` and the row cannot pass on Linux | Test is wrong; test implementer gives the CRLF row an input with a line break (or drops the row if no line break fits the case) | FMT-PIPE line-ending detection is unchanged and decides it | Expected output unchanged; only the test input changes | pending |
-| 6 | Implementer | RH5412 Fix All test with `class A { }; class B { };` on one line needs 2 iterations; same on `main` without semicolons | Option (b): test puts `class B` on its own line; the two-iteration Fix All is a follow-up (c) | Pre-existing in the shared-line helper under BatchFixer, not caused by this change | Fix result is unchanged; only iteration count of an existing path | pending |
+| 5 | Implementer | RH5404 nested test, CRLF row: input has no line break, so the formatter uses `Environment.NewLine` and the row cannot pass on Linux | Test is wrong; test implementer gives the CRLF row an input with a line break (or drops the row if no line break fits the case) | FMT-PIPE line-ending detection is unchanged and decides it | Expected output unchanged; only the test input changes | 715d3df |
+| 6 | Implementer | RH5412 Fix All test with `class A { }; class B { };` on one line needs 2 iterations; same on `main` without semicolons | Option (b): test puts `class B` on its own line; the two-iteration Fix All is a follow-up (c) | Pre-existing in the shared-line helper under BatchFixer, not caused by this change | Fix result is unchanged; only iteration count of an existing path | 715d3df |
 
 ## Follow-up candidates
 
@@ -46,4 +46,5 @@
 - Done: output-question batch 1 answered `1A, 2A, 3A, 4A, 5A` (Q1 base forms + fix, Q2 RH5418, Q3 comment/directive between `}` and `;`, Q4 formatter, Q5 nested via other fixes).
 - Test implementer 04: tests written (49f88f0, handover 0bc6f0a); new-behavior tests fail as expected.
 - Implementer 05: test disputed (9ee01ab, handover bed96da); all other tests pass.
-- Next: fresh test implementer (06) for decisions 5 and 6; then cleaner.
+- Test implementer 06: decisions 5, 6 done (715d3df).
+- Next: cleaner (07).
