@@ -25,5 +25,5 @@
 
 ## State
 
-- Last step: skeptic (01-skeptic.md, proceed narrower).
-- Next: test implementer (coverage check of the spacing-rule brace exemption).
+- Last step: test implementer (02-test-implementer.md, no new test; pinning tests named).
+- Next: implementer (decisions 1 and 2).
