@@ -48,4 +48,5 @@
 - Implementer 05: test disputed (9ee01ab, handover bed96da); all other tests pass.
 - Test implementer 06: decisions 5, 6 done (715d3df).
 - Cleaner 07: clean (0d2d025).
-- Next: spec checker (08).
+- Spec checker 08: consistent, no findings (67a90ae). main merged: up to date. Build green.
+- Next: auditor (09) against main eed7195c0b6fb583ab4271173b7a4ad022851c5f.
