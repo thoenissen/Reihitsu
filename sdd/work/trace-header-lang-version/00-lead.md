@@ -43,4 +43,5 @@
 - Done: implementer (05, 21e6421/8495f09): all tests pass.
 - Done: cleaner (06, 7277ac1): clean.
 - Done: spec checker (07, d74ec74): consistent.
-- Next: auditor (08).
+- Done: auditor (08, 12736e9): pass, no findings. Audited SHA: ec68841 (handover at 12736e9).
+- Next: validator (09).
