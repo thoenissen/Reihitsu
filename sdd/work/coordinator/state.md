@@ -39,6 +39,7 @@ Notes for the runs (evidence in the batch file, not decided): #1275 likely narro
 
 ## Status
 
+Status 2026-11-26 (p): triage of #1956–#1963 started; assessment delegated (`inventory/triage-2026-11-26.md`). Nothing asked yet.
 Status 2026-11-26 (o): batch — merges #1942 #1945 #1946 #1947 read; #1566 #1939 dropped as predecessors; #1948 and `#1924 #1949` added to the start-now set (13 runs); nothing newly unblocked (the chain waits for #1926, #1771 for #1943).
 Status 2026-11-26 (n): triage answered 1A; milestones set (#1948 #1949 → 1.6.0, #1950 → 1.7.0); commented on #1949 #1950.
 Status 2026-11-26 (m): triage of #1948 #1949 #1950 (no inventory file; three issues read directly). Asked: 1 placements — #1948 → 1.6.0, own analyzer run, start now (gap left by #1945: the RH5301/RH5303/RH5206 fixes make no progress below C# 11 while the diagnostic stays); #1949 → 1.6.0, joins #1924 as `/squad #1924 #1949` (both trace/fixture tooling, #1924 not started); #1950 → 1.7.0, own Playground run after #976 (`Home.razor`) (1A apply / 1B change rows; rec. 1A). No output questions.
@@ -54,4 +55,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-The maintainer starts the start-now runs. `/coordinator batch` after the next merges (first expected: #1926, which unblocks `#1568 #1698 #1567`).
+Finish the triage of #1956–#1963: read `inventory/triage-2026-11-26.md` (re-run the assessment if it is missing), ask the placements and output questions in one message. Then `/coordinator batch` after the next merges (first expected: #1926).
