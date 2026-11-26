@@ -1,5 +1,5 @@
 Role: implementer
-Commit: (this commit; see `git log -1 -- sdd/work/rh2001-conditional-group-refusal/05-implementer.md`)
+Commit: 6a670b6 (production change and this handover; this line amended in the follow-up commit)
 Verdict: tests pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. I followed `00-lead.md` (decisions 1–3, answer A) and the RH2001-010 text.
