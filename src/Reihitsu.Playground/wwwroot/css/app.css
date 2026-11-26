@@ -9,6 +9,16 @@
     --color-success: #2da44e;
     --color-success-emphasis: #2c974b;
     --color-danger: #cf222e;
+    --color-danger-subtle: #ffebe9;
+    --color-danger-border: #ff8182;
+    --color-code-keyword: #cf222e;
+    --color-code-identifier: #0550ae;
+    --color-code-string: #0a3069;
+    --color-code-number: #116329;
+    --color-code-comment: #6e7781;
+    --color-code-directive: #8250df;
+    --color-code-disabled: #a0a8b1;
+    --color-code-mark: #d1242f;
     --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
 }
@@ -24,6 +34,17 @@
         --color-accent-emphasis: #58a6ff;
         --color-success: #238636;
         --color-success-emphasis: #2ea043;
+        --color-danger: #ff7b72;
+        --color-danger-subtle: #25171c;
+        --color-danger-border: #8e1519;
+        --color-code-keyword: #ff7b72;
+        --color-code-identifier: #79c0ff;
+        --color-code-string: #a5d6ff;
+        --color-code-number: #7ee787;
+        --color-code-comment: #8b949e;
+        --color-code-directive: #d2a8ff;
+        --color-code-disabled: #6e7681;
+        --color-code-mark: #f85149;
     }
 }
 
@@ -111,18 +132,9 @@ html, body {
 
 .playground-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* A zero minimum keeps each column at its share of the row, so a pane whose text is wider scrolls inside itself */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
-}
-
-@media (max-width: 700px) {
-    .playground-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .playground-column textarea {
-        height: 40vh;
-    }
 }
 
 .playground-column {
@@ -137,23 +149,131 @@ html, body {
     margin-bottom: 0.4rem;
 }
 
-.playground-column textarea {
+.playground-editor,
+.playground-output {
     height: 60vh;
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    tab-size: 4;
-    resize: none;
+    margin: 0;
+    overflow: auto;
     background: var(--color-canvas);
-    color: var(--color-fg);
     border: 1px solid var(--color-border);
     border-radius: 6px;
+    box-sizing: border-box;
+}
+
+/* Behind the base rules, so the narrow-screen values override them */
+@media (max-width: 700px) {
+    .playground-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .playground-editor,
+    .playground-output {
+        height: 40vh;
+    }
+}
+
+.playground-editor:focus-within,
+.playground-output:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -1px;
+}
+
+.playground-editor-layers {
+    display: grid;
+    min-width: 100%;
+    min-height: 100%;
+    width: max-content;
+}
+
+/* The text area and its coloured copy lie in one grid cell and share every text metric, so the colours stay under the
+   characters; the cell takes the copy's size, and the editor around it scrolls both together */
+.playground-code {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    letter-spacing: normal;
+    tab-size: 4;
+    white-space: pre;
+    overflow-wrap: normal;
+    color: var(--color-fg);
     padding: 0.75rem;
     box-sizing: border-box;
 }
 
-.playground-column textarea:focus-visible {
-    outline: 2px solid var(--color-accent);
-    outline-offset: -1px;
+.playground-input-copy,
+.playground-editor textarea {
+    grid-area: 1 / 1;
+    margin: 0;
+    border: 0;
+    min-width: 0;
+}
+
+.playground-input-copy {
+    pointer-events: none;
+}
+
+/* Each line is its own block, so the browser lays out again only the lines an edit replaces; a line ends behind its line
+   feed, which does not open another line at the end of a block */
+.playground-line {
+    display: block;
+}
+
+/* Keeps the height of an empty last line, which a pre does not show */
+.playground-input-copy > .playground-line:last-child::after {
+    content: " ";
+}
+
+.playground-editor textarea {
+    resize: none;
+    overflow: hidden;
+    background: transparent;
+    color: transparent;
+    caret-color: var(--color-fg);
+    outline: none;
+}
+
+.hl-keyword {
+    color: var(--color-code-keyword);
+}
+
+.hl-identifier {
+    color: var(--color-code-identifier);
+}
+
+.hl-string {
+    color: var(--color-code-string);
+}
+
+.hl-number {
+    color: var(--color-code-number);
+}
+
+.hl-comment {
+    color: var(--color-code-comment);
+}
+
+.hl-directive {
+    color: var(--color-code-directive);
+}
+
+.hl-disabled {
+    color: var(--color-code-disabled);
+}
+
+.playground-mark {
+    color: var(--color-fg);
+    text-decoration: underline wavy var(--color-code-mark);
+    text-decoration-skip-ink: none;
+}
+
+/* An empty mark, at a line break or at the end of the text, is shown one character wide behind the line's last character */
+.playground-mark:empty {
+    display: inline-block;
+    width: 1ch;
+    height: 1.5em;
+    vertical-align: top;
+    background: linear-gradient(135deg, transparent 35%, var(--color-code-mark) 35%, var(--color-code-mark) 50%, transparent 50%) left bottom / 4px 4px repeat-x,
+                linear-gradient(45deg, transparent 35%, var(--color-code-mark) 35%, var(--color-code-mark) 50%, transparent 50%) left bottom / 4px 4px repeat-x;
 }
 
 button[type="button"] {
@@ -173,8 +293,24 @@ button[type="button"]:hover {
 }
 
 .playground-message {
-    color: var(--color-danger);
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    color: var(--color-fg);
+    background: var(--color-danger-subtle);
+    border: 1px solid var(--color-danger-border);
+    border-radius: 6px;
     font-size: 0.875rem;
+}
+
+.playground-message > :first-child {
+    color: var(--color-danger);
+    font-weight: 600;
+}
+
+.playground-message > :not(:first-child) {
+    margin-top: 0.25rem;
+    font-family: var(--font-mono);
+    white-space: pre-wrap;
 }
 
 .valid.modified:not([type=checkbox]) {

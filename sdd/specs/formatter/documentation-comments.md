@@ -12,6 +12,7 @@ This spec covers what the documentation-comment phase decides about documentatio
 ## Non-goals
 
 - The text of delimited documentation comments (`/** … */`). This phase decides only where such a comment starts its line (FMT-DOC-001, FMT-DOC-003) and leaves its text alone (FMT-DOC-012).
+- Documentation comments inside an interpolation of a non-verbatim interpolated string before C# 11. There FMT-BREAK-044 forbids a line break, so this phase moves no comment onto a new line; that requirement states this phase's part and takes precedence over the requirements of this spec.
 - Blank lines around a documentation comment, including the blank line that appears above a relocated comment — FMT-BLANK.
 - The column of the `///` exterior and of the documented code — FMT-INDENT.
 - The line-break sequence of the lines this phase writes — FMT-PIPE-007 and FMT-EOL.

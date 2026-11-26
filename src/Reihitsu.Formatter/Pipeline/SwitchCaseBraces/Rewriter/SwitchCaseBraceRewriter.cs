@@ -771,6 +771,13 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // Before C# 11, an interpolation of a non-verbatim interpolated string cannot hold a line break (CS8967),
+        // so braces on their own lines cannot be placed there: the switch stays as written
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(node, _context.LanguageVersion))
+        {
+            return node;
+        }
+
         node = (SwitchStatementSyntax)base.VisitSwitchStatement(node);
 
         if (node == null)

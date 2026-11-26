@@ -150,6 +150,13 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
                 }
         }
 
+        // A block whose opening brace does not start its line, such as one that stays on the line of the lambda in an
+        // interpolation that cannot hold a line break, has no line to move to the anchor
+        if (LayoutComputer.IsFirstOnLine(block.OpenBraceToken) == false)
+        {
+            return;
+        }
+
         var anchorColumn = LayoutComputer.GetAdjustedColumn(anchorToken, model);
 
         if (model.TryGetLayoutColumn(LayoutComputer.GetLine(block.OpenBraceToken), out var currentColumn) == false)

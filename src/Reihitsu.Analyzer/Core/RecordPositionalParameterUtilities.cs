@@ -9,7 +9,7 @@ namespace Reihitsu.Analyzer.Core;
 /// <summary>
 /// The one owner of which members the compiler declares from a record's positional parameter, besides the primary
 /// constructor the parameter belongs to: the property it declares for the parameter, and the <c>Deconstruct</c> method it
-/// declares for the record's parameter list
+/// declares for the record's parameter list; and of the member the parameter stands for
 /// </summary>
 internal static class RecordPositionalParameterUtilities
 {
@@ -43,6 +43,38 @@ internal static class RecordPositionalParameterUtilities
                          .OfType<IPropertySymbol>()
                          .FirstOrDefault(property => property.DeclaringSyntaxReferences.Any(reference => reference.SyntaxTree == parameter.SyntaxTree
                                                                                                          && reference.Span == parameter.Span));
+    }
+
+    /// <summary>
+    /// Gets the member a record's positional parameter stands for: the property the compiler declares for it, or, when
+    /// the record declares or inherits a member of the parameter's name, so the compiler declares none, that member
+    /// </summary>
+    /// <param name="compilation">The compilation the record belongs to</param>
+    /// <param name="recordType">The record type</param>
+    /// <param name="parameter">The positional parameter</param>
+    /// <returns>The member, or <see langword="null"/> when none is found</returns>
+    /// <remarks>
+    /// The record and its base types are searched from the record outward, and the first type that has a property or a
+    /// field of the parameter's name that the record can access gives it, so a member declared in a derived type hides one of
+    /// a base type, and an inherited member the record cannot access is skipped, as the compiler skips it. Accessibility is
+    /// the compiler's result, and every member the record declares is accessible to it. The property the compiler declares
+    /// is a member of the record, so it is found first when it exists
+    /// </remarks>
+    internal static ISymbol GetMember(Compilation compilation, INamedTypeSymbol recordType, ParameterSyntax parameter)
+    {
+        for (var type = recordType; type != null; type = type.BaseType)
+        {
+            var member = type.GetMembers(parameter.Identifier.ValueText)
+                             .FirstOrDefault(candidate => candidate is IPropertySymbol or IFieldSymbol
+                                                          && compilation.IsSymbolAccessibleWithin(candidate, recordType));
+
+            if (member != null)
+            {
+                return member;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

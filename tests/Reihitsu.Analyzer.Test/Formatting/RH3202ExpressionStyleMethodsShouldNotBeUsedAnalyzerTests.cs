@@ -479,6 +479,63 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies the change example: the fix formats the method it converts, so the blank line in front of the closing
+    /// parenthesis of a positional pattern clause in its expression is removed, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixRemovesBlankLineBeforeClosingParenthesisOfPositionalPatternClause(string endOfLine)
+    {
+        const string testData = """
+                                class P
+                                {
+                                    public void Deconstruct(out int a, out int b)
+                                    {
+                                        a = 0;
+                                        b = 0;
+                                    }
+                                }
+
+                                class C
+                                {
+                                    bool M(object o) {|#0:=> o is P(
+                                        1,
+                                        2
+
+                                    )|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class P
+                                  {
+                                      public void Deconstruct(out int a, out int b)
+                                      {
+                                          a = 0;
+                                          b = 0;
+                                      }
+                                  }
+
+                                  class C
+                                  {
+                                      bool M(object o)
+                                      {
+                                          return o is P(
+                                                           1,
+                                                           2
+                                                       );
+                                      }
+                                  }
+                                  """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(resultData, endOfLine), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying that the fix keeps the documentation comment of the method it converts as written, and changes only the
     /// indentation of a raw string literal in the body it replaces, keeping the literal's value
     /// </summary>

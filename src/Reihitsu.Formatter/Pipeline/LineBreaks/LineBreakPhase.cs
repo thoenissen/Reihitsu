@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 
@@ -14,7 +15,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// Handles Allman brace placement, one member per line in member declaration lists, argument wrapping, joining of an argument list, an element access, a conditional element access, and a null-forgiving operator onto the line in front of it, joining of the continuations behind a keyword, is, a modifier, a cast, an arm, a base list, a filter, a loop header, a lambda, and in front of with, joining of wraps inside list elements, chain link collapsing,
 /// operator position, ternary placement, constructor initializer placement,
 /// generic constraint placement, expression-bodied property collapse, and accessor-list layout
-/// (one accessor per line, or a single-line auto-accessor list)
+/// (one accessor per line, or a single-line auto-accessor list).
+/// Before C# 11, the phase leaves every interpolation of a non-verbatim interpolated string as written, because such an
+/// interpolation cannot hold a line break there (CS8967)
 /// </summary>
 internal sealed class LineBreakPhase : IFormattingPhase
 {
@@ -64,16 +67,7 @@ internal sealed class LineBreakPhase : IFormattingPhase
                               FormattingContext context,
                               CancellationToken cancellationToken)
     {
-        var current = root;
-
-        foreach (var rewriter in CreateRewriters(context, cancellationToken))
-        {
-            current = rewriter.Visit(current);
-
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        return current;
+        return SingleLineInterpolationUtilities.RunKeepingSingleLineInterpolations(root, context.LanguageVersion, CreateRewriters(context, cancellationToken), cancellationToken);
     }
 
     #endregion // IFormattingPhase

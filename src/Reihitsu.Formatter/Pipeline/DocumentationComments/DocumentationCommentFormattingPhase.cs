@@ -15,7 +15,8 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 /// <summary>
 /// Starts a new line in front of a documentation comment written behind the code in front of it when the comment documents
 /// the code following it (FMT-DOC-001): a single-line comment in every position, a delimited comment only as the first
-/// comment of its token's leading trivia and not behind an opening brace or the colon of a switch label. It also
+/// comment of its token's leading trivia and not behind an opening brace or the colon of a switch label; a comment inside
+/// a hole of a non-verbatim interpolated string below C# 11 stays where it is written (FMT-BREAK-044). It also
 /// normalizes XML documentation comments to repository-specific layout rules. Element-level layout
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
@@ -135,7 +136,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <summary>
     /// Starts a new line in front of every documentation comment written behind code that documents the code following
     /// it: single-line comments in every position, delimited comments in the positions
-    /// <see cref="IsMovableDelimitedDocumentation"/> admits
+    /// <see cref="IsMovableDelimitedDocumentation"/> admits; a comment inside a hole of a non-verbatim interpolated string
+    /// below C# 11 stays where it is written (FMT-BREAK-044)
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="sourceText">Source text</param>
@@ -150,7 +152,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RegisterRelocation(root, trivia, sourceText, owningRelocations, previousTokenRelocationCounts);
+            RegisterRelocation(root, trivia, sourceText, context.LanguageVersion, owningRelocations, previousTokenRelocationCounts);
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
@@ -189,6 +191,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="root">Root node</param>
     /// <param name="trivia">Trivia candidate</param>
     /// <param name="sourceText">Source text</param>
+    /// <param name="languageVersion">The language version the source targets</param>
     /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
     /// <param name="previousTokenRelocationCounts">
     /// Line breaks to append to previous tokens, each of which first loses the whitespace that ends its trailing trivia;
@@ -197,11 +200,19 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     private static void RegisterRelocation(SyntaxNode root,
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
+                                           LanguageVersion languageVersion,
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
         if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false
             || DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false)
+        {
+            return;
+        }
+
+        // An interpolation that cannot hold a line break in the target language version keeps the comment where it was
+        // written (FMT-BREAK-044)
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(trivia.Token.Parent, languageVersion))
         {
             return;
         }
