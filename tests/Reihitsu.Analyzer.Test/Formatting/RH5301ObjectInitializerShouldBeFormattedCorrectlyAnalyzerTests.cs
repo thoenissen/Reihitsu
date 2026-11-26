@@ -1469,6 +1469,95 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the change doc's example: the object creation the fix formats holds a comment behind the <c>=</c> of a member,
+    /// which the formatter refuses, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheEqualsOfAMember(string endOfLine)
+    {
+        const string source = """
+                              class R
+                              {
+                                  public int A { get; set; }
+                              }
+
+                              class C
+                              {
+                                  object M()
+                                  {
+                                      var o = {|RH5301:new R { A = /* three */ 3 }|};
+
+                                      return o;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix stays offered for an object creation behind a comment behind an assignment operator: the object
+    /// creation the fix formats holds neither the operator nor the comment, although the document is refused as a whole
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForAnObjectCreationBehindACommentedAssignmentOperator(string endOfLine)
+    {
+        const string testData = """
+                                class R
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    object M()
+                                    {
+                                        object o;
+                                        o = // c
+                                            {|RH5301:new R { A = 1 }|};
+
+                                        return o;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class R
+                                 {
+                                     public int A { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     object M()
+                                     {
+                                         object o;
+                                         o = // c
+                                             new R
+                                             {
+                                                 A = 1
+                                             };
+
+                                         return o;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

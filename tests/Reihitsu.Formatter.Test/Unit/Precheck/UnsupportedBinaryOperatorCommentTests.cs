@@ -372,7 +372,6 @@ public class UnsupportedBinaryOperatorCommentTests : FormatterTestsBase
                                              + 2;
                                      var w = n is > /* c4 */ 1 or 3;
                                      var u = M3() /* c7 */ is 5;
-                                     n += /* c6 */ 1;
 
                                      return x && y && z > 0 && w && u;
                                  }
@@ -404,8 +403,8 @@ public class UnsupportedBinaryOperatorCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the excepted places and the tokens that are no binary operator do not refuse the input: a comment in front of
-    /// the operator, inside the right operand behind its first token, behind the right operand, behind an assignment, a compound
-    /// assignment, a range, and a unary operator
+    /// the operator, inside the right operand behind its first token, behind the right operand, behind a range, and behind a unary
+    /// operator
     /// </summary>
     /// <param name="statement">The statement</param>
     [TestMethod]
@@ -419,14 +418,26 @@ public class UnsupportedBinaryOperatorCommentTests : FormatterTestsBase
     [DataRow("        var r = i + F(/* c */ 1);", DisplayName = "Inside the right operand behind its first token")]
     [DataRow("        var r = i + -/* c */ 1;", DisplayName = "Behind a unary operator that starts the right operand")]
     [DataRow("        F(i + j /* c */);", DisplayName = "Behind the right operand")]
-    [DataRow("        i = /* c */ j;", DisplayName = "Behind an assignment operator")]
-    [DataRow("        i += /* c */ 1;", DisplayName = "Behind a compound assignment operator")]
-    [DataRow("        n ??= /* c */ 1;", DisplayName = "Behind a null-coalescing assignment operator")]
     [DataRow("        var r = xs[1.. /* c */ 2];", DisplayName = "Behind a range operator")]
     [DataRow("        var r = -/* c */ i;", DisplayName = "Behind a unary operator")]
     public void CommentOutsideTheShapeIsSupported(string statement)
     {
         AssertSupported(WrapInMethod(statement));
+    }
+
+    /// <summary>
+    /// Verifies that an assignment operator and a compound assignment operator are no binary operator: a comment behind one is
+    /// refused with the reason of FMT-UNSUP-020, not with this requirement's
+    /// </summary>
+    /// <param name="statement">The statement</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-011")]
+    [DataRow("        i = /* c */ j;", DisplayName = "Behind an assignment operator")]
+    [DataRow("        i += /* c */ 1;", DisplayName = "Behind a compound assignment operator")]
+    [DataRow("        n ??= /* c */ 1;", DisplayName = "Behind a null-coalescing assignment operator")]
+    public void CommentBehindAnAssignmentOperatorKeepsTheReasonOfItsOwnShape(string statement)
+    {
+        AssertUnsupportedFor(AssignmentCommentReason, WrapInMethod(statement), "/* c */");
     }
 
     /// <summary>

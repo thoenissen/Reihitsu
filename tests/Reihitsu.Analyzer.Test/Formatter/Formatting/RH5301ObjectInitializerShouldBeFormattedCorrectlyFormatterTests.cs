@@ -124,7 +124,8 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
     /// <summary>
     /// Verifies that the formatter aligns the braces of an object creation whose <c>new</c> stands behind a comment that leads its
-    /// line to <c>new</c>, where the analyzer measures it, and clears the diagnostic
+    /// line to <c>new</c>, where the analyzer measures it, and clears the diagnostic. The line follows the opening parenthesis of a
+    /// parenthesized expression, because a comment behind an assignment operator makes the input unsupported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -143,12 +144,12 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
                              {
                                  private static void Method()
                                  {
-                                     _ =
+                                     _ = (
 
                                          /* c */ {|#0:new P
                                          {
                                              X = 2
-                                         }|};
+                                         }|});
                                  }
                              }
                              """;
@@ -162,12 +163,12 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
                                  {
                                      private static void Method()
                                      {
-                                         _ =
+                                         _ = (
 
                                              /* c */ new P
                                                      {
                                                          X = 2
-                                                     };
+                                                     });
                                      }
                                  }
                                  """;

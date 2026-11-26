@@ -148,10 +148,21 @@ public abstract class FormatterTestsBase
     protected const string OmittedTypeArgumentCommentReason = "a comment or directive inside a list of omitted type arguments";
 
     /// <summary>
-    /// The reason the formatter gives for a comment or directive behind an assignment operator inside a switch arm or an
-    /// anonymous-object member (FMT-UNSUP-019)
+    /// The reason the formatter gives for a comment or directive behind an assignment operator or the <c>=</c> of a declaration
+    /// (FMT-UNSUP-020)
     /// </summary>
-    protected const string AssignmentInArmCommentReason = "a comment or directive behind an assignment operator inside a switch arm or an anonymous-object member";
+    protected const string AssignmentCommentReason = "a comment or directive behind an assignment operator or the = of a declaration";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind the <c>=&gt;</c> of a switch arm (FMT-UNSUP-021)
+    /// </summary>
+    protected const string SwitchArmExpressionCommentReason = "a comment or directive behind the => of a switch arm";
+
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive behind the <c>=</c> of an attribute argument or a using alias
+    /// (FMT-UNSUP-022)
+    /// </summary>
+    protected const string NameEqualsCommentReason = "a comment or directive behind the = of an attribute argument or a using alias";
 
     #endregion // Constants
 

@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `ContinuationLineContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `QueryClauseContributor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-019, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
+| Uses | FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -1242,7 +1242,7 @@ class C
 
 For a nested initializer assigned to a member (`Child = { … }`), the formatter MUST indent an opening brace that starts a line to the column of the assigned member, and the closing brace to the same column as the opening brace. For an array initializer of a declaration (`int[] a = { … }`) and for a complex element initializer (`{ 1, 2 }` inside a collection initializer), the closing brace MUST be indented to the column of the opening brace. In every case the members that start a line MUST be indented one level deeper than the opening brace's column.
 
-When a comment leads the line of the opening brace, the comment takes the column that line starts in — for a nested initializer assigned to a member, the column of the assigned member (FMT-INDENT-006) — and the column of the opening brace is the column it stands in behind the comment (FMT-INDENT-030): the closing brace and the members follow that column, not the comment's. When the comment stands on a line above the brace, the brace starts its line, and its column is the column of that line.
+When a comment leads the line of the opening brace of a complex element initializer, the comment takes the column that line starts in, and the column of the opening brace is the column it stands in behind the comment (FMT-INDENT-030): the closing brace and the members follow that column, not the comment's. When the comment stands on a line above the brace, the brace starts its line, and its column is the column of that line. A comment in front of the opening brace of a nested initializer assigned to a member stands behind the `=` of the assignment, and one in front of the opening brace of a declaration's array initializer stands inside the declaration; the formatter refuses both (FMT-UNSUP-020, FMT-UNSUP-004).
 
 Why: Without a `new` keyword the target of the assignment is the closest token that owns the initializer; when the brace stays on the line of `=`, the brace itself is the anchor.
 
@@ -1302,51 +1302,35 @@ class C
 }
 ```
 
-Example — a comment leads the line of a nested initializer's opening brace; the comment takes the column of `Child`, 20, the brace stands in column 28, and the member and the closing brace follow the brace:
+Example — a comment leads the line of a complex element initializer's opening brace; the comment takes the element's column, 33, the brace stands in column 41, and the elements and the closing brace follow the brace:
 
 ```csharp
-class P
-{
-    public int X { get; set; }
-
-    public P Child { get; set; } = new P();
-}
+using System.Collections.Generic;
 
 class C
 {
-    void M()
-    {
-        var p = new P
-                {
-                    Child =
-                    /* c */ {
-                        X = 2
-                    }
-                };
-    }
+    Dictionary<int, int> D = new()
+                             {
+                                 /* c */ {
+                                 3,
+                                 4
+                                 }
+                             };
 }
 ```
 
 ```csharp
-class P
-{
-    public int X { get; set; }
-
-    public P Child { get; set; } = new P();
-}
+using System.Collections.Generic;
 
 class C
 {
-    void M()
-    {
-        var p = new P
-                {
-                    Child =
-                    /* c */ {
-                                X = 2
-                            }
-                };
-    }
+    Dictionary<int, int> D = new()
+                             {
+                                 /* c */ {
+                                             3,
+                                             4
+                                         }
+                             };
 }
 ```
 
@@ -2231,7 +2215,7 @@ When the literal is not moved, because its closing marker already starts under i
 
 The column of an anchor is the column it has in this phase's output, counting everything that stands in front of it on its line. When a comment stands in front of a line's first token, on that token's line, the comment takes the column FMT-INDENT-006 gives it and the token keeps its gap behind the comment (FMT-INDENT-005): an anchor on that line is measured behind the comment, and so are the opening quotes of a raw string literal on it (FMT-RAW-005). The same holds for a token behind the last line of a multi-line comment, which this phase does not move (FMT-INDENT-007): the token is measured where that line puts it. A comment that ends with its line — a `//` comment, or a delimited comment followed by a line break — is not in front of the token on the token's line; the token then starts its line and is measured at the line's column.
 
-This holds also when the anchor is itself the first token of its line, such as the opening brace of a complex element initializer or of a nested initializer (FMT-INDENT-023), the opening bracket of a collection expression (FMT-INDENT-025), the `new` keyword of a creation expression (FMT-INDENT-022), the first token of a governing expression (FMT-INDENT-027), or the left operand of a wrapped binary expression (FMT-INDENT-018): the comment takes the column that the requirement placing the line gives its start, and the anchor is measured behind the comment, where it stands. A token that starts its line behind such a comment but anchors nothing — such as the opening brace of a creation initializer, whose members align to `new` (FMT-INDENT-022) — moves no other line.
+This holds also when the anchor is itself the first token of its line, such as the opening brace of a complex element initializer (FMT-INDENT-023), the opening bracket of a collection expression (FMT-INDENT-025), the `new` keyword of a creation expression (FMT-INDENT-022), the first token of a governing expression (FMT-INDENT-027), or the left operand of a wrapped binary expression (FMT-INDENT-018): the comment takes the column that the requirement placing the line gives its start, and the anchor is measured behind the comment, where it stands. A token that starts its line behind such a comment but anchors nothing — such as the opening brace of a creation initializer, whose members align to `new` (FMT-INDENT-022) — moves no other line.
 
 Example — a comment leads the line of the call; `1` stands behind it, in column 21, and `2` aligns there:
 
@@ -2721,28 +2705,33 @@ Status: Retired in the change that added it — a line that starts with a comma 
 The formatter MUST indent a continuation line that no other requirement of this spec and no FMT-RAW requirement places — FMT-INDENT-002 and FMT-INDENT-004 excepted — four columns right of the column at which the line of the construct it continues begins:
 
 - **Continuation line.** A line is a continuation line when the token that starts it (SHARED-BLANK-008) stands inside a statement, a member declaration, or a using directive that starts on an earlier line, and does not begin a part of it that block indentation places by its scope (FMT-INDENT-002 to FMT-INDENT-004). Those parts are a nested statement — a block, an embedded statement, the statement of a labeled statement, and a local function included —, a nested member declaration — an enum member included —, an accessor, a switch section or label, a brace of a scope that FMT-INDENT-002 names, the `else`, `catch`, or `finally` keyword of its clause, the `while` of a `do` statement, and an attribute list of a member, an accessor, or a local function together with the first token behind the last such list. A line that starts with any other token of the statement, member, or directive is a continuation line: a value, an operand, a pattern, a declarator, a clause, a modifier behind the first one, a type, a base list, or the closing token of a construct. A node that a node-level entry point formats as a root of its own (FMT-PIPE-023) counts as such a statement when no statement, member declaration, or using directive inside it holds the token — for example the `&&` chain the RH5302 fix formats: the root stands in for the statement or member that holds it in the document, so a line that starts inside it below its first line is a continuation line, as it is in the whole document.
-- **Construct it continues.** The construct a continuation line continues is the nearest node that contains the line's first token and whose first token stands on an earlier line. A node that starts on the line itself does not count, however far it reaches: the `3` of `y += // c⏎3 + 4;` starts the binary expression `3 + 4`, so the line continues the compound assignment, which starts on the line of `y`.
+- **Construct it continues.** The construct a continuation line continues is the nearest node that contains the line's first token and whose first token stands on an earlier line. A node that starts on the line itself does not count, however far it reaches: the `3` of the switch arm `1 =>⏎3 + 4,` starts the binary expression `3 + 4`, so the line continues the arm, which starts on the line of `1`.
 - **Its line.** The line of that construct is the line on which its first token stands. When that line begins inside text that started on a still earlier line — the text of a multi-line string literal or of a multi-line comment —, the line of the construct is the line on which that text starts.
 - **The column.** The column at which that line begins is the column the indentation phase gives the first token or comment on it, measured where the phase puts it (FMT-INDENT-030), so a continuation line of a continuation line is indented one more level.
 - **A root formatted on its own.** When a node-level entry point formats a node as a root of its own (FMT-PIPE-023) and the line of the construct is the line on which the root's first token stands, the column at which that line begins is the line-start column (FMT-PIPE-024): the column of the first token or comment on that line in the document, which may stand in front of the root. The entry point keeps everything in front of the root as written, so that line begins where the document has it, and the continuation line gets the column whole-document formatting gives it when the document's line begins where whole-document formatting puts it. `FormatNode`, which has no such fact, measures from the root's first token.
 
-The gaps FMT-BREAK-041 joins, the `=` of an anonymous-object member and of a `let` clause that FMT-BREAK-016 joins, and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in one of those gaps is refused (FMT-UNSUP-011, FMT-UNSUP-017). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the value behind `x += // c` outside a switch arm and an anonymous-object member (inside one, FMT-UNSUP-019 refuses it), a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins. Among them are the lines a comment keeps inside a base list, inside an attribute, type argument, type parameter, or function-pointer parameter list, and inside a qualified name: a first base type below the base list's `:`, which FMT-BREAK-042 does not join across the comment (FMT-BREAK-001); a first element below the opening bracket of one of those lists, which FMT-BREAK-014 does not join across it; and the right part of a qualified name below its `.`. No requirement aligns them with the colon, the bracket, or the name: this requirement places them, the later base types and list elements align under the first (FMT-INDENT-015, FMT-INDENT-016), and a line inside an element of a list that FMT-INDENT-013 places keeps that column.
+The gaps FMT-BREAK-041 joins, the gaps behind an assignment operator and behind an `=` that FMT-BREAK-016 joins, and the combinators FMT-BREAK-017 moves to the start of a line leave no continuation line behind them; a comment or a directive in one of those gaps is refused (FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-020). The lines this requirement places are those no join removes: a line kept behind a comment or a directive that no requirement refuses, such as the operand behind `( // c` of a parenthesized expression, a later declarator, a `;` behind a conditional group or a documentation comment written behind code, a line inside the hole of a verbatim interpolated string, and a line behind any other line break no requirement joins, such as the expression behind a switch arm's `=>` (a comment there is refused, FMT-UNSUP-021). Among them are the lines a comment keeps inside a base list, inside an attribute, type argument, type parameter, or function-pointer parameter list, and inside a qualified name: a first base type below the base list's `:`, which FMT-BREAK-042 does not join across the comment (FMT-BREAK-001); a first element below the opening bracket of one of those lists, which FMT-BREAK-014 does not join across it; and the right part of a qualified name below its `.`. No requirement aligns them with the colon, the bracket, or the name: this requirement places them, the later base types and list elements align under the first (FMT-INDENT-015, FMT-INDENT-016), and a line inside an element of a list that FMT-INDENT-013 places keeps that column.
 
 Why: A continuation line that took the column of its statement or member read like a new statement, or, inside an expression laid out to the right, landed left of the construct it belongs to. One rule for every construct replaces one contributor per construct, which kept leaving gaps; the requirements that align a construct to an anchor keep their own columns, so this rule only places what none of them owns. Taking the nearest construct that starts on an earlier line keeps a continuation inside an element of a collection expression or an initializer to the right of that construct, and makes the column independent of the entry point: a code fix that formats only a node measures from the same line as whole-document formatting, and where that line begins in front of the node, the line-start column carries where the document begins it, so the fix gives the line the same column as whole-document formatting. A line that block indentation places by its scope is not a continuation, so a statement, an `else`, a label, or an attribute list on its own line keeps its column. The lines a comment keeps inside a base list, a bracket list, or a qualified name get no column of their own: a comment there is reported by another rule — RH5043 in a base list, RH5044 in an attribute list, RH5046 in a type parameter or type argument list, RH5104 behind code on its line — or stands where code hardly ever holds one, so the class is rare, and a column behind the colon, behind the bracket, or measured from the name would be a placement rule for that class alone.
 
-Example — a value kept on its own line by a comment continues the statement, also where it starts an expression of its own (`3 + 4`):
+Example — an operand kept on its own line by a comment behind a parenthesis continues the statement, and an arm's expression kept on its own line behind the `=>` continues the arm, also where it starts an expression of its own (`3 + 4`):
 
 ```csharp
 class C
 {
     int M(int x, int y)
     {
-        x += // c
-        3;
-        y += // c
-        3 + 4;
+        x = ( // c
+        y + 3);
 
-        return x + y;
+        var s = y switch
+                {
+                    1 =>
+                    3 + 4,
+                    _ => 0
+                };
+
+        return x + s;
     }
 }
 ```
@@ -2752,17 +2741,22 @@ class C
 {
     int M(int x, int y)
     {
-        x += // c
-            3;
-        y += // c
-            3 + 4;
+        x = ( // c
+            y + 3);
 
-        return x + y;
+        var s = y switch
+                {
+                    1 =>
+                        3 + 4,
+                    _ => 0
+                };
+
+        return x + s;
     }
 }
 ```
 
-Example — the line continues a construct inside an expression, so it is indented from the line of that construct: the value inside an element of a collection expression from the line of `y` in column 22:
+Example — the line continues a construct inside an expression, so it is indented from the line of that construct: the operand inside an element of a collection expression from the line of `(` in column 22:
 
 ```csharp
 class C
@@ -2771,8 +2765,8 @@ class C
     {
         int[] z = [
                       1,
-                      y += // c
-        2
+                      ( // c
+        y + 2)
                   ];
 
         return z.Length;
@@ -2787,16 +2781,14 @@ class C
     {
         int[] z = [
                       1,
-                      y += // c
-                          2
+                      ( // c
+                          y + 2)
                   ];
 
         return z.Length;
     }
 }
 ```
-
-The same line inside a switch-expression arm or an anonymous-object member is refused (FMT-UNSUP-019).
 
 Example — the condition of a `case` label's `when` clause, wrapped behind `when`, continues the label, which starts on the line of `case`, so it is indented one level deeper than `case`:
 
@@ -2972,15 +2964,15 @@ class C
 }
 ```
 
-Example — the RH5302 fix formats the `&&` expression as a root of its own, and that root starts behind `var r = ` in column 16. The compound assignment that `3)` continues starts on the root's first line, which begins with `var` in column 8 in the document, so `3) > 0` is indented to column 12 by the fix, as by whole-document formatting, and not to column 20, four columns right of the root's first token. The `&&` aligns with its left operand (FMT-INDENT-018):
+Example — the RH5302 fix formats the `&&` expression as a root of its own, and that root starts behind `var r = ` in column 16. The parenthesized expression that `x + 3)` continues starts on the root's first line, which begins with `var` in column 8 in the document, so `x + 3) > 0` is indented to column 12 by the fix, as by whole-document formatting, and not to column 20, four columns right of the root's first token. The `&&` aligns with its left operand (FMT-INDENT-018):
 
 ```csharp
 class C
 {
     bool M(int x, bool y)
     {
-        var r = (x += // c
-        3) > 0 &&
+        var r = ( // c
+        x + 3) > 0 &&
         y;
 
         return r;
@@ -2993,8 +2985,8 @@ class C
 {
     bool M(int x, bool y)
     {
-        var r = (x += // c
-            3) > 0
+        var r = ( // c
+            x + 3) > 0
                 && y;
 
         return r;
@@ -3002,7 +2994,7 @@ class C
 }
 ```
 
-The RH5308 fix of `var s = (x += // c⏎3) > 0 ? 1 :⏎2;` gives `3) > 0` column 12 in the same way, with `? 1` and `: 2;` in column 20 (FMT-INDENT-020).
+The RH5308 fix of `var s = ( // c⏎x + 3) > 0 ? 1 :⏎2;` gives `x + 3) > 0` column 12 in the same way, with `? 1` and `: 2;` in column 20 (FMT-INDENT-020).
 
 Example — lines that block indentation places by their scope are not continuations and keep their columns: the attribute lists of a member and the token behind them, a label and its statement, `else`, and the `while` of a `do` statement:
 

@@ -431,9 +431,10 @@ public class JoinSeparatorPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a comment in the gap still refuses the join of a <c>case</c> guard, an assignment value, and a named argument's
-    /// value, after the separator change; a comment behind a conditional operator or a binary operator, or in front of a property's
-    /// arrow, is refused as unsupported before this phase (FMT-UNSUP-008, FMT-UNSUP-011, FMT-UNSUP-013)
+    /// Verifies that a comment in the gap still refuses the join of a <c>case</c> guard and a named argument's value, after the
+    /// separator change; a comment behind a conditional operator, a binary operator, or an assignment operator or the <c>=</c> of
+    /// a declaration, or in front of a property's arrow, is refused as unsupported before this phase (FMT-UNSUP-008,
+    /// FMT-UNSUP-011, FMT-UNSUP-013, FMT-UNSUP-020)
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-031")]
@@ -451,8 +452,6 @@ public class JoinSeparatorPhaseTests
                                              break;
                                      }
 
-                                     var x = // x
-                                         1;
                                      N(name: // n
                                        a);
 
@@ -466,7 +465,7 @@ public class JoinSeparatorPhaseTests
             var normalized = input.Replace("\r\n", "\n").Replace("\n", endOfLine);
             var result = ExecuteLineBreakPhase(normalized, endOfLine);
 
-            foreach (var comment in new[] { "// w", "// x", "// n" })
+            foreach (var comment in new[] { "// w", "// n" })
             {
                 Assert.Contains($"{comment}{endOfLine}", result, $"The comment '{comment}' must still end its line.");
             }

@@ -17,7 +17,7 @@ public class LineBreakPhaseBlankLineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the phase keeps the blank line above a block statement after a closing brace and the blank line above
-    /// a comment glued to an initializer's brace
+    /// a comment glued to the brace of the creation's initializer
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-030")]
@@ -36,12 +36,9 @@ public class LineBreakPhaseBlankLineTests : FormatterTestsBase
                                      }
 
                                      var p = new P
-                                             {
-                                                 Child =
 
-                                                 /* c */ {
-                                                             X = 2
-                                                         }
+                                             /* c */ {
+                                                 X = 2
                                              };
                                  }
                              }

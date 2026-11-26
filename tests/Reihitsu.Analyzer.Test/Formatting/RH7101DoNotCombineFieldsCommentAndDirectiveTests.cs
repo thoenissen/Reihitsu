@@ -2711,9 +2711,11 @@ public class RH7101DoNotCombineFieldsCommentAndDirectiveTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies that a comment in a gap the line-break phase joins, a comment inside a list of omitted type arguments, and a
-    /// comment behind an assignment operator inside an anonymous-object member, anywhere in the type the fix formats, withhold
-    /// the fix, because the formatter refuses the type, and the diagnostic stays
+    /// Verifies that a comment in a gap the line-break phase joins, a comment inside a list of omitted type arguments, and,
+    /// as the change doc's examples show, a comment or a directive behind an assignment operator, behind the <c>=</c> of a
+    /// property, a parameter's default value, a variable declarator, or an enum member, behind the <c>=&gt;</c> of a switch arm,
+    /// or behind the <c>=</c> of an attribute argument, anywhere in the type the fix formats, withhold the fix, because the
+    /// formatter refuses the type, and the diagnostic stays
     /// </summary>
     /// <param name="member">The member that holds the refused shape</param>
     /// <param name="endOfLine">Line break of the document</param>
@@ -2725,7 +2727,16 @@ public class RH7101DoNotCombineFieldsCommentAndDirectiveTests : BatchCodeFixTest
     [DataRow("    object M()\n    {\n        return new /* c */ object();\n    }", "\r\n", DisplayName = "Gap behind new, CRLF")]
     [DataRow("    System.Type M()\n    {\n        return typeof(System.Collections.Generic.Dictionary</* c */,>);\n    }", "\n", DisplayName = "Omitted type arguments, LF")]
     [DataRow("    object M(int x)\n    {\n        return new { A = x += /* c */ 3 };\n    }", "\n", DisplayName = "Assignment in an anonymous-object member, LF")]
-    public async Task VerifyNoFixIsOfferedForAShapeOfTheJoinedGapsInTheType(string member, string endOfLine)
+    [DataRow("    int[] G { get; } = // values\n        { 1, 2 };", "\n", DisplayName = "Property initializer, LF")]
+    [DataRow("    int[] G { get; } = // values\n        { 1, 2 };", "\r\n", DisplayName = "Property initializer, CRLF")]
+    [DataRow("    int M(int y = /* default */ 1)\n    {\n        return y + _a + _b;\n    }", "\n", DisplayName = "Parameter default, LF")]
+    [DataRow("    int M(int x)\n    {\n        x += // add\n            3;\n\n        return x;\n    }", "\n", DisplayName = "Compound assignment, LF")]
+    [DataRow("    int M()\n    {\n        int x =\n#if DEBUG\n            1;\n#else\n            2;\n#endif\n\n        return x;\n    }", "\n", DisplayName = "Directive behind a local declarator, LF")]
+    [DataRow("    enum E\n    {\n        A = // one\n            1\n    }", "\n", DisplayName = "Enum member in a nested type, LF")]
+    [DataRow("    int M(int v)\n    {\n        return v switch\n               {\n                   1 => // one\n                       2,\n                   _ => 0\n               };\n    }", "\n", DisplayName = "Switch arm, LF")]
+    [DataRow("    [System.Obsolete(DiagnosticId = // name\n                     \"X\")]\n    int M()\n    {\n        return _a + _b;\n    }", "\n", DisplayName = "Attribute argument, LF")]
+    [DataRow("    [System.Obsolete(DiagnosticId = // name\n                     \"X\")]\n    int M()\n    {\n        return _a + _b;\n    }", "\r\n", DisplayName = "Attribute argument, CRLF")]
+    public async Task VerifyNoFixIsOfferedForAShapeTheFormatterRefusesInTheType(string member, string endOfLine)
     {
         var source = $"class C\n{{\n    private int _a, {{|RH7101:_b|}};\n\n{member}\n}}";
 

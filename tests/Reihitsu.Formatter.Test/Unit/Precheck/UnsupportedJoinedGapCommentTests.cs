@@ -233,11 +233,6 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
                                  {
                                      // c3
                                      var p = o is string { Length: /* c4 */ 2 };
-                                     var r = x switch
-                                             {
-                                                 1 => /* c5 */ 2,
-                                                 _ => 0,
-                                             };
                                      Func<int> u = () /* c6 */ => a.Length;
                                      var w = new
                                              {
@@ -441,7 +436,6 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
     [DataRow("        Use(o is { } /* c */);", DisplayName = "Behind the pattern")]
     [DataRow("        var p = o is string { Length: /* c */ 2 };", DisplayName = "Inside the pattern")]
     [DataRow("        var k = x is 1 /* c */ or 2;", DisplayName = "In front of a combinator")]
-    [DataRow("        var r = x switch\n                {\n                    1 => /* c */ 2,\n                    _ => 0,\n                };", DisplayName = "Behind the arrow of a switch arm")]
     [DataRow("        try\n        {\n        }\n        catch (Exception e) when /* c */ (e != null)\n        {\n        }", DisplayName = "Behind the when of a catch filter")]
     [DataRow("        for (/* c */ ;;)\n        {\n        }", DisplayName = "Behind the opening parenthesis of a for header")]
     [DataRow("        foreach (var y /* c */ in a)\n        {\n        }", DisplayName = "In front of the in of a foreach statement")]
@@ -486,8 +480,8 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the gaps other requirements decide keep their reasons: the <c>new</c> of an implicit object creation gives
-    /// the reason of FMT-UNSUP-014, the <c>is</c> of a type test the reason of FMT-UNSUP-011, and the arrow of a member's
-    /// expression body the reason of FMT-UNSUP-012
+    /// the reason of FMT-UNSUP-014, the <c>is</c> of a type test the reason of FMT-UNSUP-011, the arrow of a member's expression
+    /// body the reason of FMT-UNSUP-012, and the gap behind the arrow of a switch arm the reason of FMT-UNSUP-021
     /// </summary>
     /// <param name="reason">The reason that is reported</param>
     /// <param name="statement">The statement that holds the comment</param>
@@ -496,6 +490,7 @@ public class UnsupportedJoinedGapCommentTests : FormatterTestsBase
     [DataRow(AttachedPartCommentReason, "        List<int> n = new /* c */ ();", DisplayName = "New of an implicit object creation")]
     [DataRow(BinaryOperatorCommentReason, "        var p = o is /* c */ string;", DisplayName = "Is of a type test")]
     [DataRow(ExpressionBodyArrowCommentReason, "        int Local() => /* c */ 1;", DisplayName = "Arrow of a local function's expression body")]
+    [DataRow(SwitchArmExpressionCommentReason, "        var r = x switch\n                {\n                    1 => /* c */ 2,\n                    _ => 0,\n                };", DisplayName = "Behind the arrow of a switch arm")]
     public void GapsOfOtherRequirementsKeepTheirReason(string reason, string statement)
     {
         AssertUnsupportedFor(reason, WrapInMethod(statement), "/* c */");

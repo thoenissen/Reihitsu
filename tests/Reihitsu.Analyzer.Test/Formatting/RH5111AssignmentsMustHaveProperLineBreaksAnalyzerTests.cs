@@ -54,6 +54,32 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     #region Tests
 
     /// <summary>
+    /// Verifies the change doc's example: the enum declaration the fix formats around the reported member holds a comment behind
+    /// a sibling's <c>=</c>, which the formatter refuses, so no fix is offered for either member and both diagnostics stay
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForAnEnumMemberBesideACommentBehindASiblingsEquals(string endOfLine)
+    {
+        const string source = """
+                              enum E
+                              {
+                                  {|RH5111:A =
+                                      1|},
+                                  {|RH5111:B = // two
+                                      2|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
     /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
     /// </summary>

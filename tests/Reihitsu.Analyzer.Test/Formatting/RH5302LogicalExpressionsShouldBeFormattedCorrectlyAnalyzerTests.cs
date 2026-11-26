@@ -1284,7 +1284,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
 
     /// <summary>
     /// Verifies the specification example: the fix formats the chain as a root of its own that starts behind <c>var r = </c>, and
-    /// the continuation of the compound assignment, whose construct starts on the root's first line, is indented four columns
+    /// the continuation of the parenthesized expression, whose construct starts on the root's first line, is indented four columns
     /// right of where the document begins that line, as whole-document formatting indents it, not four columns right of the
     /// root's first token
     /// </summary>
@@ -1302,8 +1302,8 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                 {
                                     bool M(int x, bool y)
                                     {
-                                        var r = (x += // c
-                                        3) > 0 &&
+                                        var r = ( // c
+                                        x + 3) > 0 &&
                                         y;
 
                                         return r;
@@ -1316,8 +1316,8 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                   {
                                       bool M(int x, bool y)
                                       {
-                                          var r = (x += // c
-                                              3) > 0
+                                          var r = ( // c
+                                              x + 3) > 0
                                                   && y;
 
                                           return r;

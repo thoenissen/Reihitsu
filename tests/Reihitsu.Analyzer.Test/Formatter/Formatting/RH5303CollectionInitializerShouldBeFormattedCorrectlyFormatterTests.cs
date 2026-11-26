@@ -342,7 +342,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
 
     /// <summary>
     /// Verifies that the formatter aligns the braces of a collection creation whose <c>new</c> stands behind a comment that leads
-    /// its line to <c>new</c>, where the analyzer measures it, and clears the diagnostic
+    /// its line to <c>new</c>, where the analyzer measures it, and clears the diagnostic. The line follows the opening parenthesis of a
+    /// parenthesized expression, because a comment behind an assignment operator makes the input unsupported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -358,12 +359,12 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
                              {
                                  private static void Method()
                                  {
-                                     _ =
+                                     _ = (
 
                                          /* c */ {|#0:new List<int>
                                          {
                                              2
-                                         }|};
+                                         }|});
                                  }
                              }
                              """;
@@ -374,12 +375,12 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
                                  {
                                      private static void Method()
                                      {
-                                         _ =
+                                         _ = (
 
                                              /* c */ new List<int>
                                                      {
                                                          2
-                                                     };
+                                                     });
                                      }
                                  }
                                  """;

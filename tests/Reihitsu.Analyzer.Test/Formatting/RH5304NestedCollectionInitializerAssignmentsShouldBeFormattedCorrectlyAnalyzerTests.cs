@@ -2261,6 +2261,82 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the change doc's example: the member assignment the fix formats holds a comment behind its <c>=</c>, which the
+    /// formatter refuses, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheEqualsOfTheMember(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              class P
+                              {
+                                  public List<int> L { get; } = new List<int>();
+                              }
+
+                              class C
+                              {
+                                  object M()
+                                  {
+                                      return new P
+                                             {
+                                                 {|RH5304:L = /* c */ { 1,
+                                                 2 }|}
+                                             };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the change doc's example: the member assignment the fix formats holds a line comment behind its <c>=</c>, which
+    /// the formatter refuses, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForALineCommentBehindTheEqualsOfTheMember(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              class P
+                              {
+                                  public List<int> L { get; } = new List<int>();
+                              }
+
+                              class C
+                              {
+                                  object M()
+                                  {
+                                      return new P
+                                             {
+                                                 {|RH5304:L = // c
+                                                 {
+                                                     1
+                                                 }|}
+                                             };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -5,7 +5,7 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-INDENT-025, FMT-BREAK-030, FMT-BREAK-033, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
+| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-INDENT-025, FMT-BREAK-030, FMT-BREAK-033, FMT-UNSUP-020, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. The phase runs after the line-break and switch-brace phases (FMT-PIPE-001), so it decides every blank line on the lines the output keeps. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
@@ -1903,12 +1903,9 @@ class C
     void M()
     {
         var p = new P
-                {
-                    Child =
 
-                    /* c */ {
-                                X = 2
-                            }
+                /* c */ {
+                    X = 2
                 };
     }
 }
@@ -1920,11 +1917,8 @@ class C
     void M()
     {
         var p = new P
-                {
-                    Child =
-                    /* c */ {
-                                X = 2
-                            }
+                /* c */ {
+                    X = 2
                 };
     }
 }
@@ -1943,11 +1937,8 @@ class C
         }
 
         var p = new P
-                {
-                    Child =
-                    /* c */ {
-                                X = 2
-                            }
+                /* c */ {
+                    X = 2
                 /* d */ };
     }
 }
@@ -1960,13 +1951,10 @@ Above a comment glued to an array initializer's brace or to a chained keyword, t
 ```csharp
 class C
 {
-    int[] G { get; } =
-
-    /* b */ { 1, 2 };
     int H;
     /* m */ int I;
 
-    void M(int a)
+    int[] M(int a)
     {
         a++;
 
@@ -1984,6 +1972,10 @@ class C
         {
             a--;
         }
+
+        return new int[]
+
+            /* b */ { 1, 2 };
     }
 }
 ```
@@ -1991,12 +1983,10 @@ class C
 ```csharp
 class C
 {
-    int[] G { get; } =
-        /* b */ { 1, 2 };
     int H;
     /* m */ int I;
 
-    void M(int a)
+    int[] M(int a)
     {
         a++;
 
@@ -2013,6 +2003,9 @@ class C
         {
             a--;
         }
+
+        return new int[]
+               /* b */ { 1, 2 };
     }
 }
 ```
@@ -2464,7 +2457,7 @@ When the last content in the gap before one of the following tokens is an ordina
 
 These are the tokens FMT-BLANK-007, FMT-BLANK-008, and FMT-BLANK-019 remove a blank line directly in front of.
 
-What stands in front of the comment on its line does not matter: a line that holds `/* a */ /* b */`, `/** d */ // c`, or the end of a multi-line comment followed by `// c` ends with an ordinary comment like a line that holds `// c` alone. The kind of the token decides, and for an opening brace whether it opens a block statement that follows another statement, never the layout of the construct: the opening brace of a complex element initializer is named whether the element stays on one line or spans several, and both braces of a collection initializer assigned to a member are named like the braces of any other collection initializer. The blank lines above that comment are decided by the other requirements, such as FMT-BLANK-011 for the first comment of the gap. A comment that trails the previous token on its line is not in the gap's own lines; the blank lines behind it are directly before the token (FMT-BLANK-007, FMT-BLANK-008). A comment on the token's line is FMT-BLANK-018's, also a delimited comment that starts on an earlier line and ends on the token's line (`// c⏎⏎/* x⏎ */ }`: FMT-BLANK-018 removes the blank line above `/* x`), and a documentation comment that ends its line is FMT-BLANK-010's.
+What stands in front of the comment on its line does not matter: a line that holds `/* a */ /* b */`, `/** d */ // c`, or the end of a multi-line comment followed by `// c` ends with an ordinary comment like a line that holds `// c` alone. The kind of the token decides, and for an opening brace whether it opens a block statement that follows another statement, never the layout of the construct: the opening brace of a complex element initializer is named whether the element stays on one line or spans several, and the closing brace of a collection initializer assigned to a member is named like that of any other collection initializer; a comment on its own line above the opening brace of one stands behind the `=` of the assignment, which the formatter refuses (FMT-UNSUP-020). The blank lines above that comment are decided by the other requirements, such as FMT-BLANK-011 for the first comment of the gap. A comment that trails the previous token on its line is not in the gap's own lines; the blank lines behind it are directly before the token (FMT-BLANK-007, FMT-BLANK-008). A comment on the token's line is FMT-BLANK-018's, also a delimited comment that starts on an earlier line and ends on the token's line (`// c⏎⏎/* x⏎ */ }`: FMT-BLANK-018 removes the blank line above `/* x`), and a documentation comment that ends its line is FMT-BLANK-010's.
 
 Why: The comment describes the token below it, or the end of the construct the token closes; a blank line between the two detaches it, as a blank line directly before the token would (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019). The formatter mirrors RH5024, RH5025, RH5026, and RH5027, which report such a blank line before a closing brace, an opening brace, `else`, `catch`, or `finally`, and a do-statement's `while`, whatever construct the brace belongs to; one set of tokens for the blank line directly in front of them and behind a comment keeps the formatter's output free of their reports. The set is decided by syntax alone, because a layout that the line-break phase changes later cannot decide a blank line the blank-line phase writes.
 
@@ -2552,22 +2545,15 @@ class C
 }
 ```
 
-Behind two comments on a line of their own, behind a comment above the opening brace of a collection initializer assigned to a member, and behind a comment above the opening brace of a complex element initializer that stays on one line. FMT-BLANK-011 puts a blank line above the comment that follows the `=` of the assignment, as above any other comment that starts its own line:
+Behind two comments on a line of their own, and behind a comment above the opening brace of a complex element initializer that stays on one line:
 
 ```csharp
+using System.Collections.Generic;
+
 class C
 {
     void M(int a)
     {
-        var p = new P
-                {
-                    L =
-                    // c
-
-                    {
-                        1
-                    }
-                };
         var d = new Dictionary<int, int>
                 {
                     { 1, 2 },
@@ -2585,19 +2571,12 @@ class C
 ```
 
 ```csharp
+using System.Collections.Generic;
+
 class C
 {
     void M(int a)
     {
-        var p = new P
-                {
-                    L =
-
-                    // c
-                    {
-                        1
-                    }
-                };
         var d = new Dictionary<int, int>
                 {
                     { 1, 2 },

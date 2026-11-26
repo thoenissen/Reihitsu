@@ -1663,7 +1663,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
 
     /// <summary>
     /// Verifies that the fix of a chain whose root stands behind a comment that leads a continuation line joins the first link
-    /// onto the root's line and gives the chain the layout the formatter gives it
+    /// onto the root's line and gives the chain the layout the formatter gives it.
+    /// The line follows the opening parenthesis of a parenthesized expression, because a comment behind an assignment operator
+    /// makes the statement unsupported and withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1678,10 +1680,10 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                 {
                                     void M(string s)
                                     {
-                                        _ =
+                                        _ = (
                                             /* c */ s
                                                 {|RH5112:.|}Trim()
-                                                .ToUpper();
+                                                .ToUpper());
                                     }
                                 }
                                 """;
@@ -1690,9 +1692,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                  {
                                      void M(string s)
                                      {
-                                         _ =
+                                         _ = (
                                              /* c */ s.Trim()
-                                                      .ToUpper();
+                                                      .ToUpper());
                                      }
                                  }
                                  """;

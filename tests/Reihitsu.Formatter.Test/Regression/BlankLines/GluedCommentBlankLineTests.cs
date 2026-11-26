@@ -14,7 +14,8 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that the author's blank line above a comment glued to an object initializer's opening brace is removed
+    /// Verifies the spec example: the author's blank line above a comment glued to an object initializer's opening brace is
+    /// removed
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
@@ -26,12 +27,9 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                  void M()
                                  {
                                      var p = new P
-                                             {
-                                                 Child =
 
-                                                 /* c */ {
-                                                             X = 2
-                                                         }
+                                             /* c */ {
+                                                 X = 2
                                              };
                                  }
                              }
@@ -42,11 +40,8 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                     void M()
                                     {
                                         var p = new P
-                                                {
-                                                    Child =
-                                                    /* c */ {
-                                                                X = 2
-                                                            }
+                                                /* c */ {
+                                                    X = 2
                                                 };
                                     }
                                 }
@@ -69,12 +64,9 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                  void M()
                                  {
                                      var p = new P
-                                             {
-                                                 Child =
-                                                 /* c */ {
-                                                     X = 2
-                                                 }
-                                             };
+                                     /* c */ {
+                                     X = 2
+                                     };
                                  }
                              }
                              """;
@@ -84,11 +76,8 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                     void M()
                                     {
                                         var p = new P
-                                                {
-                                                    Child =
-                                                    /* c */ {
-                                                                X = 2
-                                                            }
+                                                /* c */ {
+                                                    X = 2
                                                 };
                                     }
                                 }
@@ -98,8 +87,8 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that comments glued to the brace of a block statement after another statement, to an initializer's opening
-    /// brace, and to an initializer's closing brace stay without a blank line above them
+    /// Verifies the spec example: comments glued to the brace of a block statement after another statement, to an
+    /// initializer's opening brace, and to an initializer's closing brace stay without a blank line above them
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
@@ -116,11 +105,8 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                      }
 
                                      var p = new P
-                                             {
-                                                 Child =
-                                                 /* c */ {
-                                                             X = 2
-                                                         }
+                                             /* c */ {
+                                                 X = 2
                                              /* d */ };
                                  }
                              }
@@ -141,14 +127,14 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G { get; } =
-                                     /* b */ { 1, 2 };
-
-                                 void M()
+                                 int[] M()
                                  {
                                      Foo(1,
                                          2
                                          /* e */ );
+
+                                     return new int[]
+                                            /* b */ { 1, 2 };
                                  }
                              }
                              """;
@@ -731,13 +717,10 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                  void M()
                                  {
                                      var q = new P
-                                             {
-                                                 Child =
-                                                 // note
+                                             // note
 
-                                                 /* c */ {
-                                                             X = 2
-                                                         }
+                                             /* c */ {
+                                                 X = 2
                                              };
                                  }
                              }
@@ -748,13 +731,10 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                     void M()
                                     {
                                         var q = new P
-                                                {
-                                                    Child =
 
-                                                    // note
-                                                    /* c */ {
-                                                                X = 2
-                                                            }
+                                                // note
+                                                /* c */ {
+                                                    X = 2
                                                 };
                                     }
                                 }
@@ -986,13 +966,10 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G { get; } =
-
-                                 /* b */ { 1, 2 };
                                  int H;
                                  /* m */ int I;
 
-                                 void M(int a)
+                                 int[] M(int a)
                                  {
                                      a++;
 
@@ -1010,18 +987,20 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                      {
                                          a--;
                                      }
+
+                                     return new int[]
+
+                                         /* b */ { 1, 2 };
                                  }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int[] G { get; } =
-                                        /* b */ { 1, 2 };
                                     int H;
                                     /* m */ int I;
 
-                                    void M(int a)
+                                    int[] M(int a)
                                     {
                                         a++;
 
@@ -1038,6 +1017,9 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                         {
                                             a--;
                                         }
+
+                                        return new int[]
+                                               /* b */ { 1, 2 };
                                     }
                                 }
                                 """;

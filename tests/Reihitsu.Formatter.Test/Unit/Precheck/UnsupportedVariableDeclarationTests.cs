@@ -1688,12 +1688,13 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment in front of a property initializer's value does not refuse the input: a property holds no
-    /// variable declaration
+    /// Verifies that a comment in front of a property initializer's value is not this shape, because the owner holds no variable
+    /// declaration; the comment stands behind the <c>=</c> of a declaration, and the input is refused with the reason of
+    /// FMT-UNSUP-020
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void CommentInAPropertyInitializerIsSupported()
+    public void CommentInAPropertyInitializerGivesTheReasonOfTheEqualsOfADeclaration()
     {
         const string input = """
                              using System;
@@ -1704,15 +1705,17 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              }
                              """;
 
-        AssertSupported(input);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* c */");
     }
 
     /// <summary>
-    /// Verifies that a comment in front of a parameter's default value does not refuse the input
+    /// Verifies that a comment in front of a parameter's default value is not this shape, because the owner holds no variable
+    /// declaration; the comment stands behind the <c>=</c> of a declaration, and the input is refused with the reason of
+    /// FMT-UNSUP-020
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void CommentInAParameterDefaultIsSupported()
+    public void CommentInAParameterDefaultGivesTheReasonOfTheEqualsOfADeclaration()
     {
         const string input = """
                              using System;
@@ -1725,15 +1728,17 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              }
                              """;
 
-        AssertSupported(input);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* c */");
     }
 
     /// <summary>
-    /// Verifies that a comment in front of an enum member's value does not refuse the input
+    /// Verifies that a comment in front of an enum member's value is not this shape, because the owner holds no variable
+    /// declaration; the comment stands behind the <c>=</c> of a declaration, and the input is refused with the reason of
+    /// FMT-UNSUP-020
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void CommentInAnEnumMemberValueIsSupported()
+    public void CommentInAnEnumMemberValueGivesTheReasonOfTheEqualsOfADeclaration()
     {
         const string input = """
                              enum E
@@ -1742,7 +1747,7 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              }
                              """;
 
-        AssertSupported(input);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* c */");
     }
 
     /// <summary>

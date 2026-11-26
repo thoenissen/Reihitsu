@@ -526,15 +526,13 @@ public class ArrowSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment the arrow of a switch-expression arm carries behind it keeps its place, and the expression follows
-    /// it after one space; a comment behind the arrow of a lambda or an expression body is refused as unsupported
+    /// Verifies that a comment the arrow of a switch-expression arm carries behind it refuses the input, which is returned
+    /// unchanged, as a comment behind the arrow of a lambda or an expression body does
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-017")]
-    [Requirement("FMT-SPACE-013")]
-    public void CommentBehindTheArrowKeepsItsPlace()
+    [Requirement("FMT-UNSUP-021")]
+    public void CommentBehindTheArrowOfASwitchArmIsUnsupported()
     {
-        // Arrange
         const string input = """
                              class C
                              {
@@ -548,22 +546,8 @@ public class ArrowSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M(int x)
-                                    {
-                                        return x switch
-                                               {
-                                                   1 =>/* a */ 1,
-                                                   _ => 0,
-                                               };
-                                    }
-                                }
-                                """;
 
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(SwitchArmExpressionCommentReason, input, "/* a */");
     }
 
     #endregion // Tests

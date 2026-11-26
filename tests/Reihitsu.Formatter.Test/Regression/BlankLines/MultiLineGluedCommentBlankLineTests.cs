@@ -355,12 +355,12 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted above a multi-line comment glued to the opening brace of a collection
-    /// initializer assigned to a member
+    /// Verifies that a multi-line comment between the <c>=</c> of a collection initializer assigned to a member and its opening
+    /// brace stands behind an assignment operator, so the input is refused and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BLANK-018")]
-    public void InsertsNoBlankLineAboveMultiLineCommentGluedToAssignedCollectionInitializerBrace()
+    [Requirement("FMT-UNSUP-020")]
+    public void MultiLineCommentBehindAssignmentGluedToCollectionInitializerBraceIsUnsupported()
     {
         const string input = """
                              class C
@@ -379,16 +379,17 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                              }
                              """;
 
-        AssertRuleResult(input);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* x\n                     */");
     }
 
     /// <summary>
-    /// Verifies that the author's blank line above a multi-line comment glued to the opening brace of a collection
-    /// initializer assigned to a member is removed
+    /// Verifies that a multi-line comment between the <c>=</c> of a collection initializer assigned to a member and its opening
+    /// brace, behind the author's blank line, stands behind an assignment operator, so the input is refused and returned
+    /// unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BLANK-018")]
-    public void RemovesAuthorBlankLineAboveMultiLineCommentGluedToAssignedCollectionInitializerBrace()
+    [Requirement("FMT-UNSUP-020")]
+    public void MultiLineCommentBehindAssignmentAndBlankLineGluedToCollectionInitializerBraceIsUnsupported()
     {
         const string input = """
                              class C
@@ -407,24 +408,8 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var p = new P
-                                                {
-                                                    L =
-                                                    /* x
-                                                     */ {
-                                                            1
-                                                        }
-                                                };
-                                    }
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "/* x\n                     */");
     }
 
     /// <summary>
@@ -667,14 +652,11 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G { get; } =
-                                     /* g
-                                  */ { 1, 2 };
                                  int H;
                                  /* m
                                   */ int I;
 
-                                 void M(int a)
+                                 int[] M(int a)
                                  {
                                      a++;
                                      /* s
@@ -689,6 +671,10 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                      {
                                          a--;
                                      }
+
+                                     return new int[]
+                                            /* g
+                                             */ { 1, 2 };
                                  }
                              }
                              """;
@@ -707,16 +693,12 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G { get; } =
-
-                                 /* g
-                                  */ { 1, 2 };
                                  int H;
 
                                  /* m
                                   */ int I;
 
-                                 void M(int a)
+                                 int[] M(int a)
                                  {
                                      a++;
 
@@ -733,21 +715,23 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                      {
                                          a--;
                                      }
+
+                                     return new int[]
+
+                                            /* g
+                                             */ { 1, 2 };
                                  }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int[] G { get; } =
-                                        /* g
-                                     */ { 1, 2 };
                                     int H;
 
                                     /* m
                                      */ int I;
 
-                                    void M(int a)
+                                    int[] M(int a)
                                     {
                                         a++;
 
@@ -763,6 +747,10 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                         {
                                             a--;
                                         }
+
+                                        return new int[]
+                                               /* g
+                                                */ { 1, 2 };
                                     }
                                 }
                                 """;

@@ -165,10 +165,22 @@ internal sealed class PrecheckPhase : IFormattingPhase
     internal const string OmittedTypeArgumentCommentReason = "a comment or directive inside a list of omitted type arguments";
 
     /// <summary>
-    /// The reason given for a comment, a directive, or disabled text behind an assignment operator inside a switch arm or an
-    /// anonymous-object member (FMT-UNSUP-019)
+    /// The reason given for a comment, a directive, or disabled text behind an assignment operator or behind the <c>=</c> of an
+    /// equals-value clause (FMT-UNSUP-020)
     /// </summary>
-    internal const string AssignmentInArmCommentReason = "a comment or directive behind an assignment operator inside a switch arm or an anonymous-object member";
+    internal const string AssignmentCommentReason = "a comment or directive behind an assignment operator or the = of a declaration";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind the <c>=&gt;</c> of a switch-expression arm
+    /// (FMT-UNSUP-021)
+    /// </summary>
+    internal const string SwitchArmExpressionCommentReason = "a comment or directive behind the => of a switch arm";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text behind the <c>=</c> of an attribute argument or of a using
+    /// alias (FMT-UNSUP-022)
+    /// </summary>
+    internal const string NameEqualsCommentReason = "a comment or directive behind the = of an attribute argument or a using alias";
 
     #endregion // Constants
 
@@ -248,8 +260,9 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // FMT-UNSUP-014 is listed after them, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive in
         // the gap of an attached part that they refuse as well. FMT-UNSUP-015 and FMT-UNSUP-016 are listed last, so FMT-UNSUP-004
         // and FMT-UNSUP-010 keep their reason for a comment or directive inside a link operator or between a link's dot and its
-        // member name that they refuse as well. FMT-UNSUP-017, FMT-UNSUP-018, and FMT-UNSUP-019 are listed after every other
-        // shape, so FMT-UNSUP-004, FMT-UNSUP-009, and FMT-UNSUP-010 keep their reason for a comment or directive they refuse as well
+        // member name that they refuse as well. FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, and FMT-UNSUP-022 are
+        // listed after every other shape, in this order, so FMT-UNSUP-004, FMT-UNSUP-009, and FMT-UNSUP-010 keep their reason for a
+        // comment or directive they refuse as well
         var candidates = CreateDeclarationCandidates(isDeclaratorComma, firstComment, firstSeparatorTrivia, firstFieldDirective);
 
         candidates.AddRange([
@@ -665,35 +678,21 @@ internal sealed class PrecheckPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Adds the candidates of the shapes listed after every other shape: a gap the line-break phase joins (FMT-UNSUP-017), a
-    /// list of omitted type arguments (FMT-UNSUP-018), and an assignment inside a switch arm or an anonymous-object member
-    /// (FMT-UNSUP-019)
+    /// Adds the candidates of the shapes listed after every other shape, in this order: a gap the line-break phase joins
+    /// (FMT-UNSUP-017), a list of omitted type arguments (FMT-UNSUP-018), the gap behind an assignment operator or the
+    /// <c>=</c> of an equals-value clause (FMT-UNSUP-020), the gap behind the <c>=&gt;</c> of a switch-expression arm
+    /// (FMT-UNSUP-021), and the gap behind the <c>=</c> of an attribute argument or a using alias (FMT-UNSUP-022)
     /// </summary>
     /// <param name="node">The node the precheck decides on</param>
     /// <param name="candidates">The candidates in their order of precedence</param>
     private static void AddLastCandidates(SyntaxNode node, List<(SyntaxTrivia? Trivia, string Reason)> candidates)
     {
         var (firstJoinedGapTrivia, joinedGapReason) = FindTriviaInJoinedGap(node);
-        var (firstOmittedTypeArgumentTrivia, firstAssignmentInArmTrivia) = FindTriviaInOmittedTypeArgumentListOrBehindAssignmentInArm(node);
 
-        candidates.AddRange([
-                                (firstJoinedGapTrivia, joinedGapReason),
-                                (firstOmittedTypeArgumentTrivia, OmittedTypeArgumentCommentReason),
-                                (firstAssignmentInArmTrivia, AssignmentInArmCommentReason)
-                            ]);
-    }
-
-    /// <summary>
-    /// Finds the first comment, directive, or disabled text inside a list of omitted type arguments (FMT-UNSUP-018), and the
-    /// first one behind an assignment operator inside a switch arm or an anonymous-object member (FMT-UNSUP-019), in one walk
-    /// over the node
-    /// </summary>
-    /// <param name="node">The node the precheck decides on</param>
-    /// <returns>The first trivia of each shape, or <see langword="null"/> for a shape the node does not hold</returns>
-    private static (SyntaxTrivia? OmittedTypeArgumentTrivia, SyntaxTrivia? AssignmentInArmTrivia) FindTriviaInOmittedTypeArgumentListOrBehindAssignmentInArm(SyntaxNode node)
-    {
         SyntaxTrivia? firstOmittedTypeArgumentTrivia = null;
-        SyntaxTrivia? firstAssignmentInArmTrivia = null;
+        SyntaxTrivia? firstAssignmentTrivia = null;
+        SyntaxTrivia? firstSwitchArmTrivia = null;
+        SyntaxTrivia? firstNameEqualsTrivia = null;
 
         foreach (var descendant in node.DescendantNodesAndSelf())
         {
@@ -707,13 +706,58 @@ internal sealed class PrecheckPhase : IFormattingPhase
 
                 case AssignmentExpressionSyntax assignment:
                     {
-                        firstAssignmentInArmTrivia = SelectFirst(firstAssignmentInArmTrivia, FindTriviaBehindAssignmentInArm(node, assignment));
+                        firstAssignmentTrivia = SelectFirst(firstAssignmentTrivia, FindTriviaBehindToken(assignment.OperatorToken, assignment.Right));
+                    }
+                    break;
+
+                case EqualsValueClauseSyntax equalsValueClause:
+                    {
+                        firstAssignmentTrivia = SelectFirst(firstAssignmentTrivia, FindTriviaBehindToken(equalsValueClause.EqualsToken, equalsValueClause.Value));
+                    }
+                    break;
+
+                case SwitchExpressionArmSyntax arm:
+                    {
+                        firstSwitchArmTrivia = SelectFirst(firstSwitchArmTrivia, FindTriviaBehindToken(arm.EqualsGreaterThanToken, arm.Expression));
+                    }
+                    break;
+
+                case AttributeArgumentSyntax { NameEquals: not null } attributeArgument:
+                    {
+                        firstNameEqualsTrivia = SelectFirst(firstNameEqualsTrivia, FindTriviaBehindToken(attributeArgument.NameEquals.EqualsToken, attributeArgument.Expression));
+                    }
+                    break;
+
+                case UsingDirectiveSyntax { Alias: not null } usingDirective:
+                    {
+                        firstNameEqualsTrivia = SelectFirst(firstNameEqualsTrivia, FindTriviaBehindToken(usingDirective.Alias.EqualsToken, usingDirective.NamespaceOrType));
                     }
                     break;
             }
         }
 
-        return (firstOmittedTypeArgumentTrivia, firstAssignmentInArmTrivia);
+        candidates.AddRange([
+                                (firstJoinedGapTrivia, joinedGapReason),
+                                (firstOmittedTypeArgumentTrivia, OmittedTypeArgumentCommentReason),
+                                (firstAssignmentTrivia, AssignmentCommentReason),
+                                (firstSwitchArmTrivia, SwitchArmExpressionCommentReason),
+                                (firstNameEqualsTrivia, NameEqualsCommentReason)
+                            ]);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between a token and the node behind it: in the trailing trivia of
+    /// the token, or in the leading trivia of the node's first token (FMT-UNSUP-020 to FMT-UNSUP-022). The token and the node
+    /// belong to one node, so an input that holds the token holds the whole gap, and one that holds only the node behind it
+    /// holds none of it (FMT-UNSUP-003)
+    /// </summary>
+    /// <param name="token">The assignment operator, the <c>=</c>, or the <c>=&gt;</c></param>
+    /// <param name="behind">The right operand, the value, the arm's expression, or the alias's target</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaBehindToken(SyntaxToken token, SyntaxNode behind)
+    {
+        return FindFirstUnsupportedOperatorTrivia(token.TrailingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(behind.GetFirstToken().LeadingTrivia);
     }
 
     /// <summary>
@@ -738,44 +782,6 @@ internal sealed class PrecheckPhase : IFormattingPhase
             if (trivia != null)
             {
                 return trivia;
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Finds the first comment, directive, or disabled text between the operator of an assignment expression and its right
-    /// operand when the assignment stands inside a switch-expression arm or an anonymous-object member declarator (FMT-UNSUP-019):
-    /// the nearest arm, member declarator, statement, or member declaration around the assignment is an arm or a member
-    /// declarator, and it lies inside the node (FMT-UNSUP-003)
-    /// </summary>
-    /// <param name="node">The node the precheck decides on</param>
-    /// <param name="assignment">The assignment expression</param>
-    /// <returns>The first such trivia, or <see langword="null"/></returns>
-    private static SyntaxTrivia? FindTriviaBehindAssignmentInArm(SyntaxNode node, AssignmentExpressionSyntax assignment)
-    {
-        var trivia = FindFirstUnsupportedOperatorTrivia(assignment.OperatorToken.TrailingTrivia)
-                         ?? FindFirstUnsupportedOperatorTrivia(assignment.Right.GetFirstToken().LeadingTrivia);
-
-        if (trivia == null)
-        {
-            return null;
-        }
-
-        for (SyntaxNode current = assignment; current != node && current != null;)
-        {
-            current = current.Parent;
-
-            switch (current)
-            {
-                case SwitchExpressionArmSyntax:
-                case AnonymousObjectMemberDeclaratorSyntax:
-                    return trivia;
-
-                case StatementSyntax:
-                case MemberDeclarationSyntax:
-                    return null;
             }
         }
 

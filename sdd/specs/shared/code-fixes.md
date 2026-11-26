@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-005, FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-003, FMT-STRUCT-030, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH5308-004, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-CASING-014, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
+| Uses | FMT-PIPE-005, FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-003, FMT-STRUCT-030, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-UNSUP-020, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH5308-004, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-CASING-014, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1517,6 +1517,6 @@ class C
 }
 ```
 
-the fields the fix would build, `private int /* note */ _value;` and `private int _count = /* five */ 5;`, hold a comment that the formatter refuses, and no code fix is offered for either property. The properties themselves hold no variable declaration.
+the fields the fix would build, `private int /* note */ _value;` and `private int _count = /* five */ 5;`, hold a comment that the formatter refuses, and no code fix is offered for either property. The properties themselves hold no variable declaration; the comment behind the initializer's `=` of `Count` is refused in the property as well (FMT-UNSUP-020), while `/* note */` is refused only in the field.
 
-Example — RH5303, whose fix formats the equals-value clause of a collection initializer: for the input of RH5303-005 whose object creation stands behind the last line of a multi-line comment, `var d = /* a` …, the clause holds no variable declaration (FMT-UNSUP-003), and the fix is offered, although the formatter refuses the document as a whole.
+Example — RH5303, whose fix formats the object creation of a collection initializer: for the input of RH5303-005 whose object creation stands behind the last line of a multi-line comment, `var d = /* a` …, the object creation holds neither the variable declaration nor its `=` (FMT-UNSUP-003), and the fix is offered, although the formatter refuses the document as a whole.

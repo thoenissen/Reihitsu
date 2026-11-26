@@ -16,12 +16,13 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the specification example: a value kept on its own line by a comment continues the statement, also where it
-    /// starts an expression of its own
+    /// Verifies the specification example: an operand kept on its own line by a comment behind a parenthesis continues the
+    /// statement, and an arm's expression kept on its own line behind the <c>=&gt;</c> continues the arm, also where it starts an
+    /// expression of its own
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-034")]
-    public void SpecExampleValueKeptOnItsOwnLineByACommentIsIndentedOneLevel()
+    public void SpecExampleOperandAndArmExpressionKeptOnTheirOwnLineAreIndentedOneLevel()
     {
         // Arrange
         const string input = """
@@ -29,12 +30,17 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                              {
                                  int M(int x, int y)
                                  {
-                                     x += // c
-                                     3;
-                                     y += // c
-                                     3 + 4;
+                                     x = ( // c
+                                     y + 3);
 
-                                     return x + y;
+                                     var s = y switch
+                                             {
+                                                 1 =>
+                                                 3 + 4,
+                                                 _ => 0
+                                             };
+
+                                     return x + s;
                                  }
                              }
                              """;
@@ -43,12 +49,17 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                                 {
                                     int M(int x, int y)
                                     {
-                                        x += // c
-                                            3;
-                                        y += // c
-                                            3 + 4;
+                                        x = ( // c
+                                            y + 3);
 
-                                        return x + y;
+                                        var s = y switch
+                                                {
+                                                    1 =>
+                                                        3 + 4,
+                                                    _ => 0
+                                                };
+
+                                        return x + s;
                                     }
                                 }
                                 """;
@@ -73,8 +84,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                                  {
                                      int[] z = [
                                                    1,
-                                                   y += // c
-                                     2
+                                                   ( // c
+                                     y + 2)
                                                ];
 
                                      return z.Length;
@@ -88,8 +99,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                                     {
                                         int[] z = [
                                                       1,
-                                                      y += // c
-                                                          2
+                                                      ( // c
+                                                          y + 2)
                                                   ];
 
                                         return z.Length;
@@ -429,13 +440,13 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example as whole-document formatting gives it: the continuation of a compound assignment that
-    /// starts behind <c>var r = (</c> is indented four columns right of the statement's line, and the <c>&amp;&amp;</c> aligns
-    /// with its left operand
+    /// Verifies the specification example as whole-document formatting gives it: the continuation of a parenthesized expression
+    /// that starts behind <c>var r = </c> is indented four columns right of the statement's line, and the <c>&amp;&amp;</c>
+    /// aligns with its left operand
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-034")]
-    public void SpecExampleContinuationOfAnAssignmentInsideALogicalExpressionIsIndentedFromTheStatementsLine()
+    public void SpecExampleContinuationOfAParenthesizedExpressionInsideALogicalExpressionIsIndentedFromTheStatementsLine()
     {
         // Arrange
         const string input = """
@@ -443,8 +454,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                              {
                                  bool M(int x, bool y)
                                  {
-                                     var r = (x += // c
-                                     3) > 0 &&
+                                     var r = ( // c
+                                     x + 3) > 0 &&
                                      y;
 
                                      return r;
@@ -456,8 +467,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                                 {
                                     bool M(int x, bool y)
                                     {
-                                        var r = (x += // c
-                                            3) > 0
+                                        var r = ( // c
+                                            x + 3) > 0
                                                 && y;
 
                                         return r;
@@ -470,13 +481,13 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the RH5308 sentence of the specification as whole-document formatting gives it: the continuation of the compound
-    /// assignment is indented four columns right of the statement's line, and the conditional's operators align as
-    /// FMT-INDENT-020 states
+    /// Verifies the RH5308 sentence of the specification as whole-document formatting gives it: the continuation of the
+    /// parenthesized expression is indented four columns right of the statement's line, and the conditional's operators align
+    /// as FMT-INDENT-020 states
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-034")]
-    public void ContinuationOfAnAssignmentInsideAConditionIsIndentedFromTheStatementsLine()
+    public void ContinuationOfAParenthesizedExpressionInsideAConditionIsIndentedFromTheStatementsLine()
     {
         // Arrange
         const string input = """
@@ -484,8 +495,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                              {
                                  int M(int x)
                                  {
-                                     var s = (x += // c
-                                     3) > 0 ? 1 :
+                                     var s = ( // c
+                                     x + 3) > 0 ? 1 :
                                      2;
 
                                      return s;
@@ -497,8 +508,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                                 {
                                     int M(int x)
                                     {
-                                        var s = (x += // c
-                                            3) > 0
+                                        var s = ( // c
+                                            x + 3) > 0
                                                     ? 1
                                                     : 2;
 
@@ -512,8 +523,8 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a continuation line of a continuation line is indented one more level: the value behind the second comment
-    /// continues the assignment that starts on the first continuation line
+    /// Verifies that a continuation line of a continuation line is indented one more level: the operand behind the second
+    /// comment continues the parenthesized expression that starts on the first continuation line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-034")]
@@ -525,9 +536,9 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                              {
                                  int M(int x, int y)
                                  {
-                                     x += // a
-                                     y += // b
-                                     3;
+                                     x = ( // a
+                                     y + ( // b
+                                     3));
 
                                      return x;
                                  }
@@ -538,9 +549,9 @@ public class ContinuationLineIndentationTests : FormatterTestsBase
                                 {
                                     int M(int x, int y)
                                     {
-                                        x += // a
-                                            y += // b
-                                                3;
+                                        x = ( // a
+                                            y + ( // b
+                                                3));
 
                                         return x;
                                     }

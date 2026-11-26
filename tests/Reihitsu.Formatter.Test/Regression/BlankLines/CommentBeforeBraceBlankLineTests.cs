@@ -608,12 +608,12 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line between an own-line comment and the opening brace of a property's array initializer is
-    /// removed, while FMT-BLANK-011 keeps the one above the comment
+    /// Verifies that an own-line comment between the <c>=</c> of a property's initializer and the opening brace of its array
+    /// initializer stands behind the <c>=</c> of a declaration, so the input is refused and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BLANK-020")]
-    public void RemovesBlankLineBetweenCommentAndOpeningBraceOfPropertyArrayInitializer()
+    [Requirement("FMT-UNSUP-020")]
+    public void CommentBehindPropertyInitializerEqualsInFrontOfArrayInitializerBraceIsUnsupported()
     {
         const string input = """
                              class C
@@ -626,44 +626,25 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                  };
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int[] G { get; } =
 
-                                        // c
-                                        {
-                                            1
-                                        };
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies the spec example: the blank line is removed behind two comments on a line of their own, behind a comment
-    /// above the opening brace of a collection initializer assigned to a member, and behind a comment above the opening
-    /// brace of a complex element initializer that stays on one line
+    /// Verifies the spec example: the blank line is removed behind two comments on a line of their own, and behind a comment
+    /// above the opening brace of a complex element initializer that stays on one line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
-    public void RemovesBlankLineBehindCommentLineBeforeAssignedCollectionInitializerAndOneLineComplexElement()
+    public void RemovesBlankLineBehindCommentLineAndBeforeOneLineComplexElement()
     {
         const string input = """
+                             using System.Collections.Generic;
+
                              class C
                              {
                                  void M(int a)
                                  {
-                                     var p = new P
-                                             {
-                                                 L =
-                                                 // c
-
-                                                 {
-                                                     1
-                                                 }
-                                             };
                                      var d = new Dictionary<int, int>
                                              {
                                                  { 1, 2 },
@@ -680,19 +661,12 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                              }
                              """;
         const string expected = """
+                                using System.Collections.Generic;
+
                                 class C
                                 {
                                     void M(int a)
                                     {
-                                        var p = new P
-                                                {
-                                                    L =
-
-                                                    // c
-                                                    {
-                                                        1
-                                                    }
-                                                };
                                         var d = new Dictionary<int, int>
                                                 {
                                                     { 1, 2 },
@@ -712,13 +686,13 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line between an own-line comment and the opening brace of a collection initializer assigned
-    /// to a member is removed, as before the opening brace of an assigned object initializer, while FMT-BLANK-011 puts a
-    /// blank line above the comment that follows the <c>=</c>
+    /// Verifies that an own-line comment between the <c>=</c> of a collection initializer assigned to a member and its opening
+    /// brace, with a blank line in front of the brace, stands behind an assignment operator, so the input is refused and returned
+    /// unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BLANK-020")]
-    public void RemovesBlankLineBetweenCommentAndOpeningBraceOfAssignedCollectionInitializer()
+    [Requirement("FMT-UNSUP-020")]
+    public void CommentAndBlankLineBehindAssignmentInFrontOfCollectionInitializerBraceAreUnsupported()
     {
         const string input = """
                              class C
@@ -737,36 +711,17 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var p = new P
-                                                {
-                                                    L =
 
-                                                    // c
-                                                    {
-                                                        1
-                                                    }
-                                                };
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted above an own-line comment that follows the <c>=</c> of a collection initializer
-    /// assigned to a member, and that the line-break phase keeps it, which gives the same layout as when the author wrote a
-    /// blank line between the comment and the opening brace
+    /// Verifies that an own-line comment between the <c>=</c> of a collection initializer assigned to a member and its opening
+    /// brace stands behind an assignment operator, so the input is refused and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BLANK-011")]
-    [Requirement("FMT-BREAK-030")]
-    public void InsertsBlankLineAboveCommentBetweenAssignmentAndOpeningBraceOfAssignedCollectionInitializer()
+    [Requirement("FMT-UNSUP-020")]
+    public void CommentBehindAssignmentInFrontOfCollectionInitializerBraceIsUnsupported()
     {
         const string input = """
                              class C
@@ -784,25 +739,8 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var p = new P
-                                                {
-                                                    L =
 
-                                                    // c
-                                                    {
-                                                        1
-                                                    }
-                                                };
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AssignmentCommentReason, input, "// c");
     }
 
     /// <summary>
