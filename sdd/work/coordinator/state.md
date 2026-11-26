@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-26 · #1956–#1963 · triage 1A: #1956 #1958 #1963 → 1.6.0 (`/squad #1956 #1958 #1963`, start now); #1957 #1961 → 1.8.0 (shared-line run); #1959 #1960 → 1.7.0 (extension-block run); #1962 closed as duplicate of #962 (input added to #962). #1959: 2A (RH5404 reports and fixes `class C { int _x; };`). #1960: questions 3/4 open — the maintainer asked whether the formatter could simply remove the `;`.
 - 2026-11-26 · #1948 #1949 #1950 · triage 1A: #1948 → 1.6.0 (own analyzer run, start now); #1949 → 1.6.0, joins #1924 (`/squad #1924 #1949`); #1950 → 1.7.0, own Playground run after #976; commented on #1949 #1950.
 - 2026-11-22 · #1935 #1936 #1937 #1939 #1943 · triage "as you recommend": #1935 #1936 #1939 #1943 → 1.6.0, #1937 → 1.7.0; #1935 A (blank line before positional `)` removed), #1939 A (dictated positional parameter not reported), #1943 A (RH2001 fix withheld for an adjacent `#if` group); #1936 rides with #1472.
 - 2026-11-22 · #1924 #1925 #1926 #1927 #1928 #1929 #1930 #1931 · placements as proposed (1A): #1924 #1925 #1926 #1929 → 1.6.0; #1927 → 1.7.0; #1928 → 1.9.0; #1930 #1931 → 1.10.0.
@@ -15,7 +16,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (27): #1085 #1086 #1087 #1088 #1089 #1090 #1275 #1399 #1400 #1472 #1567 #1568 #1589 #1607 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1936 #1943 #1948 #1949.
+Open in 1.6.0 (+#1956 #1958 #1963; merges of today not yet read): #1085 #1086 #1087 #1088 #1089 #1090 #1275 #1399 #1400 #1472 #1567 #1568 #1589 #1607 #1698 #1722 #1771 #1836 #1837 #1912 #1924 #1925 #1926 #1936 #1943 #1948 #1949.
 
 Merged since the previous batch: #1942 (#1941), #1945 (#1566), #1946 (#1935), #1947 (#1939).
 
@@ -23,7 +24,7 @@ Runs in progress: #1926 (PR #1944, claim). No claim PR exists for the other star
 
 Dependency graph: `inventory/batch-2026-11-22b.md` (main at 1788f94d), updated by this file's lines below (main at eed7195c).
 
-Start now: `#1943` · `#1275 #1837` · `#1472` · `#1722` · `#1925` · `#1924 #1949` · `#1912` · `#1836` · `#1086` · `#1089` · `#1090` · `#1948`.
+Start now: `#1956 #1958 #1963` · `#1943` · `#1275 #1837` · `#1472` · `#1722` · `#1925` · `#1924 #1949` · `#1912` · `#1836` · `#1086` · `#1089` · `#1090` · `#1948`.
 
 After merges:
 - after #1926 → `#1568 #1698 #1567` → `#1399` → `#1400 #1936` (serial on `indentation.md`; #1566 merged)
@@ -39,6 +40,7 @@ Notes for the runs (evidence in the batch file, not decided): #1275 likely narro
 
 ## Status
 
+Status 2026-11-26 (r): answer 1A, 2A applied (milestones, comments on #962 #1956 #1957 #1959 #1961 #1962, #1962 closed as duplicate). Asked back 3/4 (#1960) with a new option: 3A `};` joined, 3B `}⏎;` at column 0, 3C remove the `;` behind a type's closing brace (new structural transform, like FMT-STRUCT-019's comma removal; rec. C); 4 with comment/directive between `}` and `;`: 4A keep as written at column 0, no blank line, the `;` stays (rec.), 4B remove the `;` anyway, comment stays on its line.
 Status 2026-11-26 (q): triage of #1956–#1963 asked (`inventory/triage-2026-11-26.md`, main at 76b09a12). 1 placements — #1956 #1958 #1963 → 1.6.0 one maintenance run `/squad #1956 #1958 #1963`, start now; #1957 #1961 → 1.8.0 join `#1773 #1775 #1447 #1443 #1758` (shared `BlankLineCodeFixUtilities.cs`); #1959 #1960 → 1.7.0 join `#1636 #1785 #1446 #1845` (RH5404 files shared with #1446); #1962 → close as duplicate of #962, input added to #962 (1A apply / 1B change rows; rec. 1A). 2 RH5404 `class C { int _x; };` reported+fixed (A) or not (B); rec. A. 3 formatter `}⏎;` → `};` (A) or `}⏎;` kept (B), today indented; rec. A. 4 comment/directive between `}` and `;`: kept as written at column 0, no blank line (A) or as main (B); rec. A. Side find: six PRs merged today (#1944 #1951 #1952 #1953 #1954 #1955) — batch after the answer.
 Status 2026-11-26 (p): triage of #1956–#1963 started; assessment delegated (`inventory/triage-2026-11-26.md`). Nothing asked yet.
 Status 2026-11-26 (o): batch — merges #1942 #1945 #1946 #1947 read; #1566 #1939 dropped as predecessors; #1948 and `#1924 #1949` added to the start-now set (13 runs); nothing newly unblocked (the chain waits for #1926, #1771 for #1943).
@@ -56,4 +58,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-Wait for the answer to the triage of 2026-11-26 (q). On 1A: milestones #1956 #1958 #1963 → 14, #1957 #1961 → 16, #1959 #1960 → 15 (no labels to add); close #1962 as duplicate of #962 (`state_reason: duplicate`) with a comment, and comment on #962 with #1962's input; comment on #1959/#1960 with answers 2–4 and on #1957/#1961 with their run; record decisions; update `Plan` and `roadmap.md` (1.7.0, 1.8.0 runs). Then `/coordinator batch` (merges #1944 #1951–#1955 unblock `#1568 #1698 #1567` and #1771).
+Wait for the answer to 3/4 (#1960, status r). Then comment on #1960 with the decision (and on #1959 if 3C changes its fix result to `}` without `;`), record it, update `roadmap.md` (1.7.0: #1959 #1960 join `#1636 #1785 #1446 #1845`; 1.8.0: #1957 #1961 join `#1773 #1775 #1447 #1443 #1758`). Then `/coordinator batch`: merges #1944 #1951–#1955 unblock `#1568 #1698 #1567` and #1771.
