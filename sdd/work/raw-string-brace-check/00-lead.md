@@ -25,5 +25,5 @@
 
 ## State
 
-- Last step: cleaner (04-cleaner.md, clean).
-- Next: spec checker, then auditor.
+- Last step: spec checker (05-spec-checker.md, consistent); Release build green; main at eed7195 (branch up to date).
+- Next: auditor, then validator, issue manager, publish.
