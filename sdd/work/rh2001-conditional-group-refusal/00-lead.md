@@ -35,4 +35,5 @@
 - Implementer done (05, 6a670b6/0fcf90c): all tests pass.
 - Implementer cleanup done (0cdeed9).
 - Cleaner clean (3f2c0d3).
-- Next: spec checker.
+- Spec checker consistent (5b7a784). main up to date, build green.
+- Next: auditor.
