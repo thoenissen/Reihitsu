@@ -9,6 +9,10 @@
 
 - Issue comment 2026-11-22 (before the run): option A. RH5202 reports a multi-line raw string literal whose content and closing lines are aligned in characters behind tabs, and its fix writes the layout the formatter writes (FMT-RAW-010): content and closing lines indented with spaces, one per character of the stripped indentation. The maintainer left it to the run to decide whether the diagnostic message needs a wording adjustment for the new case.
 
+- Batch 1 (after skeptic), answered `1A, 2B`:
+  - Q1 smart-tab literal (tabs then spaces in front of the closing quotes, character-aligned): A — reported; the fix writes the content and closing indentation as spaces, one per character (formatter layout).
+  - Q2 rule page: B — add to the end of *Description*: "The indentation in front of the closing marker, and the same indentation of the content lines, is written with spaces, not tabs."
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -25,5 +29,6 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
-- WAITING: output-question batch 1 sent to maintainer: Q1 smart-tab literal (A report / B not), Q2 rule page (A unchanged / B add sentence). After answer: route to spec author (amend + Status Accepted), then test implementer.
+- Batch 1 answered (see Maintainer answers). Lead accepts the change doc. Next: fresh spec author (03) records answers in change doc Decisions + spec example, adds rule-page sentence, sets Status: Accepted; then test implementer (04).
+- (was) output-question batch 1 sent to maintainer: Q1 smart-tab literal (A report / B not), Q2 rule page (A unchanged / B add sentence). After answer: route to spec author (amend + Status Accepted), then test implementer.
 - Old next: skeptic (02). Then accept change doc; visible output changes are covered by answer A (no batch expected unless skeptic raises one).
