@@ -29,6 +29,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Cleaner 06 done (7ae2792): clean, 0 warnings. Next: spec checker (07).
 - Implementer 05 done (40db3ba, dd21ea2): 2 production files, +15/-5; all RH5202 + analyzer + architecture tests green. Next: cleaner (06).
 - Test implementer 04 done (5c9281f, 1960169): 23 RH5202 tests fail on unchanged code (missing diagnostics), rest pass. Note for spec checker: RH5202-009's 'within the width' content-tab clause is unreachable in compiling code (CS9003). Next: implementer (05).
 - Spec author 03 done (3cc6502): change doc Accepted, RH5202-009 clarified with smart-tab example, rule page sentence added. Next: test implementer (04).
