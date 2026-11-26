@@ -34,4 +34,5 @@
 - Test implementer done (04, 0f77939): 28 failing cases reproduce; Fix All tests rewritten (follows answer A).
 - Implementer done (05, 6a670b6/0fcf90c): all tests pass.
 - Implementer cleanup done (0cdeed9).
-- Next: cleaner.
+- Cleaner clean (3f2c0d3).
+- Next: spec checker.
