@@ -50,4 +50,5 @@
 - Done: test implementer repair (10, 4bb901b): harness now adds transitive project references; line-count rows 18/18.
 - Done: cleaner (11, b0843f8): clean.
 - Done: spec checker (12, e400a9f): consistent.
-- Next: auditor on repair only (13).
+- Done: auditor repair audit (13, a18973f): pass. Audited SHA: e4c8eb9.
+- Next: validator (14).
