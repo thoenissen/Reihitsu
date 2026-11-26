@@ -22,6 +22,7 @@
 | 2 | Skeptic | Issue names helpers `WrapsWholeUnitsOf` / `ReadsAsWholeUnits` type-body arm; code has `WrapsWholeMembers` / `ReadsAsWholeMembers` (one arm) | Delete the helpers as they exist (`ConditionalGroupsWrapWholeMembers`, `ParseInTypeBody`, `WrapsWholeMembers`, `GetExcludedText`, `ReadsAsWholeMembers`) | Same intent as the issue; names in the issue were inexact | Internal API | (pending) |
 | 3 | Spec author | Accept change doc | Accepted after the skeptic and the amendment in decision 1; status set with the amendment | No open output questions; answer A covers the visible changes | Covered by a maintainer answer | 4fdf5c1 |
 | 4 | Lead | Continue or spawn fresh spec author for the amendment | Fresh (context growth 86k, cache cold) | lead.md section 4 table | Internal | — |
+| 5 | Implementer | Follow-up candidate: `#if/#elif/#else/#endif` kind check exists as three copies (`SyntaxTriviaUtilities`, `ConditionalGroupUnitUtilities`, RH2001 fix) | Adjacent cleanup in this run: remove the RH2001 fix's private copy by reusing the Core trivia-kind check (one shared statement of the rule, FC-015); implementer continued once | Small, in components the run changes, covered by existing tests, lane unchanged | Internal; no output change | (pending) |
 
 ## Follow-up candidates
 
@@ -31,4 +32,5 @@
 
 - Output-question batch before test implementer: nothing open (answer A covers all), no stop.
 - Test implementer done (04, 0f77939): 28 failing cases reproduce; Fix All tests rewritten (follows answer A).
-- Next: implementer.
+- Implementer done (05, 6a670b6/0fcf90c): all tests pass.
+- Next: implementer adjacent cleanup (decision 5), then cleaner.
