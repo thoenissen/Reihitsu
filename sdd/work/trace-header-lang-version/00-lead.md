@@ -48,4 +48,5 @@
 - Done: validator (09, d659c32): FAIL. Self-hosting line-count rows (RH2008, RH2111): the self-hosting compilation of `Reihitsu.Tooling` cannot resolve `Reihitsu.Formatter` / `LanguageVersionResolver` (CS0234, CS0103 in `CodeFixRunCommand.cs`). Default run green.
 - Repair round 1 (PR-introduced): worklist = the self-hosting failure, routed to the test implementer (owner of the self-hosting test harness) as 10. Then cleaner, spec checker, auditor (repair only), validator.
 - Done: test implementer repair (10, 4bb901b): harness now adds transitive project references; line-count rows 18/18.
-- Next: cleaner (11).
+- Done: cleaner (11, b0843f8): clean.
+- Next: spec checker (12).
