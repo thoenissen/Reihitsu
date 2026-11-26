@@ -588,7 +588,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyTabIndentationTest
     }
 
     /// <summary>
-    /// Verifies that single-line raw string literals on lines indented with tabs are not reported
+    /// Verifies that single-line raw string literals on lines indented with tabs are not reported: RH5202-009 judges only a
+    /// multi-line literal, and a single-line literal has no closing line of its own whose whitespace could hold a tab. The test
+    /// pins that outcome for the rule as a whole; it does not single out the check that excludes single-line literals
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
