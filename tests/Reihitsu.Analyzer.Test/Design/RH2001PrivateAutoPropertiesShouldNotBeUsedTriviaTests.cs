@@ -1496,49 +1496,31 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies the counterpart of a conditional group between the modifiers: a whole conditional group in front of the
-    /// first modifier keeps the fix, and the group stays in front of the field
+    /// Verifies the specification example of a group of a whole member in front of the first modifier of a property
+    /// whose modifiers the fix would reorder: the <c>#endif</c> stands in the leading trivia of the first modifier, so
+    /// the property is reported and no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
-    [Requirement("RH2001-009")]
-    public async Task VerifyFixKeepsAConditionalGroupInFrontOfTheFirstModifier(string endOfLine)
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupOfAWholeMemberInFrontOfModifiersTheFixWouldReorder(string endOfLine)
     {
         const string source = """
-                              public class C
+                              class C
                               {
                               #if DEBUG
-                                  private int _debug;
+                                  private int _trace;
                               #endif
-                                  private static int {|RH2001:Value|} { get; }
+                                  static private int {|RH2001:Value|} { get; }
 
-                                  public int Get()
-                                  {
-                                      return Value;
-                                  }
+                                  int Read() => Value;
                               }
                               """;
 
-        const string fixedSource = """
-                                   public class C
-                                   {
-                                   #if DEBUG
-                                       private int _debug;
-                                   #endif
-                                       private static readonly int _value;
-
-                                       public int Get()
-                                       {
-                                           return _value;
-                                       }
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -1688,8 +1670,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that <c>static</c> in an excluded branch in front of the first modifier withholds the fix: the branch is
-    /// no whole member
+    /// Verifies that <c>static</c> in an excluded branch in front of the first modifier withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1805,8 +1786,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that an excluded <c>#elif</c> branch holding <c>extern</c> withholds the fix, although the excluded
-    /// <c>#if</c> branch holds a whole member: every excluded branch of the group is read
+    /// Verifies that a group with an excluded <c>#elif</c> branch holding <c>extern</c> and an excluded <c>#if</c> branch
+    /// holding a whole member withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1835,7 +1816,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
 
     /// <summary>
     /// Verifies the specification example of an attribute list in an excluded branch in front of the first modifier: the
-    /// branch is no whole member, so the property is reported and no code fix is offered
+    /// property is reported and no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1887,8 +1868,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a group in front of the first modifier that holds another conditional group withholds the fix, although
-    /// the inner group holds a whole member: the group is nested
+    /// Verifies that a group in front of the first modifier that holds another conditional group of a whole member
+    /// withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1916,9 +1897,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies the specification example of a group whose <c>#endif</c> stands behind a property without an initializer
-    /// and whose branch holds another group: the group behind the property does not wrap whole members, so no code fix is
-    /// offered, although the group in front of the first modifier holds a whole member
+    /// Verifies that a group whose <c>#endif</c> stands behind a property without an initializer and whose branch holds
+    /// another group in front of the first modifier withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1947,17 +1927,16 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies the specification example of a group of a whole member in front of the first modifier: the fix is offered
-    /// and keeps the group in front of the field
+    /// Verifies that a group of a whole member in front of the first modifier withholds the fix, although the field
+    /// would be valid in every build: the group's <c>#endif</c> stands in the leading trivia of the first modifier
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
     [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAGroupOfAWholeMemberInFrontOfTheFirstModifier(string endOfLine)
+    public async Task VerifyNoCodeFixIsOfferedForAGroupOfAWholeMemberInFrontOfTheFirstModifier(string endOfLine)
     {
         const string source = """
                               class C
@@ -1971,15 +1950,159 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                               }
                               """;
 
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group whose <c>#if</c> stands in front of the member of its active
+    /// branch and whose <c>#endif</c> alone stands in the leading trivia of the first modifier: the property is
+    /// reported and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnEndifAloneInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if !DEBUG
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if false</c> group of a whole member in front of the first modifier withholds the fix as
+    /// any other conditional group
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnIfFalseGroupOfAWholeMemberInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if false
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group that wraps a property without an initializer, as multi-targeting
+    /// code writes it: the group's <c>#if</c> stands in the leading trivia of the first modifier and its <c>#endif</c>
+    /// behind the property, so the property is reported and no code fix is offered, although the build compiles the
+    /// group's only branch
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupThatWrapsThePropertyWithoutAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              class C
+                              {
+                              #if NET
+                                  private int {|RH2001:Value|} { get; }
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group that wraps a property with an initializer: the <c>#endif</c>
+    /// behind the <c>;</c> alone would keep the fix, but the group's <c>#if</c> stands in the leading trivia of the
+    /// first modifier, so the property is reported and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupThatWrapsThePropertyWithAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              class D
+                              {
+                                  int Read() => Value;
+
+                              #if NET
+                                  private static int {|RH2001:Value|} { get; } = 5;
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group in front of an earlier member: its <c>#endif</c> stands in the
+    /// leading trivia of the earlier member, not of the property's first modifier, so the fix is offered and keeps the
+    /// group
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAGroupInFrontOfAnEarlierMember(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+                                  private int _other;
+
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => _other + Value;
+                              }
+                              """;
+
         const string fixedSource = """
                                    class C
                                    {
                                    #if DEBUG
                                        private int _trace;
                                    #endif
+                                       private int _other;
+
                                        private readonly int _value;
 
-                                       int Read() => _value;
+                                       int Read() => _other + _value;
                                    }
                                    """;
 
@@ -1987,18 +2110,56 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a group whose excluded branches all hold whole members keeps the fix, also when the branches are an
-    /// excluded <c>#if</c> branch in front of an active <c>#else</c> member and only the <c>#endif</c> stands in front of
-    /// the first modifier
+    /// Verifies the specification example of a group that wraps the whole type, as in multi-targeting code: its
+    /// <c>#if</c> stands in front of <c>class</c> and its <c>#endif</c> behind the type body's closing brace, so the
+    /// fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
     [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAGroupWhoseExcludedBranchInFrontOfTheActiveElseMemberHoldsAWholeMember(string endOfLine)
+    public async Task VerifyFixKeepsAGroupThatWrapsTheWholeType(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              #if NET
+                              class C
+                              {
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              #endif
+                              """;
+
+        const string fixedSource = """
+                                   #define NET
+                                   #if NET
+                                   class C
+                                   {
+                                       private readonly int _value;
+
+                                       int Read() => _value;
+                                   }
+                                   #endif
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group whose excluded <c>#if</c> branch holds a whole member in front of the member of its active
+    /// <c>#else</c> branch withholds the fix: its <c>#endif</c> stands in the leading trivia of the first modifier
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupWhoseExcludedBranchInFrontOfTheActiveElseMemberHoldsAWholeMember(string endOfLine)
     {
         const string source = """
                               class C
@@ -2014,35 +2175,20 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                   #if DEBUG
-                                       private long _trace;
-                                   #else
-                                       private int _trace;
-                                   #endif
-                                       private readonly int _value;
-
-                                       int Read() => _value;
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that a group in front of the first modifier whose excluded branch holds only a comment keeps the fix: the
-    /// branch is a sequence of no members
+    /// Verifies that a group in front of the first modifier whose excluded branch holds only a comment withholds the
+    /// fix: what the group holds does not matter
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
     [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAGroupInFrontOfTheFirstModifierWhoseExcludedBranchHoldsOnlyAComment(string endOfLine)
+    public async Task VerifyNoCodeFixIsOfferedForAGroupInFrontOfTheFirstModifierWhoseExcludedBranchHoldsOnlyAComment(string endOfLine)
     {
         const string source = """
                               class C
@@ -2056,19 +2202,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                   #if DEBUG
-                                       // Traced
-                                   #endif
-                                       private readonly int _value;
-
-                                       int Read() => _value;
-                                   }
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -2154,7 +2288,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
 
     /// <summary>
     /// Verifies that a group behind a property without an initializer whose excluded branch holds a modifier of the next
-    /// member withholds the fix: the branch does not read as whole members
+    /// member withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2181,8 +2315,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a group behind a property without an initializer that holds another conditional group withholds the
-    /// fix, although the inner group holds a whole member
+    /// Verifies that a group behind a property without an initializer that holds another conditional group of a whole
+    /// member withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2210,17 +2344,17 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies the specification example of a group of a whole member behind a property without an initializer: the fix
-    /// is offered and keeps the group behind the field
+    /// Verifies the specification example of a group of a whole member behind a property without an initializer: the
+    /// group's <c>#if</c> stands in the leading trivia of the token behind the property, so the property is reported
+    /// and no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
     [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAGroupOfAWholeMemberBehindAPropertyWithoutAnInitializer(string endOfLine)
+    public async Task VerifyNoCodeFixIsOfferedForAGroupOfAWholeMemberBehindAPropertyWithoutAnInitializer(string endOfLine)
     {
         const string source = """
                               class C
@@ -2234,19 +2368,62 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       private readonly int _value;
-                                   #if DEBUG
-                                       private int _trace;
-                                   #endif
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
 
-                                       int Read() => _value;
-                                   }
-                                   """;
+    /// <summary>
+    /// Verifies that a group of a whole member behind the last property of a type body, which has no initializer,
+    /// withholds the fix: the group's <c>#endif</c> stands in the leading trivia of the closing brace, the token behind
+    /// the property
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupOfAWholeMemberBehindTheLastPropertyInFrontOfTheClosingBrace(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int Read() => Value;
 
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+                                  private int {|RH2001:Value|} { get; }
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group of a whole member behind a property without a modifier and without an initializer
+    /// withholds the fix, as behind a property with a modifier
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupOfAWholeMemberBehindAPropertyWithoutAModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int {|RH2001:Value|} { get; }
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -2292,18 +2469,17 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies the specification example of a group of a whole member in front of the first modifier inside the active
-    /// branch of a group that wraps the file: the wrapping group has no directive in front of the first modifier or behind
-    /// the property, so it is not read, and the fix is offered as in multi-targeting code
+    /// Verifies that a group of a whole member in front of the first modifier withholds the fix also inside the active
+    /// branch of a group that wraps the file: the inner group's <c>#endif</c> stands in the leading trivia of the first
+    /// modifier
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("RH2001-004")]
     [Requirement("RH2001-010")]
-    public async Task VerifyFixKeepsAGroupOfAWholeMemberInsideTheActiveBranchOfAGroupThatWrapsTheFile(string endOfLine)
+    public async Task VerifyNoCodeFixIsOfferedForAGroupOfAWholeMemberInsideTheActiveBranchOfAGroupThatWrapsTheFile(string endOfLine)
     {
         const string source = """
                               #define NET
@@ -2320,69 +2496,63 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                               #endif
                               """;
 
-        const string fixedSource = """
-                                   #define NET
-                                   #if NET
-                                   class C
-                                   {
-                                   #if DEBUG
-                                       private int _trace;
-                                   #endif
-                                       private readonly int _value;
-
-                                       int Read() => _value;
-                                   }
-                                   #endif
-                                   """;
-
-        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that Fix All replaces the property behind which a group of a whole member stands and leaves the property
-    /// behind which an excluded initializer stands reported without a fix
+    /// Verifies that Fix All leaves the properties without an initializer behind which a conditional group stands
+    /// reported without a fix, whether the group holds an initializer or a whole member, and replaces the properties
+    /// next to which no conditional directive stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-010")]
     [Requirement("SHARED-FIX-002")]
-    public async Task VerifyFixAllSkipsThePropertyBehindWhichAnExcludedInitializerStands()
+    public async Task VerifyFixAllSkipsThePropertiesBehindWhichAConditionalGroupStands()
     {
         const string testData = """
                                 class C
                                 {
-                                    private int {|RH2001:Second|} { get; }
-                                #if DEBUG
-                                    private int _trace;
-                                #endif
-
-                                    private int {|RH2001:Third|} { get; }
-
                                     private int {|RH2001:First|} { get; }
                                 #if X
                                     = 5;
                                 #endif
+                                    private int _alpha;
 
-                                    int Read() => First + Second + Third;
+                                    private int {|RH2001:Second|} { get; }
+
+                                    private int {|RH2001:Third|} { get; }
+                                #if DEBUG
+                                    private int _trace;
+                                #endif
+                                    private int _beta;
+
+                                    private int {|RH2001:Fourth|} { get; }
+
+                                    int Read() => First + Second + Third + Fourth + _alpha + _beta;
                                 }
                                 """;
 
         const string resultData = """
                                   class C
                                   {
-                                      private readonly int _second;
-                                  #if DEBUG
-                                      private int _trace;
-                                  #endif
-
-                                      private readonly int _third;
-
                                       private int {|RH2001:First|} { get; }
                                   #if X
                                       = 5;
                                   #endif
+                                      private int _alpha;
 
-                                      int Read() => First + _second + _third;
+                                      private readonly int _second;
+
+                                      private int {|RH2001:Third|} { get; }
+                                  #if DEBUG
+                                      private int _trace;
+                                  #endif
+                                      private int _beta;
+
+                                      private readonly int _fourth;
+
+                                      int Read() => First + _second + Third + _fourth + _alpha + _beta;
                                   }
                                   """;
 
@@ -2390,21 +2560,22 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                      resultData,
                      test =>
                      {
-                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      });
     }
 
     /// <summary>
-    /// Verifies that Fix All replaces the property behind a group of a whole member and leaves the property behind a group
-    /// holding <c>extern</c> reported without a fix
+    /// Verifies that Fix All leaves the properties in front of whose first modifier a conditional group stands reported
+    /// without a fix, whether the group holds <c>extern</c> or a whole member, and replaces the properties next to
+    /// which no conditional directive stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-010")]
     [Requirement("SHARED-FIX-002")]
-    public async Task VerifyFixAllSkipsThePropertyBehindAConditionalExternInFrontOfTheFirstModifier()
+    public async Task VerifyFixAllSkipsThePropertiesBehindConditionalGroupsInFrontOfTheFirstModifier()
     {
         const string testData = """
                                 class C
@@ -2421,7 +2592,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
 
                                     private int {|RH2001:Third|} { get; }
 
-                                    int Read() => First + Second + Third;
+                                    private int {|RH2001:Fourth|} { get; }
+
+                                    int Read() => First + Second + Third + Fourth;
                                 }
                                 """;
 
@@ -2436,11 +2609,13 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                                   #if DEBUG
                                       private int _trace;
                                   #endif
-                                      private readonly int _second;
+                                      private int {|RH2001:Second|} { get; }
 
                                       private readonly int _third;
 
-                                      int Read() => First + _second + _third;
+                                      private readonly int _fourth;
+
+                                      int Read() => First + Second + _third + _fourth;
                                   }
                                   """;
 
@@ -2448,7 +2623,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedTriviaTests : BatchCodeFi
                      resultData,
                      test =>
                      {
-                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         // The diagnostics whose fix is withheld stay and are marked in the expected source
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      });
