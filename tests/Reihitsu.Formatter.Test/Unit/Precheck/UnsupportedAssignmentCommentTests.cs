@@ -578,6 +578,17 @@ public class UnsupportedAssignmentCommentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that of a comment in the trailing trivia of the assignment operator and a comment in the leading trivia of the right
+    /// operand's first token, the one in the trailing trivia, which comes first in the text, is reported
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-020")]
+    public void CommentInTheTrailingTriviaOfTheOperatorIsReportedBeforeOneInFrontOfTheRightOperand()
+    {
+        AssertUnsupportedFor(AssignmentCommentReason, WrapInMethod("        x = // first\n            // second\n            1;"), "// first");
+    }
+
+    /// <summary>
     /// Verifies that of two comments behind assignment operators the first in the text is reported
     /// </summary>
     [TestMethod]
