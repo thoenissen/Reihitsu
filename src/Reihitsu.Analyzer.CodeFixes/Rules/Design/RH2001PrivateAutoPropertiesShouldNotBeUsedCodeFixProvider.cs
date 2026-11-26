@@ -428,8 +428,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// the type withholds the conversion when a reordered modifier would cross it (RH2001-004), and a directive or
     /// disabled text there withholds it in any case, because the field would hold it behind a modifier (RH2001-009,
     /// SHARED-FIX-010). A conditional directive in front of the type of a property without a modifier withholds it too
-    /// (RH2001-009), and one in front of the first modifier, or behind a property without an initializer, unless its
-    /// group wraps whole members (RH2001-010). The field gets a new
+    /// (RH2001-009), and so does one in front of the first modifier, or behind a property without an initializer,
+    /// whatever its group holds (RH2001-010). The field gets a new
     /// name, a new <c>;</c>, and no accessor list, so the trivia of the property's name, of its accessor list, of its
     /// <c>;</c>, and in front of the initializer's <c>=</c> is not carried over. When that trivia holds a comment or a
     /// directive, the field would lose it, and the conversion is withheld (RH2001-007, SHARED-FIX-003)
@@ -440,10 +440,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
 
         if (IsSupportedPropertyShape(node) == false
             || HasConditionalDirectiveBetweenModifiers(node)
-            || (node.Modifiers.Count > 0
-                && OrderingDeclarationUtilities.ConditionalGroupsWrapWholeMembers(node.Modifiers[0]) == false)
-            || (node.Initializer == null
-                && OrderingDeclarationUtilities.ConditionalGroupsWrapWholeMembers(node.GetLastToken().GetNextToken()) == false))
+            || HasConditionalDirectiveNextToTheProperty(node))
         {
             return false;
         }
@@ -497,7 +494,33 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
                    .Skip(1)
                    .SelectMany(modifier => modifier.LeadingTrivia)
                    .Concat(node.Type.GetLeadingTrivia())
-                   .Any(trivia => trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia);
+                   .Any(IsConditionalDirective);
+    }
+
+    /// <summary>
+    /// Determines whether an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> stands in front of the first
+    /// modifier, or, for a property without an initializer, in front of the token behind the property. Another build
+    /// configuration can compile a modifier there, or an initializer behind the property, so the conversion is withheld
+    /// whatever the group holds (RH2001-010)
+    /// </summary>
+    /// <param name="node">Property declaration</param>
+    /// <returns><see langword="true"/> if such a directive stands in front of the first modifier or behind the property</returns>
+    private static bool HasConditionalDirectiveNextToTheProperty(PropertyDeclarationSyntax node)
+    {
+        return (node.Modifiers.Count > 0
+                && node.Modifiers[0].LeadingTrivia.Any(IsConditionalDirective))
+               || (node.Initializer == null
+                   && node.GetLastToken().GetNextToken().LeadingTrivia.Any(IsConditionalDirective));
+    }
+
+    /// <summary>
+    /// Determines whether the trivia is an <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> directive
+    /// </summary>
+    /// <param name="trivia">Trivia</param>
+    /// <returns><see langword="true"/> if the trivia is a conditional directive</returns>
+    private static bool IsConditionalDirective(SyntaxTrivia trivia)
+    {
+        return trivia.Kind() is SyntaxKind.IfDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia or SyntaxKind.ElseDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia;
     }
 
     /// <summary>
