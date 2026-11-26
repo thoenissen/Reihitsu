@@ -28,6 +28,9 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | Is the absence of a reproduction escalation 4? | No. All three issues are maintenance with no reported behavior; the existing tests are the characterization, and the test implementer applies *Coverage first* | The issues report a duplicated statement (FC-015), not an observed output; the maintainer's comment on #1956 frames the batch as no-output-change maintenance | No output changes; every duplicate agrees with its owner today | - |
+| 2 | skeptic | #1956: where does `IsOwningConstruct` live in Core? | A public member of an existing Core class (the implementer picks the class, for example `SyntaxIndentationUtilities`); body moved verbatim; the stale summaries the skeptic lists are corrected | No new type, so no escalation 9; verbatim move keeps every arm | Same predicate, same callers | - |
+| 3 | skeptic | #1963: route only the issue's two methods (A), every token-to-node read (B), or also the token-to-token reads (C)? | B: one helper for "trailing trivia of a token, then leading trivia of the next node's first token", used by all five token-to-node reads; the token-to-token helpers stay as they are; the shape facts in the binary and arrow summaries survive | A misses the issue's own Done-when; the token-to-token read is a different read and widening to it is scope the issue does not need | Same spans read, precheck output unchanged | - |
 
 ## Follow-up candidates
 
@@ -35,4 +38,5 @@ None yet.
 
 ## State
 
-- Claimed at 68f236e (origin/main). Next: skeptic.
+- Claimed at 68f236e (origin/main).
+- Skeptic done (01-skeptic.md, 7ccb087): all three proceed, no output questions, no follow-ups. Next: test implementer.
