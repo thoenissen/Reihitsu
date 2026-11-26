@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — the pipeline trace (`scripts/trace.sh`) is a repository tool that no spec covers; the CLI spec excludes it as a non-goal |
 
@@ -88,6 +88,10 @@ The issue offered two outcomes: change the header, or keep `a/<path as given>` a
 ### One statement of the rule
 
 The trace names the file by the same rule, and through the same code, as `--dry-run`, so the two headers cannot drift apart; the rule is stated once, in CLI-024. The trace adds no second statement of when a file is inside the current directory.
+
+### The issue's goals this change does not carry out
+
+Two goals of the issue are dropped. Its alternative outcome, a statement in the trace command's spec that the trace keeps `a/<path>`, has no place: the trace has no spec (below), and the change takes the other outcome. Its constraint that a change to full paths leave the header of relative paths as it is rests on a wrong premise: the existing test it names passes a full path in a temporary directory, not a relative path, and asserts only that the header starts with `a/`. A relative path without `.` or `..` segments keeps its header (example 2); a relative path with them changes, and the existing test is updated, because its full path lies outside the test process's current directory (example 3). The goal that a test covers the header for a full path is kept.
 
 ### No spec
 

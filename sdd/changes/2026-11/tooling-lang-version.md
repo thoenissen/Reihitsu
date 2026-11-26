@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — the pipeline trace (`scripts/trace.sh`) and the code-fix fixture runner (`scripts/apply-fix.sh`) are repository tools that no spec covers: the CLI spec excludes the trace as a non-goal, and `Reihitsu.Tooling` gets no spec |
 
@@ -19,7 +19,7 @@
   - `--lang-version` given twice: `<tool>: --lang-version may only be specified once.`
 - **Usage.** The usage lines name the option: `usage: trace <file> [--passes <positive-integer>] [--lang-version <version>]` and `usage: apply-fix <diagnostic-id> <fixture-directory> [--max-iterations <positive-integer>] [--lang-version <version>]`.
 
-Without the option, both tools behave as today: the trace parses with Roslyn's default parse options and the fixture runner with `LanguageVersion.Latest`, both of which the Roslyn version the repository uses (5.12.0) maps to C# 15, the newest version the formatter supports. `scripts/README.md` (*Formatter pipeline trace*, *The code-fix fixture runner*) lists the option.
+Both tools always parse with the resolved version, as `reihitsu-format` does: with the option, the version its value resolves to; without it, the newest version the formatter supports. Neither tool keeps a second path that parses with Roslyn's default parse options or with `LanguageVersion.Latest`. Without the option, their output is the same as today's, because the Roslyn version the repository uses (5.12.0) maps both of today's options to C# 15, the newest version the formatter supports; after a Roslyn upgrade that maps them to a newer version, the tools still parse as `format.sh` does. `scripts/README.md` (*Formatter pipeline trace*, *The code-fix fixture runner*) lists the option.
 
 ## Why
 
@@ -102,6 +102,14 @@ class C
 
 Both tools accept exactly the values `reihitsu-format` accepts and resolve them as CLI-004 does, including the lowering of `preview` with a warning, so a question answered with the trace, the fixture runner, and `format.sh` for one `--lang-version` value is answered for one and the same version. The trace already resolves the version for the formatter as the CLI does; it now also parses with the resolved version, as the CLI does, so a file the CLI skips for a syntax error under a version is skipped by the trace under that version too.
 
+### The default is the resolved version, not Roslyn's
+
+Without the option, the tools parse with the newest version the formatter supports, through the same resolution as with a value, rather than with Roslyn's default parse options or `LanguageVersion.Latest`. The two agree today, but only because Roslyn 5.12.0 maps `Default` and `Latest` to the formatter's newest version; one code path keeps the tools on `format.sh`'s default after a Roslyn upgrade, which is the issue's "same default as `format.sh`".
+
+### One owner of the newest supported version
+
+Both tools resolve a value, and decide whether it needs the warning, through the formatter's own language-version resolution, the single owner of the newest supported version and of the lowering (FMT-PIPE-008). The fixture runner reaches it as the CLI does, through the formatter's internal visibility to the tooling assembly; it keeps no copy of the newest version or of the lowering, and the formatter's public surface does not grow for a repository tool.
+
 ### The tools' own conventions for errors and repetition
 
 The error lines carry the tool's prefix and the lower-case start of the tools' other argument errors, and a repeated `--lang-version` is an error, as a repeated `--passes` or `--max-iterations` is. `reihitsu-format` lets the last of several values win; the tools keep one rule for all of their options instead.
@@ -118,5 +126,8 @@ Neither tool has a spec: `sdd/specs/cli/reihitsu-format.md` excludes the trace a
 
 - **Pass a `preview` value to the fixture runner's project unlowered**, as a project with `LangVersion` `preview` gives it to an analyzer — rejected: the tools would then disagree with `format.sh` on what one value means, and the formatter inside the fix lowers it to the newest supported version anyway (FMT-PIPE-008).
 - **Let the last of several values win, as `reihitsu-format` does** — rejected: see *Decisions*; each tool keeps one rule for repeated options.
+- **Keep Roslyn's default parse options, or `LanguageVersion.Latest`, when the option is absent** — rejected: see *Decisions*; the tools would leave `format.sh`'s default after a Roslyn upgrade.
+- **Copy the newest supported version and the lowering into the fixture runner** — rejected: a second owner of a value the formatter owns, which drifts apart at the next upgrade.
+- **Make the formatter's language-version resolution public** — rejected: it widens the shipped formatter assembly's surface for a repository tool, where internal visibility, as the CLI already has, suffices.
 - **Read the version from the fixture directory or a project file** — rejected: `reihitsu-format` takes the version only from its argument (non-goal of the CLI spec), and a fixture directory has no project.
 - **Print the version in the `Tracing` line or the fixture runner's header** — rejected: see *Decisions*.
