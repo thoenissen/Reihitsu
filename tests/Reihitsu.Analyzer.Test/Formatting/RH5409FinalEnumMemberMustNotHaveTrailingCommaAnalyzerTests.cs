@@ -1019,7 +1019,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that "#else" and "#elif" branches after the comma withhold the fix, and the comma is still reported
+    /// Verifies that an "#if" directly behind the comma withholds the fix, although "#elif" and "#else" branches follow it, and the comma is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1182,8 +1182,8 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that a fully inactive <c>#if false</c> block after the comma, whose excluded code lies in the gap the rule
-    /// judges, withholds the fix, and the comma is still reported
+    /// Verifies that a fully inactive <c>#if false</c> block after the comma withholds the fix because the "#if" lies in
+    /// the gap between the comma and the closing brace, and the comma is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
