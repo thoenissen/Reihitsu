@@ -42,4 +42,5 @@
 - Auditor (0af97c7, audited head 5b79d15): findings #1, #2 (medium/low). Repair round 1 of 3.
 - Repair round 1: spec author 09 (4fd4bc4), test implementer 10 (c2ed10a).
 - Cleaner 11 clean, spec checker 12 consistent.
-- Next: auditor on repair round 1 (since 5b79d15).
+- Auditor 13 pass. Audited SHA: 9fc0054a0d4f2693eb6b7b6529e5a104f6a57293.
+- Next: validator; issue manager for FC1, FC2; then note, delete sdd/work, trigger, PR.
