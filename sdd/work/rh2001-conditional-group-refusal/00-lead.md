@@ -18,9 +18,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | Skeptic | A group that wraps the property itself (`#if NET` / property / `#endif`), fixed today, is withheld under the new RH2001-010 but missing from the change doc | Covered by the maintainer's answer A ("any `#if` group directly in front of the property ... whatever the group holds"); no new output question. Spec author adds it to the change doc's *Visible output changes*; test implementer pins it (with and without initializer) | The answer's wording names the shape literally; the same shape without a modifier is already refused today (RH2001-009) | Covered by a maintainer answer | (pending) |
+| 1 | Skeptic | A group that wraps the property itself (`#if NET` / property / `#endif`), fixed today, is withheld under the new RH2001-010 but missing from the change doc | Covered by the maintainer's answer A ("any `#if` group directly in front of the property ... whatever the group holds"); no new output question. Spec author adds it to the change doc's *Visible output changes*; test implementer pins it (with and without initializer) | The answer's wording names the shape literally; the same shape without a modifier is already refused today (RH2001-009) | Covered by a maintainer answer | 4fdf5c1 |
 | 2 | Skeptic | Issue names helpers `WrapsWholeUnitsOf` / `ReadsAsWholeUnits` type-body arm; code has `WrapsWholeMembers` / `ReadsAsWholeMembers` (one arm) | Delete the helpers as they exist (`ConditionalGroupsWrapWholeMembers`, `ParseInTypeBody`, `WrapsWholeMembers`, `GetExcludedText`, `ReadsAsWholeMembers`) | Same intent as the issue; names in the issue were inexact | Internal API | (pending) |
-| 3 | Spec author | Accept change doc | Accepted after the skeptic and the amendment in decision 1; status set with the amendment | No open output questions; answer A covers the visible changes | Covered by a maintainer answer | (pending) |
+| 3 | Spec author | Accept change doc | Accepted after the skeptic and the amendment in decision 1; status set with the amendment | No open output questions; answer A covers the visible changes | Covered by a maintainer answer | 4fdf5c1 |
 | 4 | Lead | Continue or spawn fresh spec author for the amendment | Fresh (context growth 86k, cache cold) | lead.md section 4 table | Internal | — |
 
 ## Follow-up candidates
@@ -30,4 +30,4 @@
 ## Worklist / next step
 
 - Output-question batch before test implementer: nothing open (answer A covers all), no stop.
-- Next: fresh spec author for change-doc amendment + Status: Accepted, then test implementer.
+- Next: test implementer (handovers 01–03).
