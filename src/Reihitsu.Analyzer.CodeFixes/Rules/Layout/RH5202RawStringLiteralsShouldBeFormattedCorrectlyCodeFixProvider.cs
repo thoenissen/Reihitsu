@@ -227,7 +227,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var node = root.FindNode(diagnostic.Location.SourceSpan);
+            var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             if (node is LiteralExpressionSyntax literalExpression
                 && (literalExpression.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)

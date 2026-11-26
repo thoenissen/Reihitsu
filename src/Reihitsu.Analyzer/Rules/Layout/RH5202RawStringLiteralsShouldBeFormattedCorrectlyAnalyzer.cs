@@ -10,7 +10,8 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// Analyzer that verifies raw string literals have their opening and closing quote markers aligned at the same column
+/// Analyzer that verifies multi-line raw string literals have their closing marker in the column of their opening quotes,
+/// and written there behind whitespace without a tab (RH5202-009)
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
@@ -84,20 +85,15 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// in the column of its opening quotes, measured as the code fix measures it
     /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>), or when it starts there behind whitespace that holds
     /// a tab (<see cref="RawStringLiteralUtilities.HasTabInLeadingWhitespace"/>, RH5202-009), whose stripped indentation
-    /// the code fix and the formatter write as spaces
+    /// the code fix and the formatter write as spaces. Its callers pass only literals of the multi-line raw kinds, whose
+    /// closing marker always stands on a later line than their opening quotes
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="literal">The raw string literal expression or interpolated raw string expression</param>
     private void CheckRawStringAlignment(SyntaxNodeAnalysisContext context, SyntaxNode literal)
     {
         var sourceText = literal.SyntaxTree.GetText(context.CancellationToken);
-        var openingLine = sourceText.Lines.GetLineFromPosition(literal.Span.Start);
         var closingLine = sourceText.Lines.GetLineFromPosition(literal.Span.End);
-
-        if (openingLine.LineNumber == closingLine.LineNumber)
-        {
-            return;
-        }
 
         if (RawStringLiteralUtilities.GetClosingLineShift(sourceText, literal) != 0
             || RawStringLiteralUtilities.HasTabInLeadingWhitespace(sourceText.ToString(closingLine.Span)))
