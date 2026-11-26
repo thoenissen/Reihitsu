@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Core;
 
 /// <summary>
-/// Shared syntax-depth policy for indentation-sensitive formatting and code fixes
+/// Shared syntax-depth policy for indentation-sensitive formatting, code fixes, and analyzers
 /// </summary>
 public static class SyntaxIndentationUtilities
 {

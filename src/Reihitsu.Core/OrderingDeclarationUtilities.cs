@@ -581,10 +581,9 @@ public static class OrderingDeclarationUtilities
         return typeDeclaration.DescendantTokens()
                               .TakeWhile(token => token.SpanStart <= bodyToken.SpanStart)
                               .SelectMany(token => token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsConditionalDirective)
-                                                                      .Select(trivia => (Token: token, Directive: trivia.GetStructure() as DirectiveTriviaSyntax)))
-                              .Any(entry => entry.Directive != null
-                                            && (entry.Token != firstToken
-                                                || WrapsWholeDeclaration(entry.Directive, typeDeclaration) == false));
+                                                                      .Select(trivia => (Token: token, Directive: (DirectiveTriviaSyntax)trivia.GetStructure())))
+                              .Any(entry => entry.Token != firstToken
+                                            || WrapsWholeDeclaration(entry.Directive, typeDeclaration) == false);
     }
 
     /// <summary>
