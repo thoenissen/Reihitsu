@@ -313,17 +313,50 @@ internal sealed class SelfHostingSolution
                                        .Cast<MetadataReference>()
                                        .ToList();
 
-        foreach (var projectReferencePath in project.ProjectReferencePaths)
+        foreach (var referencedProject in GetTransitiveProjectReferences(project, projectsByFilePath))
         {
-            if (projectsByFilePath.TryGetValue(projectReferencePath, out var referencedProject) == false)
-            {
-                Assert.Fail($"Project '{project.ProjectName}' references undiscovered project '{projectReferencePath}'.");
-            }
-
             references.Add(CreateCompilation(referencedProject, projectsByFilePath, compilationCache, compilationStack, solutionRoot).ToMetadataReference());
         }
 
         return references;
+    }
+
+    /// <summary>
+    /// Gets every project the specified project references directly or through other project references. MSBuild passes the
+    /// output of a transitive project reference to the compiler as well, so the source of a project may use types of a
+    /// project it reaches only through another one
+    /// </summary>
+    /// <param name="project">Project metadata</param>
+    /// <param name="projectsByFilePath">All discovered projects keyed by project file path</param>
+    /// <returns>The referenced projects, each once, in the order they are reached</returns>
+    private static List<SelfHostingProject> GetTransitiveProjectReferences(SelfHostingProject project, IReadOnlyDictionary<string, SelfHostingProject> projectsByFilePath)
+    {
+        var referencedProjects = new List<SelfHostingProject>();
+        var visitedProjectFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var pendingProjects = new Queue<SelfHostingProject>();
+
+        pendingProjects.Enqueue(project);
+
+        while (pendingProjects.Count > 0)
+        {
+            var currentProject = pendingProjects.Dequeue();
+
+            foreach (var projectReferencePath in currentProject.ProjectReferencePaths)
+            {
+                if (projectsByFilePath.TryGetValue(projectReferencePath, out var referencedProject) == false)
+                {
+                    Assert.Fail($"Project '{currentProject.ProjectName}' references undiscovered project '{projectReferencePath}'.");
+                }
+
+                if (visitedProjectFilePaths.Add(referencedProject.ProjectFilePath))
+                {
+                    referencedProjects.Add(referencedProject);
+                    pendingProjects.Enqueue(referencedProject);
+                }
+            }
+        }
+
+        return referencedProjects;
     }
 
     /// <summary>
