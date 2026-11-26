@@ -33,6 +33,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Test implementer 11 done (5470e36): new LiteralPositionTests, 14 fail on current code (no fix offered). Next: implementer 12.
 - Auditor 10 (308d6e5) audited 2948188 on base eed7195: findings 1 (high), 2, 3 (low). Repair round 2: test implementer 11 → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - Spec checker 09 (a398986): consistent. main not ahead; build green. Next: auditor (10).
 - Spec author 08 done (9347b0b). Next: spec checker 09.
