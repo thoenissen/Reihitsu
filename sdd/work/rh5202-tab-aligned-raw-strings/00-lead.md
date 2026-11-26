@@ -20,6 +20,7 @@
 | 1 | Spec author | Change RH5202's message or titles for the new case? | No change | Message names no column or alignment, already covers tabs; maintainer delegated the choice | Message unchanged | 649c1db |
 | 2 | Spec author | Report condition | A tab in front of the closing quotes (same as FMT-RAW-010); content-line tabs alone do not report | Matches the formatter's rewrite, as option A demands | Covered by maintainer answer A | 649c1db |
 | 3 | Skeptic | Escalate declaring "tab in front of a multi-line raw string's closing quotes" unsupported (escalation 10)? | Not an option, no escalation | Tab-indented code is commonly written; AGENTS.md says a refusal for commonly written code is not covered by the unsupported-shape rule, and the maintainer already answered A (report and fix) | Nothing declared; outputs follow answer A | – |
+| 4 | Spec checker 07 | Repair round 1: RH5202-009 'within or behind the width' wording (within side is CS9003, no compiling input) | Route to fresh spec author; skip the cleaner for this round because only spec text changes; then spec checker again | Spec-only text fix | Spec wording is internal | (repair) |
 
 ## Follow-up candidates
 
@@ -29,6 +30,7 @@
 
 - Spec author done (01-spec-author.md, change doc Draft, RH5202-009). Lane check confirmed.
 - Skeptic done (02-skeptic.md): proceed; 6 existing tests contradict the new spec (listed in 02).
+- Spec checker 07 (bb50cd4): 1 finding (RH5202-009 wording). Repair round 1: spec author 08, then spec checker 09, then auditor.
 - Cleaner 06 done (7ae2792): clean, 0 warnings. Next: spec checker (07).
 - Implementer 05 done (40db3ba, dd21ea2): 2 production files, +15/-5; all RH5202 + analyzer + architecture tests green. Next: cleaner (06).
 - Test implementer 04 done (5c9281f, 1960169): 23 RH5202 tests fail on unchanged code (missing diagnostics), rest pass. Note for spec checker: RH5202-009's 'within the width' content-tab clause is unreachable in compiling code (CS9003). Next: implementer (05).
