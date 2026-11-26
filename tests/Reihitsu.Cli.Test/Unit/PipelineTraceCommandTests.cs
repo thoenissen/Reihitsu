@@ -26,7 +26,8 @@ public sealed class PipelineTraceCommandTests
     #region Methods
 
     /// <summary>
-    /// Verifies that changed phases and their unified diffs are reported while the input bytes remain untouched
+    /// Verifies that changed phases and their unified diffs are reported while the input bytes remain untouched. The file lies
+    /// outside the process's current directory, so every diff names it by its full path without the <c>a/</c> and <c>b/</c> prefixes
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
@@ -36,6 +37,7 @@ public sealed class PipelineTraceCommandTests
         using (var fixture = new TemporaryDirectoryFixture())
         {
             var filePath = fixture.CreateFile("path with spaces/Sample.cs", "internal class Sample{public void Run(){return;}}");
+            var fullPath = Path.GetFullPath(filePath);
             var originalBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
             var output = new StringWriter();
             var error = new StringWriter();
@@ -52,8 +54,9 @@ public sealed class PipelineTraceCommandTests
             Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.Contains("maximum passes: 3", trace);
             Assert.Contains("== Pass 1: LineBreakPhase ==", trace);
-            Assert.Contains("--- a/", trace);
-            Assert.Contains("+++ b/", trace);
+            Assert.Contains($"--- {fullPath}{output.NewLine}", trace);
+            Assert.Contains($"+++ {fullPath}{output.NewLine}", trace);
+            Assert.DoesNotContain("--- a/", trace);
             Assert.Contains("Stable after pass 2", trace);
             Assert.AreEqual(string.Empty, error.ToString());
 
@@ -188,7 +191,8 @@ public sealed class PipelineTraceCommandTests
             Assert.Contains("== Pass 1: PreparationPhase/LineEndings ==", trace);
             Assert.Contains("Line endings: CRLF=3, LF=2, CR=0 -> CRLF=5, LF=0, CR=0", trace);
             Assert.Contains("Stable after pass 2", trace);
-            Assert.DoesNotContain("--- a/", trace);
+            Assert.DoesNotContain("--- ", trace);
+            Assert.DoesNotContain("@@ ", trace);
             Assert.AreEqual(string.Empty, error.ToString());
 
             var currentBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
