@@ -31,10 +31,12 @@
 | 7 | batch 2 | CLI reason wording (delegated by the maintainer) | Two reasons: `a comment or directive behind an assignment operator or the = of a declaration` (assignment operators, property/declarator/enum-member/parameter `=`), and `a comment or directive behind the = of an attribute argument or a using alias` (name-equals `=`) | Each message names what the user wrote; the maintainer allowed two messages | Maintainer delegated the choice explicitly | — |
 | 8 | test implementer (06) | When to repair the FMT-BREAK-030 / FMT-INDENT-030 examples and their pinned test | After the implementer, in one spec-author + test-implementer pass before the cleaner | Keeps the shared tree free of parallel edits during the implementer's builds | Spec examples and a phase-alone test; outputs follow the answered shape | — |
 | 9 | pre-audit merge | Run the cleaner after the merge conflict resolution | Skip it | The conflicts and their resolution touched only two spec Markdown files (`Uses` rows); no C# file was resolved by hand, and main's C# arrives as merged on main | No compiled or formatted file changed by the resolution | 71519cb |
+| 10 | audit | The auditor's helper-duplication hint | Follow-up, not taken into this run | A compiled change after the audit would need a re-audit; no output changes | Internal refactoring | — |
 | 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
 
+- From `13-auditor.md` (hint): `PrecheckPhase.FindTriviaBehindToken` duplicates `FindTriviaBehindBinaryOperator` and `FindTriviaBehindExpressionBodyArrow`; route those through one helper (internal cleanup, no output change).
 - Open question outside the issue (from `02-skeptic.md`): `int P { get; } /** c */ = 1;` — `main` moves the `/** */` onto its own line behind a blank line, leaving `/** c */ = 1;`; stable but looks wrong. Follow-up carrying the output question.
 - ~~Escalation 10 neighbouring `=` gaps~~ — answered 3A, joins this run; no longer a follow-up.
 
@@ -52,7 +54,8 @@
 - Done: cleaner (10, 8e64333): clean, Release 0 warnings.
 - Done: spec checker (11, ed3177f): consistent, no findings.
 - Done: merged origin/main eed7195 (71519cb); conflicts only in `Uses` rows, resolved by spec author (12, 0a728ea).
-- Now: build, auditor (13), validator.
+- Done: build green; auditor (13, 0c1d326) passed at audited SHA **c5374c2** with one comment-only finding (ObjectInitializerContributor.cs:122-123).
+- Now: cleaner (14) for the comment; prove with `scripts/verify-text-only.sh --base c5374c2 --head worktree`; then validator, publish.
 - (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
