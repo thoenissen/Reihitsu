@@ -29,6 +29,7 @@
 | 5 | spec author (03) | Does an equals-value clause formatted on its own hold the whole gap (refused) | Yes, pending the skeptic's check of the amendment: no caller formats a bare clause (RH5111 formats the declaration/list/enum, RH5303 the object creation), and it lets both equals-value refusals go | Deletes refusals; direct-call examples retargeted | No caller reaches a bare clause (AGENTS.md, Supported inputs) | 0106e32 |
 | 6 | lead | Re-run the skeptic on the amended spec | Yes, fresh skeptic on 03's amendment before batch 2 | Answer 3A added shapes and a FMT-UNSUP-003 reading no skeptic has checked; its questions join batch 2 so the run stops once | Process only | — |
 | 7 | batch 2 | CLI reason wording (delegated by the maintainer) | Two reasons: `a comment or directive behind an assignment operator or the = of a declaration` (assignment operators, property/declarator/enum-member/parameter `=`), and `a comment or directive behind the = of an attribute argument or a using alias` (name-equals `=`) | Each message names what the user wrote; the maintainer allowed two messages | Maintainer delegated the choice explicitly | — |
+| 8 | test implementer (06) | When to repair the FMT-BREAK-030 / FMT-INDENT-030 examples and their pinned test | After the implementer, in one spec-author + test-implementer pass before the cleaner | Keeps the shared tree free of parallel edits during the implementer's builds | Spec examples and a phase-alone test; outputs follow the answered shape | — |
 | 2 | spec author | Order of the new shapes in the precheck | Listed last, so an overlapping earlier shape (FMT-UNSUP-010/019) keeps its own reason | Keeps today's reasons for already-refused input | Reasons of already-refused input stay as they are | 4046a07 |
 
 ## Follow-up candidates
@@ -43,7 +44,9 @@
 - Done: skeptic on the amendment (04, f182d14): proceed; decision 5 confirmed; one spec wording fix (FMT-UNSUP-020 equals-value bullet: the gap belongs to the shape for every owner) and RH5305 in the change doc's still-offered list; extra existing tests that break are listed in 04.
 - Batch 2 answered (Q2 B; Q1 delegated → decision 7).
 - Done: spec-author second amendment (05, 577e60a, 81f474b): FMT-UNSUP-022 added, change doc Accepted.
-- Now: test implementer (06).
+- Done: test implementer (06, 4f0282c, 2205e54): 181 formatter + 33 analyzer tests red for the intended reason; architecture green.
+- Open worklist after the implementer (same requirement, PR-introduced): spec author — FMT-BREAK-030 example `Child =⏎⏎/* c */ {` (now refused; use the FMT-BLANK-018 carrier) and FMT-INDENT-030's mention of the nested-initializer anchor; test implementer — move `LineBreakPhaseBlankLineTests.KeepsBlankLinesAboveBlockStatementAndGluedComment` with the example. Decision 8.
+- Now: implementer (07).
 - (superseded:) fresh skeptic on the amendment (04), then batch 2 with 03's and 04's questions, then status Accepted, then test implementer.
 - (previous plan:) one spec-author amendment round (fresh agent) with the answers plus the skeptic's spec gaps (`02-skeptic.md`: FMT-BLANK-018/020 and FMT-INDENT-023 examples, FMT-BREAK-016 wording, change doc completeness incl. RH5304 and directive cases, using-alias `=` on the other side), then status Accepted, then test implementer.
 - Last step: skeptic (02).
