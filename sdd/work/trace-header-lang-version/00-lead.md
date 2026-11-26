@@ -26,6 +26,8 @@
 | 6 | Skeptic | Tools' default version | Always parse with the resolved version (`MaxSupportedLanguageVersion` when no option); amend change doc wording | Keeps tools aligned with `format.sh` after a Roslyn upgrade; same as today on Roslyn 5.12.0 | Tooling; identical output today | |
 | 7 | Skeptic | #1924 goals: "trace spec" branch and the claim about the existing test | Dropped | No trace spec exists; the test passes a full path | Tooling | |
 | 8 | Test implementer | If `FixtureRunner.HasSyntaxErrors` gains a version parameter, may `FixtureRunnerTests` call sites be updated? | Yes: the implementer may update the call (arguments only, no assertion) and names it in its handover | Signature change of an internal tooling method; assertions unchanged | Tooling test only | |
+| 9 | Implementer | `FixtureRunner.RunAsync` call sites in `FixtureRunnerTests` (11) also needed the new version argument | Ratified: `LanguageVersion.Latest` added to the calls, no assertion or input changed; no test-only overload | Same behavior as before; avoids dead production code | Tooling tests only | 21e6421 |
+| 10 | Implementer | Preview-warning and invalid-value hint text repeated in `Program`, trace, apply-fix | Not a follow-up: the change doc sets per-tool wording; sharing would add a member to the shipped formatter assembly for message text | Intentional per-tool messages | Tooling messages only | 21e6421 |
 
 ## Follow-up candidates
 
@@ -37,4 +39,5 @@
 - Done: skeptic (02, 30ac09d): #1924 proceed; #1949 proceed; no output questions.
 - Done: spec author amendment (03, 11bad04); both change docs Accepted. No output questions, no stop.
 - Done: test implementer (04, 4b9a8c9): tests written for both; fail for stated reasons.
-- Next: implementer (05).
+- Done: implementer (05, 21e6421/8495f09): all tests pass.
+- Next: cleaner (06).
