@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH5202-009 (new), RH5202-001, RH5202-003, RH5202-007, RH5202-008 |
 | Depends on | [raw-string-tab-indentation.md](raw-string-tab-indentation.md) |
@@ -13,7 +13,7 @@ RH5202 also reports a multi-line raw string literal whose closing quotes start i
 
 This holds for every kind of multi-line raw string literal the rule covers, also for one nested in an interpolation hole of another raw string literal, at any depth: such a nested literal is now reported on its own. The outer literal's fix stays withheld while a nested literal's closing quotes stand behind a tab (RH5202-008), also when the outer literal itself does not shift; after the nested literal's own fix, the outer fix is offered.
 
-A literal whose closing whitespace holds no tab is reported as before, also when a content line holds a tab. The diagnostic's location, title, and message, the code fix's title, and the rule page stay as they are.
+A literal whose closing whitespace holds no tab is reported as before, also when a content line holds a tab. The diagnostic's location, title, and message and the code fix's title stay as they are; the rule page gains one sentence saying that the indentation in front of the closing marker is written with spaces.
 
 ## Why
 
@@ -140,7 +140,39 @@ class C
 }
 ```
 
-**4. Unchanged: an aligned literal whose closing whitespace holds no tab.** It stays unreported, also when a content line holds a tab.
+**4. A literal written with tabs for the indentation and spaces for the alignment.** The closing quotes stand behind two tabs and eight spaces, in column 10, the column of the opening quotes counted in characters. The tabs on the lines outside the literal are not this rule's and stay.
+
+```csharp
+// input
+class C
+{
+→void M()
+→{
+→→var a = """
+→→        x
+→→        """;
+→}
+}
+```
+
+```csharp
+// before: not reported
+```
+
+```csharp
+// after: reported on the literal; the fix writes
+class C
+{
+→void M()
+→{
+→→var a = """
+          x
+          """;
+→}
+}
+```
+
+**5. Unchanged: an aligned literal whose closing whitespace holds no tab.** It stays unreported, also when a content line holds a tab.
 
 ```csharp
 // input, before, and after: not reported
@@ -155,7 +187,13 @@ class C
 }
 ```
 
-The diagnostic message and title (`Raw string literals should be formatted correctly.`), the code fix's title (`Fix the alignment of the raw string literal`), and the rule page `documentation/rules/RH5202.md` do not change.
+**6. The rule page.** `documentation/rules/RH5202.md` gains one sentence at the end of its *Description*:
+
+> Before: This rule ensures that multi-line raw string literals have their opening and closing quote markers (`"""`) aligned to the same column. The content lines are adjusted uniformly to maintain consistent indentation.
+
+> After: This rule ensures that multi-line raw string literals have their opening and closing quote markers (`"""`) aligned to the same column. The content lines are adjusted uniformly to maintain consistent indentation. The indentation in front of the closing marker, and the same indentation of the content lines, is written with spaces, not tabs.
+
+The diagnostic message and title (`Raw string literals should be formatted correctly.`) and the code fix's title (`Fix the alignment of the raw string literal`) do not change.
 
 ## Decisions
 
@@ -169,11 +207,21 @@ The literal is reported when the whitespace in front of its closing quotes holds
 
 ### The diagnostic message stays
 
-The maintainer left it to the run whether the message needs a wording adjustment for the new case. It does not: the message says that the literal should be formatted correctly and names neither a column nor alignment, so it describes a literal whose indentation is written with tabs as well as one whose closing quotes are misaligned. The rule page describes the rule from the user's side, where a tab-aligned literal does not stand under its opening quotes in an editor that renders a tab wider than one column, so it stays as short as it is.
+The maintainer left it to the run whether the message needs a wording adjustment for the new case. It does not: the message says that the literal should be formatted correctly and names neither a column nor alignment, so it describes a literal whose indentation is written with tabs as well as one whose closing quotes are misaligned.
+
+### A literal written with tabs and aligned with spaces is reported
+
+The maintainer chose option 1A on 2026-11-26: a literal whose closing quotes stand behind tabs for the indentation of the code followed by spaces that align them in characters is reported like any other literal with a tab in front of its closing quotes, and the fix writes the content and closing indentation as spaces, one per character, as FMT-RAW-010 writes the stripped indentation (RH5202-009, visible output change 4). The alternative, leaving such a literal unreported because it already stands under its opening quotes in every editor, would give the analyzer a second condition next to the formatter's.
+
+### The rule page names the spaces
+
+The maintainer chose option 2B on 2026-11-26: the rule page's *Description* gains the sentence "The indentation in front of the closing marker, and the same indentation of the content lines, is written with spaces, not tabs.", so the page describes every literal the rule reports, also one that an editor shows aligned (visible output change 6).
 
 ## Alternatives considered
 
 - **Leave the literal unreported** (option B of the issue) — rejected by the maintainer's answer: an analyzer-only user keeps the mixed indentation the formatter rewrites.
 - **Report only when a content line holds a tab within the stripped width** — rejected: the formatter rewrites the closing whitespace itself whenever it holds a tab, so a literal with tabs only on its closing line would stay unreported yet change under formatting.
 - **Report the tabs through RH5601 (tabs in code)** — rejected: the stripped indentation is how the literal spells its value, which RH5202 judges and RH5601 does not (RH5601-002, SHARED-DIAG-003).
+- **Leave a literal written with tabs and aligned with spaces unreported** — rejected by the maintainer's answer 1A: a second report condition next to the formatter's.
+- **Leave the rule page unchanged** — rejected by the maintainer's answer 2B: the page would not explain why a literal an editor shows aligned is reported.
 - **A message that names the tabs** — rejected: the current message already covers the case, and a second message for one rule would split one diagnostic into two wordings for one construct.
