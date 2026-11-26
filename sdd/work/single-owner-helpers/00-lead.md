@@ -40,3 +40,4 @@ None yet.
 
 - Claimed at 68f236e (origin/main).
 - Skeptic done (01-skeptic.md, 7ccb087): all three proceed, no output questions, no follow-ups. Next: test implementer.
+- Test implementer done (02-test-implementer.md, b54a551): tests for all three issues, all green on 1df7506, no follow-ups. Next: implementer.
