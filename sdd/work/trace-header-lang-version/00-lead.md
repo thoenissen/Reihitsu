@@ -29,6 +29,7 @@
 | 9 | Implementer | `FixtureRunner.RunAsync` call sites in `FixtureRunnerTests` (11) also needed the new version argument | Ratified: `LanguageVersion.Latest` added to the calls, no assertion or input changed; no test-only overload | Same behavior as before; avoids dead production code | Tooling tests only | 21e6421 |
 | 10 | Implementer | Preview-warning and invalid-value hint text repeated in `Program`, trace, apply-fix | Not a follow-up: the change doc sets per-tool wording; sharing would add a member to the shipped formatter assembly for message text | Intentional per-tool messages | Tooling messages only | 21e6421 |
 | 11 | Spec checker | Optional: `AGENTS.md` trace synopsis lacks `--lang-version` | Leave as is | Summary line, not wrong; `scripts/README.md` is the full statement of the options | Repository instructions only | |
+| 12 | Repair 1 | Follow-up: `DiscoverProjects` skips only on direct references to uncompilable projects | Dropped | No project in the repository reaches it | Test harness only | |
 
 ## Follow-up candidates
 
@@ -46,3 +47,5 @@
 - Done: auditor (08, 12736e9): pass, no findings. Audited SHA: ec68841 (handover at 12736e9).
 - Done: validator (09, d659c32): FAIL. Self-hosting line-count rows (RH2008, RH2111): the self-hosting compilation of `Reihitsu.Tooling` cannot resolve `Reihitsu.Formatter` / `LanguageVersionResolver` (CS0234, CS0103 in `CodeFixRunCommand.cs`). Default run green.
 - Repair round 1 (PR-introduced): worklist = the self-hosting failure, routed to the test implementer (owner of the self-hosting test harness) as 10. Then cleaner, spec checker, auditor (repair only), validator.
+- Done: test implementer repair (10, 4bb901b): harness now adds transitive project references; line-count rows 18/18.
+- Next: cleaner (11).
