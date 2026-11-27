@@ -3,6 +3,7 @@ name: implementer
 description: Reihitsu squad role — makes the handed-over tests pass, building in Debug. Never changes a test assertion. Spawned by the lead (`squad/lead.md`) as an agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: opus
 effort: medium
+tools: Bash, Read, Edit, Write, Glob, Grep, mcp__github__issue_read
 color: orange
 ---
 

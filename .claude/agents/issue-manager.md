@@ -3,7 +3,7 @@ name: issue-manager
 description: Reihitsu squad role — manages issues for a run: searches duplicates, creates or extends follow-up issues, labels them `agent-filed`, and attaches sub-issues. Never touches the repository or the pull request. Spawned by the lead (`squad/lead.md`) once per run before publishing; it reads `sdd/work/<slug>/00-lead.md` and writes its own handover.
 model: sonnet
 effort: medium
-disallowedTools: Edit, NotebookEdit
+tools: Bash, Read, Write, Glob, Grep, mcp__github__issue_read, mcp__github__list_issues, mcp__github__search_issues, mcp__github__issue_write, mcp__github__add_issue_comment, mcp__github__sub_issue_write
 color: yellow
 ---
 
