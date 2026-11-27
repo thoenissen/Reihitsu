@@ -37,4 +37,6 @@
 - Done: implementer 02 (adb377d, 7625038).
 - Done: cleaner (34f452b, clean).
 - Done: spec checker (6da6468, consistent).
-- Next: auditor (05-auditor.md).
+- Done: auditor (05-auditor.md, bbb783b, pass). Audited SHA: c2d6deb5b37b5e921e81633db4900c5f6382da6a against origin/main 4bbb3ceb.
+- Lead observation on auditor hint 3: in this cloud session, once `.claude/settings.json` was written, the harness withdrew the denied `mcp__Claude_Docs__*` and `mcp__claude-code-remote__*` tools mid-session with the reason "Denied by a permission rule" — the cloud honours the deny list for its built-in servers.
+- Next: validator (06-validator.md), then issue manager for the follow-up candidates.
