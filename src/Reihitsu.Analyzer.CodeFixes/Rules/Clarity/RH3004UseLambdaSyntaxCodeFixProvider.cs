@@ -366,15 +366,16 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : ReihitsuCodeFixProviderBase
     }
 
     /// <summary>
-    /// Determines whether the lines of the anonymous method withhold the fix. On both paths, a string of any kind or a
+    /// Determines whether the lines of the anonymous method withhold the fix. On both paths, an anonymous method inside an
+    /// interpolation that cannot hold a line break withholds it, because the lambda is handed to the formatter as a detached
+    /// target whose layout may spread it over lines the interpolation cannot hold (RH3004-010), and a string of any kind or a
     /// delimited comment that spans lines (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>) withholds
     /// it when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
     /// build, where every edit the fix makes behind it can change a string's value (RH3004-008). Where the fix keeps the
     /// block as a block body, it moves the block's lines, so every such string or comment withholds it, because no reading
     /// of the text alone tells which of its lines are safe to move in every build, and so do a tab in front of a moving line
-    /// (RH3004-006), a line break in the block other than the document's line ending, which the moved lines would keep
-    /// (SHARED-FIX-008), and an anonymous method inside an interpolation that cannot hold a line break, where the block
-    /// body's lines cannot be written (RH3004-010)
+    /// (RH3004-006) and a line break in the block other than the document's line ending, which the moved lines would keep
+    /// (SHARED-FIX-008)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="text">Text of the document</param>
@@ -382,6 +383,11 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : ReihitsuCodeFixProviderBase
     /// <returns><see langword="true"/> if the lines of the anonymous method withhold the fix, <see langword="false"/> otherwise</returns>
     private static bool WithholdsFixForLines(SyntaxNode root, SourceText text, AnonymousMethodExpressionSyntax anonymousMethodExpression)
     {
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(anonymousMethodExpression))
+        {
+            return true;
+        }
+
         var keepsBlockBody = GetExpressionBody(anonymousMethodExpression) == null;
 
         if (SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines(anonymousMethodExpression, anonymousMethodExpression.Span)
@@ -393,11 +399,6 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : ReihitsuCodeFixProviderBase
         if (keepsBlockBody == false)
         {
             return false;
-        }
-
-        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(anonymousMethodExpression))
-        {
-            return true;
         }
 
         var block = anonymousMethodExpression.Block;
