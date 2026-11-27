@@ -42,4 +42,5 @@
 - Done: test implementer 05 (640e8b9).
 - Done: spec author 06 (ec5b86f); implementer 07 (11f3b34, b6f5c35), one disputed RH5111 test.
 - Done: test implementer 08 (d0b9dfd), disputed test passes.
-- Next: cleaner 09, then spec checker 10.
+- Done: cleaner 09 (2d5b0e0), clean.
+- Next: spec checker 10, then auditor 11.
