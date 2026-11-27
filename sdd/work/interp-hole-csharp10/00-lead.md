@@ -27,6 +27,7 @@
 | 9 | Spec author | RH3004 withholding scope | Withhold on the block path only (RH3004-010); the expression-body result compiles in the hole and stays offered | Narrows decision 4 to the unsafe output; keeps the fix `main` offers where it is safe | The expression-path fix stays as on `main`; the block path is a rare class | cf073d8 |
 | 10 | Spec author | Position statement, placement, SHARED-ATTR-024 users | Accept: restated per requirement, appended at spec end, listed by RH5513/RH5527 only | Follows decision 7 and existing precedent | Spec text is internal | cf073d8 |
 | 11 | Before tests | Output-question batch | No stop: no visible output change listed, no question raised | — | — | — |
+| 12 | Test implementer | Pinned outputs of the passing RH3004/RH3208 fix cells (C# 11, `$@"`, contains-a-string, expression path) | Accept: they pin today's output on cells this run does not change | Characterize unchanged behavior | Outputs equal `main` | a3674ac |
 
 ## Follow-up candidates
 
@@ -34,5 +35,5 @@
 
 ## State
 
-- Last step: spec author (02-spec-author.md, spec written, cf073d8).
-- Next: test implementer, then implementer.
+- Last step: test implementer (03-test-implementer.md, reproduced: 44 failing tests, a3674ac).
+- Next: implementer.
