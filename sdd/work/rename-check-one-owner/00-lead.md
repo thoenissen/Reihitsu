@@ -20,6 +20,7 @@
 | 3 | skeptic | Input 1 | Already agrees on main; covered by existing tests, no work | Skeptic reproduced it with apply-fix | No change | — |
 | 4 | skeptic | Follow-up for shared ownership of the binding comparison | Not filed | Only serves a rare class; spec keeps the remaining checks separate by design | No output | — |
 | 5 | auditor (round 1) | Finding #1: token-kind qualifier list withholds fixes `main` offers (`Base<int[]>`, `int[,]`, `int?` type qualifiers) — FC-044, the guard predicts the renamer's qualifier | Architecture finding decided as a structural repair within the changed component: the qualifier is read from the renamed tree's syntax (the left side of the member access / qualified name / alias-qualified name / cref whose name is the renamed identifier), replacing the token-kind list; regression tests first. Repair round 1 | Refusing would keep a PR-introduced regression against `main`; reading the renamer's syntax removes the prediction instead of enumerating more token kinds | Restores `main`'s offered fixes and SHARED-CASING-009, unchanged | — |
+| 6 | auditor (round 1) | Finding #2: qualifier shapes `base.`, alias-qualified name, multi-part expression qualifier, and the qualified-cref arm unpinned | Repair round 2: test implementer pins (a)–(c) and a cref row through the harness; if the renamer never qualifies a cref, the implementer drops the cref arm | PR-introduced code without covering tests; an unreached arm is dead code | Tests pin outputs `main` already produces; dropping an unreached arm changes nothing | — |
 
 ## Follow-up candidates
 
@@ -38,4 +39,5 @@
 - Round 1 implementer done (`08-implementer.md`, tests pass; qualifier read from renamed-tree syntax).
 - Round 1 cleaner done (`09-cleaner.md`, clean; extracted FindQualifiedNameToken for RH2009).
 - Round 1 spec checker done (`10-spec-checker.md`, consistent).
-- Next: auditor on the repair (`11-auditor.md`).
+- Round 1 auditor (`11-auditor.md`, audited b49e789): #1 closed; #2 medium (unpinned qualifier shapes). Repair round 2 open.
+- Next: test implementer (`12-test-implementer.md`), implementer only if the cref arm is unreached, cleaner, spec checker, auditor.
