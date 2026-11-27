@@ -34,7 +34,7 @@
 
 ## Follow-up candidates
 
-- `scripts/apply-fix.sh` does not flag fix results that fail to compile under the chosen `--lang-version` (e.g. CS8967); tooling — from 01-skeptic.md
+- `scripts/apply-fix.sh` does not flag fix results that fail to compile under the chosen `--lang-version` (e.g. CS8967); tooling — from 01-skeptic.md → filed as #1977
 
 ## State
 
