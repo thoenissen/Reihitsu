@@ -65,6 +65,17 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
+    /// Determines whether the compilation unit holds a global statement among its members, which makes the file one with top-level statements
+    /// </summary>
+    /// <param name="root">Root node</param>
+    /// <returns><see langword="true"/> if the file holds top-level statements</returns>
+    private static bool HasTopLevelStatements(SyntaxNode root)
+    {
+        return root is CompilationUnitSyntax compilationUnit
+               && compilationUnit.Members.Any(member => member is GlobalStatementSyntax);
+    }
+
+    /// <summary>
     /// Gets the identifier token from a type declaration
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -80,7 +91,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyzing syntax trees for type-filename mismatch
+    /// Analyzing syntax trees for type-filename mismatch; a file with top-level statements is not checked
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTreeAction(SyntaxTreeAnalysisContext context)
@@ -95,6 +106,13 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase
         var fileName = RH4001TypeNameShouldMatchFileNameHelper.GetComparableFileName(filePath);
 
         var root = context.Tree.GetRoot(context.CancellationToken);
+
+        // A file with top-level statements is the program's entry point, not the home of the types declared next to it
+        if (HasTopLevelStatements(root))
+        {
+            return;
+        }
+
         var firstTypeDeclaration = FindFirstTypeDeclaration(root);
 
         if (firstTypeDeclaration == null)
