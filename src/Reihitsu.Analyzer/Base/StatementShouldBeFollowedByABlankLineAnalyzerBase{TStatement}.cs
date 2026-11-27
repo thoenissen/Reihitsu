@@ -67,12 +67,14 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     /// every token the statement holds - such as the label of <c>break outer;</c> - lies in front of the gap. Blank lines
     /// are counted with <see cref="TokenGapAnalysis"/>, the one measure of SHARED-BLANK-001, so a line holding only
     /// whitespace directly below a trivia that ends with its own line break - a <c>///</c> comment or a directive - counts
-    /// as blank
+    /// as blank. A statement inside an interpolation that cannot hold a line break is not reported, because no blank line
+    /// can be written behind it (RH5011-009)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is TStatement statement)
+        if (context.Node is TStatement statement
+            && StringInterpolationUtilities.IsInsideSingleLineInterpolation(statement) == false)
         {
             var lastToken = statement.GetLastToken();
             var nextToken = lastToken.GetNextToken();

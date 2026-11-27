@@ -57,6 +57,19 @@ public static class StringInterpolationUtilities
     }
 
     /// <summary>
+    /// Determines whether the node is, or stands at any depth inside, an interpolation of an interpolated string that is
+    /// not verbatim while its syntax tree is parsed with C# 10 or earlier; see <see cref="IsInsideSingleLineInterpolation(SyntaxNode, LanguageVersion)"/>.
+    /// A node whose syntax tree carries no C# parse options is never inside such an interpolation
+    /// </summary>
+    /// <param name="node">Node to inspect; its syntax tree's parse options give the effective language version</param>
+    /// <returns><see langword="true"/> when no line break may be written inside the node; otherwise, <see langword="false"/></returns>
+    public static bool IsInsideSingleLineInterpolation(SyntaxNode node)
+    {
+        return node.SyntaxTree.Options is CSharpParseOptions parseOptions
+               && IsInsideSingleLineInterpolation(node, parseOptions.LanguageVersion);
+    }
+
+    /// <summary>
     /// Reconstructs the interpolated string expression without $ markers by removing them from the start token
     /// </summary>
     /// <param name="interpolatedString">The interpolated string expression</param>

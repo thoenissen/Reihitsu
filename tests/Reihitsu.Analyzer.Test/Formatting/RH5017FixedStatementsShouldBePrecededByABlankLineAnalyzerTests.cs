@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -155,6 +156,107 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a <c>fixed</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a <c>fixed</c> statement that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task FixedStatementInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    unsafe string M() => $"a {F(() => { var b = new int[1]; fixed (int* p = b) { *p = 1; } return b[0]; })} b";
+
+                                    unsafe string N() => $@"x {$"a {F(() => { var b = new int[1]; fixed (int* p = b) { *p = 1; } return b[0]; })} b"} y";
+
+                                    unsafe int O()
+                                    {
+                                        var a = 1;
+                                        {|RH5017:fixed|} (char* p = $"{a}")
+                                        {
+                                            a = *p;
+                                        }
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
+                         test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a <c>fixed</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task FixedStatementInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    unsafe string M() => $"a {F(() => { var b = new int[1]; {|RH5017:fixed|} (int* p = b) { *p = 1; } return b[0]; })} b";
+
+                                    unsafe string N() => $@"x {$"a {F(() => { var b = new int[1]; {|RH5017:fixed|} (int* p = b) { *p = 1; } return b[0]; })} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
+                         test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a <c>fixed</c> statement inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task FixedStatementInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    unsafe string M() => $@"a {F(() => { var b = new int[1]; {|RH5017:fixed|} (int* p = b) { *p = 1; } return b[0]; })} b";
+
+                                    unsafe string P() => @$"a {F(() => { var b = new int[1]; {|RH5017:fixed|} (int* p = b) { *p = 1; } return b[0]; })} b";
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
+                         test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10));
+                     });
     }
 
     #endregion // Tests

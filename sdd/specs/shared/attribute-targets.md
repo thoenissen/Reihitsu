@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ATTR |
 | Status | Active |
 | Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
-| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-DIAG-008, SHARED-FIX-006, SHARED-FIX-008 |
+| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-DIAG-008, SHARED-DIAG-011, SHARED-FIX-006, SHARED-FIX-008 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterparts are FMT-BREAK-027 for the placement, and FMT-STRUCT-028, FMT-STRUCT-029, and FMT-BREAK-032 for the list shape.
 
@@ -1149,3 +1149,57 @@ class C
 ```
 
 In a document whose line breaks are all a lone `\r`, no fix is offered for this list, while `[A, B]` on one line gets it, with `\n` inserted between `[A]` and `[B]` (SHARED-ATTR-017).
+
+### SHARED-ATTR-024 — A list inside a non-verbatim interpolation is not required on its own line before C# 11
+
+A rule that uses this requirement and requires the list on its own line MUST NOT report an attribute list that stands, at any depth, inside an interpolation of an interpolated string that is not verbatim — one that starts with `$"`, not with `$@"` or `@$"` — when the code is compiled with C# 10 or earlier, such as the list of a lambda, or of a local function in a lambda's block, inside the interpolation. This holds also when a verbatim interpolated string lies between the list and that interpolation. A list inside an interpolation of a verbatim interpolated string that no interpolation of a non-verbatim one contains, the list of a declaration that only contains an interpolated string, and every list when the code is compiled with C# 11 or later MUST be judged as SHARED-ATTR-004 states.
+
+Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break (CS8967), so the token after the list cannot start a new line inside it, and the change the rule asks for cannot be written there (SHARED-DIAG-011). An interpolation of a verbatim interpolated string accepts line breaks in every language version, and an interpolated string inside the declaration lies behind the gap the rule checks.
+
+Example — RH5513 and RH5527:
+
+```csharp
+using System;
+
+class C
+{
+    static int F(Func<int> f) => f();
+
+    string M() => $"a {F([A] () => 1)} b {F([return: A] () => 2)}";
+
+    string N() => $@"x {$"a {F([A] () => 1)} b"} y";
+
+    void O()
+    {
+        Func<int> f = {|RH5513:[A]|} () => $"{1}".Length;
+    }
+}
+```
+
+is reported only at `O` when the code is compiled with C# 10 or earlier. When it is compiled with C# 11 or later, the lists in `M` and `N` are reported as well:
+
+```csharp
+using System;
+
+class C
+{
+    static int F(Func<int> f) => f();
+
+    string M() => $"a {F({|RH5513:[A]|} () => 1)} b {F({|RH5527:[return: A]|} () => 2)}";
+
+    string N() => $@"x {$"a {F({|RH5513:[A]|} () => 1)} b"} y";
+}
+```
+
+In an interpolation of a verbatim interpolated string, the list is reported in every language version:
+
+```csharp
+using System;
+
+class C
+{
+    static int F(Func<int> f) => f();
+
+    string M() => $@"a {F({|RH5513:[A]|} () => 1)} b";
+}
+```

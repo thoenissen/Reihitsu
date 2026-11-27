@@ -41,12 +41,18 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.ObjectInitializerExpression"/> occurrences
+    /// Analyzing all <see cref="SyntaxKind.ObjectInitializerExpression"/> occurrences. An initializer inside an interpolation
+    /// that cannot hold a line break is not reported, because its braces cannot start their own lines there (SHARED-INIT-003)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnObjectInitializerExpression(SyntaxNodeAnalysisContext context)
     {
         var objectInitializer = (InitializerExpressionSyntax)context.Node;
+
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(objectInitializer))
+        {
+            return;
+        }
 
         switch (objectInitializer.Parent)
         {

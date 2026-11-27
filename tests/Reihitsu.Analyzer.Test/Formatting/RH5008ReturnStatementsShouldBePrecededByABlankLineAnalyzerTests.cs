@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -680,6 +681,206 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                      });
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a <c>return</c> statement that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; return a; })} b";
+
+                                    string N() => $@"x {$"a {F(() => { var a = 1; return a; })} b"} y";
+
+                                    int O()
+                                    {
+                                        var a = 1;
+                                        {|RH5008:return|} $"{a}".Length;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; {|RH5008:return|} a; })} b";
+
+                                    string N() => $@"x {$"a {F(() => { var a = 1; {|RH5008:return|} a; })} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F(() => { var a = 1; {|RH5008:return|} a; })} b";
+
+                                    string P() => @$"a {F(() => { var a = 1; {|RH5008:return|} a; })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement inside the expression of an interpolation of a non-verbatim interpolated string
+    /// with an alignment or a format clause is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideAnInterpolationWithAnAlignmentOrFormatClauseIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; return a; }),10} b";
+
+                                    string N() => $"a {F(() => { var a = 1; return a; }):D3} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement inside the expression of an interpolation of a non-verbatim interpolated string
+    /// with an alignment or a format clause is reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideAnInterpolationWithAnAlignmentOrFormatClauseIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; {|RH5008:return|} a; }),10} b";
+
+                                    string N() => $"a {F(() => { var a = 1; {|RH5008:return|} a; }):D3} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement inside an interpolation of a non-verbatim interpolated string is not reported when
+    /// the code is compiled with a language version earlier than C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp10()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; return a; })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp7_3)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement in the block of an anonymous method inside an interpolation of a non-verbatim
+    /// interpolated string is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementInsideAnAnonymousMethodInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(delegate { var a = 1; return a; })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>return</c> statement behind a block comment inside an interpolation of a non-verbatim interpolated string
+    /// is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ReturnStatementBehindACommentInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; /* c */ return a; })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

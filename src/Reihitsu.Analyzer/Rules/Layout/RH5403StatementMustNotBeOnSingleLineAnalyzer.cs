@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -39,7 +40,8 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
     #region Methods
 
     /// <summary>
-    /// Analyzes a block
+    /// Analyzes a block. A block inside an interpolation that cannot hold a line break is not reported, because its
+    /// statements cannot be placed on their own lines there (RH5403-004)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnBlock(SyntaxNodeAnalysisContext context)
@@ -49,7 +51,8 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
             return;
         }
 
-        if (StatementBlockParentPolicy.IsCovered(block) == false)
+        if (StatementBlockParentPolicy.IsCovered(block) == false
+            || StringInterpolationUtilities.IsInsideSingleLineInterpolation(block))
         {
             return;
         }

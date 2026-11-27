@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -429,6 +430,92 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                          test.NumberOfIncrementalIterations = 2;
                          test.NumberOfFixAllIterations = 1;
                      });
+    }
+
+    /// <summary>
+    /// Verifies a <c>foreach</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a <c>foreach</c> statement that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ForeachStatementInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 0; foreach (var c in "ab") { a++; } return a; })} b";
+
+                                    string N() => $@"x {$"a {F(() => { var a = 0; foreach (var c in "ab") { a++; } return a; })} b"} y";
+
+                                    int O()
+                                    {
+                                        var a = 0;
+                                        {|RH5006:foreach|} (var c in $"{a}")
+                                        {
+                                            a++;
+                                        }
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>foreach</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ForeachStatementInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 0; {|RH5006:foreach|} (var c in "ab") { a++; } return a; })} b";
+
+                                    string N() => $@"x {$"a {F(() => { var a = 0; {|RH5006:foreach|} (var c in "ab") { a++; } return a; })} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>foreach</c> statement inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task ForeachStatementInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F(() => { var a = 0; {|RH5006:foreach|} (var c in "ab") { a++; } return a; })} b";
+
+                                    string P() => @$"a {F(() => { var a = 0; {|RH5006:foreach|} (var c in "ab") { a++; } return a; })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

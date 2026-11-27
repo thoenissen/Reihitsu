@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -38,12 +39,18 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     #region Methods
 
     /// <summary>
-    /// Analyzes a sequence of sibling statements
+    /// Analyzes a sequence of sibling statements. The statements of a block or switch section inside an interpolation
+    /// that cannot hold a line break are not reported, because they cannot be placed on separate lines there (RH5103-006)
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="statements">Statements to inspect</param>
     private void AnalyzeStatements(SyntaxNodeAnalysisContext context, SyntaxList<StatementSyntax> statements)
     {
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(context.Node))
+        {
+            return;
+        }
+
         StatementSyntax previousStatement = null;
 
         foreach (var currentStatement in statements)

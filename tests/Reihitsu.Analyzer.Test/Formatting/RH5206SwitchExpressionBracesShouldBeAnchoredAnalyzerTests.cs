@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -769,6 +770,79 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
                               """;
 
         await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies a switch expression inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a switch expression that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-004")]
+    public async Task SwitchExpressionInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    string M(int x) => $"a {x switch { 1 => "one", _ => "other" }} b";
+
+                                    string Q(int x) => $@"x {$"a {x switch { 1 => "one", _ => "other" }} b"} y";
+
+                                    string N(int x)
+                                    {
+                                        var a = {|RH5206:x switch { 1 => $"{x}", _ => "other" }|};
+
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a switch expression inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-004")]
+    public async Task SwitchExpressionInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    string M(int x) => $"a {{|RH5206:x switch { 1 => "one", _ => "other" }|}} b";
+
+                                    string Q(int x) => $@"x {$"a {{|RH5206:x switch { 1 => "one", _ => "other" }|}} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a switch expression inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-004")]
+    public async Task SwitchExpressionInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    string M(int x) => $@"a {{|RH5206:x switch { 1 => "one", _ => "other" }|}} b";
+
+                                    string P(int x) => @$"a {{|RH5206:x switch { 1 => "one", _ => "other" }|}} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

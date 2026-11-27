@@ -5,7 +5,7 @@
 | ID prefix | SHARED-INIT |
 | Status | Active |
 | Code owners | `InitializerLayoutAnalysisUtilities` |
-| Uses | FMT-INDENT-023, FMT-INDENT-030, SHARED-COMMENT-011 |
+| Uses | FMT-INDENT-023, FMT-INDENT-030, SHARED-COMMENT-011, SHARED-DIAG-011 |
 
 This spec covers what the rules that check the layout of object and collection initializers share: which column a line holding a comment in front of a brace or an element counts as, and when a complex element initializer (`{ 1, 2 }` inside a collection initializer) is laid out correctly. Each rule that uses this spec states which initializers it checks, the columns it expects, and where it reports.
 
@@ -223,5 +223,57 @@ class C
                     }|}
                 };
     }
+}
+```
+
+### SHARED-INIT-003 — An initializer inside a non-verbatim interpolation is not reported before C# 11
+
+A rule that uses this requirement MUST NOT report an object creation, a brace, or an element of its initializer when the object creation stands, at any depth, inside an interpolation of an interpolated string that is not verbatim — one that starts with `$"`, not with `$@"` or `@$"` — and the code is compiled with C# 10 or earlier. This holds also when a verbatim interpolated string lies between the object creation and that interpolation. An object creation inside an interpolation of a verbatim interpolated string that no interpolation of a non-verbatim one contains, an object creation that only contains an interpolated string, such as the value of one of its members, and every object creation when the code is compiled with C# 11 or later MUST be reported as the rule's own requirements state.
+
+Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break (CS8967), so the braces and elements of an initializer inside it cannot start lines of their own, and the layout the rule asks for cannot be written there (SHARED-DIAG-011). An interpolation of a verbatim interpolated string accepts line breaks in every language version, and an interpolated string inside the initializer holds none of the lines the rule checks.
+
+Example — RH5301 and RH5303:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    int P { get; set; }
+
+    string M() => $"a {new C { P = 1 }.P} b {new List<int> { 1, 2 }.Count}";
+
+    string N() => $@"x {$"a {new C { P = 1 }.P} b"} y";
+
+    void O()
+    {
+        var a = {|RH5301:new C { P = $"{1}".Length }|};
+    }
+}
+```
+
+is reported only at `O` when the code is compiled with C# 10 or earlier. When it is compiled with C# 11 or later, the object creations in `M` and `N` are reported as well:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    int P { get; set; }
+
+    string M() => $"a {{|RH5301:new C { P = 1 }|}.P} b {{|RH5303:new List<int> { 1, 2 }|}.Count}";
+
+    string N() => $@"x {$"a {{|RH5301:new C { P = 1 }|}.P} b"} y";
+}
+```
+
+In an interpolation of a verbatim interpolated string, the object creation is reported in every language version:
+
+```csharp
+class C
+{
+    int P { get; set; }
+
+    string M() => $@"a {{|RH5301:new C { P = 1 }|}.P} b";
 }
 ```

@@ -43,12 +43,18 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.CollectionInitializerExpression"/> occurrences
+    /// Analyzing all <see cref="SyntaxKind.CollectionInitializerExpression"/> occurrences. An initializer inside an interpolation
+    /// that cannot hold a line break is not reported, because its braces cannot start their own lines there (SHARED-INIT-003)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnCollectionInitializerExpression(SyntaxNodeAnalysisContext context)
     {
         var collectionInitializer = (InitializerExpressionSyntax)context.Node;
+
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(collectionInitializer))
+        {
+            return;
+        }
 
         switch (collectionInitializer.Parent)
         {
