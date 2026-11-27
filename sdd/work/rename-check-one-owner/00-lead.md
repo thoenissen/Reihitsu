@@ -37,4 +37,5 @@
 - Round 1 test implementer done (`07-test-implementer.md`, 11 failing rows, 4 holding).
 - Round 1 implementer done (`08-implementer.md`, tests pass; qualifier read from renamed-tree syntax).
 - Round 1 cleaner done (`09-cleaner.md`, clean; extracted FindQualifiedNameToken for RH2009).
-- Next: spec checker (`10`), auditor on the repair (`11`).
+- Round 1 spec checker done (`10-spec-checker.md`, consistent).
+- Next: auditor on the repair (`11-auditor.md`).
