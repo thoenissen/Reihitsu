@@ -534,15 +534,15 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
     }
 
     /// <summary>
-    /// Verifies that the analyzer does not report and the formatter does not reorder a block containing a conditional directive
+    /// Verifies that the analyzer reports and the formatter does not reorder a block containing a conditional directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-USING-009")]
-    public async Task FormatterLeavesABlockWithAConditionalDirectiveUnchanged()
+    public async Task FormatterKeepsAReportedBlockWithAConditionalDirective()
     {
         const string input = """
-                             using System.Linq;
+                             using {|RH7207:System.Linq|};
                              #if DEBUG
                              using System.Diagnostics;
                              #endif
@@ -554,20 +554,20 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                              }
                              """;
 
-        await VerifyFormatter(input);
+        await VerifyFormatterKeepsReportedShape(input);
     }
 
     /// <summary>
-    /// Verifies that the analyzer does not report and the formatter does not reorder a block whose first directive is led by a nullable directive
+    /// Verifies that the analyzer reports and the formatter does not reorder a block whose first directive is led by a nullable directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-USING-009")]
-    public async Task FormatterLeavesABlockLedByANullableDirectiveUnchanged()
+    public async Task FormatterKeepsAReportedBlockLedByANullableDirective()
     {
         const string input = """
                              #nullable enable
-                             using System.Linq;
+                             using {|RH7207:System.Linq|};
                              using System;
 
                              class C
@@ -576,7 +576,48 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                              }
                              """;
 
-        await VerifyFormatter(input);
+        await VerifyFormatterKeepsReportedShape(input);
+    }
+
+    /// <summary>
+    /// Verifies that the blank lines the formatter writes around a region inside a block in canonical order are not reported,
+    /// before or after formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task FormattedBlankLinesAroundARegionInsideAGroupAreNotReported()
+    {
+        const string input = """
+                             using System;
+                             #region Extra
+                             using System.Linq;
+                             #endregion
+                             using Microsoft.Win32;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 using System;
+
+                                 #region Extra
+
+                                 using System.Linq;
+
+                                 #endregion // Extra
+
+                                 using Microsoft.Win32;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
     }
 
     /// <summary>

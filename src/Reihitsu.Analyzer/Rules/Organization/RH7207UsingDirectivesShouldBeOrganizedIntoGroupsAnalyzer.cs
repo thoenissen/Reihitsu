@@ -41,7 +41,9 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// <summary>
     /// Determines whether the given using directives are properly organized into groups: they are in canonical
     /// order, a directive that starts a new group has a blank line before it, and a directive that continues its
-    /// group has none, unless a comment leads it, which may have one or more blank lines above it (SHARED-USING-011)
+    /// group has none, unless a comment leads it, which may have one or more blank lines above it (SHARED-USING-011).
+    /// In a block that holds a preprocessor directive only the order is checked, because the formatter does not lay out
+    /// the group boundaries of such a block (SHARED-USING-009)
     /// </summary>
     /// <param name="usings">Using directives</param>
     /// <returns><see langword="true"/> if the usings are already organized correctly</returns>
@@ -60,6 +62,11 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
             {
                 return false;
             }
+        }
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usings) == false)
+        {
+            return true;
         }
 
         for (var index = 1; index < usings.Count; index++)
@@ -92,11 +99,6 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
         var usings = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
 
         if (usings.Count < 2)
-        {
-            return;
-        }
-
-        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usings) == false)
         {
             return;
         }

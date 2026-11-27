@@ -374,6 +374,29 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
+    /// registers no action for any diagnostic the analyzer reports on the source without its markup, both with the
+    /// given preprocessor symbols and with additional configuration of the analyzer verification
+    /// </summary>
+    /// <param name="source">The source text to test, with markup for every expected diagnostic</param>
+    /// <param name="onConfigure">Additional configuration of the analyzer verification</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyNoCodeFixIsOffered(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, params string[] preprocessorSymbols)
+    {
+        await VerifyNoCodeFixIsOffered(source,
+                                       test =>
+                                       {
+                                           test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                                    ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols(preprocessorSymbols))
+                                                                                                    : solution);
+                                           onConfigure?.Invoke(test);
+                                       },
+                                       DocumentationMode.Parse,
+                                       preprocessorSymbols);
+    }
+
+    /// <summary>
     /// Verifies that the code fix is offered for the first diagnostic the analyzer reports on the source, and that, once a syntax
     /// error is added in front of the source's last closing brace (an unclosed parameter list <c>void N(</c>), the analyzer still
     /// reports a diagnostic and the code fix registers no action for any diagnostic it reports

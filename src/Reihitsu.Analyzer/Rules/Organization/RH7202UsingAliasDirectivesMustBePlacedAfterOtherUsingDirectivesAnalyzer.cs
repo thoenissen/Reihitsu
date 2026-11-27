@@ -46,11 +46,6 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     {
         var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
 
-        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
-        {
-            return;
-        }
-
         foreach (var isGlobalSet in new[] { false, true })
         {
             var seenRegularDirective = false;

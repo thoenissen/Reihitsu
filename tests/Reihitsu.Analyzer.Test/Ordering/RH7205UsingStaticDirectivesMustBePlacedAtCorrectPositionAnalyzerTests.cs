@@ -63,23 +63,25 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// Verifies that a block whose excluded conditional group lies between two directives is reported as the build compiles it,
+    /// without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7205-001")]
+    [Requirement("RH7205-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    public async Task DisabledConditionalUsingBlockIsReportedWithoutCodeFix()
     {
         const string testCode = """
-                                using static System.Math;
+                                using static {|RH7205:System.Math|};
                                 #if FEATURE
                                 using System.Text;
                                 #endif
                                 using System;
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -147,20 +149,97 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that a block containing a preprocessor directive is not reported
+    /// Verifies the specification example: a block containing a preprocessor directive is reported in a build that does not
+    /// define the conditional symbol, without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7205-001")]
+    [Requirement("RH7205-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using static {|RH7205:System.Math|};
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block holding a <c>#region</c> directive is reported, without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7205-001")]
+    [Requirement("RH7205-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithRegionDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using static {|RH7205:System.Math|};
+                                #region Imports
+                                using System;
+                                #endregion
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a regular directive inside a conditional group below a static directive is compared in a build that
+    /// defines the symbol, so the static directive is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7205-001")]
+    [Requirement("RH7205-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task CompiledConditionalRegularDirectiveBelowAStaticDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using static {|RH7205:System.Math|};
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using static System.Console;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, null, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that a regular directive inside a conditional group below a static directive is absent in a build that does
+    /// not define the symbol, so the block is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7205-001")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    public async Task ExcludedConditionalRegularDirectiveBelowAStaticDirectiveIsNotReported()
     {
         const string testCode = """
                                 using static System.Math;
                                 #if DEBUG
                                 using System.Diagnostics;
                                 #endif
-                                using System;
+                                using static System.Console;
 
                                 class C
                                 {

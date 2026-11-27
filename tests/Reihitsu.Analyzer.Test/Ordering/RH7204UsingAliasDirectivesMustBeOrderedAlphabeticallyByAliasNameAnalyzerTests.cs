@@ -116,23 +116,25 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     }
 
     /// <summary>
-    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// Verifies that a block whose excluded conditional group lies between two directives is reported as the build compiles it,
+    /// without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7204-001")]
+    [Requirement("RH7204-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    public async Task DisabledConditionalUsingBlockIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 using ZetaAlias = System.String;
                                 #if FEATURE
                                 using MiddleAlias = System.Object;
                                 #endif
-                                using AlphaAlias = System.Int32;
+                                using {|RH7204:AlphaAlias|} = System.Int32;
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -184,27 +186,52 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     }
 
     /// <summary>
-    /// Verifies that a block containing a preprocessor directive is not reported
+    /// Verifies the specification example: a block containing a preprocessor directive is reported in a build that does not
+    /// define the conditional symbol, without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7204-001")]
+    [Requirement("RH7204-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    public async Task BlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 using B = System.Text;
                                 #if DEBUG
                                 using System.Diagnostics;
                                 #endif
-                                using A = System.IO;
+                                using {|RH7204:A|} = System.IO;
 
                                 class C
                                 {
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block holding a <c>#pragma</c> directive is reported, without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("RH7204-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPragmaDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                #pragma warning disable CS0105
+                                using {|RH7204:A|} = System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>

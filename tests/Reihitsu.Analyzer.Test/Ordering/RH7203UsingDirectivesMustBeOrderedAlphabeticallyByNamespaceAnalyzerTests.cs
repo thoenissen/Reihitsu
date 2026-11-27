@@ -358,23 +358,25 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// Verifies that a block whose excluded conditional group lies between two directives is reported as the build compiles it,
+    /// without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    public async Task DisabledConditionalUsingBlockIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 using System.Text;
                                 #if FEATURE
                                 using System.Web;
                                 #endif
-                                using System;
+                                using {|RH7203:System|};
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -443,27 +445,271 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Verifies that a block containing a preprocessor directive is not reported
+    /// Verifies the specification example: a block containing a preprocessor directive is reported in a build that does not
+    /// define the conditional symbol, without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    public async Task BlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 using System.Linq;
                                 #if DEBUG
                                 using System.Diagnostics;
                                 #endif
-                                using System;
+                                using {|RH7203:System|};
 
                                 class C
                                 {
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a build that defines the conditional symbol, the compiled directive inside the
+    /// conditional group is compared with the earlier directives of the block as well, and both are reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithCompiledConditionalGroupIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                #if DEBUG
+                                using {|RH7203:System.Diagnostics|};
+                                #endif
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, null, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a <c>#nullable</c> directive in front of the first directive makes the block unsafe,
+    /// so it is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockLedByANullableDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block of a namespace with a body that holds a preprocessor directive is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockOfANamespaceWithPreprocessorDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    using System.Linq;
+                                #if DEBUG
+                                    using System.Diagnostics;
+                                #endif
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block of a file-scoped namespace that holds a preprocessor directive is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockOfAFileScopedNamespaceWithPreprocessorDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                namespace N;
+
+                                using System.Linq;
+                                #region Imports
+                                using {|RH7203:System|};
+                                #endregion
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the global section of a block whose local section holds a preprocessor directive is reported as well,
+    /// both sections without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-002")]
+    [Requirement("SHARED-USING-009")]
+    public async Task GlobalSectionOfABlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                global using System.Linq;
+                                global using {|RH7203:System|};
+                                using System.Text;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using {|RH7203:System.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a preprocessor directive after the last directive belongs to the next declaration,
+    /// so the block is reported and the code fix reorders it
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task DirectiveAfterTheBlockDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:System|};
+                                #if DEBUG
+                                class D
+                                {
+                                    int y;
+                                }
+                                #endif
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq;
+                                 #if DEBUG
+                                 class D
+                                 {
+                                     int y;
+                                 }
+                                 #endif
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that fixing a document whose compilation-unit block holds a preprocessor directive and whose namespace block
+    /// does not organizes only the namespace block, one diagnostic at a time and with Fix All, while the diagnostic of the
+    /// other block stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task FixAllOrganizesOnlyTheBlockWithoutPreprocessorDirective()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using {|RH7203:System|};
+
+                                namespace N
+                                {
+                                    using System.Text;
+                                    using {|RH7203:System.IO|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+                                 #if DEBUG
+                                 using System.Diagnostics;
+                                 #endif
+                                 using {|RH7203:System|};
+
+                                 namespace N
+                                 {
+                                     using System.IO;
+                                     using System.Text;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
@@ -1427,22 +1673,24 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
 
     /// <summary>
     /// Verifies the specification example: a <c>#pragma</c> directive between the tokens of a using directive makes the block
-    /// unsafe, so it is not reported
+    /// unsafe, so it is reported without a code fix
     /// </summary>
     /// <param name="endOfLine">Line ending of the source</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
     [Requirement("SHARED-USING-009")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task PragmaBetweenTokensOfDirectiveIsNotReported(string endOfLine)
+    public async Task PragmaBetweenTokensOfDirectiveIsReportedWithoutCodeFix(string endOfLine)
     {
         const string testCode = """
                                 using System.Linq;
                                 using System
                                 #pragma warning disable CS0105
-                                .Text;
-                                using System;
+                                    .Text;
+                                using {|RH7203:System|};
 
                                 class C
                                 {
@@ -1450,20 +1698,82 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testCode, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that an <c>#if</c> and its <c>#endif</c> between the tokens of one using directive make the block unsafe, so
-    /// it is not reported
+    /// Verifies that a directive whose name is split by a <c>#pragma</c> directive is reported on the whole name, the
+    /// directive's line included, without a code fix
     /// </summary>
     /// <param name="endOfLine">Line ending of the source</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-003")]
+    [Requirement("RH7203-004")]
     [Requirement("SHARED-USING-009")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task ConditionalGroupBetweenTokensOfDirectiveIsNotReported(string endOfLine)
+    public async Task NameSplitByPragmaIsReportedOnTheWholeNameWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Text;
+                                using {|RH7203:System
+                                #pragma warning disable CS0105
+                                    .Linq|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> and its <c>#endif</c> between the tokens of one using directive make the block unsafe, so
+    /// in a build that does not define the symbol, where the directive imports <c>System</c>, it is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupBetweenTokensOfDirectiveIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:System|}
+                                #if A
+                                .Text
+                                #endif
+                                ;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> and its <c>#endif</c> between the tokens of one using directive are judged as the build
+    /// compiles them: in a build that defines the symbol, the directive imports <c>System.Text</c>, and the block is in order
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupBetweenTokensOfDirectiveIsNotReportedWhenTheBuildCompilesAnOrderedBlock(string endOfLine)
     {
         const string testCode = """
                                 using System.Linq;
@@ -1479,20 +1789,55 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testCode, endOfLine));
+        await VerifyWithPreprocessorSymbols(ConvertEndOfLine(testCode, endOfLine), "A");
     }
 
     /// <summary>
     /// Verifies that an <c>#if</c> between the tokens of one using directive and its <c>#endif</c> between the tokens of the
-    /// next make the block unsafe, so it is not reported
+    /// next make the block unsafe, so in a build that does not define the symbol, which compiles three directives, the two
+    /// sorted before an earlier one are reported without a code fix
     /// </summary>
     /// <param name="endOfLine">Line ending of the source</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
     [Requirement("SHARED-USING-009")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task ConditionalGroupAcrossTokensOfTwoDirectivesIsNotReported(string endOfLine)
+    public async Task ConditionalGroupAcrossTokensOfTwoDirectivesIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System
+                                #if !A
+                                .Text;
+                                using {|RH7203:System.Collections|}
+                                #endif
+                                ;
+                                using {|RH7203:System.Buffers|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> between the tokens of one using directive and its <c>#endif</c> between the tokens of the
+    /// next are judged as the build compiles them: in a build that defines the symbol, the block holds <c>System</c> and
+    /// <c>System.Buffers</c>, which are in order
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupAcrossTokensOfTwoDirectivesIsNotReportedWhenTheBuildCompilesAnOrderedBlock(string endOfLine)
     {
         const string testCode = """
                                 using System
@@ -1509,7 +1854,7 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testCode, endOfLine));
+        await VerifyWithPreprocessorSymbols(ConvertEndOfLine(testCode, endOfLine), "A");
     }
 
     /// <summary>

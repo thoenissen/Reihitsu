@@ -5,7 +5,7 @@
 | ID prefix | SHARED-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
-| Uses | SHARED-DIAG-002, SHARED-DIAG-003 |
+| Uses | SHARED-DIAG-002, SHARED-DIAG-003, SHARED-DIAG-008, SHARED-DIAG-010, FMT-USING-004, FMT-BLANK-013 |
 
 This spec covers the using-directive policy that the analyzer and the formatter must agree on: which using blocks may be reordered at all, how directives are grouped, the order of the groups, and the order within a group. The analyzer rules RH7201 (System directives first), RH7202 (alias directives last), RH7203 (alphabetical by namespace), RH7204 (aliases alphabetical by alias name), RH7205 (static directives between regular and alias directives), RH7206 (static directives alphabetical), and RH7207 (organized into groups) report against this policy; their code fixes and the formatter's FMT-USING phase produce it.
 
@@ -495,18 +495,20 @@ class C
 
 ### SHARED-USING-009 — Blocks with preprocessor directives are not reordered
 
-Analyzer and formatter MUST NOT reorder a using block — and the RH7201–RH7207 analyzers MUST NOT report on it, nor their code fixes be offered — when the block contains a preprocessor directive (`#if`, `#nullable`, `#pragma`, `#region`, …) anywhere in the trivia of its directives: in the leading trivia of its first directive, in the leading or trailing trivia of any of its directives, and between the tokens of a directive. A preprocessor directive that follows the last using directive belongs to the next declaration and does not make the block unsafe. Only a preprocessor directive makes the block unsafe: text inside a comment is the comment's text (SHARED-DIAG-003), so a line of a `/* */` or `/** */` comment that starts with `#` is not a directive and does not make the block unsafe.
+The formatter MUST NOT reorder a using block, and the code fixes of RH7201–RH7207 MUST NOT be offered for a diagnostic in it, when the block contains a preprocessor directive (`#if`, `#nullable`, `#pragma`, `#region`, …) anywhere in the trivia of its directives: in the leading trivia of its first directive, in the leading or trailing trivia of any of its directives, and between the tokens of a directive. A preprocessor directive that follows the last using directive belongs to the next declaration and does not make the block unsafe. Only a preprocessor directive makes the block unsafe: text inside a comment is the comment's text (SHARED-DIAG-003), so a line of a `/* */` or `/** */` comment that starts with `#` is not a directive and does not make the block unsafe.
 
-Why: Moving a using across a `#if` changes which directives are compiled, and moving it across `#nullable` or `#pragma` changes the context it is compiled in. Reporting an order the fix and the formatter are not allowed to produce would leave the user with a diagnostic they cannot resolve automatically, so the analyzers stay silent on exactly the blocks the formatter leaves alone.
+The RH7201–RH7207 analyzers MUST report such a block as their own requirements state, judging the using directives the analyzed build compiles (SHARED-DIAG-008): a using directive in a branch the build excludes is absent, and a directive is compared with the other directives of its block whatever preprocessor directives lie between them, as SHARED-USING-007 compares it across directives of other groups. RH7207 MUST report such a block only when its directives differ from the canonical order, and MUST NOT report it for its blank lines: the formatter does not lay out the group boundaries of such a block (FMT-USING-004), and RH7207's check of the blank lines is a layout check whose fix lays the block out as the formatter does, so it does not report the blank lines the formatter leaves or writes there (SHARED-DIAG-010).
 
-Example:
+Why: Moving a using across a `#if` changes which directives are compiled, and moving it across `#nullable` or `#pragma` changes the context it is compiled in, so neither the formatter nor a fix may reorder the block. A directive keeps the fix and the formatter away, not the rule: the rules judge the block the analyzed build compiles, as every rule does (SHARED-DIAG-008), and a diagnostic without a fix is a supported end state. The author corrects the block by hand — a directive in front of the block stays in front of it, and a conditional group is moved as a whole or split into one group per position; an order that satisfies every build always exists. The blank lines between groups are different: the formatter's using phase leaves them as written in such a block, and other requirements of the formatter write blank lines there, such as those around a `#region` (FMT-BLANK-013), so checking them would report the formatter's own output.
+
+Example — in a build that does not define `DEBUG`, the block is reported, no code fix is offered, and the formatter leaves it unchanged:
 
 ```csharp
-using System.Linq;
+using {|RH7207:System.Linq|};
 #if DEBUG
 using System.Diagnostics;
 #endif
-using System;
+using {|RH7203:System|};
 
 class C
 {
@@ -514,12 +516,14 @@ class C
 }
 ```
 
-is left unchanged, and so is:
+In a build that defines `DEBUG`, RH7203 reports `System.Diagnostics` as well, which sorts before the earlier `System.Linq`.
+
+Example — a directive in front of the first using directive makes the block unsafe, so it is reported, no code fix is offered, and the formatter leaves it unchanged:
 
 ```csharp
 #nullable enable
-using System.Linq;
-using System;
+using {|RH7207:System.Linq|};
+using {|RH7203:System|};
 
 class C
 {
@@ -527,48 +531,14 @@ class C
 }
 ```
 
-while a directive after the block does not count:
+Example — a directive between the tokens of a using directive makes the block unsafe as well, so it is reported, no code fix is offered, and the formatter leaves it unchanged:
 
 ```csharp
-using System.Linq;
-using System;
-#if DEBUG
-class D
-{
-    int y;
-}
-#endif
-
-class C
-{
-    int x;
-}
-```
-
-```csharp
-using System;
-using System.Linq;
-#if DEBUG
-class D
-{
-    int y;
-}
-#endif
-
-class C
-{
-    int x;
-}
-```
-
-Example — a directive between the tokens of a using directive makes the block unsafe as well, so
-
-```csharp
-using System.Linq;
+using {|RH7207:System.Linq|};
 using System
 #pragma warning disable CS0105
     .Text;
-using System;
+using {|RH7203:System|};
 
 class C
 {
@@ -576,7 +546,68 @@ class C
 }
 ```
 
-is left unchanged and not reported.
+Example — RH7207 does not report the missing blank line in front of `Microsoft.Win32`, because the block holds a directive and is in canonical order:
+
+```csharp
+using System;
+#if DEBUG
+using System.Diagnostics;
+#endif
+using Microsoft.Win32;
+
+class C
+{
+    int x;
+}
+```
+
+while the same block without the conditional group is reported (SHARED-USING-008):
+
+```csharp
+using {|RH7207:System|};
+using Microsoft.Win32;
+
+class C
+{
+    int x;
+}
+```
+
+Example — a directive after the block does not count, so the code fix and the formatter reorder:
+
+```csharp
+using System.Linq;
+using System;
+#if DEBUG
+class D
+{
+    int y;
+}
+#endif
+
+class C
+{
+    int x;
+}
+```
+
+to:
+
+```csharp
+using System;
+using System.Linq;
+#if DEBUG
+class D
+{
+    int y;
+}
+#endif
+
+class C
+{
+    int x;
+}
+```
 
 Example — a line that starts with `#` inside a comment is not a directive, so RH7203 reports
 
