@@ -1212,5 +1212,170 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      });
     }
 
+    /// <summary>
+    /// Verifies that a file with top-level statements is not reported, although the type declared after them does not match the file name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-007")]
+    public async Task FileWithTopLevelStatementsIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                Console.WriteLine(Helper.Greeting);
+
+                                internal class Helper
+                                {
+                                    public const string Greeting = "Hello";
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.OutputKind = OutputKind.ConsoleApplication;
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Program.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a file with a top-level statement and a top-level local function is not reported, although the type declared in a namespace after them does not match the file name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-007")]
+    public async Task FileWithTopLevelLocalFunctionAndNamespacedTypeIsNotReported()
+    {
+        const string testCode = """
+                                var total = Add(1, 2);
+
+                                static int Add(int left, int right) => left + right;
+
+                                namespace Tools
+                                {
+                                    internal class Calculator
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.OutputKind = OutputKind.ConsoleApplication;
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Program.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a file whose statements stand only inside a method of its first type, and not at the top level, is not reported when that type matches the file name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-007")]
+    public async Task FileWithStatementsOnlyInsideMainAndMatchingFirstTypeIsNotReported()
+    {
+        const string testCode = """
+                                internal static class Program
+                                {
+                                    private static void Main()
+                                    {
+                                        System.Console.WriteLine();
+                                    }
+                                }
+
+                                internal class Helper
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.OutputKind = OutputKind.ConsoleApplication;
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Program.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a file whose statements stand only inside a method of a type is checked, so a mismatched first type is reported and the file is renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-007")]
+    public async Task FileWithStatementsOnlyInsideTypeMemberIsReportedAndFileIsRenamed()
+    {
+        const string testCode = """
+                                internal static class {|RH4001:Program|}
+                                {
+                                    private static void Main()
+                                    {
+                                        System.Console.WriteLine();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal static class Program
+                                 {
+                                     private static void Main()
+                                     {
+                                         System.Console.WriteLine();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.OutputKind = OutputKind.ConsoleApplication;
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Startup.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Program.cs", fixedCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a file without top-level statements is reported and renamed also when another file of the project holds top-level statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-007")]
+    public async Task FileWithoutTopLevelStatementsIsReportedWhenAnotherFileHoldsThem()
+    {
+        const string programCode = """
+                                   System.Console.WriteLine(new Helper());
+                                   """;
+
+        const string testCode = """
+                                internal class {|RH4001:Helper|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class Helper
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.OutputKind = OutputKind.ConsoleApplication;
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Program.cs", programCode));
+                         test.TestState.Sources.Add(("/0/Startup.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Program.cs", programCode));
+                         test.FixedState.Sources.Add(("/0/Helper.cs", fixedCode));
+                     });
+    }
+
     #endregion // Tests
 }
