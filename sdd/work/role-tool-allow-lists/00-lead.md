@@ -28,7 +28,8 @@
 
 ## Follow-up candidates
 
-- Inputs of `squad/roles/implementer.md`: name the issue as an input in the tooling lane (01-implementer).
+- Inputs of `squad/roles/implementer.md`: name the issue as an input in the tooling lane (01-implementer; auditor hint 1).
+- The issue's own `Follow-up measurement` section: after about ten squad runs with the allow-lists and the main-session deny list, compare `first_context_tokens` and cost per run with the run notes written before; the result decides the order of the next process changes (smaller `AGENTS.md`, `squad/README.md` split per role) (thoenissen/Reihitsu#1979).
 
 ## Worklist / next step
 
@@ -39,4 +40,5 @@
 - Done: spec checker (6da6468, consistent).
 - Done: auditor (05-auditor.md, bbb783b, pass). Audited SHA: c2d6deb5b37b5e921e81633db4900c5f6382da6a against origin/main 4bbb3ceb.
 - Lead observation on auditor hint 3: in this cloud session, once `.claude/settings.json` was written, the harness withdrew the denied `mcp__Claude_Docs__*` and `mcp__claude-code-remote__*` tools mid-session with the reason "Denied by a permission rule" — the cloud honours the deny list for its built-in servers.
-- Next: validator (06-validator.md), then issue manager for the follow-up candidates.
+- Done: validator (3aaa518, pass on eb88ca5).
+- Next: issue manager (07-issue-manager.md), then note, delete sdd/work, trigger, PR.
