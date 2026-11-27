@@ -35,4 +35,5 @@
 - Done: test implementer 04 (cb6d751): 45 rows + Fix All fail for the right reason.
 - Done: implementer 05 (c8d4e52): analyzer-only, 1 test disputed (setup).
 - Done: test implementer 06 (7b1b7ba): 356/356 focused pass.
-- Now: cleaner (07).
+- Done: cleaner 07 (5930454): clean, Release 0 warnings.
+- Now: spec checker (08).
