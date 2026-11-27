@@ -35,4 +35,5 @@
 - Spec checker done (`05-spec-checker.md`, consistent).
 - Auditor round 0 (`06-auditor.md`, audited head 123929e, base 2c77022): findings — #1 high. Repair round 1 open.
 - Round 1 test implementer done (`07-test-implementer.md`, 11 failing rows, 4 holding).
-- Next: implementer (`08-implementer.md`), cleaner, spec checker, auditor on the repair.
+- Round 1 implementer done (`08-implementer.md`, tests pass; qualifier read from renamed-tree syntax).
+- Next: cleaner (`09-cleaner.md`), spec checker (`10`), auditor on the repair (`11`).
