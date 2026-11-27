@@ -460,7 +460,7 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
 
         // The rename may change no binding of a reference to a symbol outside the cascade, whether the renamer rewrites
         // that reference or leaves it as written (SHARED-CASING-009)
-        if (await CasingRenameSafetyUtilities.RewritesOtherCodeAsync(solution, renamedSolution, oldNames, cancellationToken).ConfigureAwait(false)
+        if (await CasingRenameSafetyUtilities.RewritesOtherCodeAsync(solution, renamedSolution, oldNames, identifier, cancellationToken).ConfigureAwait(false)
             || await CasingRenameSafetyUtilities.CountReferenceLocationsAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false)
                != await CasingRenameSafetyUtilities.CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
         {

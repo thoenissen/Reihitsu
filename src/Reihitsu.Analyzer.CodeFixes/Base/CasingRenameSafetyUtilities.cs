@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Core;
@@ -346,45 +345,40 @@ internal static class CasingRenameSafetyUtilities
     /// <param name="originalSolution">Solution before the rename</param>
     /// <param name="renamedSolution">Solution after the rename</param>
     /// <param name="oldNames">Old names of the rename, as <see cref="GetOldNames"/> gives them</param>
+    /// <param name="identifier">New name</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when a change reaches a token that is no reference of the cascade; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> when a changed document holds a token that is no reference of the cascade and differs from the original; otherwise, <see langword="false"/></returns>
     /// <remarks>
     /// The renamer keeps the binding of a reference to another symbol that the new name would capture by rewriting
     /// that reference, such as qualifying it, turning an extension call into a static call, or casting an argument,
     /// without reporting a conflict. Renaming the cascade only replaces, or qualifies, identifiers that carry an old
-    /// name, so every change has to lie on such identifiers: a replaced span may only overlap them, and an insertion
-    /// has to touch one of them. A name the cascade still carries after the rename is no old name, so a reference to
-    /// another symbol spelled that way, such as a field spelled like the parameter of the other part of a partial
-    /// method, does not count as a reference of the cascade
+    /// name, so the tokens of every changed document, structured trivia included, are walked side by side: a token
+    /// that carries no old name has to stay as written, and an identifier that carries one may be renamed and may get a
+    /// qualifier in front of it. Reading the two token sequences, instead of a text diff whose alignment is a heuristic,
+    /// decides a qualified reference alike wherever an identifier spelled like the new name stands next to it.
+    /// A name the cascade still carries after the rename is no old name, so a reference to another symbol spelled that
+    /// way, such as a field spelled like the parameter of the other part of a partial method, does not count as a
+    /// reference of the cascade
     /// </remarks>
     internal static async Task<bool> RewritesOtherCodeAsync(Solution originalSolution,
                                                             Solution renamedSolution,
                                                             ImmutableHashSet<string> oldNames,
+                                                            string identifier,
                                                             CancellationToken cancellationToken)
     {
         foreach (var documentId in renamedSolution.GetChanges(originalSolution)
                                                   .GetProjectChanges()
                                                   .SelectMany(static changes => changes.GetChangedDocuments()))
         {
-            var originalTree = await originalSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var renamedTree = await renamedSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var originalRoot = await originalTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var originalRoot = await originalSolution.GetDocument(documentId).GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var renamedRoot = await renamedSolution.GetDocument(documentId).GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            foreach (var span in renamedTree.GetChanges(originalTree).Select(static change => change.Span))
+            if (OnlyRenamesOrQualifies(originalRoot.DescendantTokens(descendIntoTrivia: true).ToList(),
+                                       renamedRoot.DescendantTokens(descendIntoTrivia: true).ToList(),
+                                       oldNames,
+                                       identifier) == false)
             {
-                var searchSpan = TextSpan.FromBounds(Math.Max(0, span.Start - 1), Math.Min(originalRoot.FullSpan.End, span.End + 1));
-                var tokens = originalRoot.DescendantTokens(searchSpan, descendIntoTrivia: true)
-                                         .Where(token => span.IsEmpty
-                                                             ? token.Span.Start <= span.Start && span.Start <= token.Span.End
-                                                             : token.Span.OverlapsWith(span))
-                                         .ToList();
-                var cascadeReferenceCount = tokens.Count(token => token.IsKind(SyntaxKind.IdentifierToken) && oldNames.Contains(token.ValueText));
-
-                if (cascadeReferenceCount == 0
-                    || (span.IsEmpty == false && cascadeReferenceCount != tokens.Count))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -548,6 +542,128 @@ internal static class CasingRenameSafetyUtilities
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the tokens of a renamed document differ from the original ones only by renamed or qualified
+    /// identifiers that carry an old name
+    /// </summary>
+    /// <param name="originalTokens">Tokens of the document before the rename</param>
+    /// <param name="renamedTokens">Tokens of the document after the rename</param>
+    /// <param name="oldNames">Old names of the rename</param>
+    /// <param name="identifier">New name</param>
+    /// <returns><see langword="true"/> when every other token stays as written; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// An identifier that carries an old name matches the first identifier spelled with the new name or with its own
+    /// name, behind a qualifier the renamer may put in front of it: a name, <c>this</c>, <c>base</c>, or <c>global</c>,
+    /// with type arguments, ending in <c>.</c> or <c>::</c>
+    /// </remarks>
+    private static bool OnlyRenamesOrQualifies(List<SyntaxToken> originalTokens, List<SyntaxToken> renamedTokens, ImmutableHashSet<string> oldNames, string identifier)
+    {
+        var renamedIndex = 0;
+
+        foreach (var originalToken in originalTokens)
+        {
+            if (renamedIndex >= renamedTokens.Count)
+            {
+                return false;
+            }
+
+            if (originalToken.IsKind(SyntaxKind.IdentifierToken)
+                && oldNames.Contains(originalToken.ValueText))
+            {
+                var nameIndex = FindQualifiedName(renamedTokens, renamedIndex, originalToken.ValueText, identifier);
+
+                if (nameIndex < 0)
+                {
+                    return false;
+                }
+
+                renamedIndex = nameIndex + 1;
+            }
+            else
+            {
+                var renamedToken = renamedTokens[renamedIndex];
+
+                if (renamedToken.RawKind != originalToken.RawKind
+                    || string.Equals(renamedToken.Text, originalToken.Text, StringComparison.Ordinal) == false)
+                {
+                    return false;
+                }
+
+                renamedIndex++;
+            }
+        }
+
+        return renamedIndex == renamedTokens.Count;
+    }
+
+    /// <summary>
+    /// Finds the renamed identifier of a reference that carries an old name, behind the qualifier the renamer may have
+    /// put in front of it
+    /// </summary>
+    /// <param name="renamedTokens">Tokens of the document after the rename</param>
+    /// <param name="startIndex">Index of the first renamed token of the reference</param>
+    /// <param name="oldName">Old name the reference carries</param>
+    /// <param name="identifier">New name</param>
+    /// <returns>The index of the renamed identifier, or <c>-1</c> when the tokens are no such reference</returns>
+    private static int FindQualifiedName(List<SyntaxToken> renamedTokens, int startIndex, string oldName, string identifier)
+    {
+        var nameIndex = startIndex;
+
+        while (nameIndex < renamedTokens.Count
+               && IsNameOf(renamedTokens[nameIndex], oldName, identifier) == false
+               && IsQualifierToken(renamedTokens[nameIndex]))
+        {
+            nameIndex++;
+        }
+
+        if (nameIndex >= renamedTokens.Count
+            || IsNameOf(renamedTokens[nameIndex], oldName, identifier) == false)
+        {
+            return -1;
+        }
+
+        if (nameIndex > startIndex
+            && renamedTokens[nameIndex - 1].Kind() is not (SyntaxKind.DotToken or SyntaxKind.ColonColonToken))
+        {
+            return -1;
+        }
+
+        return nameIndex;
+    }
+
+    /// <summary>
+    /// Determines whether a token is an identifier spelled with the given old name or with the new name
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <param name="oldName">Old name</param>
+    /// <param name="identifier">New name</param>
+    /// <returns><see langword="true"/> when the token is such an identifier; otherwise, <see langword="false"/></returns>
+    private static bool IsNameOf(SyntaxToken token, string oldName, string identifier)
+    {
+        return token.IsKind(SyntaxKind.IdentifierToken)
+               && (string.Equals(token.ValueText, identifier, StringComparison.Ordinal)
+                   || string.Equals(token.ValueText, oldName, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Determines whether a token can be part of a qualifier the renamer puts in front of a renamed reference
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> when the token can be part of such a qualifier; otherwise, <see langword="false"/></returns>
+    private static bool IsQualifierToken(SyntaxToken token)
+    {
+        return token.Kind() is SyntaxKind.IdentifierToken
+                            or SyntaxKind.ThisKeyword
+                            or SyntaxKind.BaseKeyword
+                            or SyntaxKind.GlobalKeyword
+                            or SyntaxKind.DotToken
+                            or SyntaxKind.ColonColonToken
+                            or SyntaxKind.LessThanToken
+                            or SyntaxKind.GreaterThanToken
+                            or SyntaxKind.CommaToken
+               || SyntaxFacts.IsPredefinedType(token.Kind());
     }
 
     /// <summary>
