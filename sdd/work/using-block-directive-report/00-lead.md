@@ -19,7 +19,7 @@
 |---|---|---|---|---|---|---|
 | 1 | skeptic | Spec author's Q4: does RH7207 check blank lines in a using block that holds a directive? | No — only the order (spec author's A); dropped from the output batch | Skeptic fixture e.cs: formatter writes blank lines around a `#region` in the block (FMT-BLANK-013), stable; checking blank lines would report the formatter's own output | SHARED-DIAG-010 (unchanged) demands it | 1db90d1 |
 | 2 | skeptic | Basis of Q1's recommendation | SHARED-DIAG-008 and the precedent of report-across-conditional-directives, not 'order is content'; spec author rewords SHARED-USING-009 / change doc and FMT-USING-004 blank-line remark after the answers | Skeptic: FC-014 treats using order as formatter-judged | Wording only | 06ae25e |
-| 3 | implementer | RH7203 Fix All test fails: fixed-state markup ignored without MarkupMode.Allow | Test setup is wrong, not the asserted output; route to a fresh test implementer to set FixedState/BatchFixedState.MarkupHandling = Allow | Implementer verified the change locally; expected texts unchanged | Asserted output unchanged | pending |
+| 3 | implementer | RH7203 Fix All test fails: fixed-state markup ignored without MarkupMode.Allow | Test setup is wrong, not the asserted output; route to a fresh test implementer to set FixedState/BatchFixedState.MarkupHandling = Allow | Implementer verified the change locally; expected texts unchanged | Asserted output unchanged | 7b1b7ba |
 
 ## Follow-up candidates
 
@@ -34,4 +34,5 @@
 - Done: spec author 03 (06ae25e), change doc Accepted.
 - Done: test implementer 04 (cb6d751): 45 rows + Fix All fail for the right reason.
 - Done: implementer 05 (c8d4e52): analyzer-only, 1 test disputed (setup).
-- Now: test implementer repair (06).
+- Done: test implementer 06 (7b1b7ba): 356/356 focused pass.
+- Now: cleaner (07).
