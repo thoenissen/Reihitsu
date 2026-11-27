@@ -40,4 +40,5 @@
 - Done: cleaner 07 (5930454): clean, Release 0 warnings.
 - Done: spec checker 08 (0d79b90): consistent.
 - Done: merged origin/main 5db426f; auditor 09 (b0ba8ed): pass, no findings. Audited SHA 6f9642a7166c2d704b824b30cca09013970b36fb.
-- Now: validator (10).
+- Done: validator 10 (e639391): pass.
+- Now: issue manager (11) with both follow-up candidates.
