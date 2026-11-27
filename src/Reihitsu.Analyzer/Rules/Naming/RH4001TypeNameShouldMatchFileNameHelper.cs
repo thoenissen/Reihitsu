@@ -23,7 +23,7 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
         var firstDotIndex = fileNameWithoutExtension.IndexOf('.');
         var stem = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
 
-        return StripTimestampPrefix(stem);
+        return stem.Substring(GetTimestampPrefixLength(stem));
     }
 
     /// <summary>
@@ -52,7 +52,8 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     }
 
     /// <summary>
-    /// Builds the renamed file name while preserving everything after the first dot of the original file name
+    /// Builds the renamed file name while preserving an Entity Framework migration timestamp prefix of the original file name,
+    /// as written, and everything after its first dot. The prefix is the one <see cref="GetComparableFileName"/> removes for the comparison
     /// </summary>
     /// <param name="originalFilePath">Original document file path</param>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -61,42 +62,37 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     {
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFilePath);
         var firstDotIndex = fileNameWithoutExtension.IndexOf('.');
+        var stem = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
+        var prefix = stem.Substring(0, GetTimestampPrefixLength(stem));
         var suffix = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(firstDotIndex) : string.Empty;
         var extension = Path.GetExtension(originalFilePath);
 
-        return $"{GetExpectedFileNameStem(typeDeclaration)}{suffix}{extension}";
+        return $"{prefix}{GetExpectedFileNameStem(typeDeclaration)}{suffix}{extension}";
     }
 
     /// <summary>
-    /// Strips an Entity Framework migration timestamp prefix (14 digits followed by an underscore) if present
+    /// Gets the length of an Entity Framework migration timestamp prefix (14 digits followed by an underscore) at the start of the stem
     /// </summary>
     /// <param name="stem">Filename stem to inspect</param>
-    /// <returns>The stem without the timestamp prefix, or the original stem when no prefix is found</returns>
-    private static string StripTimestampPrefix(string stem)
+    /// <returns>The length of the prefix including its underscore, or 0 when the stem does not start with one</returns>
+    private static int GetTimestampPrefixLength(string stem)
     {
         const int timestampLength = 14;
 
         if (stem.Length > timestampLength && stem[timestampLength] == '_')
         {
-            var allDigits = true;
-
             for (var index = 0; index < timestampLength; index++)
             {
                 if (char.IsDigit(stem[index]) == false)
                 {
-                    allDigits = false;
-
-                    break;
+                    return 0;
                 }
             }
 
-            if (allDigits)
-            {
-                return stem.Substring(timestampLength + 1);
-            }
+            return timestampLength + 1;
         }
 
-        return stem;
+        return 0;
     }
 
     /// <summary>

@@ -50,6 +50,22 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
+    /// Gets the full name a namespace declaration declares: the values of the names of every enclosing namespace declaration,
+    /// outermost first, followed by the value of its own name, joined by dots
+    /// </summary>
+    /// <param name="namespaceSyntax">Namespace declaration</param>
+    /// <returns>The full declared namespace name</returns>
+    private static string GetFullNamespaceName(BaseNamespaceDeclarationSyntax namespaceSyntax)
+    {
+        var names = namespaceSyntax.AncestorsAndSelf()
+                                   .OfType<BaseNamespaceDeclarationSyntax>()
+                                   .Select(declaration => GetNamespaceName(declaration.Name))
+                                   .Reverse();
+
+        return string.Join(".", names);
+    }
+
+    /// <summary>
     /// Start of the compilation
     /// </summary>
     /// <param name="context">Context</param>
@@ -64,15 +80,16 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyzing all namespace declarations. The declared name is compared by its value: its identifiers without a verbatim <c>@</c> prefix
-    /// and with every Unicode escape sequence replaced, joined by dots without the whitespace, line breaks, or comments written between them
+    /// Analyzing all namespace declarations. The declared full name is compared by its value: the identifiers of the enclosing namespace
+    /// declarations and of the declaration itself, without a verbatim <c>@</c> prefix and with every Unicode escape sequence replaced,
+    /// joined by dots without the whitespace, line breaks, or comments written between them. The diagnostic stays on the declaration's own name
     /// </summary>
     /// <param name="configuration">Configuration</param>
     /// <param name="context">Context</param>
     private void OnNamespaceDeclarationSyntax(Configuration configuration, SyntaxNodeAnalysisContext context)
     {
         if (context.Node is BaseNamespaceDeclarationSyntax namespaceSyntax
-            && configuration.Naming.AllowedNamespaceDeclarations.Contains(GetNamespaceName(namespaceSyntax.Name)) == false)
+            && configuration.Naming.AllowedNamespaceDeclarations.Contains(GetFullNamespaceName(namespaceSyntax)) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(namespaceSyntax.Name.GetLocation()));
         }
