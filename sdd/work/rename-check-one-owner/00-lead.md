@@ -28,4 +28,5 @@
 
 - Claimed (empty commit pushed, draft PR #1969), toolchain prepared.
 - Skeptic done (`01-skeptic.md`, proceed narrower; no output questions, no change doc, no escalation 10).
-- Next: test implementer (`02-test-implementer.md`), reproduction of the failing matrix rows plus holding rows.
+- Test implementer done (`02-test-implementer.md`, reproduced: 14 failing, 10 holding; no follow-ups).
+- Next: implementer (`03-implementer.md`).
