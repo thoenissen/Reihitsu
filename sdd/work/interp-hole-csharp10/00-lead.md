@@ -36,5 +36,5 @@
 
 ## State
 
-- Last step: cleaner (06-cleaner.md, clean, 5a45494).
-- Next: spec checker, then auditor.
+- Last step: spec checker (07-spec-checker.md, consistent, 946c73a). Main not ahead; Release build green.
+- Next: auditor.
