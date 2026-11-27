@@ -18,6 +18,10 @@
 |---|---|---|---|---|---|---|
 | 1 | Start | Lane | behavior-change | Specs gain requirements with new behavior | Lane is internal | claim |
 | 2 | Start | Split into two PRs? | One PR | One issue, small, shared area (naming rules) | Internal | claim |
+| 3 | Spec author | New requirements RH4001-008 / RH4009-003 instead of widening 005/002 | Accept | Keeps unchanged requirements stable | Spec structure is internal | 9de335e |
+| 4 | Spec author | "Nested" = block-scoped inside block-scoped only | Accept | Mixed file-scoped/block-scoped does not compile; no caller reaches it | Not reachable | 9de335e |
+| 5 | Spec author | Rule-page sentences added on both pages | Accept | One sentence each, restates the maintainer's decisions | Covered by maintainer answers 1–2 | 9de335e |
+| 6 | Spec author | RH4001-006 collision check follows the new name (prefixed target) | Accept | Direct consequence of answer 1: the collision is checked on the name the fix writes | Covered by answer 1 | 9de335e |
 
 ## Follow-up candidates
 
@@ -26,4 +30,5 @@
 ## Worklist / next step
 
 - Done: claim, draft PR #1986, prepare.sh.
-- Next: spec author (change doc + spec diff + rule pages).
+- Done: spec author (01), change doc `sdd/changes/2026-11/rh4001-rh4009-names.md` Draft; its visible output changes are covered by maintainer answers 1–2 → no output-question stop.
+- Next: skeptic.
