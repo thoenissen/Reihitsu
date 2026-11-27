@@ -2449,6 +2449,180 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies that the fix, which joins an assigned anonymous method onto the assignment's line, aligns its block under <c>delegate</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyFixAlignsTheBlockOfAnAssignedAnonymousMethodUnderDelegate(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        System.Func<int> g;
+                                        {|RH5111:g =
+                                            delegate { return 1; }|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         System.Func<int> g;
+                                         g = delegate
+                                             {
+                                                 return 1;
+                                             };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which joins an anonymous method assigned in an object initializer onto the member's line, aligns its block under <c>delegate</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyFixAlignsTheBlockOfAnAnonymousMethodInAnObjectInitializerUnderDelegate(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class D
+                                {
+                                    public Func<int> F { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d1 = new D { {|RH5111:F =
+                                            delegate { return 1; }|} };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class D
+                                 {
+                                     public Func<int> F { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var d1 = new D { F = delegate
+                                                              {
+                                                                  return 1;
+                                                              } };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which joins an assigned lambda onto the assignment's line, also joins the lambda's parameter list onto its explicit return type
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-045")]
+    public async Task VerifyFixJoinsTheReturnTypeOfAnAssignedLambdaWithItsParameterList(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        System.Func<int, int> f;
+                                        {|RH5111:f =
+                                            int
+                                            (int x) => x|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         System.Func<int, int> f;
+                                         f = int (int x) => x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that fixing two assignments of anonymous methods in one document aligns each block under its own <c>delegate</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyFixAllAlignsTheBlockOfEveryAssignedAnonymousMethodUnderDelegate(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        System.Func<int> g;
+                                        System.Func<int> longer;
+                                        {|RH5111:g =
+                                            delegate { return 1; }|};
+                                        {|RH5111:longer =
+                                            delegate { return 2; }|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         System.Func<int> g;
+                                         System.Func<int> longer;
+                                         g = delegate
+                                             {
+                                                 return 1;
+                                             };
+                                         longer = delegate
+                                                  {
+                                                      return 2;
+                                                  };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

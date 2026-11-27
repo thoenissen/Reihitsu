@@ -82,5 +82,55 @@ public class RH5203MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
         await VerifyFormatter(testData);
     }
 
+    /// <summary>
+    /// Verifies that an anonymous method argument whose block aligns under <c>delegate</c>, followed by another argument, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyAnonymousMethodArgumentsAlignedUnderDelegateAreNotReportedAndStayAsWritten()
+    {
+        const string source = """
+                              using System;
+                              using System.Threading.Tasks;
+
+                              class C
+                              {
+                                  object M(Func<int> f, int y = 0)
+                                  {
+                                      var x = M(delegate
+                                                {
+                                                    return 1;
+                                                },
+                                                2);
+                                      Func<int> s = static delegate
+                                                           {
+                                                               return 1;
+                                                           };
+                                      Func<Task<int>> t = async delegate
+                                                          {
+                                                              return 1;
+                                                          };
+                                      Func<int, int> d = delegate (int a)
+                                                         {
+                                                             return a;
+                                                         };
+                                      Func<int> g;
+                                      g = delegate
+                                          {
+                                              return 1;
+                                          };
+
+                                      return M(delegate
+                                               {
+                                                   return 1;
+                                               });
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
     #endregion // Tests
 }

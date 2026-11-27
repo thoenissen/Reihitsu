@@ -52,9 +52,9 @@ public class ParenthesizedLambdaLineStartTests : FormatterTestsBase
                                     void M(int[] items)
                                     {
                                         Func<int, int, int> f = delegate(int a, int b)
-                                        {
-                                            return a;
-                                        };
+                                                                {
+                                                                    return a;
+                                                                };
                                         var total = items.Aggregate(0,
                                                                     (sum,
                                                                      item) => sum + item);

@@ -428,7 +428,7 @@ public class ContinuationJoinTests : FormatterTestsBase
     [DataRow("        Func<int> u = () =>\n            1;", "        Func<int> u = () => 1;", DisplayName = "Parenthesized lambda with an expression body")]
     [DataRow("        Func<int, int> f = y =>\n            y + 1;", "        Func<int, int> f = y => y + 1;", DisplayName = "Simple lambda with an expression body")]
     [DataRow("        Func<int, int> f = static\n            y => y;", "        Func<int, int> f = static y => y;", DisplayName = "Modifier of a lambda")]
-    [DataRow("        Func<int> g = static\n            delegate { return 1; };", "        Func<int> g = static delegate\n        {\n            return 1;\n        };", DisplayName = "Modifier of an anonymous method")]
+    [DataRow("        Func<int> g = static\n            delegate { return 1; };", "        Func<int> g = static delegate\n                             {\n                                 return 1;\n                             };", DisplayName = "Modifier of an anonymous method")]
     [DataRow("        const\n            int k = 1;", "        const int k = 1;", DisplayName = "Modifier of a local declaration")]
     [DataRow("        var w = r\n            with { };", "        var w = r with\n                  {\n                  };", DisplayName = "With expression")]
     [DataRow("        Use(await\n            t, 1);", "        Use(await t, 1);", DisplayName = "Await inside a list element")]
@@ -578,9 +578,9 @@ public class ContinuationJoinTests : FormatterTestsBase
                                     static void M(R r)
                                     {
                                         Func<int> g = static delegate
-                                        {
-                                            return 1;
-                                        };
+                                                             {
+                                                                 return 1;
+                                                             };
                                         var w = r with
                                                   {
                                                   };

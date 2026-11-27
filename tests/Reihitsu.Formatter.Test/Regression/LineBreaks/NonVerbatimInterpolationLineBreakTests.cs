@@ -66,15 +66,15 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
                                                     {
                                                         var a = $"a {F(delegate { return 1; })} b";
                                                         var b = $@"a {F(delegate
-                                                        {
-                                                            return 1;
-                                                        })} b";
+                                                                        {
+                                                                            return 1;
+                                                                        })} b";
                                                         var c = $"a {$@"x {F(delegate { return 1; })}"} b";
                                                         var d = $@"a {$"x {F(delegate { return 1; })}"} b";
                                                         var e = F(delegate
-                                                        {
-                                                            return $"x {1}".Length;
-                                                        });
+                                                                  {
+                                                                      return $"x {1}".Length;
+                                                                  });
 
                                                         return a + b + c + d + e;
                                                     }
@@ -97,25 +97,25 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
                                                     string M()
                                                     {
                                                         var a = $"a {F(delegate
-                                                        {
-                                                            return 1;
-                                                        })} b";
+                                                                       {
+                                                                           return 1;
+                                                                       })} b";
                                                         var b = $@"a {F(delegate
-                                                        {
-                                                            return 1;
-                                                        })} b";
+                                                                        {
+                                                                            return 1;
+                                                                        })} b";
                                                         var c = $"a {$@"x {F(delegate
-                                                        {
-                                                            return 1;
-                                                        })}"} b";
+                                                                             {
+                                                                                 return 1;
+                                                                             })}"} b";
                                                         var d = $@"a {$"x {F(delegate
-                                                        {
-                                                            return 1;
-                                                        })}"} b";
+                                                                             {
+                                                                                 return 1;
+                                                                             })}"} b";
                                                         var e = F(delegate
-                                                        {
-                                                            return $"x {1}".Length;
-                                                        });
+                                                                  {
+                                                                      return $"x {1}".Length;
+                                                                  });
 
                                                         return a + b + c + d + e;
                                                     }
@@ -495,7 +495,7 @@ public class NonVerbatimInterpolationLineBreakTests : FormatterTestsBase
     public void AtDollarVerbatimInterpolationIsBrokenInCSharp10()
     {
         AssertResult("var s = @$\"a {F(delegate { return 1; })} b\";",
-                     "var s = @$\"a {F(delegate\n{\n    return 1;\n})} b\";");
+                     "var s = @$\"a {F(delegate\n                {\n                    return 1;\n                })} b\";");
     }
 
     /// <summary>

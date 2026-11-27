@@ -136,6 +136,38 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that in a statement target behind two tabs, which count as one column each, the block of an anonymous method
+    /// aligns under <c>delegate</c> in column 11, written with spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task AnonymousMethodInStatementTargetBehindTabsAlignsUnderDelegate()
+    {
+        const string input = "class C\n{\n\tobject M(System.Func<int> f)\n\t{\n\t\treturn M(delegate { return 1; });\n\t}\n}";
+        const string expected = "class C\n{\n\tobject M(System.Func<int> f)\n\t{\n\t\treturn M(delegate\n           {\n               return 1;\n           });\n\t}\n}";
+
+        await AssertFormatsTarget(input, expected, root => root.DescendantNodes().OfType<ReturnStatementSyntax>().First());
+    }
+
+    /// <summary>
+    /// Verifies the block-lambda counterpart: in a statement target behind two tabs, which count as one column each, the block of
+    /// a lambda aligns under its <c>(</c> in column 11, written with spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-028")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task BlockLambdaInStatementTargetBehindTabsAlignsUnderItsParenthesis()
+    {
+        const string input = "class C\n{\n\tobject M(System.Func<int> f)\n\t{\n\t\treturn M(() => { return 1; });\n\t}\n}";
+        const string expected = "class C\n{\n\tobject M(System.Func<int> f)\n\t{\n\t\treturn M(() =>\n           {\n               return 1;\n           });\n\t}\n}";
+
+        await AssertFormatsTarget(input, expected, root => root.DescendantNodes().OfType<ReturnStatementSyntax>().First());
+    }
+
+    /// <summary>
     /// Verifies the spec example: two tabs in front of an equals-value target belong to the code in front of it and are kept,
     /// so they count as one column each, <c>new</c> stands in column 10, and the braces are written with ten spaces
     /// </summary>
@@ -875,16 +907,17 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     /// <summary>
     /// Verifies the context's layout for a chain target that is the expression of its context statement, as the RH5201 and
     /// RH5112 fixes pass them, when the statement stands two columns deeper than its depth: the target starts the context's
-    /// first line, so the anonymous method's block, which the depth places, is shifted by the context's offset and keeps its
-    /// place relative to the statement's first token, and the wrapped link aligns under the first link
+    /// first line, which keeps its column, the anonymous method's block aligns under <c>delegate</c> where that line puts it,
+    /// and the wrapped link aligns under the first link
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-INDENT-031")]
     [Requirement("FMT-PIPE-017")]
-    public async Task ChainTargetStartingItsStatementOffItsDepthShiftsTheBlockByTheContextsOffset()
+    public async Task ChainTargetStartingItsStatementOffItsDepthAlignsTheBlockUnderDelegate()
     {
         const string input = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n              {\n                  M(b);\n              })\n      .C() ;\n    }\n}";
-        const string expected = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n          {\n              M(b);\n          })\n           .C() ;\n    }\n}";
+        const string expected = "class C\n{\n    void M(B b)\n    {\n          b.A(delegate\n              {\n                  M(b);\n              })\n           .C() ;\n    }\n}";
 
         await AssertFormatsTargetWithContext(input,
                                              expected,
@@ -894,16 +927,17 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the context's layout for a chain target that is the expression of its context statement, as the RH5201 and
-    /// RH5112 fixes pass them, in a file indented by two spaces: the anonymous method's block, which the depth places, is
-    /// shifted by the context's offset and keeps its place relative to the statement's first token
+    /// RH5112 fixes pass them, in a file indented by two spaces: the statement's first line keeps its column, and the anonymous
+    /// method's block aligns under <c>delegate</c> where that line puts it, its statement four columns deeper
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-INDENT-031")]
     [Requirement("FMT-PIPE-017")]
-    public async Task ChainTargetStartingItsStatementInTwoSpaceIndentedFileShiftsTheBlockByTheContextsOffset()
+    public async Task ChainTargetStartingItsStatementInTwoSpaceIndentedFileAlignsTheBlockUnderDelegate()
     {
         const string input = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n        {\n          M(b);\n        })\n      .C() ;\n  }\n}";
-        const string expected = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n    {\n        M(b);\n    })\n     .C() ;\n  }\n}";
+        const string expected = "class C\n{\n  void M(B b)\n  {\n    b.A(delegate\n        {\n            M(b);\n        })\n     .C() ;\n  }\n}";
 
         await AssertFormatsTargetWithContext(input,
                                              expected,
@@ -913,15 +947,16 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the other side of the statement's indentation: for a chain target that is the expression of its context
-    /// statement at its depth, the context's offset is zero and the anonymous method's block stands where the depth places it
+    /// statement at its depth, the context's offset is zero and the anonymous method's block aligns under <c>delegate</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-INDENT-031")]
     [Requirement("FMT-PIPE-017")]
-    public async Task ChainTargetStartingItsStatementAtItsDepthPlacesTheBlockByTheDepth()
+    public async Task ChainTargetStartingItsStatementAtItsDepthAlignsTheBlockUnderDelegate()
     {
         const string input = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n            {\n                M(b);\n            })\n    .C() ;\n    }\n}";
-        const string expected = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n        {\n            M(b);\n        })\n         .C() ;\n    }\n}";
+        const string expected = "class C\n{\n    void M(B b)\n    {\n        b.A(delegate\n            {\n                M(b);\n            })\n         .C() ;\n    }\n}";
 
         await AssertFormatsTargetWithContext(input,
                                              expected,

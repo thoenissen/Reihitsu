@@ -1948,6 +1948,45 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix, which puts every argument on its own line, aligns the block of an anonymous method argument under <c>delegate</c>, in the column of the arguments behind it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyFixAlignsTheBlockOfAnAnonymousMethodArgumentUnderDelegate(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    object M(System.Func<int> f, int y = 0, int z = 0)
+                                    {
+                                        return M{|RH5102:(delegate { return 1; },
+                                            2, 3)|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     object M(System.Func<int> f, int y = 0, int z = 0)
+                                     {
+                                         return M(delegate
+                                                  {
+                                                      return 1;
+                                                  },
+                                                  2,
+                                                  3);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

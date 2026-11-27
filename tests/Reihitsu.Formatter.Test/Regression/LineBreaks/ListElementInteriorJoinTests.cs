@@ -1716,9 +1716,9 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
                                     internal void M()
                                     {
                                         N(delegate(int x)
-                                        {
-                                            return x;
-                                        });
+                                          {
+                                              return x;
+                                          });
                                     }
                                 }
                                 """;
