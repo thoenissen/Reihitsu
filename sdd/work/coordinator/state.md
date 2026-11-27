@@ -38,6 +38,7 @@ Notes for the runs (evidence in the batch file, not decided): #1567 narrows to a
 
 ## Status
 
+Status 2026-11-27 (v): triage of #1970 #1971 #1972 #1977 #1978 started; assessment delegated (`inventory/triage-2026-11-27.md`, main at 4bbb3ceb). Nothing asked yet. Side find: PRs #1965–#1969 #1973–#1976 merged since the last batch — batch after the triage answer.
 Status 2026-11-26 (u): a second, independent re-check (same main 68f236ea) overwrote `inventory/batch-2026-11-26.md`; the first version is in commit 21340085. It confirms the start-now set and the after-merge list; it finds the `PrecheckPhase.cs` overlap with #1963 only if #1567 is answered A, and a possible `sdd/specs/README.md` overlap of #1771 with #1090 only if escalation 9 adds a new type (a guess, so they stay parallel). Plan unchanged.
 Status 2026-11-26 (t): batch finished — merges #1944 #1951–#1955 #1964 read (#1926 #1943 #1722 #1925 #1275 #1837 done; #1472 closed by the maintainer); graph rebuilt (`inventory/batch-2026-11-26.md`, main at 68f236ea); #1771 joins the start-now set (10 runs); `#1568 #1698 #1567` now wait for #1956 #1958 #1963 and #1912; #1087 #1088 also wait for #1771.
 Status 2026-11-26 (s): 3C, 4A recorded (maintainer asked about the blank line in 4A: FMT-BLANK-011 keeps it, applied so); commented on #1960 #1959. Batch started: merges #1944 #1951–#1955 #1964 read, no PR open; re-check of `#1568 #1698 #1567`, #1771, #1589 and the start-now conflicts delegated (`inventory/batch-2026-11-26.md`).
