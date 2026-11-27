@@ -1271,7 +1271,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
     }
 
     /// <summary>
-    /// Verifies that a file whose statements stand only inside a method of its first type is checked, and is not reported when that type matches the file name
+    /// Verifies that a file whose statements stand only inside a method of its first type, and not at the top level, is not reported when that type matches the file name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1283,6 +1283,7 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                                 {
                                     private static void Main()
                                     {
+                                        System.Console.WriteLine();
                                     }
                                 }
 
