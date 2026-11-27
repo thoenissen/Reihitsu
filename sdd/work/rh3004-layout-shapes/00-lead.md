@@ -37,4 +37,5 @@
 - Done: spec author (01, 3187ae8). Architecture test red until a test tagged RH3004-011 exists.
 - Done: skeptic (02, 137b857): proceed, no output questions, two spec amendments.
 - Done: spec author amendment (03, 8657581). No output questions, no change doc: no batch stop.
-- Next: test implementer (04).
+- Done: test implementer (04, 7cad0b5): 15 tests, all green on unchanged code.
+- Next: cleaner (05).
