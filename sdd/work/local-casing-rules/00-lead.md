@@ -18,6 +18,11 @@ Recorded before this run, in the issues (summarized):
 - #1088 (2026-11-21 comment): local constants follow **camelCase** (replaces the PascalCase starting point). `const int maxValue = 3;` not reported; `const int MaxCount = 5;` reported. Rule ID: the next free number in RH41xx. Release coordinated with #1087 so local constants are checked by exactly one rule. Fix only if comprehensive.
 - #1978 (2026-11-27 comment): option A — RH4105 reports query range variables (`from`, `let`, `into`, `join` identifiers) that are not camelCase; its title and message widen to cover them (e.g. "Parameter and query range variable names should be in camelCase"). Rename fix offered only if shown comprehensive and safe for range variables; otherwise no fix. `_` stays unreported.
 
+- Batch 1 (2026-11-27), maintainer answered "as recommended" = **1B, 2A, 3B**:
+  - 1B: RH4117 reports every variable that receives a whole element of a positional pattern (`(var Third, int Fourth)`, `(int Number and > 0, _)`, `(string { Length: > 0 } Text, _)`, `({ } Any, _)`); RH4115 keeps only a variable receiving a property of an element (`Size` in `(string { Length: var Size }, _)`). Fix result unchanged (camelCase rename).
+  - 2A: `const int _ = 1;` is not reported (RH4128 exempts `_`).
+  - 3B: every casing fix (RH4105, RH4106, RH4115, RH4117, RH4128) keeps an anonymous-object member name explicit when the renamed name is the member's whole expression: `Select(Value => new { Value })` → `Select(value => new { Value = value })`; `from Value in values select new { Value }` → `from value in values select new { Value = value }`.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -34,6 +39,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: skeptic done (aa6f3222). Batch 1 output questions posted: Q1 positional/element subpatterns to RH4117, Q2 RH4128 `_`, Q3 anonymous-member rename. Waiting for answers.
+- Last step: batch 1 answered (1B, 2A, 3B). Next: fresh spec author amends specs/change docs (answers + decision 5), sets Status Accepted; then test implementer.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
