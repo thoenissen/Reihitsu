@@ -36,4 +36,5 @@
 - Maintainer answered B (main-session deny list).
 - Done: implementer 02 (adb377d, 7625038).
 - Done: cleaner (34f452b, clean).
-- Next: spec checker (04-spec-checker.md).
+- Done: spec checker (6da6468, consistent).
+- Next: auditor (05-auditor.md).
