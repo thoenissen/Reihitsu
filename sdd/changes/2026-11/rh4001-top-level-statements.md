@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH4001-001, RH4001-007 |
 
@@ -58,6 +58,10 @@ internal class Helper
 The rule page does not change: it describes the normal case, a file that declares types, and a file of top-level statements is an exception the page does not list.
 
 ## Decisions
+
+### The maintainer decided the visible output change
+
+The maintainer decided that a file with top-level statements is not reported, in question round 3 of #1011 (Q3, option a, 2026-10-18), tracked as #1086.
 
 ### The whole file is exempt, not only the types next to the statements
 
