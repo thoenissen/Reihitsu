@@ -38,5 +38,5 @@
 
 ## State
 
-- First audit: 369a7ae (base 0feb518), findings (08). Repair round 1: 09–13 done (cleaner 5feadea, spec checker a03be3b consistent).
-- Next: auditor on the repair only, then validator.
+- Audited SHA: fa2ba0f829803d18c2367f09bc5a15b15060a798 (base 0feb518), repair audit pass (14-auditor.md, b5b1095); finding #1 closed. Repair rounds used: 1.
+- Next: validator, then lane check, issue manager (apply-fix.sh candidate), note, publish.
