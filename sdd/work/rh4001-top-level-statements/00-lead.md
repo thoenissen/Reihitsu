@@ -13,12 +13,14 @@
 
 ## Maintainer answers
 
-(none yet)
+- Visible output change of the change doc (a file with top-level statements is no longer reported by RH4001, no fix offered): already decided by the maintainer in question round 3 on thoenissen/Reihitsu#1011 (Q3, decision comment 2026-10-18), tracked as #1086. Not re-asked.
 
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | Ask the change doc's visible output change again? | No; treat the #1011 Q3 decision as the maintainer answer | The decision comment on #1011 names exactly this behavior | The maintainer decided it | 7411541 |
+| 2 | spec author | Change the rule page? | No | The exception is narrow; spec author's choice; spec checker will verify | Rule page unchanged | 7411541 |
 
 ## Follow-up candidates
 
@@ -26,5 +28,5 @@
 
 ## State
 
-- Last step finished: claim, draft PR, prepare.
-- Next step: spawn spec author.
+- Last step finished: spec author (01, commit 7411541), lane check confirmed, pushed.
+- Next step: skeptic.
