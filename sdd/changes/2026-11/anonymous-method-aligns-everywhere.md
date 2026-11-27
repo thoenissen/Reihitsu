@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-INDENT-031 (changed) |
+| Affected requirements | FMT-INDENT-031 (changed), examples of FMT-BREAK-011, FMT-BREAK-041, and FMT-BREAK-044 (the anonymous method's block under `delegate`) |
 | Depends on | [Parenthesized lambdas keep their line, and an anonymous method in a raw-string hole aligns like a block lambda](lambda-paren-hole-break.md) |
 
 ## What
@@ -336,13 +336,18 @@ After — each block under its `delegate`, in the column a block lambda in the s
 
 ### Code-fix results
 
-Every code fix that formats a node holding an anonymous method whose block starts a line gives the new layout. Checked with `scripts/apply-fix.sh`:
+Every code fix that formats a node holding an anonymous method whose block starts a line gives the new layout. The results of RH5101, RH5102, RH5111, and RH5205 were checked with `scripts/apply-fix.sh`; those of RH5201, RH5112, RH3202, and the RH5417 formatter result are the outputs the existing tests asserted, and passed with, before this change:
 
 - RH5101 on `return M(⏎    delegate { return 1; }, 2);` gives today `return M(delegate` with the block in column 16, one column left of `delegate` and neither the scope depth nor the anchor, and `2);` in column 17; after this change the block stands in column 17, under `delegate`.
 - RH5102 on `return M(delegate { return 1; },⏎    2, 3);` gives the same block in column 16 today, and in column 17 after this change.
 - RH5111 on `g =⏎    delegate { return 1; };` gives `g = delegate` with the block in the statement's column 8 today, and in column 12, under `delegate`, after this change.
 - RH5111 on `var d1 = new D { F =⏎    delegate { return 1; } };` gives today `var d1 = new D { F = delegate` with the block in column 25, under `F`, closed by `} };`; after this change the block stands in column 29, under `delegate`.
 - RH5205 on a misaligned block lambda whose body holds `return M(delegate { return 1; });` gives the anonymous method's block at the scope depth inside the lambda's body today, and under `delegate` after this change.
+- RH5201 (method chains aligned) on a chain statement `b.A(delegate⏎{ M(b); })⏎.C() ;` whose misaligned `.C()` it aligns gives today the block in the statement's column, the column of `b`, and after this change under `delegate`, four columns right of `b` — in each case the fix formats: the statement at its depth (block from column 8 to 12), indented two columns off its depth (10 to 14), and in a file indented by two spaces (4 to 8). The chain, the blank lines in front of the statement, and the space in front of its `;` are unchanged.
+- RH5112 (first fluent call kept on the original line) on `b⏎  .A(delegate⏎{ M(b); }) ;` joins `.A` onto `b` and gives today the block in the column of `b`, and after this change under `delegate`: with the statement indented two columns off its depth, column 10 to 14, and in a file indented by two spaces, column 4 to 8.
+- RH3202 (expression-style methods) on `string M() => $"a {F(delegate { return 1; })} b";`, with C# 11 or later, gives the block body `return $"a {F(delegate` with the anonymous method's block in the statement's column 8 today, and in column 22, under `delegate`, after this change. Under C# 10 the anonymous method stays on one line (FMT-BREAK-044), before and after.
+
+The formatter's own result changes in the same way where an analyzer's formatter parity is checked: the formatter fixes the RH5417 report on `System.Func<int, int> Anonymous = delegate(int item) { return item; };` by breaking the braces onto their own lines, with the block in the field's column 4 today and in column 38, under `delegate`, after this change, as the simple and the parenthesized lambda next to it already align.
 
 No rule page changes: RH5205, which reports misaligned lambda braces, leaves anonymous methods out by its non-goal, and RH5204 does not check the lines of an anonymous method's block; neither reports the new layout.
 
