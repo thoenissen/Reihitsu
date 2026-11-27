@@ -29,6 +29,8 @@
 | 11 | Before tests | Output-question batch | No stop: no visible output change listed, no question raised | — | — | — |
 | 12 | Test implementer | Pinned outputs of the passing RH3004/RH3208 fix cells (C# 11, `$@"`, contains-a-string, expression path) | Accept: they pin today's output on cells this run does not change | Characterize unchanged behavior | Outputs equal `main` | a3674ac |
 | 13 | Implementer | Two Fix All tests fail on verifier markup handling, not on production code | Route to a fresh test implementer: set `MarkupHandling = MarkupMode.Allow` on fixed and batch-fixed states (as the RH8204/RH8309 tests do); no assertion changes | Asserted output matches spec; test mechanics only | No asserted output changes | 5668948 |
+| 14 | Auditor (08) | Finding #1: RH3004 expression path writes CS8967 code inside a C# ≤10 `$"` hole (detached node-level target, FC-028/FC-044) | Refuse by cause: withhold RH3004's fix on both paths whenever the fixed anonymous method lies inside such a hole; amend RH3004-010, convert the expression-path test to a no-fix test, add a brace-construct no-fix case. Supersedes decision 9. Repair round 1: spec author → test implementer → implementer → cleaner → spec checker → auditor (repair only) → validator | README *Architecture findings*: refuse the class by its cause, not by cells; a narrower guard would predict the formatter's layout | Withholding a fix for a rare input class (anonymous method inside an interpolation hole, C# ≤10) puts nothing in question | — |
+| 15 | Auditor (08) | Hint: eight older test classes keep their own language-version transform | Dropped: not a defect, test-only duplication outside the run's scope | Not worth an issue on its own | Internal | — |
 
 ## Follow-up candidates
 
@@ -36,5 +38,6 @@
 
 ## State
 
-- Last step: spec checker (07-spec-checker.md, consistent, 946c73a). Main not ahead; Release build green.
-- Next: auditor.
+- Audited SHA: 369a7ae15a94c660921e6060f354e54d5cb1bfcc (base 0feb518), verdict findings (08-auditor.md, d49be0c).
+- Repair round 1 open worklist: finding #1 (decision 14).
+- Next: spec author (amend RH3004-010).
