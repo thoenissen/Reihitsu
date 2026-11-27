@@ -1986,7 +1986,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTes
     private static DiagnosticResult LineLimit(int markupKey, int count, int limit)
     {
         return Diagnostic(RH2008MethodsShouldNotExceedTheLineLimitAnalyzer.DiagnosticId).WithLocation(markupKey, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                        .WithMessage($"This member has {count} lines of code, which exceeds the limit of {limit}.");
+                                                                                        .WithMessage(string.Format(MessageFormat, count, limit));
     }
 
     /// <summary>

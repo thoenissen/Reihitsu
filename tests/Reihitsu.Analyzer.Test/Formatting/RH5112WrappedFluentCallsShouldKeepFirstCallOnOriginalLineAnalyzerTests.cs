@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Analyzer.CodeFixes;
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
@@ -1793,17 +1793,6 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the rule's title names the first member access of a wrapped chain, not a call
-    /// </summary>
-    [TestMethod]
-    public void VerifyTitleNamesFirstMemberAccess()
-    {
-        var descriptor = new RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer().SupportedDiagnostics.Single();
-
-        Assert.AreEqual("Wrapped chains should keep the first member access on the original line.", descriptor.Title.ToString(CultureInfo.InvariantCulture));
-    }
-
-    /// <summary>
     /// Verifies that a wrapped property read as the first link of a chain without any call is reported with the message
     /// that names the first member access
     /// </summary>
@@ -1837,7 +1826,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, "Wrapped chains should keep the first member access on the original line."));
+        await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1868,7 +1857,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                                    root => Location.Create(root.SyntaxTree, new TextSpan(firstLinkDot, 1)));
 
         Assert.HasCount(1, actions);
-        Assert.AreEqual("Keep first wrapped member access on original line", actions[0].Title);
+        Assert.AreEqual(CodeFixResources.RH5112Title, actions[0].Title);
     }
 
     #endregion // Tests

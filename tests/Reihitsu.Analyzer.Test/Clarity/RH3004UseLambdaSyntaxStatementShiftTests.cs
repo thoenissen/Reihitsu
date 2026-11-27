@@ -1243,7 +1243,7 @@ public class RH3004UseLambdaSyntaxStatementShiftTests : BatchCodeFixTestsBase<RH
         // Verifying anonymous methods nested in expressions are reported and fixed
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2),
+                                  Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, MessageFormat, 2),
                                   config => config.NumberOfFixAllIterations = 1);
     }
 

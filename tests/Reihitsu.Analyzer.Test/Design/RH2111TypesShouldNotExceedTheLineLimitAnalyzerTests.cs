@@ -882,7 +882,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzerTests : AnalyzerTests
     private static DiagnosticResult LineLimit(int markupKey, int count, int limit)
     {
         return Diagnostic(RH2111TypesShouldNotExceedTheLineLimitAnalyzer.DiagnosticId).WithLocation(markupKey, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                      .WithMessage($"This type has {count} lines of code, which exceeds the limit of {limit}.");
+                                                                                      .WithMessage(string.Format(MessageFormat, count, limit));
     }
 
     /// <summary>
