@@ -63,23 +63,25 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     }
 
     /// <summary>
-    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// Verifies that a block whose excluded conditional group lies between two directives is reported as the build compiles it,
+    /// without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7202-001")]
+    [Requirement("RH7202-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    public async Task DisabledConditionalUsingBlockIsReportedWithoutCodeFix()
     {
         const string testCode = """
-                                using TextAlias = System.String;
+                                using {|RH7202:TextAlias|} = System.String;
                                 #if FEATURE
                                 using System.Text;
                                 #endif
                                 using System;
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -126,16 +128,18 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     }
 
     /// <summary>
-    /// Verifies that a block containing a preprocessor directive is not reported
+    /// Verifies the specification example: a block containing a preprocessor directive is reported in a build that does not
+    /// define the conditional symbol, without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7202-001")]
+    [Requirement("RH7202-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    public async Task BlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
     {
         const string testCode = """
-                                using A = System.Text;
+                                using {|RH7202:A|} = System.Text;
                                 #if DEBUG
                                 using System.Diagnostics;
                                 #endif
@@ -146,7 +150,31 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block holding a <c>#region</c> directive is reported, without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7202-001")]
+    [Requirement("RH7202-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithRegionDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using {|RH7202:A|} = System.Text;
+                                #region Imports
+                                using System;
+                                #endregion
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>

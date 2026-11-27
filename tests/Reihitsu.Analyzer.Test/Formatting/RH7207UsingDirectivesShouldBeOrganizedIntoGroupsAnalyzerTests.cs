@@ -126,13 +126,14 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a region directive exempts a using block that cannot be safely reordered
+    /// Verifies that a block holding a <c>#region</c> directive whose directives are in canonical order is not reported for the
+    /// missing blank line between its groups
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7207-001")]
     [Requirement("SHARED-USING-009")]
-    public async Task NoDiagnosticWhenRegionDirectivePreventsSafeReordering()
+    public async Task BlockWithRegionDirectiveInCanonicalOrderIsNotReportedForItsBlankLines()
     {
         const string testCode = """
                                 using System;
@@ -954,23 +955,25 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// Verifies that a block whose excluded conditional group lies between two directives is reported as the build compiles it,
+    /// without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    public async Task DisabledConditionalUsingBlockIsReportedWithoutCodeFix()
     {
         const string testCode = """
-                                using System.Text;
+                                using {|RH7207:System.Text|};
                                 #if FEATURE
                                 using System.Web;
                                 #endif
                                 using System;
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -1168,16 +1171,18 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a block containing a preprocessor directive is not reported
+    /// Verifies the specification example: a block containing a preprocessor directive whose order differs from the canonical
+    /// order is reported in a build that does not define the conditional symbol, without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    public async Task BlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
     {
         const string testCode = """
-                                using System.Linq;
+                                using {|RH7207:System.Linq|};
                                 #if DEBUG
                                 using System.Diagnostics;
                                 #endif
@@ -1188,7 +1193,297 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive whose order differs from the canonical order is reported once
+    /// in a build that defines the conditional symbol, without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-003")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithCompiledConditionalGroupIsReportedOnceWithoutCodeFix()
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, null, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a block containing a preprocessor directive in canonical order is not reported for
+    /// the missing blank line in front of a new group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveInCanonicalOrderIsNotReportedForAMissingBlankLine()
+    {
+        const string testCode = """
+                                using System;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive in canonical order is not reported for the missing blank line
+    /// in front of a new group in a build that compiles the conditional group either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithCompiledConditionalGroupInCanonicalOrderIsNotReportedForAMissingBlankLine()
+    {
+        const string testCode = """
+                                using System;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyWithPreprocessorSymbols(testCode, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive in canonical order is not reported for blank lines inside a
+    /// group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveInCanonicalOrderIsNotReportedForABlankLineInsideAGroup()
+    {
+        const string testCode = """
+                                using System;
+
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block containing a preprocessor directive whose order and blank lines both differ from the organized
+    /// block is reported once, without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-003")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockWithPreprocessorDirectiveOutOfOrderAndWithoutBlankLineIsReportedOnceWithoutCodeFix()
+    {
+        const string testCode = """
+                                using {|RH7207:Microsoft.Win32|};
+                                #region Imports
+                                using System;
+                                #endregion
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma</c> directive between the tokens of a using directive makes the block unsafe, so its order is
+    /// reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task PragmaBetweenTokensOfDirectiveIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                using {|RH7207:System.Linq|};
+                                using System
+                                #pragma warning disable CS0105
+                                    .Text;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group at the end of a block is compared with the rest of the block in a build that defines
+    /// the symbol, so the block is reported without a code fix, whether a blank line separates its groups or not
+    /// </summary>
+    /// <param name="blankLine">Text between the first two directives</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("")]
+    [DataRow("\n")]
+    public async Task CompiledConditionalGroupAtTheEndOfTheBlockIsReportedWithoutCodeFix(string blankLine)
+    {
+        var testCode = $$"""
+                         using {|RH7207:System|};
+                         {{blankLine}}using Microsoft.Win32;
+                         #if DEBUG
+                         using System.Diagnostics;
+                         #endif
+
+                         class C
+                         {
+                             int x;
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group at the end of a block that the build excludes belongs to the next declaration, so the
+    /// missing blank line in front of a new group is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task ExcludedConditionalGroupAtTheEndOfTheBlockDoesNotPreventReportAndFix()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+                                using Microsoft.Win32;
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using Microsoft.Win32;
+                                 #if DEBUG
+                                 using System.Diagnostics;
+                                 #endif
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that alternative usings of an <c>#if</c>/<c>#else</c> group are judged as the build compiles them: in the build
+    /// that compiles the first alternative, the block's order differs from the canonical order and is reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task ConditionalAlternativeOutOfOrderInTheCompiledBuildIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+                                #if NETFRAMEWORK
+                                using Newtonsoft.Json;
+                                #else
+                                using System.Text.Json;
+                                #endif
+                                using Microsoft.Extensions.Logging;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None, "NETFRAMEWORK");
+    }
+
+    /// <summary>
+    /// Verifies that alternative usings of an <c>#if</c>/<c>#else</c> group are judged as the build compiles them: in the build
+    /// that compiles the second alternative, the block is in canonical order and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task ConditionalAlternativeInOrderInTheCompiledBuildIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                #if NETFRAMEWORK
+                                using Newtonsoft.Json;
+                                #else
+                                using System.Text.Json;
+                                #endif
+                                using Microsoft.Extensions.Logging;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     /// <summary>
@@ -1660,16 +1955,19 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies that a block whose first directive is led by a nullable directive is not reported
+    /// Verifies the specification example: a <c>#nullable</c> directive in front of the first directive makes the block unsafe,
+    /// so its order is reported without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockLedByANullableDirectiveIsNotReported()
+    public async Task BlockLedByANullableDirectiveIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 #nullable enable
-                                using System.Linq;
+                                using {|RH7207:System.Linq|};
                                 using System;
 
                                 class C
@@ -1678,7 +1976,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>

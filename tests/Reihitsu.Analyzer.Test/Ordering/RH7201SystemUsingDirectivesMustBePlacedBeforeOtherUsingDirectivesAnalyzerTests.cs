@@ -211,27 +211,29 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     /// <summary>
-    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// Verifies that a block whose excluded conditional group lies between two directives is reported as the build compiles it,
+    /// without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    public async Task DisabledConditionalUsingBlockIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 using Alpha;
                                 #if FEATURE
                                 using System.Text;
                                 #endif
-                                using System;
+                                using {|RH7201:System|};
 
                                 namespace Alpha
                                 {
                                 }
                                 """;
 
-        await Verify(testCode);
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
@@ -347,27 +349,82 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     }
 
     /// <summary>
-    /// Verifies that a block containing a preprocessor directive is not reported
+    /// Verifies the specification example: a block containing a preprocessor directive is reported in a build that does not
+    /// define the conditional symbol, without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockWithPreprocessorDirectiveIsNotReported()
+    public async Task BlockWithPreprocessorDirectiveIsReportedWithoutCodeFix()
     {
         const string testCode = """
                                 using Microsoft.CodeAnalysis;
                                 #if DEBUG
                                 using System.Diagnostics;
                                 #endif
-                                using System;
+                                using {|RH7201:System|};
 
                                 class C
                                 {
                                 }
                                 """;
 
-        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+        await VerifyNoCodeFixIsOffered(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a System directive inside a conditional group at the end of a block is compared with the rest of the
+    /// block in a build that defines the symbol, and reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task CompiledConditionalSystemDirectiveAtTheEndOfTheBlockIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                using System;
+                                using Microsoft.Win32;
+                                #if DEBUG
+                                using {|RH7201:System.Diagnostics|};
+                                #endif
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#define</c> directive in front of the block makes it unsafe and defines the symbol of a conditional
+    /// group at its end, whose System directive is then reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockLedByADefineDirectiveIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                #define FEATURE
+                                using System;
+                                using Microsoft.Win32;
+                                #if FEATURE
+                                using {|RH7201:System.Diagnostics|};
+                                #endif
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     /// <summary>
