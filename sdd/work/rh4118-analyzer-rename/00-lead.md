@@ -28,4 +28,5 @@ None.
 ## Worklist
 
 - Done: spec author (01, dfcde82), skeptic (02, 2a72660: proceed).
-- Next: implementer (03).
+- Done: implementer (03, 22df74d), cleaner (04), spec checker (05), auditor (06, passed; audited SHA fa81a0dd04f07218ee4b40ef9a432d48786bf398).
+- Next: validator (07), then publish.
