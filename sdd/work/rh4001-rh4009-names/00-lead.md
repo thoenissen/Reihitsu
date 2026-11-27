@@ -22,7 +22,7 @@
 | 4 | Spec author | "Nested" = block-scoped inside block-scoped only | Accept | Mixed file-scoped/block-scoped does not compile; no caller reaches it | Not reachable | 9de335e |
 | 5 | Spec author | Rule-page sentences added on both pages | Accept | One sentence each, restates the maintainer's decisions | Covered by maintainer answers 1–2 | 9de335e |
 | 6 | Spec author | RH4001-006 collision check follows the new name (prefixed target) | Accept | Direct consequence of answer 1: the collision is checked on the name the fix writes | Covered by answer 1 | 9de335e |
-| 7 | Skeptic | EF Core rationale in RH4001-008 `Why`, change doc `Why`, and rule page is false (EF orders by `[Migration]` ID, not file name) | Spec author rewords spec and change doc to the true reason; the rule-page sentence states only the behavior (the fix keeps the prefix), with no rationale about migration order | Fix a false statement; behavior unchanged | Behavior is answer 1; rule page then only restates answer 1 | (pending) |
+| 7 | Skeptic | EF Core rationale in RH4001-008 `Why`, change doc `Why`, and rule page is false (EF orders by `[Migration]` ID, not file name) | Spec author rewords spec and change doc to the true reason; the rule-page sentence states only the behavior (the fix keeps the prefix), with no rationale about migration order | Fix a false statement; behavior unchanged | Behavior is answer 1; rule page then only restates answer 1 | 48a1ecf |
 | 8 | Skeptic | Prefix digits in the fix | Fix keeps exactly what the analyzer strips (same digit test) | Analyzer and fix must agree; non-ASCII digits are rare | No spec change; converges | (implementer) |
 
 ## Follow-up candidates
@@ -34,4 +34,5 @@
 - Done: claim, draft PR #1986, prepare.sh.
 - Done: spec author (01), change doc `sdd/changes/2026-11/rh4001-rh4009-names.md` Draft; its visible output changes are covered by maintainer answers 1–2 → no output-question stop.
 - Done: skeptic (02, b884bf7) — proceed; no output questions, no follow-ups.
-- Next: spec author amendment (decision 7), then test implementer.
+- Done: spec author amendment (03, 48a1ecf); change doc Accepted.
+- Next: test implementer.
