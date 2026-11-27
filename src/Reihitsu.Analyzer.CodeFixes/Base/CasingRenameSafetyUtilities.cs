@@ -554,9 +554,9 @@ internal static class CasingRenameSafetyUtilities
     /// <param name="identifier">New name</param>
     /// <returns><see langword="true"/> when every other token stays as written; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// An identifier that carries an old name matches the first identifier spelled with the new name or with its own
-    /// name, behind a qualifier the renamer may put in front of it: a name, <c>this</c>, <c>base</c>, or <c>global</c>,
-    /// with type arguments, ending in <c>.</c> or <c>::</c>
+    /// An identifier that carries an old name matches an identifier spelled with the new name or with its own name,
+    /// either in the same place or as the name of a qualifier the renamer may put in front of it, which
+    /// <see cref="FindQualifiedName"/> reads from the syntax of the renamed tree
     /// </remarks>
     private static bool OnlyRenamesOrQualifies(List<SyntaxToken> originalTokens, List<SyntaxToken> renamedTokens, ImmutableHashSet<string> oldNames, string identifier)
     {
@@ -607,30 +607,80 @@ internal static class CasingRenameSafetyUtilities
     /// <param name="oldName">Old name the reference carries</param>
     /// <param name="identifier">New name</param>
     /// <returns>The index of the renamed identifier, or <c>-1</c> when the tokens are no such reference</returns>
+    /// <remarks>
+    /// The qualifier is read from the syntax of the renamed tree: the token at <paramref name="startIndex"/> has to be
+    /// the identifier itself, or the first token of the left side of the innermost member access, qualified name,
+    /// alias-qualified name, or qualified cref that starts with it and whose name is the identifier. That left side
+    /// has to be <c>this</c>, <c>base</c>, or a name or type, whatever type arguments it holds
+    /// </remarks>
     private static int FindQualifiedName(List<SyntaxToken> renamedTokens, int startIndex, string oldName, string identifier)
     {
-        var nameIndex = startIndex;
-
-        while (nameIndex < renamedTokens.Count
-               && IsNameOf(renamedTokens[nameIndex], oldName, identifier) == false
-               && IsQualifierToken(renamedTokens[nameIndex]))
-        {
-            nameIndex++;
-        }
-
-        if (nameIndex >= renamedTokens.Count
-            || IsNameOf(renamedTokens[nameIndex], oldName, identifier) == false)
+        if (startIndex >= renamedTokens.Count)
         {
             return -1;
         }
 
-        if (nameIndex > startIndex
-            && renamedTokens[nameIndex - 1].Kind() is not (SyntaxKind.DotToken or SyntaxKind.ColonColonToken))
+        var firstToken = renamedTokens[startIndex];
+
+        if (IsNameOf(firstToken, oldName, identifier))
+        {
+            return startIndex;
+        }
+
+        var nameToken = default(SyntaxToken);
+
+        foreach (var node in firstToken.Parent.AncestorsAndSelf())
+        {
+            if (node.GetFirstToken() != firstToken)
+            {
+                break;
+            }
+
+            var (qualifier, name) = GetQualifierAndName(node);
+
+            if (name != null
+                && IsNameOf(name.Identifier, oldName, identifier))
+            {
+                if (qualifier is ThisExpressionSyntax or BaseExpressionSyntax or TypeSyntax)
+                {
+                    nameToken = name.Identifier;
+                }
+
+                break;
+            }
+        }
+
+        if (nameToken == default)
         {
             return -1;
         }
 
-        return nameIndex;
+        for (var nameIndex = startIndex + 1; nameIndex < renamedTokens.Count; nameIndex++)
+        {
+            if (renamedTokens[nameIndex] == nameToken)
+            {
+                return nameIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Gets the left side and the name of a member access, qualified name, alias-qualified name, or qualified cref
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns>The left side and the name, or <see langword="null"/> for both when the node is none of these</returns>
+    private static (SyntaxNode Qualifier, SimpleNameSyntax Name) GetQualifierAndName(SyntaxNode node)
+    {
+        return node switch
+               {
+                   MemberAccessExpressionSyntax memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression) => (memberAccess.Expression, memberAccess.Name),
+                   QualifiedNameSyntax qualifiedName => (qualifiedName.Left, qualifiedName.Right),
+                   AliasQualifiedNameSyntax aliasQualifiedName => (aliasQualifiedName.Alias, aliasQualifiedName.Name),
+                   QualifiedCrefSyntax { Member: NameMemberCrefSyntax { Name: SimpleNameSyntax name } } qualifiedCref => (qualifiedCref.Container, name),
+                   _ => (null, null),
+               };
     }
 
     /// <summary>
@@ -645,25 +695,6 @@ internal static class CasingRenameSafetyUtilities
         return token.IsKind(SyntaxKind.IdentifierToken)
                && (string.Equals(token.ValueText, identifier, StringComparison.Ordinal)
                    || string.Equals(token.ValueText, oldName, StringComparison.Ordinal));
-    }
-
-    /// <summary>
-    /// Determines whether a token can be part of a qualifier the renamer puts in front of a renamed reference
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns><see langword="true"/> when the token can be part of such a qualifier; otherwise, <see langword="false"/></returns>
-    private static bool IsQualifierToken(SyntaxToken token)
-    {
-        return token.Kind() is SyntaxKind.IdentifierToken
-                            or SyntaxKind.ThisKeyword
-                            or SyntaxKind.BaseKeyword
-                            or SyntaxKind.GlobalKeyword
-                            or SyntaxKind.DotToken
-                            or SyntaxKind.ColonColonToken
-                            or SyntaxKind.LessThanToken
-                            or SyntaxKind.GreaterThanToken
-                            or SyntaxKind.CommaToken
-               || SyntaxFacts.IsPredefinedType(token.Kind());
     }
 
     /// <summary>
