@@ -504,5 +504,225 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
         await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
     }
 
+    /// <summary>
+    /// Verifies single-letter receivers of an extension block and of a generic extension block are reported like the <c>this</c> parameter of an extension method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-004")]
+    public async Task SingleLetterExtensionBlockReceiversAreReported()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(string {|RH4122:t|})
+                                    {
+                                        public bool IsBlank => t.Length == 0;
+                                    }
+
+                                    extension<T>(T[] {|RH4122:a|})
+                                    {
+                                        public int Size => a.Length;
+                                    }
+
+                                    public static int Square(this int {|RH4122:s|}) => s * s;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a receiver without a name and a receiver with a longer name are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-004")]
+    public async Task UnnamedAndLongerNamedExtensionBlockReceiversAreNotReported()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(int)
+                                    {
+                                        public static int Zero => 0;
+                                    }
+
+                                    extension(long value)
+                                    {
+                                        public long Twice() => value * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a generic extension block whose receiver has no name is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-004")]
+    public async Task UnnamedReceiverOfGenericExtensionBlockIsNotReported()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension<T>(T[])
+                                    {
+                                        public static T[] Empty => [];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the receiver of an extension block with several members is reported once, next to the single-letter parameters of its members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-004")]
+    public async Task ExtensionBlockReceiverIsReportedOncePerBlock()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(string {|RH4122:t|})
+                                    {
+                                        public bool IsBlank => t.Length == 0;
+
+                                        public int Length => t.Length;
+
+                                        public void Append(int {|RH4122:a|})
+                                        {
+                                        }
+
+                                        public static void Create(int {|RH4122:b|})
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies single-letter receivers with <c>ref</c>, <c>in</c>, a nullable type, and an attribute are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-004")]
+    public async Task SingleLetterReceiversWithModifiersAndAttributesAreReported()
+    {
+        const string testCode = """
+                                #nullable enable
+
+                                using System.Diagnostics.CodeAnalysis;
+
+                                public static class E
+                                {
+                                    extension(ref int {|RH4122:r|})
+                                    {
+                                        public void Increment() => r++;
+                                    }
+
+                                    extension(in long {|RH4122:l|})
+                                    {
+                                        public long Twice => l * 2;
+                                    }
+
+                                    extension([AllowNull] string {|RH4122:s|})
+                                    {
+                                        public bool HasValue => s is not null;
+                                    }
+
+                                    extension(int? {|RH4122:n|})
+                                    {
+                                        public int Value => n ?? 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies uppercase, verbatim, and non-ASCII single-letter receivers are reported, while a discard and a longer name are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-SINGLE-001")]
+    [Requirement("RH4122-004")]
+    public async Task SingleLetterReceiverIsOneCharacterOtherThanUnderscore()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(double {|RH4122:D|})
+                                    {
+                                        public double Half => D / 2;
+                                    }
+
+                                    extension(object {|RH4122:@o|})
+                                    {
+                                        public object Self => @o;
+                                    }
+
+                                    extension(char {|RH4122:é|})
+                                    {
+                                        public char Same => é;
+                                    }
+
+                                    extension(decimal value)
+                                    {
+                                        public decimal Negated => -value;
+                                    }
+                                }
+
+                                public static class H
+                                {
+                                    extension(string _)
+                                    {
+                                        public static int Zero => 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the receivers of extension blocks in both parts of a partial static class are each reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4122-004")]
+    public async Task ExtensionBlockReceiversInEachPartOfPartialClassAreReported()
+    {
+        const string testCode = """
+                                public static partial class G
+                                {
+                                    extension(byte {|RH4122:x|})
+                                    {
+                                        public byte Identity => x;
+                                    }
+                                }
+
+                                public static partial class G
+                                {
+                                    extension(byte {|RH4122:y|})
+                                    {
+                                        public byte Copy => y;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

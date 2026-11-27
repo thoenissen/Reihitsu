@@ -106,7 +106,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4121](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4121.md)| Type parameter names should start with an uppercase 'T'.| ✔| ✔| ❌|
 | [RH4122](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4122.md)| Single-letter parameter names should not be used.| ✔| ❌| ❌|
 | [RH4123](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4123.md)| Single-letter local function parameter names should not be used.| ✔| ❌| ❌|
-| [RH4124](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4124.md)| Single-letter lambda and anonymous method parameter names should not be used.| ✔| ❌| ❌|
+| [RH4124](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4124.md)| Single-letter lambda, anonymous method, and query range variable names should not be used.| ✔| ❌| ❌|
 | [RH4125](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4125.md)| Single-letter local variable names should not be used.| ✔| ❌| ❌|
 | [RH4126](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4126.md)| Single-letter foreach iteration variable names should not be used.| ✔| ❌| ❌|
 | [RH4127](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4127.md)| Single-letter catch exception variable names should not be used.| ✔| ❌| ❌|

@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// Analyzer for single-letter method, constructor, and indexer parameter names
+/// Analyzer for single-letter method, constructor, indexer, and extension block receiver parameter names
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH4122SingleLetterParameterNamesAnalyzer : DiagnosticAnalyzerBase
@@ -51,7 +51,8 @@ public class RH4122SingleLetterParameterNamesAnalyzer : DiagnosticAnalyzerBase
                                            and not MethodKind.AnonymousFunction;
         }
 
-        return parameterSymbol.ContainingSymbol is IPropertySymbol { IsIndexer: true };
+        return parameterSymbol.ContainingSymbol is IPropertySymbol { IsIndexer: true }
+                                                or INamedTypeSymbol { IsExtension: true };
     }
 
     /// <summary>

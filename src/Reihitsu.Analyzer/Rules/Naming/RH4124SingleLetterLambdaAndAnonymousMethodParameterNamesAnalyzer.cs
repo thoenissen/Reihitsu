@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// Analyzer for single-letter lambda and anonymous method parameter names
+/// Analyzer for single-letter lambda parameter, anonymous method parameter, and query range variable names
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer : DiagnosticAnalyzerBase
@@ -56,6 +56,28 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer : 
         }
     }
 
+    /// <summary>
+    /// Analyzes a query clause or query continuation that declares a range variable
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnRangeVariableDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        var identifier = context.Node switch
+                         {
+                             FromClauseSyntax fromClause => fromClause.Identifier,
+                             LetClauseSyntax letClause => letClause.Identifier,
+                             JoinClauseSyntax joinClause => joinClause.Identifier,
+                             JoinIntoClauseSyntax joinIntoClause => joinIntoClause.Identifier,
+                             QueryContinuationSyntax queryContinuation => queryContinuation.Identifier,
+                             _ => default
+                         };
+
+        if (SingleLetterIdentifierUtilities.HasSingleLetterName(identifier.ValueText))
+        {
+            context.ReportDiagnostic(CreateDiagnostic(identifier.GetLocation()));
+        }
+    }
+
     #endregion // Methods
 
     #region DiagnosticAnalyzer
@@ -66,6 +88,12 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer : 
         base.Initialize(context);
 
         context.RegisterSyntaxNodeAction(OnParameter, SyntaxKind.Parameter);
+        context.RegisterSyntaxNodeAction(OnRangeVariableDeclaration,
+                                         SyntaxKind.FromClause,
+                                         SyntaxKind.LetClause,
+                                         SyntaxKind.JoinClause,
+                                         SyntaxKind.JoinIntoClause,
+                                         SyntaxKind.QueryContinuation);
     }
 
     #endregion // DiagnosticAnalyzer
