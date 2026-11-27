@@ -35,4 +35,5 @@
 - Done: implementer (01-implementer.md, commits 1665b05, 617a956; lane check confirmed tooling).
 - Maintainer answered B (main-session deny list).
 - Done: implementer 02 (adb377d, 7625038).
-- Next: cleaner (03-cleaner.md).
+- Done: cleaner (34f452b, clean).
+- Next: spec checker (04-spec-checker.md).
