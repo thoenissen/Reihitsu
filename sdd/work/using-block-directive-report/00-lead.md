@@ -14,12 +14,17 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | Spec author's Q4: does RH7207 check blank lines in a using block that holds a directive? | No — only the order (spec author's A); dropped from the output batch | Skeptic fixture e.cs: formatter writes blank lines around a `#region` in the block (FMT-BLANK-013), stable; checking blank lines would report the formatter's own output | SHARED-DIAG-010 (unchanged) demands it | 1db90d1 |
+| 2 | skeptic | Basis of Q1's recommendation | SHARED-DIAG-008 and the precedent of report-across-conditional-directives, not 'order is content'; spec author rewords SHARED-USING-009 / change doc and FMT-USING-004 blank-line remark after the answers | Skeptic: FC-014 treats using order as formatter-judged | Wording only | pending |
 
 ## Follow-up candidates
 
+- FMT-USING-004 wording: scope 'keeps blank lines' to the using phase (FMT-BLANK-013 adds blank lines around a #region inside a block); internal, from 02-skeptic.md.
 - Reorder a using block whose every directive stands before its first using (e.g. a `#nullable enable` header) in fix and formatter — changes formatter output; from 01-spec-author.md.
 
 ## Worklist / next step
 
 - Done: spec author 01 (change doc written, 1db90d1; 4 output questions).
-- Next: skeptic (02), then output-question batch.
+- Done: skeptic 02 (faeeaeb): output question.
+- Now: output batch sent to maintainer (Q1 issue question with cases 1a/1b, Q2 directive kinds, Q3 comparison span, Q4 escalation 10 declare-unsupported). Waiting.
+- Next after answers: spec author follow-up (route answers, reword basis, Status Accepted), then test implementer.
