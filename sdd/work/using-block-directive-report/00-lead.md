@@ -18,7 +18,7 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | skeptic | Spec author's Q4: does RH7207 check blank lines in a using block that holds a directive? | No — only the order (spec author's A); dropped from the output batch | Skeptic fixture e.cs: formatter writes blank lines around a `#region` in the block (FMT-BLANK-013), stable; checking blank lines would report the formatter's own output | SHARED-DIAG-010 (unchanged) demands it | 1db90d1 |
-| 2 | skeptic | Basis of Q1's recommendation | SHARED-DIAG-008 and the precedent of report-across-conditional-directives, not 'order is content'; spec author rewords SHARED-USING-009 / change doc and FMT-USING-004 blank-line remark after the answers | Skeptic: FC-014 treats using order as formatter-judged | Wording only | pending |
+| 2 | skeptic | Basis of Q1's recommendation | SHARED-DIAG-008 and the precedent of report-across-conditional-directives, not 'order is content'; spec author rewords SHARED-USING-009 / change doc and FMT-USING-004 blank-line remark after the answers | Skeptic: FC-014 treats using order as formatter-judged | Wording only | 06ae25e |
 
 ## Follow-up candidates
 
@@ -30,4 +30,5 @@
 - Done: spec author 01 (change doc written, 1db90d1; 4 output questions).
 - Done: skeptic 02 (faeeaeb): output question.
 - Done: output batch answered (1A 2A 3A 4A).
-- Now: spec author follow-up (03) (route answers, reword basis, Status Accepted), then test implementer.
+- Done: spec author 03 (06ae25e), change doc Accepted.
+- Now: test implementer (04).
