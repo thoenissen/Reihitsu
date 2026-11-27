@@ -29,10 +29,12 @@ Recorded before this run, in the issues (summarized):
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | spec author | Rule ID for #1088 | RH4128 | RH4119 is retired (shipped in betas); RH4120–RH4127 taken; RH4128 is the next free number, as the maintainer asked; reuse would let old suppressions silence the new rule | The maintainer's answer fixes the ID as the next free RH41xx number | f9c9426f |
-| 2 | skeptic | Arch finding 1: RH4115/RH4117 each state half of the deconstruction-variable boundary | One shared check that RH4117 includes and RH4115 excludes, built in this run | The #1087 gap is exactly the two statements drifting apart; small, within the components the run changes | Internal structure; outputs follow the maintainer's answers | pending |
-| 3 | skeptic | Arch finding 2: casing fixes rename an anonymous-object member whose whole expression is the renamed name (SHARED-FIX-003, on main for RH4105/4106/4115/4117) | Fix in this run in the shared casing fix base, stated once in shared/casing.md; RH4105-006 refers to it. How (withhold vs explicit member name) is output question 3 of batch 1 | Run edits the shared base anyway and ships three new fixes carrying the defect | Visible part asked (batch 1, Q3) | pending |
+| 2 | skeptic | Arch finding 1: RH4115/RH4117 each state half of the deconstruction-variable boundary | One shared check that RH4117 includes and RH4115 excludes, built in this run | The #1087 gap is exactly the two statements drifting apart; small, within the components the run changes | Internal structure; outputs follow the maintainer's answers | 9808734b |
+| 3 | skeptic | Arch finding 2: casing fixes rename an anonymous-object member whose whole expression is the renamed name (SHARED-FIX-003, on main for RH4105/4106/4115/4117) | Fix in this run in the shared casing fix base, stated once in shared/casing.md; RH4105-006 refers to it. How (withhold vs explicit member name) is output question 3 of batch 1 | Run edits the shared base anyway and ships three new fixes carrying the defect | Visible part asked (batch 1, Q3) | 9808734b |
 | 4 | skeptic | Rule ID RH4128 vs RH4119 | Not asked; decision 1 stands | Maintainer said next free number | — | f9c9426f |
 | 5 | skeptic | Spec amendments: RH4115-002 refer to RH4117-001/-003 instead of restating; RH4128-001 'wherever a const local declaration stands' | Route to spec author with the answers | Self-contradiction / incomplete list | Wording only, no output change beyond answered ones | pending |
+| 6 | implementer | Three new internal helper types (DeconstructionVariableUtilities, RangeVariableDeclarationUtilities, CasingAnonymousMemberUtilities); RH4124 moved onto the range-variable helper | Keep; not escalation 9 | Each implements an issue's own fix (#1087 boundary, #1978 clauses, answers 3B/4A); RH4124 reuse avoids a second statement of the clause list | RH4124 unchanged in behavior (its tests pass) | 9808734b |
+| 7 | implementer | Two disputed tests: multi-line anonymous-object test applies only first action with two diagnostics; RH4105 same-new-name test needs NumberOfFixAllIterations for a no-op Fix All | Route to a fresh test implementer to correct the test mechanics; asserted outputs stay | Test-harness mechanics, implementer shows outputs are as specified | Asserted visible outputs unchanged | pending |
 
 ## Follow-up candidates
 
@@ -41,6 +43,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: test implementer done (81975d5e); 50 new tests fail as expected, RH4128 test file needs the new types. Next: implementer (05).
+- Last step: implementer done (9808734b, handover 60cba3bd); 3 disputed test cases. Next: fresh test implementer (06) fixes the 2 disputed tests, then implementer check if needed, then cleaner.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
