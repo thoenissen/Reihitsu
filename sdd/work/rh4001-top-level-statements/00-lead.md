@@ -20,6 +20,8 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | spec author | Ask the change doc's visible output change again? | No; treat the #1011 Q3 decision as the maintainer answer | The decision comment on #1011 names exactly this behavior | The maintainer decided it | 7411541 |
+| 3 | skeptic | Accept the change doc? | Yes, no amendment needed; spec author sets `Status: Accepted` in a status-only follow-up before the spec checker | Skeptic: proceed, no conflict | Decided by maintainer (#1011 Q3) | d366fb0 |
+| 4 | skeptic | Any vs. first top-level member a statement | Any, as the spec says | Same result on every compiling file; skeptic recommendation | Identical output | 7411541 |
 | 2 | spec author | Change the rule page? | No | The exception is narrow; spec author's choice; spec checker will verify | Rule page unchanged | 7411541 |
 
 ## Follow-up candidates
@@ -28,5 +30,6 @@
 
 ## State
 
-- Last step finished: spec author (01, commit 7411541), lane check confirmed, pushed.
-- Next step: skeptic.
+- Last step finished: skeptic (02, d366fb0, verdict proceed, no output questions).
+- Next step: test implementer (must cover the skeptic's mismatched `Startup.cs` with statements only inside a member).
+- Pending: spec author status-only follow-up (change doc Accepted) before spec checker.
