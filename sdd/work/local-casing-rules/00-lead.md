@@ -36,7 +36,7 @@ Recorded before this run, in the issues (summarized):
 | 6 | implementer | Three new internal helper types (DeconstructionVariableUtilities, RangeVariableDeclarationUtilities, CasingAnonymousMemberUtilities); RH4124 moved onto the range-variable helper | Keep; not escalation 9 | Each implements an issue's own fix (#1087 boundary, #1978 clauses, answers 3B/4A); RH4124 reuse avoids a second statement of the clause list | RH4124 unchanged in behavior (its tests pass) | 9808734b |
 | 7 | implementer | Two disputed tests: multi-line anonymous-object test applies only first action with two diagnostics; RH4105 same-new-name test needs NumberOfFixAllIterations for a no-op Fix All | Route to a fresh test implementer to correct the test mechanics; asserted outputs stay | Test-harness mechanics, implementer shows outputs are as specified | Asserted visible outputs unchanged | 22ef5ead |
 | 8 | auditor | Finding 2 (architecture): CasingAnonymousMemberUtilities restates the compiler's inferred-member-name rule by a syntax walk; RH2001 reads it via SyntaxFacts.TryGetInferredMemberName | Change the structure in this run: read the compiler's result (NameEquals == null, TryGetInferredMemberName non-empty, expression's last token is the reference token), delete the hand walk; routed to implementer | FC-044: read a computed result where an API returns it; stays inside the new helper | Outputs for every compiling shape unchanged (auditor checked) | pending |
-| 9 | auditor | Finding 1: missing tests for conditional-access receiver/tail cells of SHARED-CASING-015 | Repair round 2: test implementer adds the cells before the implementer's refactor | Protects the refactor of decision 8 | Asserted outputs follow SHARED-CASING-015 | pending |
+| 9 | auditor | Finding 1: missing tests for conditional-access receiver/tail cells of SHARED-CASING-015 | Repair round 2: test implementer adds the cells before the implementer's refactor | Protects the refactor of decision 8 | Asserted outputs follow SHARED-CASING-015 | 3c51f444 |
 | 10 | auditor | Hints: extra reference searches / repeated checked rename; Fix All offered when all skipped | Not acted on | Non-blocking, no defect; Fix All behavior pre-existing and only serves tests | — | — |
 
 ## Follow-up candidates
@@ -46,6 +46,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: audit 1 (373c28ad, audited f6cabbd0) findings: 2 medium. Repair round 2: test implementer (12) adds cells, implementer (13) compiler-API refactor, cleaner (14), spec checker (15), auditor on the repair (16), validator.
+- Last step: audit 1 (373c28ad, audited f6cabbd0) findings: 2 medium. Repair round 2: test implementer (12) added cells (3c51f444, naming 1004/1004), implementer (13) compiler-API refactor, cleaner (14), spec checker (15), auditor on the repair (16), validator.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
