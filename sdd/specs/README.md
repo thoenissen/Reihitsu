@@ -132,7 +132,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH4115.md](analyzer/RH4115.md) | RH4115 | `RH4115LocalVariableCasingAnalyzer`, `RH4115LocalVariableCasingCodeFixProvider` |
 | [analyzer/RH4116.md](analyzer/RH4116.md) | RH4116 | `RH4116TupleElementCasingAnalyzer` |
 | [analyzer/RH4117.md](analyzer/RH4117.md) | RH4117 | `RH4117DeconstructionVariableCasingAnalyzer`, `RH4117DeconstructionVariableCasingCodeFixProvider` |
-| [analyzer/RH4118.md](analyzer/RH4118.md) | RH4118 | `RH4118TupleElementCasingAnalyzer` |
+| [analyzer/RH4118.md](analyzer/RH4118.md) | RH4118 | `RH4118TupleArgumentNameCasingAnalyzer` |
 | [analyzer/RH4120.md](analyzer/RH4120.md) | RH4120 | `RH4120RecordPrimaryConstructorParameterCasingAnalyzer`, `RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider` |
 | [analyzer/RH4121.md](analyzer/RH4121.md) | RH4121 | `RH4121TypeParameterNameCasingAnalyzer`, `RH4121TypeParameterNameCasingCodeFixProvider` |
 | [analyzer/RH4122.md](analyzer/RH4122.md) | RH4122 | `RH4122SingleLetterParameterNamesAnalyzer` |
