@@ -22,12 +22,13 @@ Recorded before this run, in the issues (summarized):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | Rule ID for #1088 | RH4128 | RH4119 is retired (shipped in betas); RH4120–RH4127 taken; RH4128 is the next free number, as the maintainer asked; reuse would let old suppressions silence the new rule | The maintainer's answer fixes the ID as the next free RH41xx number | f9c9426f |
 
 ## Follow-up candidates
 
-(none yet)
+- Shared casing rename renames an anonymous-object member whose whole expression is the renamed name (`new { Value }` → `new { value }`), on `main` for RH4105/RH4115 fixes; SHARED-FIX-003 — 01-spec-author.md (Whole run). Undecided: adjacent fix vs follow-up; decide after skeptic.
 
 ## State
 
-- Last step: claim (commit pushed, draft PR #1987), prepare.sh green.
-- Next: spawn spec author.
+- Last step: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
+- Next: skeptic, then output-question batch.
