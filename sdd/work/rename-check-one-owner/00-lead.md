@@ -31,4 +31,5 @@
 - Test implementer done (`02-test-implementer.md`, reproduced: 14 failing, 10 holding; no follow-ups).
 - Implementer done (`03-implementer.md`, tests pass; token-by-token comparison replaces GetChanges in `RewritesOtherCodeAsync`; stricter for non-qualifier inserted tokens and nullable/tuple type-argument qualifiers, unreached by tests — auditor to judge).
 - Cleaner done (`04-cleaner.md`, clean).
-- Next: spec checker (`05-spec-checker.md`).
+- Spec checker done (`05-spec-checker.md`, consistent).
+- Next: auditor (`06-auditor.md`).
