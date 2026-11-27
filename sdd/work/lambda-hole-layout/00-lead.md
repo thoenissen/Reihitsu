@@ -23,6 +23,7 @@
 | 3 | Skeptic | #1698: escalate declaring "comment in front of a non-raw hole's closing brace" unsupported? | Not escalated | AGENTS.md: a shape that deletes nothing is not declared; skeptic and spec author both found it deletes no special case | Declaration not offered, output unchanged by this decision | 162ab85 |
 | 4 | Skeptic | Rare follow-up candidates (alignment clause on its own line in a hole; line break inside a `ref` return type; lambda attribute list leaving `(` at line start) | Dropped | Rare input classes (AGENTS.md, Code-fix coverage); skeptic itself rates them rare | No change made | 162ab85 |
 | 5 | Skeptic | #1568 change doc incomplete (initializer, conditional, switch arm, collection element etc.); #1698 needs A vs A′ input | Route amendment to a fresh spec author before the output batch | Output questions must show the real affected positions | Amendment only completes the question | 1b9626c |
+| 6 | Test implementer | Spec examples (FMT-BREAK-011/041/044) still show old anonymous-method block; change doc omits RH5201, RH5112, RH3202, RH5417 results | Route to a fresh spec author (06), parallel to implementer (07) | Answer 1B covers every position and every fix that formats such code | Covered by maintainer answer 1B | 640e8b9 |
 
 ## Follow-up candidates
 
@@ -37,4 +38,5 @@
 - Done: spec author amendment (03, 1b9626c); questions drafted in 03.
 - Asked: output-question batch 1 (#1568 A/B, #1698 A/A′/B/C, #1567 A/B). Answered: 1B, 2A, 3A.
 - Done: spec author 04 (383cb74), change docs Accepted.
-- Next: test implementer (05).
+- Done: test implementer 05 (640e8b9).
+- Next: spec author 06 (spec examples + change doc fixes) and implementer 07 in parallel; then cleaner.
