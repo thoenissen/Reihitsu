@@ -47,4 +47,5 @@ The label makes the goals proposals, but the two decisions above are the maintai
 - Spec checker done (13a36c8): consistent, no findings. Main merged? up to date. Build green.
 - Auditor (977057e): PASS on audited SHA 9397d10, one doc finding (RH4124 rule page Why/How still say only "parameter"). Routed to spec author; prove with verify-text-only --base 9397d10.
 - Doc fix done (77b0993), text-only proof PASS vs 9397d10. Decision 3 carried out in 77b0993.
-- Next: validator + issue manager (follow-up: range-variable casing), then publish.
+- Issue manager done: created #1978 (RH4105 range-variable casing, agent-filed).
+- Next: validator result, then publish.
