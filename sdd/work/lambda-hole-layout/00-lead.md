@@ -36,4 +36,5 @@
 - Done: skeptic (02, 162ab85). #1568 output question (amend); #1698 output question (+A vs A′); #1567 proceed narrower.
 - Done: spec author amendment (03, 1b9626c); questions drafted in 03.
 - Asked: output-question batch 1 (#1568 A/B, #1698 A/A′/B/C, #1567 A/B). Answered: 1B, 2A, 3A.
-- Next: spec author (continued) records answers in change docs' Decisions, Status Accepted (04); then test implementer.
+- Done: spec author 04 (383cb74), change docs Accepted.
+- Next: test implementer (05).
