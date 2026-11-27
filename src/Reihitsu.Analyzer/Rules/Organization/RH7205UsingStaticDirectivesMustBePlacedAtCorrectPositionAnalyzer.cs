@@ -119,11 +119,6 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     {
         var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
 
-        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
-        {
-            return;
-        }
-
         foreach (var isGlobalSet in new[] { false, true })
         {
             var directives = usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)

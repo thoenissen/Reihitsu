@@ -47,11 +47,6 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
     {
         var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
 
-        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
-        {
-            return;
-        }
-
         foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetDirectivesOutOfOrderWithinTheirGroup(usingDirectives)
                                                                       .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Static))
         {
