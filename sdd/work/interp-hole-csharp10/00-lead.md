@@ -39,5 +39,5 @@
 ## State
 
 - Audited SHA: 369a7ae15a94c660921e6060f354e54d5cb1bfcc (base 0feb518), verdict findings (08-auditor.md, d49be0c).
-- Repair round 1 open worklist: finding #1 (decision 14).
-- Next: spec author (amend RH3004-010).
+- Repair round 1: spec author done (09-spec-author.md, ac343a0, RH3004-010 amended in place).
+- Next: test implementer, then implementer.
