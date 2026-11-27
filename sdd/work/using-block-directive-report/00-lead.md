@@ -31,4 +31,5 @@
 - Done: skeptic 02 (faeeaeb): output question.
 - Done: output batch answered (1A 2A 3A 4A).
 - Done: spec author 03 (06ae25e), change doc Accepted.
-- Now: test implementer (04).
+- Done: test implementer 04 (cb6d751): 45 rows + Fix All fail for the right reason.
+- Now: implementer (05).
