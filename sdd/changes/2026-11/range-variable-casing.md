@@ -270,9 +270,14 @@ The maintainer allowed the fix only if it is comprehensive and safe for range va
 
 Maintainer, 2026-11-27 (batch 1, answer 3B). When the compiler takes an anonymous object member's name from a renamed reference — the member's whole expression, or the name that ends a member access or conditional access that is its whole expression — the fix writes the old name explicitly (`Value = value`). It is stated once in SHARED-CASING-015, implemented in the shared casing fix, and RH4105-003, RH4105-006, RH4115-003, RH4117-002, and RH4128-003 refer to it. It repairs, for the existing casing fixes, a rename that SHARED-FIX-003 already forbade, and it reaches every casing fix because the cause, the compiler's inferred member name, does not depend on the kind of symbol renamed. A member read by its name, which withheld the fix before because the read no longer compiled (SHARED-CASING-009), now keeps the fix.
 
+### The rule holds for every fix that uses the shared casing rename
+
+Maintainer, 2026-11-27 (batch 1b, answer 4A). Answer 3B was asked with the fixes of RH4105, RH4106, RH4115, RH4117, and RH4128 as examples; SHARED-CASING-015 holds for every fix that renames a reported name with the shared casing rename, so the fixes of RH4101, RH4102, RH4107 to RH4114, and RH4120 keep an anonymous object member's name too (case 4): for RH4111, `private int value { get; set; }` with `new { value }` becomes `private int Value { get; set; }` with `new { value = Value }`. The cause, the compiler's inferred member name, does not depend on the kind of symbol renamed, and the shared casing fix implements the rule once.
+
 ## Alternatives considered
 
 - **No fix for range variables** (batch 1, option 3C) — rejected by the maintainer: the rename is comprehensive, and the anonymous member keeps its name.
 - **Withhold the fix where a renamed reference names an anonymous object member** (batch 1, option 3A) — rejected by the maintainer: projecting a value by its bare name is a common shape, also of query syntax, and keeping the name explicit is a cheap rewrite of the member that the fix already touches.
+- **Keep the member's name only in the fixes of RH4105, RH4106, RH4115, RH4117, and RH4128** (batch 1b, the alternative to 4A) — rejected by the maintainer: the other casing fixes would keep renaming the member, which SHARED-FIX-003 forbids, and the requirement would need a list of rules instead of its cause.
 - **A rule of its own for range variables** — rejected by the maintainer's choice of option A: a range variable plays the role of a lambda parameter, and RH4124 groups it with lambda parameters already.
 - **Leave range variables unchecked and document the gap** (option B of thoenissen/Reihitsu#1978) — rejected by the maintainer.
