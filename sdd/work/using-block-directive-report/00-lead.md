@@ -36,4 +36,5 @@
 - Done: implementer 05 (c8d4e52): analyzer-only, 1 test disputed (setup).
 - Done: test implementer 06 (7b1b7ba): 356/356 focused pass.
 - Done: cleaner 07 (5930454): clean, Release 0 warnings.
-- Now: spec checker (08).
+- Done: spec checker 08 (0d79b90): consistent.
+- Now: auditor (09).
