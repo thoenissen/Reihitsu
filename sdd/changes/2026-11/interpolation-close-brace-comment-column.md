@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-INDENT-006 (changed) |
+| Affected requirements | FMT-INDENT-006 (changed), FMT-RAW-007 (clarified) |
 
 ## What
 
