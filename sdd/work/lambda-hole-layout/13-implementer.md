@@ -1,5 +1,5 @@
 Role: implementer
-Commit: <see git log: "Leave the lambda return-type gap to one owner">
+Commit: 8fcadf5
 Verdict: tests pass
 
 Repair round 1, finding 2 of `11-auditor.md` (thoenissen/Reihitsu#1567). My prompt carried a suggested direction ("leave the gap with a single owner if cheap, else reword the comment"); I re-derived it from the code below rather than taking it as given.
