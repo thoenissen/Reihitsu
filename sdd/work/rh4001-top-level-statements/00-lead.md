@@ -30,5 +30,5 @@
 
 ## State
 
-- Last step finished: cleaner (05, 4827ed1, clean); spec author status-only (06, 24c763e, change doc Accepted).
-- Next step: spec checker.
+- Last step finished: spec checker (07, 710f346, consistent, no findings); main up to date; Release build green.
+- Next step: auditor on head 710f346 against main 0feb518; then validator, publish.
