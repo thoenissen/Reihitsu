@@ -36,9 +36,10 @@ Recorded before this run, in the issues (summarized):
 ## Follow-up candidates
 
 - Shared casing rename renames an anonymous-object member whose whole expression is the renamed name (`new { Value }` → `new { value }`), on `main` for RH4105/RH4115 fixes; SHARED-FIX-003 — 01-spec-author.md (Whole run). Taken into the run (decision 3).
+- RH2001-011 withholds RH2001's fix when a property reference names an anonymous member; could keep the name explicitly like SHARED-CASING-015 — 03-spec-author.md (Whole run).
 
 ## State
 
-- Last step: batch 1 answered (1B, 2A, 3B). Next: fresh spec author amends specs/change docs (answers + decision 5), sets Status Accepted; then test implementer.
+- Last step: spec author amended (5970d619), change docs Accepted; SHARED-CASING-015 written for every shared-rename fix. Asked batch 1b Q4: does 3B extend to RH4101/4102/4107-4114/4120 (field, property, event, enum member, record parameter fixes)? Waiting. Next: test implementer.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
