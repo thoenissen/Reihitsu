@@ -41,6 +41,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: spec author amended (5970d619), change docs Accepted; SHARED-CASING-015 written for every shared-rename fix. Q4 answered 4A (spec as written). Next: test implementer (04).
+- Last step: test implementer done (81975d5e); 50 new tests fail as expected, RH4128 test file needs the new types. Next: implementer (05).
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
