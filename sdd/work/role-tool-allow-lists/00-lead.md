@@ -15,7 +15,7 @@
 
 ## Maintainer answers
 
-(none yet)
+1. Restricting the main session (clarification 1). Options asked: A — committed `.claude/settings.json` `permissions.deny` for `Artifact*`, `DesignSync`, `mcp__Claude_Docs__*`, `mcp__ccd_*`, the plugin/skill suggestion tools, and every `mcp__claude-code-remote__*` tool except `subscribe_pr_activity`, `unsubscribe_pr_activity`, `read_documentation`; B — as A, but also keep the environment tools `get_environment`, `update_environment`, `create_environment`, `switch_environment`, `request_credential`; C — no restriction, follow-up issue. **Answer: B.**
 
 ## Decisions taken
 
@@ -27,11 +27,10 @@
 
 ## Follow-up candidates
 
-- Restrict the main session with `permissions.deny` in `.claude/settings.json` (01-implementer) — asked to the maintainer as clarification 1's answer.
 - Inputs of `squad/roles/implementer.md`: name the issue as an input in the tooling lane (01-implementer).
 
 ## Worklist / next step
 
 - Done: implementer (01-implementer.md, commits 1665b05, 617a956; lane check confirmed tooling).
-- Waiting: maintainer's answer on restricting the main session (question 1).
-- Next: cleaner.
+- Maintainer answered B (main-session deny list).
+- Next: fresh implementer for answer 1 (02-implementer.md), then cleaner.
