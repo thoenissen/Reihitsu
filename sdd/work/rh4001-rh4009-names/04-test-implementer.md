@@ -40,7 +40,7 @@ File `tests/Reihitsu.Analyzer.Test/Naming/RH4009NamespaceNotAllowedAnalyzerTests
 | FullNameOfNestedNamespaceIsComparedCaseSensitively | RH4009-003 | same | R: `["A","B","a.B"]`, expected `B`, today none |
 | VerbatimPrefixOnEnclosingNamespaceIsNotPartOfTheFullName (N5, FC-023/FC-015) | RH4009-003 | same | R: `@A { B }`, `["A","A.B"]`, expected none |
 | VerbatimPrefixOnNestedNamespaceIsNotPartOfTheFullName (N5) | RH4009-003 | same | R: `A { @B }`, expected none |
-| UnicodeEscapeInEnclosingNamespaceIsReplacedInTheFullName (N5) | RH4009-003 | same | R: `A { B }` (bytes checked), expected none |
+| UnicodeEscapeInEnclosingNamespaceIsReplacedInTheFullName (N5) | RH4009-003 | same | R: `\u0041 { B }` (bytes checked), expected none |
 | WhitespaceAndCommentInEnclosingNamespaceNameAreNotPartOfTheFullName (N5) | RH4009-003 | same | R: `A . /* x */ B { C }`, `["A.B","A.B.C"]`, expected none |
 
 Run on bde2b43 plus these tests: 96 tests in the two classes, 19 red (exactly the `R` rows), 77 green (73 pre-existing plus the 4 `G` rows). `EveryRequirementOfAnEnforcedSpecIsCovered` passes with the new tags.
