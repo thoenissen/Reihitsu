@@ -19,6 +19,7 @@
 
 - Stops: two output-question batches before the test implementer (batch 1 with three questions; a one-question follow-up when the spec author read answer 3's rule list as examples rather than a limit).
 - Repair rounds: two. Round 1: one change-doc gap from the spec checker (answer 4A missing from *Decisions*). Round 2: two medium audit findings (missing conditional-access test cells; the anonymous-member helper restated the compiler's inferred-name rule, replaced by `SyntaxFacts.TryGetInferredMemberName`).
+- CI repair (round 3): SonarCloud quality gate failed on S2259 (`document` possibly null) in the new anonymous-member helper; the null guard was split so the analyzer sees it. Implementer, cleaner, validator re-ran; build-and-test had been green.
 - Roles spawned more than once: spec author ×3 (amendment after answers, repair round 1), test implementer ×3 (two disputed tests whose test mechanics were wrong, repair round 2), implementer ×2, cleaner ×2, spec checker ×3, auditor ×2.
 - Expensive: the first spec author, skeptic, test implementer, implementer, and auditor each grew past 150 thousand context tokens; the run spans four rules plus a shared fix change that touched every casing fix.
 
@@ -60,5 +61,7 @@ Session `8560b05a-a108-55b3-9f8b-81ca7c406467`. Responses counted once per messa
 Ten. Worth the maintainer's eye: rule ID RH4128 instead of the retired RH4119 (decision 1); taking the anonymous-member rename defect, which exists on `main` for every casing fix, into the run (decision 3); three new internal helper types counted as the issues' own fix rather than escalation 9 (decision 6).
 
 ## Suggestions
+
+- SonarCloud findings are only seen in CI. A null check folded into a ternary passed the local build and audit but failed the quality gate; the cleaner or auditor could check that each nullable value is guarded directly before it is dereferenced.
 
 - The spec author read a maintainer answer's list of rules as examples and extended it; the playbook's "a case the answer does not name is a new question" caught it, but only after a spec round. An output question that names a list of rules could state explicitly whether the list is exhaustive.
