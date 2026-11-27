@@ -44,4 +44,5 @@
 - Done: spec checker (07, 9b37031) — consistent.
 - Done: auditor (08, 773eb53) on 0ef284f — findings 1 (arch), 2, 3.
 - Done in round 1: spec author (09, ac888c7), implementer (10, 038379c, 4e8489d).
-- Next (round 1 cont.): cleaner, spec checker, auditor (repair only), validator. Was: spec author (#3), implementer (#1, #2), cleaner, spec checker, auditor (repair only), validator.
+- Done: cleaner (11, c29d925), spec checker (12, 927e2cc).
+- Next (round 1 cont.): auditor (repair only), validator. Was: spec author (#3), implementer (#1, #2), cleaner, spec checker, auditor (repair only), validator.
