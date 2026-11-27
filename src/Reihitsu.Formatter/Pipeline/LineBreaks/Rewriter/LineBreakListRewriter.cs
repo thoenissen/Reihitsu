@@ -635,8 +635,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     {
         node = (ParenthesizedLambdaExpressionSyntax)base.VisitParenthesizedLambdaExpression(node);
 
-        // The opening parenthesis joins the line of an explicit return type (FMT-BREAK-045); without a return type, the gap
-        // in front of the parenthesis belongs to the requirements that own it (FMT-BREAK-011, FMT-BREAK-041)
+        // The opening parenthesis joins the line of an explicit return type (FMT-BREAK-045), also inside a list element,
+        // where ListElementInteriorJoinRewriter leaves this gap to this rewriter; without a return type, the gap in front of
+        // the parenthesis belongs to the requirements that own it (FMT-BREAK-011, FMT-BREAK-015, FMT-BREAK-041)
         return node?.ReturnType == null
                    ? node
                    : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
