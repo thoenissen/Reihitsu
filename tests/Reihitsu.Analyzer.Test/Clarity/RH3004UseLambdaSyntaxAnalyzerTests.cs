@@ -1719,12 +1719,86 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
 
     /// <summary>
     /// Verifies an anonymous method that only returns a value, inside an interpolation of a non-verbatim interpolated string,
-    /// is rewritten as an expression lambda when the code is compiled with C# 10
+    /// is reported and offers no code fix when the code is compiled with C# 10
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3004-010")]
-    public async Task ExpressionBodyInsideANonVerbatimInterpolationIsFixedBeforeCSharp11()
+    public async Task ExpressionBodyInsideANonVerbatimInterpolationOffersNoFixBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int G(Func<int, int> g) => g(1);
+
+                                    string M() => $"a {G({|RH3004:delegate|} (int p) { return p; })} b";
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, LanguageVersion.CSharp10);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that only returns an expression holding an object initializer, inside an interpolation of
+    /// a non-verbatim interpolated string, is reported and offers no code fix when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-010")]
+    public async Task ExpressionBodyWithAnObjectInitializerInsideANonVerbatimInterpolationOffersNoFixBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class P
+                                {
+                                    public int A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    static int G(Func<int, int> g) => g(1);
+
+                                    string M() => $"a {G({|RH3004:delegate|} (int p) { return new P { A = p }.A; })} b";
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, LanguageVersion.CSharp10);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that only returns a value, inside a verbatim interpolated string that stands in an
+    /// interpolation of a non-verbatim one, is reported and offers no code fix when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-010")]
+    public async Task ExpressionBodyInsideANonVerbatimInterpolationBehindAVerbatimOneOffersNoFixBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int G(Func<int, int> g) => g(1);
+
+                                    string M() => $"x {$@"a {G({|RH3004:delegate|} (int p) { return p; })} b"} y";
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, LanguageVersion.CSharp10);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that only returns a value, inside an interpolation of a non-verbatim interpolated string,
+    /// is rewritten as an expression lambda when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-010")]
+    public async Task ExpressionBodyInsideANonVerbatimInterpolationIsFixedFromCSharp11()
     {
         const string testCode = """
                                 using System;
@@ -1744,6 +1818,39 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                      static int G(Func<int, int> g) => g(1);
 
                                      string M() => $"a {G((int p) => p)} b";
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies an anonymous method that only returns a value, inside an interpolation of a verbatim interpolated string, is
+    /// rewritten as an expression lambda when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-010")]
+    public async Task ExpressionBodyInsideAVerbatimInterpolationIsFixedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int G(Func<int, int> g) => g(1);
+
+                                    string M() => $@"a {G({|RH3004:delegate|} (int p) { return p; })} b";
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     static int G(Func<int, int> g) => g(1);
+
+                                     string M() => $@"a {G((int p) => p)} b";
                                  }
                                  """;
 
@@ -1832,6 +1939,58 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                   {
                                                       var a = p; return a;
                                                   });
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10));
+
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies Fix All rewrites the anonymous method outside every interpolation and leaves the one that only returns a value
+    /// inside an interpolation of a non-verbatim interpolated string reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-010")]
+    public async Task FixAllLeavesTheExpressionBodyInsideANonVerbatimInterpolationBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int G(Func<int, int> g) => g(1);
+
+                                    string M() => $"a {G({|RH3004:delegate|} (int p) { return p; })} b";
+
+                                    int N()
+                                    {
+                                        return G({|RH3004:delegate|} (int p) { return p; });
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     static int G(Func<int, int> g) => g(1);
+
+                                     string M() => $"a {G({|RH3004:delegate|} (int p) { return p; })} b";
+
+                                     int N()
+                                     {
+                                         return G((int p) => p);
                                      }
                                  }
                                  """;
