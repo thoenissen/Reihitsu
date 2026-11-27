@@ -38,4 +38,5 @@
 - Done: test implementer (04, e8a9d0e, cd68c69) — 19 new failing tests, 4 new passing.
 - Done: implementer (05, 9281acb, 176872f) — all tests pass, +32/-19 in src.
 - Done: cleaner (06, 8c36bc0) — clean, 0 warnings.
-- Next: spec checker, then auditor.
+- Done: spec checker (07, 9b37031) — consistent.
+- Next: auditor.
