@@ -64,36 +64,28 @@ internal static class CasingAnonymousMemberUtilities
 
     /// <summary>
     /// Gets the anonymous object member that takes its name from a reference: a member without a name of its own whose
-    /// whole expression is the reference, or a member access or conditional access that ends with it
+    /// expression's last token is the reference and whose name the compiler infers from that expression
     /// </summary>
     /// <param name="root">Root of the document holding the reference</param>
     /// <param name="span">Span of the reference</param>
     /// <returns>The member, or <see langword="null"/> when the reference names no member</returns>
+    /// <remarks>
+    /// The compiler's rule for the inferred name is read through <see cref="SyntaxFacts.TryGetInferredMemberName"/>, not
+    /// restated; a member whose inferred name comes from its expression's last token takes it from the reference
+    /// </remarks>
     private static AnonymousObjectMemberDeclaratorSyntax GetMemberNamedByReference(SyntaxNode root, TextSpan span)
     {
         var token = root.FindToken(span.Start);
 
         if (token.Span != span
-            || token.Parent is not IdentifierNameSyntax name)
+            || token.Parent is not IdentifierNameSyntax)
         {
             return null;
         }
 
-        SyntaxNode expression = name.Parent switch
-                                {
-                                    MemberAccessExpressionSyntax memberAccess when memberAccess.Name == name => memberAccess,
-                                    MemberBindingExpressionSyntax memberBinding => memberBinding,
-                                    _ => name
-                                };
-
-        while (expression.Parent is ConditionalAccessExpressionSyntax conditionalAccess
-               && conditionalAccess.WhenNotNull == expression)
-        {
-            expression = conditionalAccess;
-        }
-
-        return expression.Parent is AnonymousObjectMemberDeclaratorSyntax { NameEquals: null } member
-               && member.Expression == expression
+        return token.Parent.FirstAncestorOrSelf<AnonymousObjectMemberDeclaratorSyntax>() is { NameEquals: null } member
+               && member.Expression.GetLastToken() == token
+               && string.IsNullOrEmpty(SyntaxFacts.TryGetInferredMemberName(member.Expression)) == false
                    ? member
                    : null;
     }
