@@ -41,4 +41,5 @@
 - Done: spec author 04 (383cb74), change docs Accepted.
 - Done: test implementer 05 (640e8b9).
 - Done: spec author 06 (ec5b86f); implementer 07 (11f3b34, b6f5c35), one disputed RH5111 test.
-- Next: test implementer 08 (fix disputed test harness), then cleaner 09.
+- Done: test implementer 08 (d0b9dfd), disputed test passes.
+- Next: cleaner 09, then spec checker 10.
