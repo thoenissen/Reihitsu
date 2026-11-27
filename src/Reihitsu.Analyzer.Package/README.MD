@@ -88,7 +88,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4102.md)| Event names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4103.md)| Method names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4104.md)| Local function names should be in PascalCase.| ✔| ✔| ❌|
-| [RH4105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4105.md)| Method parameter names should be in camelCase.| ✔| ✔| ❌|
+| [RH4105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4105.md)| Parameter and query range variable names should be in camelCase.| ✔| ✔| ❌|
 | [RH4106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4106.md)| Private field names should be in _camelCase.| ✔| ✔| ❌|
 | [RH4107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4107.md)| Protected field names should be in _camelCase.| ✔| ✔| ❌|
 | [RH4108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4108.md)| Internal field names should be in PascalCase.| ✔| ✔| ❌|
@@ -110,6 +110,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4125](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4125.md)| Single-letter local variable names should not be used.| ✔| ❌| ❌|
 | [RH4126](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4126.md)| Single-letter foreach iteration variable names should not be used.| ✔| ❌| ❌|
 | [RH4127](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4127.md)| Single-letter catch exception variable names should not be used.| ✔| ❌| ❌|
+| [RH4128](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4128.md)| Local constant names should be in camelCase.| ✔| ✔| ❌|
 || **Layout**||||
 | [RH5001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5001.md)| try-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5002.md)| if-Statement should be preceded by a blank line.| ✔| ✔| ✔|
