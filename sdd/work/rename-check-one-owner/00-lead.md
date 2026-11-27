@@ -42,4 +42,5 @@
 - Round 1 auditor (`11-auditor.md`, audited b49e789): #1 closed; #2 medium (unpinned qualifier shapes). Repair round 2 open.
 - Round 2 test implementer done (`12-test-implementer.md`, 7 tests pin (a)–(d); cref arm reachable, implementer skipped — no production change needed).
 - Round 2 cleaner done (`13-cleaner.md`, clean).
-- Next: spec checker (`14`), auditor (`15`).
+- Round 2 spec checker done (`14-spec-checker.md`, consistent).
+- Next: auditor on round 2 (`15-auditor.md`).
