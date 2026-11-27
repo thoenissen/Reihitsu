@@ -29,11 +29,14 @@ The label makes the goals proposals, but the two decisions above are the maintai
 
 ## Follow-up candidates
 
-(none yet)
+- Casing of query range variables is unchecked (RH4105 reports `Value => Value` in a lambda, not `from Value in values`); carries the skeptic's output question (recommended: RH4105 reports range variables with its rename fix). Source: 02-skeptic.md. Outside #1089, so not asked.
 
 ## Worklist / next step
 
 - Claim done (commit on branch, draft PR #1974), SDK installed.
 - Spec author done (6a0ff3c): change doc Draft, RH4124-003, RH4122-004.
 - Pending output question for the batch before the test implementer: RH4124 title/message wording (spec author's OQ1, A keep / B widen, recommends B).
-- Next: skeptic.
+- Skeptic done (92c5751): proceed; premise reproduced for both. Internal amendments for the spec author: reword RH4124-003 *Why* (transparent identifiers), mention RH3007 overlap in the change doc; PR to say neither rule has a fix.
+- Visible changes 1-2 (new reports) are covered by the maintainer's decisions recorded in #1089; not re-asked.
+- Output question batch sent: Q1 RH4124 title/message (A keep / B widen, recommended B). WAITING for maintainer.
+- Next after answer: spec author amendment (fresh agent) incl. answer + Status Accepted, then test implementer.
