@@ -34,7 +34,7 @@ Recorded before this run, in the issues (summarized):
 | 4 | skeptic | Rule ID RH4128 vs RH4119 | Not asked; decision 1 stands | Maintainer said next free number | — | f9c9426f |
 | 5 | skeptic | Spec amendments: RH4115-002 refer to RH4117-001/-003 instead of restating; RH4128-001 'wherever a const local declaration stands' | Route to spec author with the answers | Self-contradiction / incomplete list | Wording only, no output change beyond answered ones | pending |
 | 6 | implementer | Three new internal helper types (DeconstructionVariableUtilities, RangeVariableDeclarationUtilities, CasingAnonymousMemberUtilities); RH4124 moved onto the range-variable helper | Keep; not escalation 9 | Each implements an issue's own fix (#1087 boundary, #1978 clauses, answers 3B/4A); RH4124 reuse avoids a second statement of the clause list | RH4124 unchanged in behavior (its tests pass) | 9808734b |
-| 7 | implementer | Two disputed tests: multi-line anonymous-object test applies only first action with two diagnostics; RH4105 same-new-name test needs NumberOfFixAllIterations for a no-op Fix All | Route to a fresh test implementer to correct the test mechanics; asserted outputs stay | Test-harness mechanics, implementer shows outputs are as specified | Asserted visible outputs unchanged | pending |
+| 7 | implementer | Two disputed tests: multi-line anonymous-object test applies only first action with two diagnostics; RH4105 same-new-name test needs NumberOfFixAllIterations for a no-op Fix All | Route to a fresh test implementer to correct the test mechanics; asserted outputs stay | Test-harness mechanics, implementer shows outputs are as specified | Asserted visible outputs unchanged | 22ef5ead |
 
 ## Follow-up candidates
 
@@ -43,6 +43,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: implementer done (9808734b, handover 60cba3bd); 3 disputed test cases. Next: fresh test implementer (06) fixes the 2 disputed tests, then implementer check if needed, then cleaner.
+- Last step: test implementer fixed disputed tests (22ef5ead); naming tests 1002/1002 green. Next: cleaner (07).
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
