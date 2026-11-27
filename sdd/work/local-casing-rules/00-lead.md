@@ -43,6 +43,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: cleaner clean (e65d045c). Next: spec checker (08).
+- Last step: spec checker (e550635d): 1 finding — range-variable-casing.md Decisions lacks answer 4A. Repair round 1: spec author (09), then spec checker (10). Next after: auditor.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
