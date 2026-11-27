@@ -25,7 +25,7 @@ The label makes the goals proposals, but the two decisions above are the maintai
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | spec author | New requirements or widen existing -001? | New RH4124-003 and RH4122-004 | New tests carry their own tags; existing requirements stay intact | Spec structure only; the visible change itself is the maintainer's decision on #1089 | 6a0ff3c |
-| 3 | auditor | RH4124 rule page body still says only "parameter" — ask? | Fix as doc cleanup without a question | Follows directly from the maintainer's decision to report range variables and answer 1B, which renamed the heading; the body only catches up | Wording consistency with an answered output; no new behavior | (doc fix) |
+| 3 | auditor | RH4124 rule page body still says only "parameter" — ask? | Fix as doc cleanup without a question | Follows directly from the maintainer's decision to report range variables and answer 1B, which renamed the heading; the body only catches up | Wording consistency with an answered output; no new behavior | 77b0993 |
 | 2 | spec author | SHARED-DIAG-007 Uses row for unnamed extension receiver? | None | An unnamed receiver has no name to check, as RH4105-004 treats it | Unnamed receiver is not reported either way | 6a0ff3c |
 
 ## Follow-up candidates
@@ -46,4 +46,5 @@ The label makes the goals proposals, but the two decisions above are the maintai
 - Cleaner done (7a4faa8): clean, Release 0 warnings.
 - Spec checker done (13a36c8): consistent, no findings. Main merged? up to date. Build green.
 - Auditor (977057e): PASS on audited SHA 9397d10, one doc finding (RH4124 rule page Why/How still say only "parameter"). Routed to spec author; prove with verify-text-only --base 9397d10.
-- Next: spec author doc fix, then validator, publish.
+- Doc fix done (77b0993), text-only proof PASS vs 9397d10. Decision 3 carried out in 77b0993.
+- Next: validator + issue manager (follow-up: range-variable casing), then publish.
