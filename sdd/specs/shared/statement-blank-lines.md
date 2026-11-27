@@ -5,7 +5,7 @@
 | ID prefix | SHARED-STMT |
 | Status | Active |
 | Code owners | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase`, `BlankLineCodeFixUtilities` |
-| Uses | SHARED-BLANK-001, FMT-BLANK-001, FMT-INDENT-003, SHARED-FIX-008 |
+| Uses | SHARED-BLANK-001, FMT-BLANK-001, FMT-INDENT-003, SHARED-DIAG-011, SHARED-FIX-008 |
 
 This spec covers the rules that ask for a blank line in front of one kind of statement: when such a statement is reported, which statements are never checked, and what the code fix inserts. Each rule that uses this spec names its statement kind, where its diagnostic is located, and any exception of its own. The formatter's counterpart is FMT-BLANK-001.
 
@@ -431,5 +431,60 @@ internal class C
 internal sealed class Config
 {
     public System.Action<int> Handler { get; set; }
+}
+```
+
+### SHARED-STMT-005 — A statement inside a non-verbatim interpolation is not reported before C# 11
+
+A rule that uses this requirement MUST NOT report a statement that stands, at any depth, inside an interpolation of an interpolated string that is not verbatim — one that starts with `$"`, not with `$@"` or `@$"` — when the code is compiled with C# 10 or earlier. This holds also when a verbatim interpolated string lies between the statement and that interpolation. A statement inside an interpolation of a verbatim interpolated string that no interpolation of a non-verbatim one contains, a statement that only contains an interpolated string, and every statement when the code is compiled with C# 11 or later MUST be reported as the rule's own requirements state.
+
+Why: Before C# 11, an interpolation of a non-verbatim interpolated string cannot contain a line break (CS8967), so no blank line can be written between two statements of a lambda or anonymous-method block inside it, and the change the rule asks for cannot be written there (SHARED-DIAG-011). An interpolation of a verbatim interpolated string accepts line breaks in every language version, and an interpolated string inside the statement does not hold the gap in front of it.
+
+Example — RH5008:
+
+```csharp
+using System;
+
+class C
+{
+    static int F(Func<int> f) => f();
+
+    string M() => $"a {F(() => { var a = 1; return a; })} b";
+
+    string N() => $@"x {$"a {F(() => { var a = 1; return a; })} b"} y";
+
+    int O()
+    {
+        var a = 1;
+        {|RH5008:return|} $"{a}".Length;
+    }
+}
+```
+
+is reported only at `O` when the code is compiled with C# 10 or earlier. When it is compiled with C# 11 or later, the `return` statements in `M` and `N` are reported as well (`O` unchanged):
+
+```csharp
+using System;
+
+class C
+{
+    static int F(Func<int> f) => f();
+
+    string M() => $"a {F(() => { var a = 1; {|RH5008:return|} a; })} b";
+
+    string N() => $@"x {$"a {F(() => { var a = 1; {|RH5008:return|} a; })} b"} y";
+}
+```
+
+In an interpolation of a verbatim interpolated string, the statement is reported in every language version:
+
+```csharp
+using System;
+
+class C
+{
+    static int F(Func<int> f) => f();
+
+    string M() => $@"a {F(() => { var a = 1; {|RH5008:return|} a; })} b";
 }
 ```
