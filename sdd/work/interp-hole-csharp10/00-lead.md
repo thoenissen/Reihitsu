@@ -36,5 +36,5 @@
 
 ## State
 
-- Last step: test implementer repair (05-test-implementer.md, 5668948); implementer fix 9afcc6b.
-- Next: cleaner.
+- Last step: cleaner (06-cleaner.md, clean, 5a45494).
+- Next: spec checker, then auditor.
