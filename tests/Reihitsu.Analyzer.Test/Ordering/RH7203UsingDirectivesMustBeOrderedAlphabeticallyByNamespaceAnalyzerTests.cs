@@ -705,6 +705,10 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                      {
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
+
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      });
     }
 
