@@ -1826,6 +1826,98 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps the name of an anonymous object member whose whole expression is a conditional access,
+    /// a null-forgiving member access, or a nested conditional access that ends with the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedByTheTailOfAConditionalAccess()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int {|RH4106:Value|};
+                                    private C _next;
+
+                                    string M(C other)
+                                    {
+                                        var a = new { other?._next.Value };
+                                        var b = new { other?._next?.Value };
+                                        var c = new { other!.Value };
+
+                                        return a.Value.ToString() + b.Value + c.Value + _next;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value;
+                                     private C _next;
+
+                                     string M(C other)
+                                     {
+                                         var a = new { Value = other?._next._value };
+                                         var b = new { Value = other?._next?._value };
+                                         var c = new { Value = other!._value };
+
+                                         return a.Value.ToString() + b.Value + c.Value + _next;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes no name for an anonymous object member whose name the compiler takes from another
+    /// identifier, because the field is the receiver of a conditional access in the member's expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixWritesNoNameForAnAnonymousObjectMemberWhoseConditionalAccessReceiverIsTheField()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private string {|RH4106:Text|};
+                                    private C _next;
+
+                                    string M(C other)
+                                    {
+                                        var d = new { Text?.Length };
+                                        var e = new { this.Text?.Length };
+                                        var f = new { other?._next.Text.Length };
+
+                                        return d.Length.ToString() + e.Length + f.Length + _next;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private string _text;
+                                     private C _next;
+
+                                     string M(C other)
+                                     {
+                                         var d = new { _text?.Length };
+                                         var e = new { this._text?.Length };
+                                         var f = new { other?._next._text.Length };
+
+                                         return d.Length.ToString() + e.Length + f.Length + _next;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
