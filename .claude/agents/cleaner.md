@@ -3,6 +3,7 @@ name: cleaner
 description: Reihitsu squad role — formats the changed files and makes the Release build warning-free without changing behavior. Spawned by the lead (`squad/lead.md`) as an agent per stage; it reads its handovers under `sdd/work/<slug>/` and writes its own.
 model: sonnet
 effort: low
+tools: Bash, Read, Edit, Write, Glob, Grep
 color: cyan
 ---
 
