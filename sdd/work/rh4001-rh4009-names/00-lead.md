@@ -27,6 +27,7 @@
 | 9 | Auditor (08) | Arch finding #1: full namespace name computed in RH4009 and RH7002 | Change the structure in this run: one method in the shared `NamespaceCasingHelper`, used by both rules (implementer); no repair round used | Narrow fix itself added the copy; few lines, no new type | Same result today; internal refactor | 038379c |
 | 10 | Auditor (08) | Finding #2: file-name stem built twice in RH4001 helper | Repair round 1 → implementer | PR-introduced duplication | Internal | 038379c |
 | 11 | Auditor (08) | Finding #3: RH4001 rule-page colon/example order | Repair round 1 → spec author | Text only; prove with verify-text-only | Restores page reading; behavior text unchanged | ac888c7 |
+| 12 | Auditor (13) | Hint: `NamespaceCasingHelper` class summary says "namespace-casing" | Leave as is | Non-blocking hint, pre-existing on main; not worth a text round | Comment only | — |
 
 ## Follow-up candidates
 
@@ -45,4 +46,5 @@
 - Done: auditor (08, 773eb53) on 0ef284f — findings 1 (arch), 2, 3.
 - Done in round 1: spec author (09, ac888c7), implementer (10, 038379c, 4e8489d).
 - Done: cleaner (11, c29d925), spec checker (12, 927e2cc).
-- Next (round 1 cont.): auditor (repair only), validator. Was: spec author (#3), implementer (#1, #2), cleaner, spec checker, auditor (repair only), validator.
+- Done: auditor (13, 73deec6) — PASS. **Audited SHA: 29f5cd5e2d4335484a6a2f7b026995c69508d4eb.**
+- Next: validator, then publish (section 8). Was: auditor (repair only), validator. Was: spec author (#3), implementer (#1, #2), cleaner, spec checker, auditor (repair only), validator.
