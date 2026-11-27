@@ -2619,7 +2619,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
     }
 
     /// <summary>
