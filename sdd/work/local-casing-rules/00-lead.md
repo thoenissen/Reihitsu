@@ -22,6 +22,7 @@ Recorded before this run, in the issues (summarized):
   - 1B: RH4117 reports every variable that receives a whole element of a positional pattern (`(var Third, int Fourth)`, `(int Number and > 0, _)`, `(string { Length: > 0 } Text, _)`, `({ } Any, _)`); RH4115 keeps only a variable receiving a property of an element (`Size` in `(string { Length: var Size }, _)`). Fix result unchanged (camelCase rename).
   - 2A: `const int _ = 1;` is not reported (RH4128 exempts `_`).
   - 3B: every casing fix (RH4105, RH4106, RH4115, RH4117, RH4128) keeps an anonymous-object member name explicit when the renamed name is the member's whole expression: `Select(Value => new { Value })` → `Select(value => new { Value = value })`; `from Value in values select new { Value }` → `from value in values select new { Value = value }`.
+- Batch 1b Q4 (2026-11-27), answered "as recommended" = **4A**: SHARED-CASING-015 applies to every fix using the shared rename (also RH4101, RH4102, RH4107–RH4114, RH4120): e.g. RH4111 `private int value {get;set;}` + `new { value }` → `private int Value` + `new { value = Value }`.
 
 ## Decisions taken
 
@@ -40,6 +41,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: spec author amended (5970d619), change docs Accepted; SHARED-CASING-015 written for every shared-rename fix. Asked batch 1b Q4: does 3B extend to RH4101/4102/4107-4114/4120 (field, property, event, enum member, record parameter fixes)? Waiting. Next: test implementer.
+- Last step: spec author amended (5970d619), change docs Accepted; SHARED-CASING-015 written for every shared-rename fix. Q4 answered 4A (spec as written). Next: test implementer (04).
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
