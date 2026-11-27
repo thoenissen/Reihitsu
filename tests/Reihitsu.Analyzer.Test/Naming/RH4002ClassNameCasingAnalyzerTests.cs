@@ -719,6 +719,59 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
     }
 
     /// <summary>
+    /// Verifies that a nested class of a generic base type is renamed when a reference to it in a derived type would bind to a
+    /// nested type of the new name, because the renamer qualifies that reference with the generic base type, whatever type argument
+    /// that base type has
+    /// </summary>
+    /// <param name="typeArgument">Type argument of the base type, as the derived type and the qualifier write it</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("int")]
+    [DataRow("int[]")]
+    [DataRow("(int, int)")]
+    public async Task FixQualifiesAReferenceWithTheGenericBaseTypeThatANestedTypeOfTheNewNameWouldCapture(string typeArgument)
+    {
+        var testCode = $$"""
+                         class Base<T>
+                         {
+                             public class {|RH4002:item|}
+                             {
+                             }
+                         }
+
+                         class Derived : Base<{{typeArgument}}>
+                         {
+                             private class Item
+                             {
+                             }
+
+                             item _value;
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Base<T>
+                          {
+                              public class Item
+                              {
+                              }
+                          }
+
+                          class Derived : Base<{{typeArgument}}>
+                          {
+                              private class Item
+                              {
+                              }
+
+                              Base<{{typeArgument}}>.Item _value;
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies that a class keeps its diagnostic but gets no fix when code in an excluded <c>#if</c> branch references it, because the rename would leave that reference behind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

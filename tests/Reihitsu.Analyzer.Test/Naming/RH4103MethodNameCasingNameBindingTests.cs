@@ -2389,6 +2389,116 @@ public class RH4103MethodNameCasingNameBindingTests : BatchCodeFixTestsBase<RH41
     }
 
     /// <summary>
+    /// Verifies that the fix renames an inherited static method and qualifies its call with the generic base type, whatever type
+    /// argument that base type has, when a local function of the calling method has the method's new name
+    /// </summary>
+    /// <param name="typeArgument">Type argument of the base type, as the derived type and the qualifier write it</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("int")]
+    [DataRow("int[]")]
+    [DataRow("int[,]")]
+    [DataRow("int[][]")]
+    [DataRow("int?")]
+    [DataRow("int?[]")]
+    [DataRow("(int, int)")]
+    [DataRow("(int A, string B)")]
+    [DataRow("List<int>")]
+    [DataRow("List<int[]>")]
+    public async Task FixQualifiesTheCallWithTheGenericBaseTypeNextToALocalFunctionWithTheNewName(string typeArgument)
+    {
+        var testCode = $$"""
+                         using System.Collections.Generic;
+
+                         class Base<T>
+                         {
+                             protected static int {|RH4103:getValue|}() => 1;
+                         }
+
+                         class Derived : Base<{{typeArgument}}>
+                         {
+                             int Get(int other)
+                             {
+                                 int GetValue() => 2;
+
+                                 return getValue() + GetValue() + other;
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          using System.Collections.Generic;
+
+                          class Base<T>
+                          {
+                              protected static int GetValue() => 1;
+                          }
+
+                          class Derived : Base<{{typeArgument}}>
+                          {
+                              int Get(int other)
+                              {
+                                  int GetValue() => 2;
+
+                                  return Base<{{typeArgument}}>.GetValue() + GetValue() + other;
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an inherited static method and qualifies its call with the generic base type when the type
+    /// argument of that base type is written with its namespace
+    /// </summary>
+    /// <param name="typeArgument">Type argument of the base type, as the derived type and the qualifier write it</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("System.Collections.Generic.List<int>")]
+    [DataRow("System.Collections.Generic.List<int[]>")]
+    public async Task FixQualifiesTheCallWithTheGenericBaseTypeWhoseTypeArgumentHasANamespace(string typeArgument)
+    {
+        var testCode = $$"""
+                         class Base<T>
+                         {
+                             protected static int {|RH4103:getValue|}() => 1;
+                         }
+
+                         class Derived : Base<{{typeArgument}}>
+                         {
+                             int Get(int other)
+                             {
+                                 int GetValue() => 2;
+
+                                 return getValue() + GetValue() + other;
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Base<T>
+                          {
+                              protected static int GetValue() => 1;
+                          }
+
+                          class Derived : Base<{{typeArgument}}>
+                          {
+                              int Get(int other)
+                              {
+                                  int GetValue() => 2;
+
+                                  return Base<{{typeArgument}}>.GetValue() + GetValue() + other;
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies that Fix All renames the method whose call the renamer only qualifies next to a local function with the
     /// new name, and skips the method whose call the renamer would give a cast argument, which keeps its diagnostic
     /// </summary>
