@@ -17,8 +17,9 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Reorder a using block whose every directive stands before its first using (e.g. a `#nullable enable` header) in fix and formatter — changes formatter output; from 01-spec-author.md.
 
 ## Worklist / next step
 
-- Next: spawn spec author (01).
+- Done: spec author 01 (change doc written, 1db90d1; 4 output questions).
+- Next: skeptic (02), then output-question batch.
