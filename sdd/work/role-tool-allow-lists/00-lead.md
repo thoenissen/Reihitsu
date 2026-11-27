@@ -27,8 +27,11 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Restrict the main session with `permissions.deny` in `.claude/settings.json` (01-implementer) — asked to the maintainer as clarification 1's answer.
+- Inputs of `squad/roles/implementer.md`: name the issue as an input in the tooling lane (01-implementer).
 
 ## Worklist / next step
 
-- Next: implementer (01-implementer.md).
+- Done: implementer (01-implementer.md, commits 1665b05, 617a956; lane check confirmed tooling).
+- Waiting: maintainer's answer on restricting the main session (question 1).
+- Next: cleaner.
