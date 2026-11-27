@@ -46,7 +46,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence.", 2));
+        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -241,7 +241,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -274,7 +274,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence.", 2));
+        await Verify(testCode, fixedCode, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -821,7 +821,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -844,7 +844,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -866,7 +866,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -899,7 +899,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
         // Both operands of the same OR expression are reported, so the two rewrites replace siblings of one parent node
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence.", 2));
+                                  Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase
