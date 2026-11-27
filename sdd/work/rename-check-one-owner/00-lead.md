@@ -36,4 +36,5 @@
 - Auditor round 0 (`06-auditor.md`, audited head 123929e, base 2c77022): findings — #1 high. Repair round 1 open.
 - Round 1 test implementer done (`07-test-implementer.md`, 11 failing rows, 4 holding).
 - Round 1 implementer done (`08-implementer.md`, tests pass; qualifier read from renamed-tree syntax).
-- Next: cleaner (`09-cleaner.md`), spec checker (`10`), auditor on the repair (`11`).
+- Round 1 cleaner done (`09-cleaner.md`, clean; extracted FindQualifiedNameToken for RH2009).
+- Next: spec checker (`10`), auditor on the repair (`11`).
