@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-011 (changed), FMT-BREAK-045 (added) |
+| Affected requirements | FMT-BREAK-011 (changed), FMT-BREAK-015 (changed), FMT-BREAK-045 (added) |
 
 ## What
 
@@ -155,6 +155,10 @@ FMT-BREAK-041's gaps are the ones FMT-UNSUP-017 refuses a comment in, so that li
 ### The gap in front of the return type is not part of it
 
 The gap between a lambda's modifier and its return type is FMT-BREAK-041's, and the gap in front of the lambda's first token belongs to the code around the lambda (FMT-BREAK-011). This change joins only the gap between the return type and the `(`.
+
+### One owner for the gap, also inside a list element
+
+Inside a list element the gap between a lambda's return type and its `(` was joined as a wrap inside the element (FMT-BREAK-015). FMT-BREAK-045 now owns that gap wherever the lambda stands, and FMT-BREAK-015 leaves it to it, as it leaves the opening parenthesis of an argument list to FMT-BREAK-039. Both joins refuse the same trivia and write the same minimal separator, so the output inside a list element does not change; FMT-BREAK-015 keeps the `(` of a parenthesized lambda without a return type.
 
 ## Alternatives considered
 
