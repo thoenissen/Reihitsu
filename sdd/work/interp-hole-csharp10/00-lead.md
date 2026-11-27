@@ -38,6 +38,5 @@
 
 ## State
 
-- Audited SHA: 369a7ae15a94c660921e6060f354e54d5cb1bfcc (base 0feb518), verdict findings (08-auditor.md, d49be0c).
-- Repair round 1: spec author (09, ac343a0), test implementer (10, d0ac1b6), implementer (11, 1ae0050) done.
-- Next: cleaner, spec checker, auditor (repair only), validator.
+- First audit: 369a7ae (base 0feb518), findings (08). Repair round 1: 09–13 done (cleaner 5feadea, spec checker a03be3b consistent).
+- Next: auditor on the repair only, then validator.
