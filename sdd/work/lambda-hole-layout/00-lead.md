@@ -26,6 +26,7 @@
 | 6 | Test implementer | Spec examples (FMT-BREAK-011/041/044) still show old anonymous-method block; change doc omits RH5201, RH5112, RH3202, RH5417 results | Route to a fresh spec author (06), parallel to implementer (07) | Answer 1B covers every position and every fix that formats such code | Covered by maintainer answer 1B | 640e8b9 |
 | 7 | Implementer | RH5111 Fix All test uses `VerifyCodeFixWithEndOfLine` on a two-diagnostic source; second step applies only one fix | Test mechanics wrong, expected output right: route to a fresh test implementer (08) to verify both line endings with a helper that fits Fix All | Asserted output unchanged | Expected output unchanged; only the harness call changes | b6f5c35 |
 | 8 | Auditor 11 | Repair round 1 worklist: (1) characterization tests for #1567's modifier cases (FMT-BREAK-041); (2) `ListElementInteriorJoinRewriter.IsOwnedGap` comment / two owners of the return-type lambda gap; (3) FMT-RAW-007 restatement of FMT-INDENT-006 | All same requirement / PR-introduced: route (1) test implementer 12, (2) implementer 13 — leave the gap with one owner where cheap, else state the overlap accurately, (3) spec author 14; in parallel | Auditor classified them; finding 2 is a two-owner overlap the run introduced, fixed narrowly | No output changes (auditor: output identical; characterization of existing behavior) | 0bffb84 |
+| 9 | Implementer 13 | Single owner for the return-type lambda gap requires FMT-BREAK-015/045 wording to name one owner | Keep the single-owner code; route the spec wording to the spec author (15, continued) | One owner removes the overlap the auditor found; output byte-identical | Output identical (implementer's A/B check) | 8fcadf5 |
 
 ## Follow-up candidates
 
@@ -47,4 +48,4 @@
 - Done: spec checker 10 (0077a6e), consistent. main not ahead; build green.
 - Done: auditor 11 (0bffb84) on 498009c: #1568 pass, #1698 pass, #1567 findings (3).
 - Audited SHA: 498009c1169899ea8721d18776d8dae16ec03dae.
-- Repair round 1: test impl 12, implementer 13, spec author 14 (parallel); then cleaner 15, spec checker 16, auditor 17 (repair only), validator 18.
+- Repair round 1: done test impl 12 (ade09a1), implementer 13 (8fcadf5), spec author 14 (250da96). Next: spec author 15 (FMT-BREAK-015/045 owner wording), then cleaner 16, spec checker 17, auditor 18 (repair only), validator 19.
