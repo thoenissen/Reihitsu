@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH4001-006, RH4001-008 (new), RH4009-003 (new) |
 
@@ -16,7 +16,7 @@ Two independent changes to two naming rules.
 
 ## Why
 
-RH4001 ignores the prefix when it compares, because Entity Framework Core orders migrations by it; a fix that drops it moves the migration out of that order and breaks the project's migration history. The fix has to produce a name that RH4001 accepts and that keeps the file's role, as it already keeps the part behind the first dot.
+RH4001 ignores the prefix when it compares, because Entity Framework Core names a migration's files after the migration's ID, the timestamp prefix followed by the migration's name. The prefix sorts the migration files in the order they were created and keeps each next to its `.Designer.cs` file, which carries the same prefix; a fix that drops it moves the file away from the other migrations and from its `.Designer.cs` file. The fix has to produce a name that RH4001 accepts and that keeps the file's role, as it already keeps the part behind the first dot. Entity Framework Core itself does not read file names — it orders migrations by the ID in their `[Migration]` attribute — so neither today's fix nor the new one changes what it does at runtime; the change is about the files in the project.
 
 RH4009 pins the namespaces a project declares, and a nested declaration declares its full namespace: `namespace A { namespace B { } }` declares `A.B`, exactly as `namespace A.B { }` does. Comparing only `B` let `["A", "B"]` allow `A.B` and made `["A", "A.B"]` report it, which contradicts the rule page's statement that the full declared namespace is compared.
 
@@ -96,6 +96,8 @@ namespace A
 **3. Rule pages.** `documentation/rules/RH4001.md` states that the code fix keeps the timestamp prefix. `documentation/rules/RH4009.md` states that a namespace declared inside another one is compared by its full name.
 
 ## Decisions
+
+The maintainer decided the visible output changes 1 and 2 above in question round 3 (2026-10-18), recorded in issue #1085; change 3 restates those two decisions on the rule pages.
 
 ### The fix keeps the prefix
 
