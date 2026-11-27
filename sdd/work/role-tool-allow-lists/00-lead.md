@@ -24,6 +24,7 @@
 | 1 | Start | Skip the test implementer? | Skip | Tooling lane runs it only when the tool has tests; no test covers `.claude/agents/**` or settings | Tooling only | — |
 | 2 | Start | Take the main session's tool restriction (clarification 1) into the run? | Yes, as an investigated part: the implementer establishes whether a repository-level setting can remove tool definitions from the main session's context without removing a tool any repository workflow (lead, coordinator, triage, other commands) uses, and implements it only if it can and the lead's and commands' needs stay met; otherwise it reports the mechanism and limits and the run states it | The maintainer asked; same mechanism and motivation as the issue | Tooling only; no end-user surface | — |
 | 3 | Start | Read-only roles and `Edit` (clarification 3) | Verified by the implementer against the role files: each role must keep every tool its role file's steps need, including amending its own handover | Decided on evidence, not assumed | Tooling only | — |
+| 4 | Implementer 02 | `list_environments` and `SuggestConnectors`/`ListConnectors`/`SearchMcpRegistry`/`ListPlugins`/`ListSkills`/`SearchSkills` — deny or keep? | As implemented: `list_environments` denied, the others kept | Answer B names exactly the tools kept and denied; neither group is named, and the implementer followed the asked list literally | Tooling only | adb377d |
 
 ## Follow-up candidates
 
@@ -33,4 +34,5 @@
 
 - Done: implementer (01-implementer.md, commits 1665b05, 617a956; lane check confirmed tooling).
 - Maintainer answered B (main-session deny list).
-- Next: fresh implementer for answer 1 (02-implementer.md), then cleaner.
+- Done: implementer 02 (adb377d, 7625038).
+- Next: cleaner (03-cleaner.md).
