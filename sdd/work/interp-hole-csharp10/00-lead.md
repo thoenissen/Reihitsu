@@ -24,6 +24,9 @@
 | 6 | Skeptic | Analyzer check placement | Shared base where a rule family has one, otherwise per rule; reuse `IsInsideSingleLineInterpolation` from Core | Avoid a second statement of the rule | Internal | — |
 | 7 | Skeptic | Spec wording | Spec author (clarification): state the position once per shared owner (statement blank lines, attribute placement, initializers) and per rule only where no shared owner covers it (RH5103, RH5110, RH5206, RH5403) | Clarifies SHARED-DIAG-011 per rule, as the issue's Done-when asks | Spec text is internal | — |
 | 8 | Skeptic | Output questions | None: SHARED-DIAG-011 and RH5104-001 decide every visible output | — | — | — |
+| 9 | Spec author | RH3004 withholding scope | Withhold on the block path only (RH3004-010); the expression-body result compiles in the hole and stays offered | Narrows decision 4 to the unsafe output; keeps the fix `main` offers where it is safe | The expression-path fix stays as on `main`; the block path is a rare class | cf073d8 |
+| 10 | Spec author | Position statement, placement, SHARED-ATTR-024 users | Accept: restated per requirement, appended at spec end, listed by RH5513/RH5527 only | Follows decision 7 and existing precedent | Spec text is internal | cf073d8 |
+| 11 | Before tests | Output-question batch | No stop: no visible output change listed, no question raised | — | — | — |
 
 ## Follow-up candidates
 
@@ -31,5 +34,5 @@
 
 ## State
 
-- Last step: skeptic (01-skeptic.md, proceed narrower).
-- Next: spec author (clarification), then output-question check (none expected), test implementer.
+- Last step: spec author (02-spec-author.md, spec written, cf073d8).
+- Next: test implementer, then implementer.
