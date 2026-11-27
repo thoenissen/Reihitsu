@@ -627,28 +627,7 @@ internal static class CasingRenameSafetyUtilities
             return startIndex;
         }
 
-        var nameToken = default(SyntaxToken);
-
-        foreach (var node in firstToken.Parent.AncestorsAndSelf())
-        {
-            if (node.GetFirstToken() != firstToken)
-            {
-                break;
-            }
-
-            var (qualifier, name) = GetQualifierAndName(node);
-
-            if (name != null
-                && IsNameOf(name.Identifier, oldName, identifier))
-            {
-                if (qualifier is ThisExpressionSyntax or BaseExpressionSyntax or TypeSyntax)
-                {
-                    nameToken = name.Identifier;
-                }
-
-                break;
-            }
-        }
+        var nameToken = FindQualifiedNameToken(firstToken, oldName, identifier);
 
         if (nameToken == default)
         {
@@ -664,6 +643,36 @@ internal static class CasingRenameSafetyUtilities
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Finds the identifier of the innermost qualified name that starts at a token
+    /// </summary>
+    /// <param name="firstToken">Token the qualified name starts at</param>
+    /// <param name="oldName">Old name the reference carries</param>
+    /// <param name="identifier">New name</param>
+    /// <returns>The identifier token, or <c>default</c> when no accepted qualified name starts at the token</returns>
+    private static SyntaxToken FindQualifiedNameToken(SyntaxToken firstToken, string oldName, string identifier)
+    {
+        foreach (var node in firstToken.Parent.AncestorsAndSelf())
+        {
+            if (node.GetFirstToken() != firstToken)
+            {
+                break;
+            }
+
+            var (qualifier, name) = GetQualifierAndName(node);
+
+            if (name != null
+                && IsNameOf(name.Identifier, oldName, identifier))
+            {
+                return qualifier is ThisExpressionSyntax or BaseExpressionSyntax or TypeSyntax
+                           ? name.Identifier
+                           : default;
+            }
+        }
+
+        return default;
     }
 
     /// <summary>
