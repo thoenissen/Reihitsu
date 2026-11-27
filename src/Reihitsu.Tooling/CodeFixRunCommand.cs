@@ -1,3 +1,6 @@
+using Microsoft.CodeAnalysis.CSharp;
+
+using Reihitsu.Formatter.Utilities;
 using Reihitsu.Tooling.Enumerations;
 
 namespace Reihitsu.Tooling;
@@ -43,7 +46,7 @@ public static class CodeFixRunCommand
                                                TextWriter error,
                                                CancellationToken cancellationToken = default)
     {
-        if (TryParseArguments(args, out var diagnosticId, out var directory, out var maximumIterations, out var showHelp, out var parseError) == false)
+        if (TryParseArguments(args, out var diagnosticId, out var directory, out var options, out var showHelp, out var parseError) == false)
         {
             await error.WriteLineAsync($"apply-fix: {parseError}", cancellationToken).ConfigureAwait(false);
             PrintUsage(error);
@@ -58,9 +61,16 @@ public static class CodeFixRunCommand
             return ExitCodes.Success;
         }
 
+        if (options.ExceedingLanguageVersion != null)
+        {
+            var newestVersion = options.LanguageVersion.ToDisplayString();
+
+            await error.WriteLineAsync($"apply-fix: Warning: C# language version '{options.ExceedingLanguageVersion}' is newer than the newest supported version {newestVersion}; formatting for {newestVersion}.", cancellationToken).ConfigureAwait(false);
+        }
+
         try
         {
-            return await ExecuteCoreAsync(diagnosticId, directory, maximumIterations, output, error, cancellationToken).ConfigureAwait(false);
+            return await ExecuteCoreAsync(diagnosticId, directory, options.MaximumIterations, options.LanguageVersion, output, error, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -82,6 +92,7 @@ public static class CodeFixRunCommand
     /// <param name="diagnosticId">Diagnostic ID whose code fix is exercised</param>
     /// <param name="directory">Fixture directory</param>
     /// <param name="maximumIterations">Maximum number of code actions per fixture arm</param>
+    /// <param name="languageVersion">Resolved C# language version of every parse</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="error">Standard error writer</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -89,6 +100,7 @@ public static class CodeFixRunCommand
     private static async Task<int> ExecuteCoreAsync(string diagnosticId,
                                                     string directory,
                                                     int maximumIterations,
+                                                    LanguageVersion languageVersion,
                                                     TextWriter output,
                                                     TextWriter error,
                                                     CancellationToken cancellationToken)
@@ -127,7 +139,7 @@ public static class CodeFixRunCommand
         await output.WriteLineAsync($"{diagnosticId} -> {target.CodeFixProvider.GetType().Name} / {analyzerNames}", cancellationToken).ConfigureAwait(false);
         await output.WriteLineAsync(cancellationToken).ConfigureAwait(false);
 
-        var results = await RunFixturesAsync(fixtures, fullDirectory, target, maximumIterations, output, cancellationToken).ConfigureAwait(false);
+        var results = await RunFixturesAsync(fixtures, fullDirectory, target, maximumIterations, languageVersion, output, cancellationToken).ConfigureAwait(false);
 
         WriteSummary(output, fixtures.Count, results.Counters, results.LineEndingDrifts);
 
@@ -141,6 +153,7 @@ public static class CodeFixRunCommand
     /// <param name="fullDirectory">Absolute fixture directory</param>
     /// <param name="target">Resolved analyzer and code fix target</param>
     /// <param name="maximumIterations">Maximum code actions per fixture arm</param>
+    /// <param name="languageVersion">Resolved C# language version of every parse</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Outcome counters and line-ending drift count</returns>
@@ -148,6 +161,7 @@ public static class CodeFixRunCommand
                                                                                                                  string fullDirectory,
                                                                                                                  CodeFixTarget target,
                                                                                                                  int maximumIterations,
+                                                                                                                 LanguageVersion languageVersion,
                                                                                                                  TextWriter output,
                                                                                                                  CancellationToken cancellationToken)
     {
@@ -161,7 +175,7 @@ public static class CodeFixRunCommand
 
             foreach (var lineEnding in _lineEndings)
             {
-                var result = await FixtureRunner.RunAsync(target, source, lineEnding, maximumIterations, displayPath, cancellationToken).ConfigureAwait(false);
+                var result = await FixtureRunner.RunAsync(target, source, lineEnding, maximumIterations, displayPath, languageVersion, cancellationToken).ConfigureAwait(false);
 
                 counters[result.Outcome] = counters.GetValueOrDefault(result.Outcome) + 1;
                 lineEndingDrifts += result.PreservedLineEnding ? 0 : 1;
@@ -282,7 +296,7 @@ public static class CodeFixRunCommand
     /// <param name="writer">Writer that receives the usage text</param>
     private static void PrintUsage(TextWriter writer)
     {
-        writer.WriteLine("usage: apply-fix <diagnostic-id> <fixture-directory> [--max-iterations <positive-integer>]");
+        writer.WriteLine("usage: apply-fix <diagnostic-id> <fixture-directory> [--max-iterations <positive-integer>] [--lang-version <version>]");
         writer.WriteLine("       apply-fix --help");
     }
 
@@ -292,25 +306,28 @@ public static class CodeFixRunCommand
     /// <param name="args">Arguments to parse</param>
     /// <param name="diagnosticId">Diagnostic ID whose code-fix surface is exercised</param>
     /// <param name="directory">Directory holding the fixtures</param>
-    /// <param name="maximumIterations">Maximum number of code actions applied per fixture</param>
+    /// <param name="options">
+    /// Maximum number of code actions applied per fixture, the resolved C# language version (the newest supported one without
+    /// <c>--lang-version</c>), and the option's value when it names a version newer than that
+    /// </param>
     /// <param name="showHelp">Whether usage should be printed</param>
     /// <param name="error">Argument error when parsing fails</param>
     /// <returns><see langword="true"/> when the arguments are valid; otherwise, <see langword="false"/></returns>
     private static bool TryParseArguments(string[] args,
                                           out string diagnosticId,
                                           out string directory,
-                                          out int maximumIterations,
+                                          out (int MaximumIterations, LanguageVersion LanguageVersion, string ExceedingLanguageVersion) options,
                                           out bool showHelp,
                                           out string error)
     {
         diagnosticId = null;
         directory = null;
-        maximumIterations = DefaultMaximumIterations;
+        options = (DefaultMaximumIterations, LanguageVersionResolver.MaxSupportedLanguageVersion, null);
         showHelp = false;
         error = null;
 
         var positions = (DiagnosticId: (string)null, Directory: (string)null);
-        var state = (IterationsSpecified: false, PositionalOnly: false, ShowHelp: false);
+        var state = (IterationsSpecified: false, LanguageVersionSpecified: false, PositionalOnly: false, ShowHelp: false);
 
         var argumentIndex = 0;
 
@@ -318,7 +335,7 @@ public static class CodeFixRunCommand
         {
             var argument = args[argumentIndex++];
 
-            if (TryParseArgument(args, ref argumentIndex, argument, ref positions, ref maximumIterations, ref state, out error) == false)
+            if (TryParseArgument(args, ref argumentIndex, argument, ref positions, ref options, ref state, out error) == false)
             {
                 return false;
             }
@@ -350,7 +367,7 @@ public static class CodeFixRunCommand
     /// <param name="argumentIndex">Index of the next unread argument</param>
     /// <param name="argument">Current argument</param>
     /// <param name="positions">Parsed diagnostic ID and fixture directory</param>
-    /// <param name="maximumIterations">Parsed iteration limit</param>
+    /// <param name="options">Parsed iteration limit and language version</param>
     /// <param name="state">Mutable option parsing state</param>
     /// <param name="error">Argument error when parsing fails</param>
     /// <returns><see langword="true"/> when the argument is valid; otherwise, <see langword="false"/></returns>
@@ -358,8 +375,8 @@ public static class CodeFixRunCommand
                                          ref int argumentIndex,
                                          string argument,
                                          ref (string DiagnosticId, string Directory) positions,
-                                         ref int maximumIterations,
-                                         ref (bool IterationsSpecified, bool PositionalOnly, bool ShowHelp) state,
+                                         ref (int MaximumIterations, LanguageVersion LanguageVersion, string ExceedingLanguageVersion) options,
+                                         ref (bool IterationsSpecified, bool LanguageVersionSpecified, bool PositionalOnly, bool ShowHelp) state,
                                          out string error)
     {
         error = null;
@@ -380,7 +397,12 @@ public static class CodeFixRunCommand
 
         if (state.PositionalOnly == false && argument == "--max-iterations")
         {
-            return TryParseMaximumIterations(args, ref argumentIndex, ref maximumIterations, ref state, out error);
+            return TryParseMaximumIterations(args, ref argumentIndex, ref options.MaximumIterations, ref state, out error);
+        }
+
+        if (state.PositionalOnly == false && argument == "--lang-version")
+        {
+            return TryParseLanguageVersion(args, ref argumentIndex, ref options, ref state, out error);
         }
 
         if (state.PositionalOnly == false && argument.StartsWith('-'))
@@ -405,7 +427,7 @@ public static class CodeFixRunCommand
     private static bool TryParseMaximumIterations(string[] args,
                                                   ref int argumentIndex,
                                                   ref int maximumIterations,
-                                                  ref (bool IterationsSpecified, bool PositionalOnly, bool ShowHelp) state,
+                                                  ref (bool IterationsSpecified, bool LanguageVersionSpecified, bool PositionalOnly, bool ShowHelp) state,
                                                   out string error)
     {
         error = null;
@@ -427,6 +449,55 @@ public static class CodeFixRunCommand
         }
 
         state.IterationsSpecified = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Parses the value of the <c>--lang-version</c> option, which is always the argument behind it, and resolves it as
+    /// <c>reihitsu-format</c> does
+    /// </summary>
+    /// <param name="args">Complete argument array</param>
+    /// <param name="argumentIndex">Index of the option value</param>
+    /// <param name="options">Parsed options that receive the resolved language version and the value when it names a version newer than the newest supported one</param>
+    /// <param name="state">Mutable option parsing state</param>
+    /// <param name="error">Argument error when parsing fails</param>
+    /// <returns><see langword="true"/> when the option is valid; otherwise, <see langword="false"/></returns>
+    private static bool TryParseLanguageVersion(string[] args,
+                                                ref int argumentIndex,
+                                                ref (int MaximumIterations, LanguageVersion LanguageVersion, string ExceedingLanguageVersion) options,
+                                                ref (bool IterationsSpecified, bool LanguageVersionSpecified, bool PositionalOnly, bool ShowHelp) state,
+                                                out string error)
+    {
+        error = null;
+
+        if (state.LanguageVersionSpecified)
+        {
+            error = "--lang-version may only be specified once.";
+
+            return false;
+        }
+
+        // LanguageVersionFacts.TryParse would accept a missing value as the default version, which is why it never sees one.
+        if (argumentIndex >= args.Length)
+        {
+            error = "missing value for --lang-version.";
+
+            return false;
+        }
+
+        var value = args[argumentIndex++];
+
+        if (LanguageVersionFacts.TryParse(value, out var requestedVersion) == false)
+        {
+            error = $"invalid value for --lang-version: '{value}'. Expected a C# language version such as 12, 12.0, latest, or preview.";
+
+            return false;
+        }
+
+        options.LanguageVersion = LanguageVersionResolver.Resolve(requestedVersion);
+        options.ExceedingLanguageVersion = LanguageVersionResolver.ExceedsMaximum(requestedVersion) ? value : null;
+        state.LanguageVersionSpecified = true;
 
         return true;
     }
