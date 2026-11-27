@@ -207,5 +207,17 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
                    : solution;
     }
 
+    /// <summary>
+    /// Creates a transform that compiles the test project with the given language version
+    /// </summary>
+    /// <param name="languageVersion">Language version</param>
+    /// <returns>Transform to add to the test's solution transforms</returns>
+    protected static Func<Solution, ProjectId, Solution> CreateLanguageVersionTransform(LanguageVersion languageVersion)
+    {
+        return (solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                            ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(languageVersion))
+                                            : solution;
+    }
+
     #endregion // Methods
 }

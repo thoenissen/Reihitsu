@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -649,6 +650,98 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzerTests : 
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies an attribute list of a lambda inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while an attribute list of a lambda that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-024")]
+    public async Task LambdaReturnAttributeListInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class A : Attribute
+                                {
+                                }
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F([return: A] () => 1)} b";
+
+                                    string N() => $@"x {$"a {F([return: A] () => 1)} b"} y";
+
+                                    void O()
+                                    {
+                                        Func<int> f = {|RH5527:[return: A]|} () => $"{1}".Length;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies an attribute list of a lambda inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-024")]
+    public async Task LambdaReturnAttributeListInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class A : Attribute
+                                {
+                                }
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F({|RH5527:[return: A]|} () => 1)} b";
+
+                                    string N() => $@"x {$"a {F({|RH5527:[return: A]|} () => 1)} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies an attribute list of a lambda inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-024")]
+    public async Task LambdaReturnAttributeListInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class A : Attribute
+                                {
+                                }
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F({|RH5527:[return: A]|} () => 1)} b";
+
+                                    string P() => @$"a {F({|RH5527:[return: A]|} () => 1)} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

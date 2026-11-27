@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -2898,6 +2899,216 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                               """;
 
         await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies an expression-bodied local function inside an interpolation of a non-verbatim interpolated string is reported
+    /// and offers no code fix when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-004")]
+    public async Task LocalFunctionInsideANonVerbatimInterpolationOffersNoFixBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { int L() {|RH3208:=> 1|}; return L(); })} b";
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, LanguageVersion.CSharp10);
+    }
+
+    /// <summary>
+    /// Verifies an expression-bodied local function inside a verbatim interpolated string that stands in an interpolation of a
+    /// non-verbatim one is reported and offers no code fix when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-004")]
+    public async Task LocalFunctionInsideANonVerbatimInterpolationBehindAVerbatimOneOffersNoFixBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"x {$@"a {F(() => { int L() {|RH3208:=> 1|}; return L(); })} b"} y";
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode, LanguageVersion.CSharp10);
+    }
+
+    /// <summary>
+    /// Verifies an expression-bodied local function inside an interpolation of a non-verbatim interpolated string is converted
+    /// to a block body when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-004")]
+    public async Task LocalFunctionInsideANonVerbatimInterpolationIsFixedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { int L() {|RH3208:=> 1|}; return L(); })} b";
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     static int F(Func<int> f) => f();
+
+                                     string M() => $"a {F(() => { int L()
+                                                                  {
+                                                                      return 1;
+                                                                  } return L(); })} b";
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies an expression-bodied local function inside an interpolation of a verbatim interpolated string is converted to a
+    /// block body when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-004")]
+    public async Task LocalFunctionInsideAVerbatimInterpolationIsFixedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F(() => { int L() {|RH3208:=> 1|}; return L(); })} b";
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     static int F(Func<int> f) => f();
+
+                                     string M() => $@"a {F(() => { int L()
+                                                                   {
+                                                                       return 1;
+                                                                   } return L(); })} b";
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies an expression-bodied local function that only contains an interpolated string is converted to a block body
+    /// when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-004")]
+    public async Task LocalFunctionHoldingAnInterpolatedStringIsFixedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        int L() {|RH3208:=> $"{1}".Length|};
+
+                                        return L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int M()
+                                     {
+                                         int L()
+                                         {
+                                             return $"{1}".Length;
+                                         }
+
+                                         return L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies Fix All converts the local function outside every interpolation and leaves the one inside an interpolation of
+    /// a non-verbatim interpolated string reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3208-004")]
+    public async Task FixAllLeavesTheLocalFunctionInsideANonVerbatimInterpolationBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { int L() {|RH3208:=> 1|}; return L(); })} b";
+
+                                    int N()
+                                    {
+                                        int L() {|RH3208:=> 1|};
+
+                                        return L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     static int F(Func<int> f) => f();
+
+                                     string M() => $"a {F(() => { int L() {|RH3208:=> 1|}; return L(); })} b";
+
+                                     int N()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         }
+
+                                         return L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -1638,6 +1639,90 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
                                  """;
 
         await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a statement that shares its line with the statement before it inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a statement that shares its line with the statement before it that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-006")]
+    public async Task StatementInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; return a; })} b";
+
+                                    string Q() => $@"x {$"a {F(() => { var a = 1; return a; })} b"} y";
+
+                                    string N() => $"a {F(() => { var a = 1; return a; }),10} b";
+
+                                    int O()
+                                    {
+                                        var a = 1; {|RH5103:return $"{a}".Length;|}
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a statement that shares its line with the statement before it inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-006")]
+    public async Task StatementInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { var a = 1; {|RH5103:return a;|} })} b";
+
+                                    string Q() => $@"x {$"a {F(() => { var a = 1; {|RH5103:return a;|} })} b"} y";
+
+                                    string N() => $"a {F(() => { var a = 1; {|RH5103:return a;|} }),10} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a statement that shares its line with the statement before it inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-006")]
+    public async Task StatementInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F(() => { var a = 1; {|RH5103:return a;|} })} b";
+
+                                    string P() => @$"a {F(() => { var a = 1; {|RH5103:return a;|} })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     /// <summary>

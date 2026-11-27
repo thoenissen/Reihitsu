@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -1089,6 +1090,86 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
                               """;
 
         await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies a constraint clause of a local function inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a constraint clause of a local function that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-004")]
+    public async Task ConstraintClauseInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { int L<T>() where T : class => 1; return L<string>(); })} b";
+
+                                    string Q() => $@"x {$"a {F(() => { int L<T>() where T : class => 1; return L<string>(); })} b"} y";
+
+                                    void N()
+                                    {
+                                        int L<T>() {|RH5110:where|} T : class => $"{1}".Length;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a constraint clause of a local function inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-004")]
+    public async Task ConstraintClauseInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { int L<T>() {|RH5110:where|} T : class => 1; return L<string>(); })} b";
+
+                                    string Q() => $@"x {$"a {F(() => { int L<T>() {|RH5110:where|} T : class => 1; return L<string>(); })} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a constraint clause of a local function inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-004")]
+    public async Task ConstraintClauseInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F(() => { int L<T>() {|RH5110:where|} T : class => 1; return L<string>(); })} b";
+
+                                    string P() => @$"a {F(() => { int L<T>() {|RH5110:where|} T : class => 1; return L<string>(); })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

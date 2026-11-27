@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -2994,6 +2995,101 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testData,
                      resultData,
                      Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a collection initializer inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a collection initializer that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task CollectionInitializerInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    string M() => $"a {new List<int> { 1, 2 }.Count} b";
+
+                                    string N() => $@"x {$"a {new List<int> { 1, 2 }.Count} b"} y";
+
+                                    void O()
+                                    {
+                                        var a = {|RH5303:new List<int> { $"{1}".Length, 2 }|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a collection initializer inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task CollectionInitializerInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    string M() => $"a {{|RH5303:new List<int> { 1, 2 }|}.Count} b";
+
+                                    string N() => $@"x {$"a {{|RH5303:new List<int> { 1, 2 }|}.Count} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a collection initializer inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task CollectionInitializerInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    string M() => $@"a {{|RH5303:new List<int> { 1, 2 }|}.Count} b";
+
+                                    string Q() => @$"a {{|RH5303:new List<int> { 1, 2 }|}.Count} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a collection initializer whose elements are written in braces, inside an interpolation of a non-verbatim
+    /// interpolated string, is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task DictionaryCollectionInitializerInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    string M() => $"a {new Dictionary<int, int> { { 1, 2 } }.Count} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

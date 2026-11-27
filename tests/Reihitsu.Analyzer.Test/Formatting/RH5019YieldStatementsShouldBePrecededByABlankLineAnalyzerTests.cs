@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -304,6 +305,93 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a <c>yield</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while a <c>yield</c> statement that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task YieldStatementInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { IEnumerable<int> L() { var a = 1; yield return a; } return L().First(); })} b";
+
+                                    string N() => $@"x {$"a {F(() => { IEnumerable<int> L() { var a = 1; yield return a; } return L().First(); })} b"} y";
+
+                                    IEnumerable<int> O()
+                                    {
+                                        var a = 1;
+                                        {|RH5019:yield|} return $"{a}".Length;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>yield</c> statement inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task YieldStatementInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $"a {F(() => { IEnumerable<int> L() { var a = 1; {|RH5019:yield|} return a; } return L().First(); })} b";
+
+                                    string N() => $@"x {$"a {F(() => { IEnumerable<int> L() { var a = 1; {|RH5019:yield|} return a; } return L().First(); })} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies a <c>yield</c> statement inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-005")]
+    public async Task YieldStatementInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    static int F(Func<int> f) => f();
+
+                                    string M() => $@"a {F(() => { IEnumerable<int> L() { var a = 1; {|RH5019:yield|} return a; } return L().First(); })} b";
+
+                                    string P() => @$"a {F(() => { IEnumerable<int> L() { var a = 1; {|RH5019:yield|} return a; } return L().First(); })} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

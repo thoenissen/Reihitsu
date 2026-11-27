@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -1556,6 +1557,180 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                  """;
 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies an object initializer inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is not
+    /// reported when the code is compiled with C# 10, while an object initializer that only contains an interpolated string is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task ObjectInitializerInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    string M() => $"a {new C { P = 1 }.P} b";
+
+                                    string N() => $@"x {$"a {new C { P = 1 }.P} b"} y";
+
+                                    void O()
+                                    {
+                                        var a = {|RH5301:new C { P = $"{1}".Length }|};
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies an object initializer inside an interpolation of a non-verbatim interpolated string, also behind a verbatim one, is
+    /// reported when the code is compiled with C# 11
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task ObjectInitializerInsideANonVerbatimInterpolationIsReportedFromCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    string M() => $"a {{|RH5301:new C { P = 1 }|}.P} b";
+
+                                    string N() => $@"x {$"a {{|RH5301:new C { P = 1 }|}.P} b"} y";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
+    /// Verifies an object initializer inside an interpolation of a verbatim interpolated string, written <c>$@</c> or <c>@$</c>, is
+    /// reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task ObjectInitializerInsideAVerbatimInterpolationIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    string M() => $@"a {{|RH5301:new C { P = 1 }|}.P} b";
+
+                                    string Q() => @$"a {{|RH5301:new C { P = 1 }|}.P} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies an object initializer that holds a block comment or a delimited documentation comment, inside an interpolation
+    /// of a non-verbatim interpolated string, is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task ObjectInitializerWithCommentsInsideANonVerbatimInterpolationIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    string M() => $"a {new C { /* c */ P = 1 }.P} b";
+
+                                    string N() => $"a {new C { P = 1 /** c */ }.P} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies an object initializer inside a non-verbatim interpolated string, inside a verbatim one, inside an interpolation
+    /// of a non-verbatim one, is not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task ObjectInitializerThreeInterpolationsDeepIsNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    string M() => $"x {$@"y {$"a {new C { P = 1 }.P} b"} z"} w";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies an object initializer inside an interpolation of a verbatim interpolated string, next to but outside a
+    /// non-verbatim interpolated string in that interpolation, is reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task ObjectInitializerInsideAVerbatimInterpolationNextToANonVerbatimStringIsReportedBeforeCSharp11()
+    {
+        const string testCode = """
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    string M(int x) => $@"a {$"c {x}" + {|RH5301:new C { P = 2 }|}.P} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies a nested member initializer, an indexer initializer, and an object initializer inside an anonymous object, each
+    /// inside an interpolation of a non-verbatim interpolated string, are not reported when the code is compiled with C# 10
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-003")]
+    public async Task NestedAndIndexerInitializersInsideANonVerbatimInterpolationAreNotReportedBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    C Q { get; set; } = null!;
+
+                                    string M() => $"a {new C { Q = { P = 1 } }.Q.P} b";
+
+                                    string N() => $"a {new Dictionary<int, int> { [1] = 2 }.Count} b";
+
+                                    string O() => $"a {new { A = new C { P = 1 } }.A.P} b";
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
     #endregion // Tests

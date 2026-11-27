@@ -397,6 +397,23 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
+    /// registers no action for any diagnostic the analyzer reports on the source without its markup, both when the
+    /// code is compiled with the given language version
+    /// </summary>
+    /// <param name="source">The source text to test, with markup for every expected diagnostic</param>
+    /// <param name="languageVersion">Language version of the code</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyNoCodeFixIsOffered(string source, LanguageVersion languageVersion)
+    {
+        await VerifyNoCodeFixIsOffered(source,
+                                       test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(languageVersion)),
+                                       DocumentationMode.Parse,
+                                       [],
+                                       languageVersion);
+    }
+
+    /// <summary>
     /// Verifies that the code fix is offered for the first diagnostic the analyzer reports on the source, and that, once a syntax
     /// error is added in front of the source's last closing brace (an unclosed parameter list <c>void N(</c>), the analyzer still
     /// reports a diagnostic and the code fix registers no action for any diagnostic it reports
@@ -435,8 +452,9 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <param name="onConfigure">Additional configuration of the analyzer verification</param>
     /// <param name="documentationMode">Documentation mode of the document the code fix is asked for</param>
     /// <param name="preprocessorSymbols">Preprocessor symbols of the document the code fix is asked for</param>
+    /// <param name="languageVersion">Language version of the document the code fix is asked for</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task VerifyNoCodeFixIsOffered(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, DocumentationMode documentationMode, string[] preprocessorSymbols)
+    private static async Task VerifyNoCodeFixIsOffered(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, DocumentationMode documentationMode, string[] preprocessorSymbols, LanguageVersion languageVersion = LanguageVersion.Latest)
     {
         await Verify(source, onConfigure);
 
@@ -444,7 +462,7 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
 
         using (var workspace = new AdhocWorkspace())
         {
-            var (document, _) = CreateTestDocument(workspace, plainSource, documentationMode, preprocessorSymbols);
+            var (document, _) = CreateTestDocument(workspace, plainSource, documentationMode, preprocessorSymbols, languageVersion);
 
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
                                   ?? throw new InvalidOperationException("Failed to compile test document.");
@@ -529,13 +547,14 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <param name="source">Source text</param>
     /// <param name="documentationMode">Documentation mode of the syntax tree</param>
     /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <param name="languageVersion">Language version of the syntax tree</param>
     /// <returns>The created document and its identifier</returns>
-    private static (Document Document, DocumentId DocumentId) CreateTestDocument(AdhocWorkspace workspace, string source, DocumentationMode documentationMode, string[] preprocessorSymbols)
+    private static (Document Document, DocumentId DocumentId) CreateTestDocument(AdhocWorkspace workspace, string source, DocumentationMode documentationMode, string[] preprocessorSymbols, LanguageVersion languageVersion = LanguageVersion.Latest)
     {
         var projectId = ProjectId.CreateNewId();
         var documentId = DocumentId.CreateNewId(projectId);
         var versionStamp = VersionStamp.Create();
-        var parseOptions = new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions(languageVersion: Microsoft.CodeAnalysis.CSharp.LanguageVersion.Latest,
+        var parseOptions = new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions(languageVersion: languageVersion,
                                                                                 documentationMode: documentationMode,
                                                                                 preprocessorSymbols: preprocessorSymbols);
         var solution = workspace.CurrentSolution
