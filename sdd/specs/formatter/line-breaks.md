@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `ContinuationJoinRewriter`, `JoinedGap`, `JoinedGapUtilities`, `PatternLineStartUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-016, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-024, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-009, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-001, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-SWITCH-017, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-016, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-028, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-024, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-009, FMT-SPACE-017, FMT-SPACE-022, FMT-SPACE-026, FMT-STRUCT-001, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-SWITCH-017, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -587,7 +587,7 @@ class C
 
 A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, the case-type list of a union declaration (`union U(int, string)`), anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
 
-The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
+The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). When a modifier or a return type stands in front of the opening parenthesis, the gap in front of the parenthesis lies inside the lambda: behind a modifier FMT-BREAK-041 joins it, and behind a return type FMT-BREAK-045 does. A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
 
 Why: A parenthesis or comma at the start of a line separates the declaration from its parameters or a parameter from its separator, which is easy to misread. RH5105, RH5106, and RH5107 report the same shapes. A parenthesized lambda has no name in front of its parameter list: its opening parenthesis starts an expression and is placed by the code around it, as RH5105 leaves it unreported. A rule that moved it would compete with the owner of the gap in front of the lambda; as an element of a wrapped list the lambda keeps its own line (FMT-BREAK-012).
 
@@ -4568,3 +4568,84 @@ class C
     }
 }
 ```
+
+### FMT-BREAK-045 — A lambda's explicit return type joins its parameter list
+
+The formatter MUST remove the line breaks, and the blank lines with them, from the gap between the last token of a parenthesized lambda's explicit return type (`ParenthesizedLambdaExpressionSyntax.ReturnType`) and the `(` of its parameter list, so that the `(` stands on the line of the return type's last token. This holds wherever the lambda stands — as the value of a declaration, an assignment, or a return statement, as a conditional branch, as an expression body, and as a list element (where FMT-BREAK-015 joins the same gap) — and in a node-level root as in a whole document. A comment, a directive, or disabled text in the gap keeps the gap's line breaks as written (FMT-BREAK-001). The join writes the minimal separator (FMT-BREAK-031); the space between the return type and the `(` is FMT-SPACE-026's.
+
+The gap is the one between the return type and the parameter list, and only that one. The gap between a lambda's modifier and its return type is FMT-BREAK-041's, which joins it as the gap behind every modifier; the gap in front of the lambda's first token belongs to the code around the lambda (FMT-BREAK-011). A parenthesized lambda without a return type has no such gap: behind a modifier its `(` is joined by FMT-BREAK-041, and as its first token it is placed as FMT-BREAK-011 states.
+
+Why: The return type belongs to the lambda as a method's return type belongs to its declaration. A line break between it and the parameter list structures nothing; it leaves `(int x) => x` on a line of its own, which reads like a new expression and needs a continuation column of its own (FMT-INDENT-034). The same gap is joined behind a modifier (FMT-BREAK-041) and inside a list element (FMT-BREAK-015). A blank line there separates nothing, so it goes with the join, as for every join of this phase (FMT-BREAK-030).
+
+Example — as a declaration's value, behind a modifier and across a blank line, in a conditional branch, as an expression body, and with a block body, whose braces then align under the joined `(` (FMT-INDENT-028):
+
+```csharp
+using System;
+
+class C
+{
+    void M(bool b)
+    {
+        Func<int, int> i = int
+            (int x) => x;
+        Func<int, int> h = static int
+
+            (int x) => x;
+        Func<int, int> g = b
+            ? int
+                (int x) => x
+            : static int (int x) => x;
+        Func<int, int> m = int
+            (int x) =>
+            {
+                return x;
+            };
+    }
+
+    Func<int, int> P() => int
+        (int x) => x;
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M(bool b)
+    {
+        Func<int, int> i = int (int x) => x;
+        Func<int, int> h = static int (int x) => x;
+        Func<int, int> g = b
+                               ? int (int x) => x
+                               : static int (int x) => x;
+        Func<int, int> m = int (int x) =>
+                               {
+                                   return x;
+                               };
+    }
+
+    Func<int, int> P()
+    {
+        return int (int x) => x;
+    }
+}
+```
+
+Example — a comment in the gap keeps the line break, and a lambda without a return type has no such gap:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> i = int // c
+            (int x) => x;
+        Func<int, int> j = (int x) => x;
+    }
+}
+```
+
+is left unchanged.
