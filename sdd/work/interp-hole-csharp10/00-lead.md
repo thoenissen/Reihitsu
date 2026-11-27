@@ -28,6 +28,7 @@
 | 10 | Spec author | Position statement, placement, SHARED-ATTR-024 users | Accept: restated per requirement, appended at spec end, listed by RH5513/RH5527 only | Follows decision 7 and existing precedent | Spec text is internal | cf073d8 |
 | 11 | Before tests | Output-question batch | No stop: no visible output change listed, no question raised | — | — | — |
 | 12 | Test implementer | Pinned outputs of the passing RH3004/RH3208 fix cells (C# 11, `$@"`, contains-a-string, expression path) | Accept: they pin today's output on cells this run does not change | Characterize unchanged behavior | Outputs equal `main` | a3674ac |
+| 13 | Implementer | Two Fix All tests fail on verifier markup handling, not on production code | Route to a fresh test implementer: set `MarkupHandling = MarkupMode.Allow` on fixed and batch-fixed states (as the RH8204/RH8309 tests do); no assertion changes | Asserted output matches spec; test mechanics only | No asserted output changes | — |
 
 ## Follow-up candidates
 
@@ -35,5 +36,5 @@
 
 ## State
 
-- Last step: test implementer (03-test-implementer.md, reproduced: 44 failing tests, a3674ac).
-- Next: implementer.
+- Last step: implementer (04-implementer.md, test disputed, 9afcc6b).
+- Next: test implementer repair of 2 Fix All tests, then cleaner.
