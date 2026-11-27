@@ -19,12 +19,16 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Start | Do the three issues share a mechanism, or should the batch be split (lead.md 1.4)? | Keep one run | All three are formatter layout of the same code area: #1568 and #1698 are line columns the indentation phase owns, #1567 and #1568 are the layout of a lambda / anonymous function; three issues, one lane, no code fix or rule named; the maintainer named them together | Process only | claim |
+| 2 | Spec author | Change docs: one per issue; FMT-INDENT-031 changed in place; FMT-BREAK-045 new; #1698 rule keyed on kind of interpolated string | Accept the spec author's choices | Issues share area, not cause; in-place change keeps test IDs valid | Internal spec structure | b1406f8 |
 
 ## Follow-up candidates
 
-(none yet)
+- If #1568 answer A: RH5101/RH5102 fix column differs from whole-file formatting (01-spec-author).
+- If #1568 answer B: anonymous-method counterpart of RH5205 as a new rule under P11 (01-spec-author).
+- If #1567 answer A: RH5105 does not report a lambda's `(` behind a return type — gap or excluded under P11 (01-spec-author).
 
 ## Worklist / next step
 
 - Done: claim, lane, prepare.
-- Next: spawn spec author.
+- Done: spec author (01, b1406f8). #1567 premise narrowed: only explicit return type reproduces.
+- Next: skeptic, then output-question batch.
