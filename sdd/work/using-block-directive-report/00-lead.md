@@ -8,7 +8,10 @@
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (issue question, incl. cases 1a/1b): A — report an out-of-order using block that holds a directive, no fix offered; formatter keeps the block.
+- Q2 (which directives): A — every directive kind (#if, #nullable, #pragma, #region, ...).
+- Q3 (comparison span): A — compare across the whole block.
+- Q4 (escalation 10, declare using block with directive unsupported): A — not declared (answer '4' asked back; maintainer chose A).
 
 ## Decisions taken
 
@@ -26,5 +29,5 @@
 
 - Done: spec author 01 (change doc written, 1db90d1; 4 output questions).
 - Done: skeptic 02 (faeeaeb): output question.
-- Now: output batch sent to maintainer (Q1 issue question with cases 1a/1b, Q2 directive kinds, Q3 comparison span, Q4 escalation 10 declare-unsupported). Waiting.
-- Next after answers: spec author follow-up (route answers, reword basis, Status Accepted), then test implementer.
+- Done: output batch answered (1A 2A 3A 4A).
+- Now: spec author follow-up (03) (route answers, reword basis, Status Accepted), then test implementer.
