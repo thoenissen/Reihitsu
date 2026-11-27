@@ -10,7 +10,7 @@ Read [`../README.md`](../README.md) first.
 
 ## Inputs
 
-`00-lead.md`, the test implementer's handover, the spec diff and change doc, and the specs they name. The architecture and the formatter's phase ownership are in `AGENTS.md`.
+`00-lead.md`, the test implementer's handover, the spec diff and change doc, and the specs they name. In the tooling lane, which runs no spec author and a test implementer only when the tool has tests, also every issue of the run by number, read through the GitHub MCP tool `issue_read`. The architecture and the formatter's phase ownership are in `AGENTS.md`.
 
 ## Job
 
