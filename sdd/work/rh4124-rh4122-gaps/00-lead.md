@@ -39,4 +39,5 @@ The label makes the goals proposals, but the two decisions above are the maintai
 - Skeptic done (92c5751): proceed; premise reproduced for both. Internal amendments for the spec author: reword RH4124-003 *Why* (transparent identifiers), mention RH3007 overlap in the change doc; PR to say neither rule has a fix.
 - Visible changes 1-2 (new reports) are covered by the maintainer's decisions recorded in #1089; not re-asked.
 - Output question batch sent: Q1 RH4124 title/message (A keep / B widen, recommended B). Answered: B.
-- Next after answer: spec author amendment (fresh agent) incl. answer + Status Accepted, then test implementer.
+- Spec author amendment done (e78d882): 1B carried out, Status Accepted. Note for implementer: widen RH4124 analyzer class <summary>.
+- Next: test implementer.
