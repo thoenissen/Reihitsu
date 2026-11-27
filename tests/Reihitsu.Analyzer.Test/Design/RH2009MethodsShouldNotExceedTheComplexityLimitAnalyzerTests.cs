@@ -2918,7 +2918,7 @@ public class RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzerTests : Analy
     private static DiagnosticResult Complexity(int markupKey, int complexity, int limit)
     {
         return Diagnostic(RH2009MethodsShouldNotExceedTheComplexityLimitAnalyzer.DiagnosticId).WithLocation(markupKey, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                                                              .WithMessage($"This member has a cognitive complexity of {complexity}, which exceeds the limit of {limit}.");
+                                                                                              .WithMessage(string.Format(MessageFormat, complexity, limit));
     }
 
     /// <summary>

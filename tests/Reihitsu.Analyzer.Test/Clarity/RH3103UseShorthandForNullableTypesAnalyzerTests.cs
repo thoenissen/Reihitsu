@@ -44,7 +44,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -172,7 +172,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -203,7 +203,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -246,7 +246,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -277,7 +277,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -315,7 +315,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -354,7 +354,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -389,7 +389,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -558,7 +558,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -593,7 +593,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -655,7 +655,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -701,7 +701,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -745,7 +745,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1335,7 +1335,7 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : BatchCodeFixTests
         // Verifying multiple Nullable generics in one typeof are fixed in one Fix All iteration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types.", 2),
+                                  Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

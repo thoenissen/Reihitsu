@@ -100,12 +100,15 @@ public sealed class LineCountSelfHostingTests
     [TestMethod]
     public void ScanJudgesMethodInTestProjectByTheTestMethodLimit()
     {
+        // Arrange
+        var analyzer = new RH2008MethodsShouldNotExceedTheLineLimitAnalyzer();
+
         // Act
-        var violations = ScanSample(new RH2008MethodsShouldNotExceedTheLineLimitAnalyzer(), TestProjectAssemblyName, CreateMethodsAround(120));
+        var violations = ScanSample(analyzer, TestProjectAssemblyName, CreateMethodsAround(120));
 
         // Assert
         Assert.HasCount(1, violations, string.Join("\n", violations));
-        Assert.EndsWith("[RH2008] (RH2008MethodsShouldNotExceedTheLineLimitAnalyzer) This member has 121 lines of code, which exceeds the limit of 120.", violations[0]);
+        Assert.EndsWith($"[RH2008] (RH2008MethodsShouldNotExceedTheLineLimitAnalyzer) {string.Format(analyzer.MessageFormat, 121, 120)}", violations[0]);
     }
 
     /// <summary>
@@ -115,12 +118,15 @@ public sealed class LineCountSelfHostingTests
     [TestMethod]
     public void ScanJudgesMethodInProductionProjectByTheProductionMethodLimit()
     {
+        // Arrange
+        var analyzer = new RH2008MethodsShouldNotExceedTheLineLimitAnalyzer();
+
         // Act
-        var violations = ScanSample(new RH2008MethodsShouldNotExceedTheLineLimitAnalyzer(), ProductionProjectAssemblyName, CreateMethodsAround(60));
+        var violations = ScanSample(analyzer, ProductionProjectAssemblyName, CreateMethodsAround(60));
 
         // Assert
         Assert.HasCount(1, violations, string.Join("\n", violations));
-        Assert.EndsWith("[RH2008] (RH2008MethodsShouldNotExceedTheLineLimitAnalyzer) This member has 61 lines of code, which exceeds the limit of 60.", violations[0]);
+        Assert.EndsWith($"[RH2008] (RH2008MethodsShouldNotExceedTheLineLimitAnalyzer) {string.Format(analyzer.MessageFormat, 61, 60)}", violations[0]);
     }
 
     /// <summary>
@@ -130,12 +136,15 @@ public sealed class LineCountSelfHostingTests
     [TestMethod]
     public void ScanJudgesTypeInTestProjectByTheTestTypeLimit()
     {
+        // Arrange
+        var analyzer = new RH2111TypesShouldNotExceedTheLineLimitAnalyzer();
+
         // Act
-        var violations = ScanSample(new RH2111TypesShouldNotExceedTheLineLimitAnalyzer(), TestProjectAssemblyName, CreateTypesAround(3000));
+        var violations = ScanSample(analyzer, TestProjectAssemblyName, CreateTypesAround(3000));
 
         // Assert
         Assert.HasCount(1, violations, string.Join("\n", violations));
-        Assert.EndsWith("[RH2111] (RH2111TypesShouldNotExceedTheLineLimitAnalyzer) This type has 3001 lines of code, which exceeds the limit of 3000.", violations[0]);
+        Assert.EndsWith($"[RH2111] (RH2111TypesShouldNotExceedTheLineLimitAnalyzer) {string.Format(analyzer.MessageFormat, 3001, 3000)}", violations[0]);
     }
 
     /// <summary>
@@ -145,12 +154,15 @@ public sealed class LineCountSelfHostingTests
     [TestMethod]
     public void ScanJudgesTypeInProductionProjectByTheRepositoryTypeLimit()
     {
+        // Arrange
+        var analyzer = new RH2111TypesShouldNotExceedTheLineLimitAnalyzer();
+
         // Act
-        var violations = ScanSample(new RH2111TypesShouldNotExceedTheLineLimitAnalyzer(), ProductionProjectAssemblyName, CreateTypesAround(500));
+        var violations = ScanSample(analyzer, ProductionProjectAssemblyName, CreateTypesAround(500));
 
         // Assert
         Assert.HasCount(1, violations, string.Join("\n", violations));
-        Assert.EndsWith("[RH2111] (RH2111TypesShouldNotExceedTheLineLimitAnalyzer) This type has 501 lines of code, which exceeds the limit of 500.", violations[0]);
+        Assert.EndsWith($"[RH2111] (RH2111TypesShouldNotExceedTheLineLimitAnalyzer) {string.Format(analyzer.MessageFormat, 501, 500)}", violations[0]);
     }
 
     /// <summary>

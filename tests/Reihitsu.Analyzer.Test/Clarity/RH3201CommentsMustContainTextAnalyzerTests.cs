@@ -48,7 +48,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -265,7 +265,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
 
         await Verify(testCode,
                      fixedCode,
-                     Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
+                     Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1110,7 +1110,7 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
         // lines, so their removal spans meet
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text.", 2));
+                                  Diagnostics(RH3201CommentsMustContainTextAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase
