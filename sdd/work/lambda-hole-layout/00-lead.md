@@ -29,12 +29,13 @@
 | 9 | Implementer 13 | Single owner for the return-type lambda gap requires FMT-BREAK-015/045 wording to name one owner | Keep the single-owner code; route the spec wording to the spec author (15, continued) | One owner removes the overlap the auditor found; output byte-identical | Output identical (implementer's A/B check) | 8fcadf5 |
 | 10 | Auditor 18 | Pass, text cleanup: stale `<remarks>` in ListElementInteriorJoinRewriter.cs:32 | Route to cleaner 19; prove with verify-text-only against f371753 | Comment only | Text-only proof | b18f82c |
 | 11 | Auditor 18 | Hint: on main, ContinuationJoinRewriter and ListElementInteriorJoinRewriter both can join a lambda modifier-to-`(` gap inside a list element | Follow-up candidate (structural, pre-existing, output identical) | Two owners of one decision, unrelated to this run's change | Not changed in this run | b18f82c |
+| 12 | Publish | Follow-up candidate: RH5105 does not report a lambda's `(` behind an explicit return type | Dropped | Only serves a rare input class (explicit-return-type lambda wrapped before its `(`; skeptic 02 rated the class rare) | Not filed | — |
 
 ## Follow-up candidates
 
 - Two owners of the modifier-to-`(` gap of a parenthesized lambda inside a list element: `ContinuationJoinRewriter` (FMT-BREAK-041) and `ListElementInteriorJoinRewriter` (FMT-BREAK-015), pre-existing on main fe7b8f8; output identical today (18-auditor, hint).
 - Anonymous-method counterpart of RH5205 as a new rule under P11 (01-spec-author) — applies since #1568 = B.
-- RH5105 does not report a lambda's `(` behind a return type — gap or excluded under P11 (01-spec-author).
+- (dropped, decision 12) RH5105 does not report a lambda's `(` behind a return type — gap or excluded under P11 (01-spec-author).
 
 ## Worklist / next step
 
@@ -51,4 +52,4 @@
 - Done: spec checker 10 (0077a6e), consistent. main not ahead; build green.
 - Done: auditor 11 (0bffb84) on 498009c: #1568 pass, #1698 pass, #1567 findings (3).
 - Audited SHA: 498009c1169899ea8721d18776d8dae16ec03dae.
-- Repair round 1: done test impl 12 (ade09a1), implementer 13 (8fcadf5), spec author 14 (250da96). Done spec author 15 (d3b7f9f). Done cleaner 16 (8efa471, 122/122 focused). Done spec checker 17 (6a1ab4b) consistent. Done auditor 18 (b18f82c): pass, text cleanup. Audited SHA: f371753c7c411c08d8a63898342088c2fcab07c2. Done cleaner 19 (737bb66), text-only proof PASS vs f371753. Next: validator 20, issue manager, publish.
+- Repair round 1: done test impl 12 (ade09a1), implementer 13 (8fcadf5), spec author 14 (250da96). Done spec author 15 (d3b7f9f). Done cleaner 16 (8efa471, 122/122 focused). Done spec checker 17 (6a1ab4b) consistent. Done auditor 18 (b18f82c): pass, text cleanup. Audited SHA: f371753c7c411c08d8a63898342088c2fcab07c2. Done cleaner 19 (737bb66), text-only proof PASS vs f371753. Done validator 20 (47e6e5b) pass on 2c6aa72. Next: issue manager 21, issue manager, publish.
