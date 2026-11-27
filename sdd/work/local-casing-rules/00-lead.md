@@ -41,11 +41,11 @@ Recorded before this run, in the issues (summarized):
 
 ## Follow-up candidates
 
-- Shared casing rename renames an anonymous-object member whose whole expression is the renamed name (`new { Value }` → `new { value }`), on `main` for RH4105/RH4115 fixes; SHARED-FIX-003 — 01-spec-author.md (Whole run). Taken into the run (decision 3).
+- (taken into the run, not a follow-up) Shared casing rename renames an anonymous-object member whose whole expression is the renamed name (`new { Value }` → `new { value }`), on `main` for RH4105/RH4115 fixes; SHARED-FIX-003 — 01-spec-author.md (Whole run). Taken into the run (decision 3).
 - RH2001-011 withholds RH2001's fix when a property reference names an anonymous member; could keep the name explicitly like SHARED-CASING-015 — 03-spec-author.md (Whole run).
 
 ## State
 
-- Last step: audit 2 PASS (16-auditor, 93304f2a). Audited SHA: 93e74819336209c051296b029031e1ed9978a74e. Repair rounds used: 2 (round 1 spec checker, round 2 audit 1). Next: validator (17), lane check, issue manager (RH2001-011 follow-up), note + delete sdd/work, trigger commit, PR.
+- Last step: audit 2 PASS (16-auditor, 93304f2a). Audited SHA: 93e74819336209c051296b029031e1ed9978a74e. Repair rounds used: 2 (round 1 spec checker, round 2 audit 1). Validator PASS (967922e3). Next: lane check, issue manager (RH2001-011 follow-up), note + delete sdd/work, trigger commit, PR.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
