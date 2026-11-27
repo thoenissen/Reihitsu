@@ -30,4 +30,5 @@
 - Skeptic done (`01-skeptic.md`, proceed narrower; no output questions, no change doc, no escalation 10).
 - Test implementer done (`02-test-implementer.md`, reproduced: 14 failing, 10 holding; no follow-ups).
 - Implementer done (`03-implementer.md`, tests pass; token-by-token comparison replaces GetChanges in `RewritesOtherCodeAsync`; stricter for non-qualifier inserted tokens and nullable/tuple type-argument qualifiers, unreached by tests — auditor to judge).
-- Next: cleaner (`04-cleaner.md`).
+- Cleaner done (`04-cleaner.md`, clean).
+- Next: spec checker (`05-spec-checker.md`).
