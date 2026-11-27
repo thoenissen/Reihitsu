@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-27 · #1970 #1971 #1972 #1977 #1978 · triage 1A: all → 1.6.0; #1970 own tests run; #1972 own docs run (FMT-USING-004 only); #1971 own run after #1972, #1589 after #1971; #1977 own tooling run; #1978 joins `#1087 #1088 #1978`. 2A (#1971: fixes and formatter sort a block whose directives all stand before its first using). 3A (#1978: RH4105 reports query range variables, title widens; fix only if safe). Commented on #1589 #1971 #1972 #1977 #1978.
 - 2026-11-26 · #1960 · 3C: the formatter removes a `;` behind a type's closing brace (new structural transform); 4A: with a comment, directive, or disabled text between `}` and `;` the `;` stays, nothing indented, the blank line in front of the comment stays (FMT-BLANK-011). Commented on #1960 and #1959 (RH5404 fix result without `;`).
 - 2026-11-26 · #1956–#1963 · triage 1A: #1956 #1958 #1963 → 1.6.0 (`/squad #1956 #1958 #1963`, start now); #1957 #1961 → 1.8.0 (shared-line run); #1959 #1960 → 1.7.0 (extension-block run); #1962 closed as duplicate of #962 (input added to #962). #1959: 2A (RH5404 reports and fixes `class C { int _x; };`). #1960: questions 3/4 open — the maintainer asked whether the formatter could simply remove the `;`.
 - 2026-11-26 · #1948 #1949 #1950 · triage 1A: #1948 → 1.6.0 (own analyzer run, start now); #1949 → 1.6.0, joins #1924 (`/squad #1924 #1949`); #1950 → 1.7.0, own Playground run after #976; commented on #1949 #1950.
@@ -17,7 +18,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (23): #1085 #1086 #1087 #1088 #1089 #1090 #1399 #1400 #1567 #1568 #1589 #1607 #1698 #1771 #1836 #1912 #1924 #1936 #1948 #1949 #1956 #1958 #1963.
+Open in 1.6.0 (23 at the last batch, before the merges of 2026-11-27): #1085 #1086 #1087 #1088 #1089 #1090 #1399 #1400 #1567 #1568 #1589 #1607 #1698 #1771 #1836 #1912 #1924 #1936 #1948 #1949 #1956 #1958 #1963. Added by triage 2026-11-27: #1970 #1971 #1972 #1977 #1978 (`#1972` → `#1971` → `#1589`; `#1087 #1088 #1978`; #1970, #1977 own runs).
 
 Merged since the previous batch: #1944 (#1926), #1951 (#1943), #1952 (#1722), #1953 (#1925), #1954 (#1275), #1955 (#1837), #1964 (cleanup). #1472 closed by the maintainer without a PR.
 
@@ -38,6 +39,7 @@ Notes for the runs (evidence in the batch file, not decided): #1567 narrows to a
 
 ## Status
 
+Status 2026-11-27 (x): triage answered 1A, 2A, 3A; milestones set (all five → 1.6.0, no labels added); commented on #1589 #1971 #1972 #1977 #1978. Plan not yet rebuilt: nine merges since the last batch (#1965–#1969 #1973–#1976) — `/coordinator batch` next.
 Status 2026-11-27 (w): triage asked (`inventory/triage-2026-11-27.md`, main at 4bbb3ceb). 1 placements, all → 1.6.0: #1970 own tests run, start now; #1972 own docs run (FMT-USING-004 sentence only; SHARED-USING-009 already correct), start now; #1971 own behavior-change run after #1972 (`using-directives.md`), and #1589 moves behind #1971 (its audit covers the RH72xx guard); #1977 own tooling run, start now (example no longer reproduces since #1976; safety net); #1978 joins `/squad #1087 #1088 #1978`, start now (#1090 #1771 merged) (1A apply / 1B change rows; rec. 1A). 2 #1971 header directive before the first using: A fixes+formatter sort below it (rec.), B as main. 3 #1978 range variables: A RH4105 reports, title widens (rec.), B RH4115 reports, C not reported. Side find: formatter writes `class C;` for an empty `class C { }` (agent note, unchecked) — look at it in the batch.
 Status 2026-11-27 (v): triage of #1970 #1971 #1972 #1977 #1978 started; assessment delegated (`inventory/triage-2026-11-27.md`, main at 4bbb3ceb). Nothing asked yet. Side find: PRs #1965–#1969 #1973–#1976 merged since the last batch — batch after the triage answer.
 Status 2026-11-26 (u): a second, independent re-check (same main 68f236ea) overwrote `inventory/batch-2026-11-26.md`; the first version is in commit 21340085. It confirms the start-now set and the after-merge list; it finds the `PrecheckPhase.cs` overlap with #1963 only if #1567 is answered A, and a possible `sdd/specs/README.md` overlap of #1771 with #1090 only if escalation 9 adds a new type (a guess, so they stay parallel). Plan unchanged.
@@ -61,4 +63,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-On reports of merges: `/coordinator batch`. On new issues without a milestone: `/coordinator triage`.
+`/coordinator batch`: read the merges #1965–#1969 #1973–#1976, rebuild the graph with the triage of 2026-11-27, and check the side find (formatter writes `class C;` for an empty `class C { }`).
