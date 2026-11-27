@@ -46,6 +46,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: audit 1 (373c28ad, audited f6cabbd0) findings: 2 medium. Repair round 2: test implementer (12) added cells (3c51f444, naming 1004/1004), implementer (13) compiler-API refactor done (97b84054, analyzer 12349/12349), cleaner (14), spec checker (15), auditor on the repair (16), validator.
+- Last step: audit 1 (373c28ad, audited f6cabbd0) findings: 2 medium. Repair round 2: test implementer (12) added cells (3c51f444, naming 1004/1004), implementer (13) compiler-API refactor done (97b84054, analyzer 12349/12349), cleaner (14) clean (8cecb9a1), spec checker (15), auditor on the repair (16), validator.
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
