@@ -265,9 +265,9 @@ class C
 
 ### FMT-INDENT-006 — A comment on its own line takes the column of the code that follows it
 
-The formatter MUST indent a comment that starts its line — as decided by SHARED-BLANK-002 — to the column of the token it precedes. When that token stands behind another comment that leads the token's line, the line starts with that comment: the comment on its own line above takes the column the token's line starts in, which is the column of the leading comment, not the column of the token behind it (FMT-INDENT-030): in a method body, `  // above` above `            /* c */ M();` gives `        // above` above `        /* c */ M();`. A comment that precedes a closing brace MUST be indented one level deeper than the brace, inside the scope it closes — except the closing brace of an interpolation (`InterpolationSyntax`) of a regular, verbatim, or single-line raw interpolated string, which closes no content one level deeper: the lines of its hole and the brace itself are continuation lines in one column (FMT-INDENT-034), so a comment that precedes that brace MUST be indented to the column of the brace. Which string the interpolation belongs to decides, not where that string stands: the closing brace of an interpolation of a regular string nested in a hole of a multi-line raw string literal takes the comment to its own column as well, while the closing brace of an interpolation of a multi-line raw string literal keeps the comment one level deeper; a comment that precedes the closing delimiter of a collection expression, a list pattern, or a positional pattern MUST be indented one level deeper than the delimiter, in the column of the construct's elements (FMT-INDENT-025), and a comment that precedes the closing parenthesis of a parenthesized pattern MUST be indented to the column of the pattern inside it, four columns right of the opening parenthesis (FMT-INDENT-026). Each of these closing delimiters closes content that this spec indents one level deeper than the delimiter, as the closing brace of an initializer does (FMT-PIPE-014). A comment that precedes the closing delimiter of any other construct, such as the closing parenthesis of an argument list, is not decided by this sentence and takes the column of that delimiter. A comment that does not start its line, such as a delimited documentation comment written behind an opening brace, MUST be left where it is and MUST NOT receive indentation in the middle of its line.
+The formatter MUST indent a comment that starts its line — as decided by SHARED-BLANK-002 — to the column of the token it precedes. When that token stands behind another comment that leads the token's line, the line starts with that comment: the comment on its own line above takes the column the token's line starts in, which is the column of the leading comment, not the column of the token behind it (FMT-INDENT-030): in a method body, `  // above` above `            /* c */ M();` gives `        // above` above `        /* c */ M();`. A comment that precedes a closing brace MUST be indented one level deeper than the brace, inside the scope it closes — except the closing brace of an interpolation (`InterpolationSyntax`) of a regular, verbatim, or single-line raw interpolated string, which closes no content one level deeper: the lines of its hole and the brace itself are continuation lines of the statement (FMT-INDENT-034), so a comment that precedes that brace MUST be indented to the column of the brace, also when the hole's content stands in another column, such as an operand aligned under the one above it. Which string the interpolation belongs to decides, not where that string stands: the closing brace of an interpolation of a regular string nested in a hole of a multi-line raw string literal takes the comment to its own column as well, while the closing brace of an interpolation of a multi-line raw string literal keeps the comment one level deeper; a comment that precedes the closing delimiter of a collection expression, a list pattern, or a positional pattern MUST be indented one level deeper than the delimiter, in the column of the construct's elements (FMT-INDENT-025), and a comment that precedes the closing parenthesis of a parenthesized pattern MUST be indented to the column of the pattern inside it, four columns right of the opening parenthesis (FMT-INDENT-026). Each of these closing delimiters closes content that this spec indents one level deeper than the delimiter, as the closing brace of an initializer does (FMT-PIPE-014). A comment that precedes the closing delimiter of any other construct, such as the closing parenthesis of an argument list, is not decided by this sentence and takes the column of that delimiter. A comment that does not start its line, such as a delimited documentation comment written behind an opening brace, MUST be left where it is and MUST NOT receive indentation in the middle of its line.
 
-Why: A comment on its own line describes the code below it and reads as part of that code's block. A comment at the end of a scope describes the scope's contents, not the brace. The hole of an interpolation that is not part of a multi-line raw string literal has its content in the column of its closing brace, so a comment there one level deeper would stand apart from the lines it belongs to. Indenting a comment that shares a line with code would insert whitespace into the middle of that line.
+Why: A comment on its own line describes the code below it and reads as part of that code's block. A comment at the end of a scope describes the scope's contents, not the brace. The hole of an interpolation that is not part of a multi-line raw string literal holds no content one level deeper than its closing brace, so a comment there one level deeper would stand apart from the lines around it; the comment takes the column of the brace it precedes, as in front of the closing delimiter of any construct whose content is not one level deeper. Indenting a comment that shares a line with code would insert whitespace into the middle of that line.
 
 Example:
 
@@ -421,16 +421,20 @@ class C
 }
 ```
 
-and a comment in front of the closing brace of an interpolation of a regular, a verbatim, or a single-line raw interpolated string, also one nested in a hole of a multi-line raw string literal, takes the column of the brace and of the hole's other lines, while one in front of the closing brace of a multi-line raw string literal's own interpolation stays one level deeper than the brace. FMT-BLANK-011 puts a blank line above each of these comments:
+and a comment in front of the closing brace of an interpolation of a regular, a verbatim, or a single-line raw interpolated string, also one nested in a hole of a multi-line raw string literal, takes the column of the brace, also when the hole's content stands in another column, while one in front of the closing brace of a multi-line raw string literal's own interpolation stays one level deeper than the brace. FMT-BLANK-011 puts a blank line above each of these comments:
 
 ```csharp
 class C
 {
-    string M(int a)
+    string M(int a, int b)
     {
         var t = $"{
             // e
             a
+            // f
+            }";
+        var u = $"{a +
+            b
             // f
             }";
         var v = $@"{
@@ -454,7 +458,7 @@ class C
                   }}
                   """;
 
-        return t + v + s + n + r;
+        return t + u + v + s + n + r;
     }
 }
 ```
@@ -462,11 +466,16 @@ class C
 ```csharp
 class C
 {
-    string M(int a)
+    string M(int a, int b)
     {
         var t = $"{
             // e
             a
+
+            // f
+            }";
+        var u = $"{a
+                   + b
 
             // f
             }";
@@ -495,7 +504,7 @@ class C
                   }}
                   """;
 
-        return t + v + s + n + r;
+        return t + u + v + s + n + r;
     }
 }
 ```
@@ -2418,7 +2427,7 @@ class C
 
 When the opening brace of an anonymous method's block starts a line, the formatter MUST shift the block — its braces and every line between them — so the opening brace starts in the column of the anonymous method's anchor: the `async` keyword of an async anonymous method, otherwise the `delegate` keyword, also behind a `static` modifier. The anchor is the one FMT-INDENT-028 takes for a block lambda in the same position: an `async` lambda aligns at `async`, a `static` one past `static`. The lines inside the block MUST keep their indentation relative to the opening brace, one level deeper for the block's statements as in every block (FMT-INDENT-002). The column of the anchor is measured where this phase puts it (FMT-INDENT-030), also after a multi-line raw string literal around it moved (FMT-RAW-007).
 
-This holds wherever the anonymous method stands — as an argument, as the value of a declaration, an assignment, or a return statement, inside the block body of a lambda or of another anonymous method, and in an interpolation hole of any interpolated string — exactly as FMT-INDENT-028 aligns a block lambda in every position. A block whose opening brace does not start its line, such as one that stays on the line of `delegate` in an interpolation that cannot hold a line break (FMT-BREAK-044), is not shifted.
+This holds wherever the anonymous method stands — as an argument, as the value of a field, a declaration, an assignment, a compound assignment, or a return statement, in an object initializer, a conditional branch, a switch-expression arm, or a collection expression, in a chain of calls, inside the block body of a lambda or of another anonymous method, and in an interpolation hole of any interpolated string — exactly as FMT-INDENT-028 aligns a block lambda in every position. A block whose opening brace does not start its line, such as one that stays on the line of `delegate` in an interpolation that cannot hold a line break (FMT-BREAK-044), is not shifted.
 
 Why: An anonymous method can start anywhere on its line, typically after `=` or inside an argument list, as a lambda can. Aligning its block with its own first token keeps the block visually attached to it rather than to the statement around it, the layout FMT-INDENT-028 gives the block lambda that is the newer spelling of the same construct. The maintainer decided that an interpolation hole has no layout rules of its own, so the anonymous method has one layout in every position: the scope-depth column, which it took outside the holes of multi-line raw string literals before, is not available inside them (FMT-RAW-007), while the anchor is available everywhere. The rest of the anonymous method is formatted as everywhere else: its braces and statements start their own lines (FMT-BREAK-002, FMT-BREAK-006), and its body is one level deeper than its braces.
 
@@ -2478,6 +2487,115 @@ class C
         return M(delegate
                  {
                      return 1;
+                 });
+    }
+}
+```
+
+Example — as a field's value, in an object initializer, in a conditional branch, in a switch-expression arm, as a collection element, behind `+=`, in a chain of calls (each block under its own `delegate`, the second measured after the first moved), and nested in another anonymous method's block, as a block lambda aligns in each of these positions (FMT-INDENT-028):
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class D
+{
+    public Func<int> F { get; set; }
+}
+
+class C
+{
+    private Func<int> _f = delegate { return 1; };
+
+    event EventHandler E;
+
+    int M(Func<int> f, int k = 0)
+    {
+        var d1 = new D { F = delegate { return 1; } };
+        Func<int> c1 = k > 0 ? delegate { return 1; } : null;
+        var a = k switch
+        {
+            0 => M(delegate { return 1; }),
+            _ => 2,
+        };
+        Func<int>[] arr = [delegate { return 1; }, null];
+        E += delegate { Console.WriteLine(); };
+        var q = new List<int>().Select(delegate (int b) { return b; }).Where(delegate (int b) { return b > 0; });
+
+        return M(delegate { return M(delegate { return 2; }); });
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class D
+{
+    public Func<int> F { get; set; }
+}
+
+class C
+{
+    private Func<int> _f = delegate
+                           {
+                               return 1;
+                           };
+
+    event EventHandler E;
+
+    int M(Func<int> f, int k = 0)
+    {
+        var d1 = new D
+                 {
+                     F = delegate
+                         {
+                             return 1;
+                         }
+                 };
+        Func<int> c1 = k > 0
+                           ? delegate
+                             {
+                                 return 1;
+                             }
+                           : null;
+        var a = k switch
+                {
+                    0 => M(delegate
+                           {
+                               return 1;
+                           }),
+                    _ => 2,
+                };
+        Func<int>[] arr = [
+                              delegate
+                              {
+                                  return 1;
+                              },
+                              null
+                          ];
+        E += delegate
+             {
+                 Console.WriteLine();
+             };
+
+        var q = new List<int>().Select(delegate (int b)
+                                       {
+                                           return b;
+                                       }).Where(delegate (int b)
+                                                {
+                                                    return b > 0;
+                                                });
+
+        return M(delegate
+                 {
+                     return M(delegate
+                              {
+                                  return 2;
+                              });
                  });
     }
 }
