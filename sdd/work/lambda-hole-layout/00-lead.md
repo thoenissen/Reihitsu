@@ -12,7 +12,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (before test implementer): maintainer chose the recommended option for all three — #1568 **B** (anonymous method's block aligns under its first token everywhere, as a block lambda; RH5101/RH5111 fixes follow); #1698 **A** (comment in front of a non-multi-line-raw hole's `}` takes the brace's column, blank line kept); #1567 **A** (explicit return type joined onto the lambda's `(`; comment between keeps the line break).
 
 ## Decisions taken
 
@@ -26,9 +26,8 @@
 
 ## Follow-up candidates
 
-- If #1568 answer A: RH5101/RH5102 fix column differs from whole-file formatting (01-spec-author).
-- If #1568 answer B: anonymous-method counterpart of RH5205 as a new rule under P11 (01-spec-author); also RH5111 initializer result column 25 (02-skeptic).
-- If #1567 answer A: RH5105 does not report a lambda's `(` behind a return type — gap or excluded under P11 (01-spec-author).
+- Anonymous-method counterpart of RH5205 as a new rule under P11 (01-spec-author) — applies since #1568 = B.
+- RH5105 does not report a lambda's `(` behind a return type — gap or excluded under P11 (01-spec-author).
 
 ## Worklist / next step
 
@@ -36,5 +35,5 @@
 - Done: spec author (01, b1406f8). #1567 premise narrowed: only explicit return type reproduces.
 - Done: skeptic (02, 162ab85). #1568 output question (amend); #1698 output question (+A vs A′); #1567 proceed narrower.
 - Done: spec author amendment (03, 1b9626c); questions drafted in 03.
-- Asked: output-question batch 1 (#1568 A/B, #1698 A/A′/B/C, #1567 A/B). WAITING for maintainer.
-- Next after answers: route to spec author (Status Accepted, Decisions), then test implementer.
+- Asked: output-question batch 1 (#1568 A/B, #1698 A/A′/B/C, #1567 A/B). Answered: 1B, 2A, 3A.
+- Next: spec author (continued) records answers in change docs' Decisions, Status Accepted (04); then test implementer.
