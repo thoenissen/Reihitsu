@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
@@ -48,7 +49,8 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     /// the indentation phase, after the phase moved the lines of multi-line raw string literals
     /// (<see cref="LayoutModel.TryGetPlacedColumn"/>). A comment in front of a closing brace, of the closing bracket of a
     /// collection expression or a list pattern, or of the closing parenthesis of a positional or parenthesized pattern is
-    /// indented one level deeper than that token, inside the content it closes
+    /// indented one level deeper than that token, inside the content it closes; a comment in front of the closing brace of
+    /// an interpolation that is not part of a multi-line raw string literal takes the brace's column
     /// </summary>
     /// <param name="token">The token whose leading trivia to inspect</param>
     /// <param name="model">The layout model</param>
@@ -63,8 +65,11 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
 
         // Comments before a closing delimiter whose content is indented one level deeper than the delimiter are indented
         // into that content: a closing brace, and the closing delimiters of patterns and collection expressions, whose set
-        // the blank-line phase reads from the same predicate (FMT-INDENT-006, FMT-PIPE-014)
-        if (token.IsKind(SyntaxKind.CloseBraceToken)
+        // the blank-line phase reads from the same predicate (FMT-INDENT-006, FMT-PIPE-014). The closing brace of an
+        // interpolation closes no such content unless its string is a multi-line raw string literal: the lines of any other
+        // hole are continuation lines of the statement, so the comment takes the brace's column
+        if ((token.IsKind(SyntaxKind.CloseBraceToken)
+             && ClosesContentOneLevelDeeper(token))
             || BraceBlankLinePolicy.IsClosingTokenOfPatternOrCollectionExpression(token))
         {
             alignColumn += FormattingContext.IndentSize;
@@ -90,6 +95,20 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
                 model.Set(commentLine, new TokenLayout(alignColumn, "CommentAlignment"));
             }
         }
+    }
+
+    /// <summary>
+    /// Determines whether a closing brace closes content that is indented one level deeper than the brace. Every closing
+    /// brace does, except the closing brace of an interpolation whose interpolated string is not a multi-line raw string
+    /// literal: the lines of such a hole and the brace itself are continuation lines of the statement (FMT-INDENT-006).
+    /// The string the interpolation belongs to decides, not where that string stands
+    /// </summary>
+    /// <param name="closeBrace">The closing brace</param>
+    /// <returns><see langword="true"/> if the brace closes content one level deeper; otherwise, <see langword="false"/></returns>
+    private static bool ClosesContentOneLevelDeeper(SyntaxToken closeBrace)
+    {
+        return closeBrace.Parent is not InterpolationSyntax interpolation
+               || RawStringLineUtilities.IsMultiLineRawStringLiteral(interpolation.Parent);
     }
 
     #endregion // Methods
