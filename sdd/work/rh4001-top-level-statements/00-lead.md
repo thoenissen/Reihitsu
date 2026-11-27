@@ -30,6 +30,5 @@
 
 ## State
 
-- Last step finished: implementer (04, 9db50e8 code, ad704b6 handover; all tests green in Debug).
-- Next step: cleaner, then spec author status-only (Accepted), then spec checker.
-- Pending: spec author status-only follow-up (change doc Accepted) before spec checker.
+- Last step finished: cleaner (05, 4827ed1, clean); spec author status-only (06, 24c763e, change doc Accepted).
+- Next step: spec checker.
