@@ -43,6 +43,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: test implementer fixed disputed tests (22ef5ead); naming tests 1002/1002 green. Next: cleaner (07).
+- Last step: cleaner clean (e65d045c). Next: spec checker (08).
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
