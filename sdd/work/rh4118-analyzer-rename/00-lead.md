@@ -17,6 +17,9 @@ None.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Lane | Which roles run for a pure rename | Skip the test implementer; implementer renames the test class together with the production type | Nothing to reproduce; the type rename and the test reference must change atomically | Type names are internal; diagnostic ID, texts, and help link are unchanged | claim |
+| 2 | Skeptic | Issue goal: rename the code-fix provider | Dropped: RH4118 has no code-fix provider | Nothing to rename | Internal type names only | — |
+| 3 | Skeptic | Rename test method names and spec title too | No: keep test method names and spec title "Tuple expression element casing" | They match the spec wording and clash with nothing; renaming adds noise | Internal names only | — |
+| 4 | Skeptic | Rebuild `binaries/` | No: they keep the old type name until the next version bump | Self-hosting goes by rule ID | Binaries unchanged | — |
 
 ## Follow-up candidates
 
@@ -24,4 +27,5 @@ None.
 
 ## Worklist
 
-- Next: spec author (01).
+- Done: spec author (01, dfcde82), skeptic (02, 2a72660: proceed).
+- Next: implementer (03).
