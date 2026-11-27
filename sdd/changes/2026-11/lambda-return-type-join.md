@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-011 (changed), FMT-BREAK-045 (added) |
 
@@ -144,6 +144,10 @@ No rule page changes: no rule reports the line break in front of a lambda's `(`;
 
 ## Decisions
 
+### Maintainer answer (2026-11-27)
+
+Asked as an output question with the input of entries 1 and 2 and the argument form `N(int⏎(int x) => x)`, which is joined already: **A** join the `(` onto the line of the return type, **B** keep the line break. The maintainer chose **A**, as recommended.
+
 ### A requirement of its own, not an entry of FMT-BREAK-041
 
 FMT-BREAK-041's gaps are the ones FMT-UNSUP-017 refuses a comment in, so that list never meets a comment. The gap behind a lambda's return type is not declared unsupported: a comment there keeps the line break under the guard every other join of the phase has (FMT-BREAK-001), and declaring it would delete no special case. The join is therefore a requirement of its own.
@@ -154,5 +158,5 @@ The gap between a lambda's modifier and its return type is FMT-BREAK-041's, and 
 
 ## Alternatives considered
 
-- **Keep the line break and the continuation indent** (the issue's options B and C, which are today's output on fe7b8f8) — rejected in the recommendation: the line break structures nothing, and the same gap is joined inside a list element and behind a modifier.
+- **Keep the line break and the continuation indent** (the issue's options B and C, which are today's output on fe7b8f8) — rejected by the maintainer's answer: the line break structures nothing, and the same gap is joined inside a list element and behind a modifier.
 - **Add the gap to FMT-BREAK-041 and declare a comment in it unsupported** — rejected: the shape deletes no special case, so it is not declared (`AGENTS.md`, *Special cases do not grow the source*).

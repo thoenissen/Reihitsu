@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-INDENT-031 (changed) |
 | Depends on | [Parenthesized lambdas keep their line, and an anonymous method in a raw-string hole aligns like a block lambda](lambda-paren-hole-break.md) |
@@ -348,6 +348,10 @@ No rule page changes: RH5205, which reports misaligned lambda braces, leaves ano
 
 ## Decisions
 
+### Maintainer answer (2026-11-27)
+
+Asked as an output question with the inputs of entries 1, 2, and 5 (argument followed by another argument, object initializer, conditional branch, return): **A** keep the scope-depth block outside raw-string holes, **B** align the block under the anonymous method's anchor everywhere. The maintainer chose **B**, as recommended.
+
 ### The anchor is the one of the hole case
 
 The anchor does not change: `async` for an async anonymous method, otherwise `delegate`, also behind `static` (maintainer answers 4 and 6 of [lambda-paren-hole-break](lambda-paren-hole-break.md)). Only the positions in which the block aligns grow.
@@ -358,5 +362,5 @@ The requirement keeps its ID and its hole examples, which still hold; its scope 
 
 ## Alternatives considered
 
-- **Keep the scope-depth column outside holes** (the issue's option A) — the layout today; rejected in the recommendation because it keeps a layout rule that depends on the hole, against the maintainer's statement that a hole has none.
+- **Keep the scope-depth column outside holes** (the issue's option A) — the layout today; rejected by the maintainer's answer because it keeps a layout rule that depends on the hole, against the maintainer's statement that a hole has none.
 - **Align under `static` for a `static` anonymous method** — rejected: the maintainer decided `delegate` for the hole case (answer 4), and the anchor is the same in every position.

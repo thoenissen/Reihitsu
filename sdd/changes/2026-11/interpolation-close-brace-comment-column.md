@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-INDENT-006 (changed) |
 
@@ -196,6 +196,10 @@ No rule page changes: RH5204, which checks the column of a comment in front of a
 
 ## Decisions
 
+### Maintainer answer (2026-11-27)
+
+Asked as an output question with the inputs of entries 1 and 3: **A** the comment takes the column of the hole's closing brace and keeps the blank line above it, **A′** the column of the hole's content line above it, **B** unchanged, **C** as A without the blank line. The maintainer chose **A**, as recommended.
+
 ### The boundary is the kind of interpolated string
 
 The rule follows the string the interpolation belongs to: an interpolation of a multi-line raw string literal keeps the one-level-deeper rule, every other interpolation's closing brace is treated like the closing delimiter of any other construct, which FMT-INDENT-006 already places the comment in front of at the delimiter's column. A regular string nested in a multi-line raw literal's hole is a regular string: its interpolation's brace takes the comment to its column.
@@ -206,7 +210,7 @@ The issue left the blank line in front of the comment to be decided with the col
 
 ## Alternatives considered
 
-- **Keep the column one level deeper and state it** (the issue's option B) — rejected in the recommendation: it keeps the hole's lines in two columns.
-- **The column of the hole's content line instead of the brace's** (the issue's wording, "the column of the hole's other content lines") — rejected in the recommendation: it differs from the brace's column when the content is aligned (entry 3, `// f` in column 19), and the formatter has no notion of a hole's content column; a comment takes the column of the token it precedes, as in front of every other closing delimiter whose content is not one level deeper.
-- **Drop the blank line in front of the comment as well** — rejected in the recommendation: it would need an exception to FMT-BLANK-011 for interpolations, and the same comment in a multi-line raw literal's hole keeps its blank line.
+- **Keep the column one level deeper and state it** (the issue's option B) — rejected by the maintainer's answer: it keeps the hole's lines in two columns.
+- **The column of the hole's content line instead of the brace's** (the issue's wording, "the column of the hole's other content lines") — rejected by the maintainer's answer: it differs from the brace's column when the content is aligned (entry 3, `// f` in column 19), and the formatter has no notion of a hole's content column; a comment takes the column of the token it precedes, as in front of every other closing delimiter whose content is not one level deeper.
+- **Drop the blank line in front of the comment as well** — rejected by the maintainer's answer: it would need an exception to FMT-BLANK-011 for interpolations, and the same comment in a multi-line raw literal's hole keeps its blank line.
 - **Apply the brace's column to multi-line raw literals too** — rejected: their hole content is usually one level deeper than the braces, and the comment would then stand left of it.
