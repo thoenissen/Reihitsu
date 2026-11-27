@@ -24,6 +24,9 @@
 | 6 | Spec author | RH4001-006 collision check follows the new name (prefixed target) | Accept | Direct consequence of answer 1: the collision is checked on the name the fix writes | Covered by answer 1 | 9de335e |
 | 7 | Skeptic | EF Core rationale in RH4001-008 `Why`, change doc `Why`, and rule page is false (EF orders by `[Migration]` ID, not file name) | Spec author rewords spec and change doc to the true reason; the rule-page sentence states only the behavior (the fix keeps the prefix), with no rationale about migration order | Fix a false statement; behavior unchanged | Behavior is answer 1; rule page then only restates answer 1 | 48a1ecf |
 | 8 | Skeptic | Prefix digits in the fix | Fix keeps exactly what the analyzer strips (same digit test) | Analyzer and fix must agree; non-ASCII digits are rare | No spec change; converges | (implementer) |
+| 9 | Auditor (08) | Arch finding #1: full namespace name computed in RH4009 and RH7002 | Change the structure in this run: one method in the shared `NamespaceCasingHelper`, used by both rules (implementer); no repair round used | Narrow fix itself added the copy; few lines, no new type | Same result today; internal refactor | (pending) |
+| 10 | Auditor (08) | Finding #2: file-name stem built twice in RH4001 helper | Repair round 1 → implementer | PR-introduced duplication | Internal | (pending) |
+| 11 | Auditor (08) | Finding #3: RH4001 rule-page colon/example order | Repair round 1 → spec author | Text only; prove with verify-text-only | Restores page reading; behavior text unchanged | (pending) |
 
 ## Follow-up candidates
 
@@ -39,4 +42,5 @@
 - Done: implementer (05, 9281acb, 176872f) — all tests pass, +32/-19 in src.
 - Done: cleaner (06, 8c36bc0) — clean, 0 warnings.
 - Done: spec checker (07, 9b37031) — consistent.
-- Next: auditor.
+- Done: auditor (08, 773eb53) on 0ef284f — findings 1 (arch), 2, 3.
+- Next: repair round 1: spec author (#3), implementer (#1, #2), cleaner, spec checker, auditor (repair only), validator.
