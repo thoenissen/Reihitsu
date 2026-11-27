@@ -39,9 +39,13 @@ internal static class CasingAnonymousMemberUtilities
         foreach (var locations in locationsByDocument)
         {
             var document = solution.GetDocument(locations.Key);
-            var root = document == null
-                           ? null
-                           : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (document == null)
+            {
+                continue;
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             if (root == null)
             {
