@@ -2299,6 +2299,477 @@ public class RH4103MethodNameCasingNameBindingTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies, one expression at a time, that the fix renames the method and qualifies its call with
+    /// <see langword="this"/> when a local function of the calling method has the method's new name, because the renamer
+    /// only renames and qualifies the call and changes no other code
+    /// </summary>
+    /// <param name="expression">The returned expression, which calls the method and the local function</param>
+    /// <param name="fixedExpression">The returned expression after the rename</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("getValue() + GetValue() + other", "this.GetValue() + GetValue() + other")]
+    [DataRow("getValue() + GetValue()", "this.GetValue() + GetValue()")]
+    public async Task FixQualifiesTheCallNextToALocalFunctionWithTheNewName(string expression, string fixedExpression)
+    {
+        var testCode = $$"""
+                         class Sample
+                         {
+                             private int {|RH4103:getValue|}() => 1;
+
+                             int Get(int other)
+                             {
+                                 int GetValue() => 2;
+
+                                 return {{expression}};
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Sample
+                          {
+                              private int GetValue() => 1;
+
+                              int Get(int other)
+                              {
+                                  int GetValue() => 2;
+
+                                  return {{fixedExpression}};
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the method and qualifies its call with <see langword="this"/> when a local delegate
+    /// of the calling method has the method's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheCallNextToALocalDelegateWithTheNewName()
+    {
+        const string testCode = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH4103:getValue|}() => 1;
+
+                                    int Get(int other)
+                                    {
+                                        Func<int> GetValue = () => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class Sample
+                                 {
+                                     private int GetValue() => 1;
+
+                                     int Get(int other)
+                                     {
+                                         Func<int> GetValue = () => 2;
+
+                                         return this.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an inherited static method and qualifies its call with the generic base type, whatever type
+    /// argument that base type has, when a local function of the calling method has the method's new name
+    /// </summary>
+    /// <param name="typeArgument">Type argument of the base type, as the derived type and the qualifier write it</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("int")]
+    [DataRow("int[]")]
+    [DataRow("int[,]")]
+    [DataRow("int[][]")]
+    [DataRow("int?")]
+    [DataRow("int?[]")]
+    [DataRow("(int, int)")]
+    [DataRow("(int A, string B)")]
+    [DataRow("List<int>")]
+    [DataRow("List<int[]>")]
+    public async Task FixQualifiesTheCallWithTheGenericBaseTypeNextToALocalFunctionWithTheNewName(string typeArgument)
+    {
+        var testCode = $$"""
+                         using System.Collections.Generic;
+
+                         class Base<T>
+                         {
+                             protected static int {|RH4103:getValue|}() => 1;
+                         }
+
+                         class Derived : Base<{{typeArgument}}>
+                         {
+                             int Get(int other)
+                             {
+                                 int GetValue() => 2;
+
+                                 return getValue() + GetValue() + other;
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          using System.Collections.Generic;
+
+                          class Base<T>
+                          {
+                              protected static int GetValue() => 1;
+                          }
+
+                          class Derived : Base<{{typeArgument}}>
+                          {
+                              int Get(int other)
+                              {
+                                  int GetValue() => 2;
+
+                                  return Base<{{typeArgument}}>.GetValue() + GetValue() + other;
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an inherited static method and qualifies its call with the generic base type when the type
+    /// argument of that base type is written with its namespace
+    /// </summary>
+    /// <param name="typeArgument">Type argument of the base type, as the derived type and the qualifier write it</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("System.Collections.Generic.List<int>")]
+    [DataRow("System.Collections.Generic.List<int[]>")]
+    public async Task FixQualifiesTheCallWithTheGenericBaseTypeWhoseTypeArgumentHasANamespace(string typeArgument)
+    {
+        var testCode = $$"""
+                         class Base<T>
+                         {
+                             protected static int {|RH4103:getValue|}() => 1;
+                         }
+
+                         class Derived : Base<{{typeArgument}}>
+                         {
+                             int Get(int other)
+                             {
+                                 int GetValue() => 2;
+
+                                 return getValue() + GetValue() + other;
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Base<T>
+                          {
+                              protected static int GetValue() => 1;
+                          }
+
+                          class Derived : Base<{{typeArgument}}>
+                          {
+                              int Get(int other)
+                              {
+                                  int GetValue() => 2;
+
+                                  return Base<{{typeArgument}}>.GetValue() + GetValue() + other;
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an inherited instance method and qualifies its call with <c>base.</c> when a local
+    /// function of the new name would capture the call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheCallWithBaseNextToALocalFunctionWithTheNewName()
+    {
+        const string testCode = """
+                                class Base
+                                {
+                                    protected int {|RH4103:getValue|}() => 1;
+                                }
+
+                                class Derived : Base
+                                {
+                                    int Get(int other)
+                                    {
+                                        int GetValue() => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Base
+                                 {
+                                     protected int GetValue() => 1;
+                                 }
+
+                                 class Derived : Base
+                                 {
+                                     int Get(int other)
+                                     {
+                                         int GetValue() => 2;
+
+                                         return base.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an inherited static method and qualifies its call with the nested base type, written
+    /// with its containing type, when a local function of the new name would capture the call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheCallWithTheNestedBaseTypeAndItsContainingTypeNextToALocalFunctionWithTheNewName()
+    {
+        const string testCode = """
+                                class Outer
+                                {
+                                    public class Base
+                                    {
+                                        protected static int {|RH4103:getValue|}() => 1;
+                                    }
+                                }
+
+                                class Derived : Outer.Base
+                                {
+                                    int Get(int other)
+                                    {
+                                        int GetValue() => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Outer
+                                 {
+                                     public class Base
+                                     {
+                                         protected static int GetValue() => 1;
+                                     }
+                                 }
+
+                                 class Derived : Outer.Base
+                                 {
+                                     int Get(int other)
+                                     {
+                                         int GetValue() => 2;
+
+                                         return Outer.Base.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        // The renamer builds the multi-part qualifier as a qualified name, while the same text parses as a chain of member
+        // accesses; the fixed text is compared, the syntax structure of the fix result is not
+        await Verify(testCode, fixedCode, test => test.CodeActionValidationMode = CodeActionValidationMode.None);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames an inherited static method and qualifies its call with the base type written with its
+    /// namespace when a local function of the new name would capture the call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheCallWithTheBaseTypeAndItsNamespaceNextToALocalFunctionWithTheNewName()
+    {
+        const string testCode = """
+                                namespace A.B
+                                {
+                                    public class Base
+                                    {
+                                        protected static int {|RH4103:getValue|}() => 1;
+                                    }
+                                }
+
+                                class Derived : A.B.Base
+                                {
+                                    int Get(int other)
+                                    {
+                                        int GetValue() => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace A.B
+                                 {
+                                     public class Base
+                                     {
+                                         protected static int GetValue() => 1;
+                                     }
+                                 }
+
+                                 class Derived : A.B.Base
+                                 {
+                                     int Get(int other)
+                                     {
+                                         int GetValue() => 2;
+
+                                         return A.B.Base.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        // The renamer builds the multi-part qualifier as a qualified name, while the same text parses as a chain of member
+        // accesses; the fixed text is compared, the syntax structure of the fix result is not
+        await Verify(testCode, fixedCode, test => test.CodeActionValidationMode = CodeActionValidationMode.None);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a method and the documentation-comment reference to it when a nested type of the new
+    /// name stands in the scope of that reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesTheDocumentationReferenceNextToANestedTypeWithTheNewName()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    public static int {|RH4103:getValue|}() => 1;
+
+                                    class Nested
+                                    {
+                                        class GetValue
+                                        {
+                                        }
+
+                                        /// <summary>Uses <see cref="getValue"/>.</summary>
+                                        void Run()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     public static int GetValue() => 1;
+
+                                     class Nested
+                                     {
+                                         class GetValue
+                                         {
+                                         }
+
+                                         /// <summary>Uses <see cref="Sample.GetValue"/>.</summary>
+                                         void Run()
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the method whose call the renamer only qualifies next to a local function with the
+    /// new name, and skips the method whose call the renamer would give a cast argument, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixAllQualifiesTheCallNextToALocalFunctionAndSkipsTheRenameThatWouldCastAnArgument()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public void {|RH4103:write|}(object value)
+                                    {
+                                    }
+
+                                    public void Write(int value)
+                                    {
+                                    }
+
+                                    private int {|RH4103:getValue|}() => 1;
+
+                                    public void Use(Box box) => box.write(1);
+
+                                    public int Get(int other)
+                                    {
+                                        int GetValue() => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Box
+                                 {
+                                     public void {|RH4103:write|}(object value)
+                                     {
+                                     }
+
+                                     public void Write(int value)
+                                     {
+                                     }
+
+                                     private int GetValue() => 1;
+
+                                     public void Use(Box box) => box.write(1);
+
+                                     public int Get(int other)
+                                     {
+                                         int GetValue() => 2;
+
+                                         return this.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

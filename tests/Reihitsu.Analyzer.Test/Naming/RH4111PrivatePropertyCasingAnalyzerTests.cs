@@ -333,6 +333,87 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies, one expression at a time, that the fix renames the property and qualifies its reference with
+    /// <see langword="this"/> when a local of the method has the property's new name, because the renamer only renames
+    /// and qualifies the reference and changes no other code
+    /// </summary>
+    /// <param name="expression">The returned expression, which reads the property and the local</param>
+    /// <param name="fixedExpression">The returned expression after the rename</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("value + Value + other", "this.Value + Value + other")]
+    [DataRow("value + Value", "this.Value + Value")]
+    public async Task FixQualifiesThePropertyReferenceNextToALocalWithTheNewName(string expression, string fixedExpression)
+    {
+        var testCode = $$"""
+                         class Sample
+                         {
+                             private int {|RH4111:value|} { get; set; }
+
+                             int Get(int other)
+                             {
+                                 var Value = 1;
+
+                                 return {{expression}};
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Sample
+                          {
+                              private int Value { get; set; }
+
+                              int Get(int other)
+                              {
+                                  var Value = 1;
+
+                                  return {{fixedExpression}};
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the property and qualifies the assigned reference with <see langword="this"/> when
+    /// a parameter of the method has the property's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheAssignedPropertyReferenceNextToAParameterWithTheNewName()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private int {|RH4111:value|} { get; set; }
+
+                                    void Set(int Value)
+                                    {
+                                        value = Value;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private int Value { get; set; }
+
+                                     void Set(int Value)
+                                     {
+                                         this.Value = Value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
