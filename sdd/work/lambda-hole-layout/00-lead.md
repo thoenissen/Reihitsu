@@ -27,9 +27,12 @@
 | 7 | Implementer | RH5111 Fix All test uses `VerifyCodeFixWithEndOfLine` on a two-diagnostic source; second step applies only one fix | Test mechanics wrong, expected output right: route to a fresh test implementer (08) to verify both line endings with a helper that fits Fix All | Asserted output unchanged | Expected output unchanged; only the harness call changes | b6f5c35 |
 | 8 | Auditor 11 | Repair round 1 worklist: (1) characterization tests for #1567's modifier cases (FMT-BREAK-041); (2) `ListElementInteriorJoinRewriter.IsOwnedGap` comment / two owners of the return-type lambda gap; (3) FMT-RAW-007 restatement of FMT-INDENT-006 | All same requirement / PR-introduced: route (1) test implementer 12, (2) implementer 13 — leave the gap with one owner where cheap, else state the overlap accurately, (3) spec author 14; in parallel | Auditor classified them; finding 2 is a two-owner overlap the run introduced, fixed narrowly | No output changes (auditor: output identical; characterization of existing behavior) | 0bffb84 |
 | 9 | Implementer 13 | Single owner for the return-type lambda gap requires FMT-BREAK-015/045 wording to name one owner | Keep the single-owner code; route the spec wording to the spec author (15, continued) | One owner removes the overlap the auditor found; output byte-identical | Output identical (implementer's A/B check) | 8fcadf5 |
+| 10 | Auditor 18 | Pass, text cleanup: stale `<remarks>` in ListElementInteriorJoinRewriter.cs:32 | Route to cleaner 19; prove with verify-text-only against f371753 | Comment only | Text-only proof | b18f82c |
+| 11 | Auditor 18 | Hint: on main, ContinuationJoinRewriter and ListElementInteriorJoinRewriter both can join a lambda modifier-to-`(` gap inside a list element | Follow-up candidate (structural, pre-existing, output identical) | Two owners of one decision, unrelated to this run's change | Not changed in this run | b18f82c |
 
 ## Follow-up candidates
 
+- Two owners of the modifier-to-`(` gap of a parenthesized lambda inside a list element: `ContinuationJoinRewriter` (FMT-BREAK-041) and `ListElementInteriorJoinRewriter` (FMT-BREAK-015), pre-existing on main fe7b8f8; output identical today (18-auditor, hint).
 - Anonymous-method counterpart of RH5205 as a new rule under P11 (01-spec-author) — applies since #1568 = B.
 - RH5105 does not report a lambda's `(` behind a return type — gap or excluded under P11 (01-spec-author).
 
