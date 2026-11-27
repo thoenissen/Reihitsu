@@ -38,4 +38,5 @@
 - Done: skeptic (02, 137b857): proceed, no output questions, two spec amendments.
 - Done: spec author amendment (03, 8657581). No output questions, no change doc: no batch stop.
 - Done: test implementer (04, 7cad0b5): 15 tests, all green on unchanged code.
-- Next: cleaner (05).
+- Done: cleaner (05, 2a9584e): clean, 0 warnings.
+- Next: spec checker (06), then validator (07).
