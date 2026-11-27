@@ -2118,7 +2118,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
 
     /// <summary>
     /// Verifies the fix writes the member name and keeps the layout and the comments of a multi-line anonymous object, with
-    /// both line endings
+    /// both line endings, for the single fix of each local and for the fix of both
     /// </summary>
     /// <param name="endOfLine">Line break of the source and the expected result</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2164,7 +2164,49 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+        const string totalFixedCode = """
+                                      class C
+                                      {
+                                          object M(int[] values)
+                                          {
+                                              var total = values.Length;
+                                              var Count = 1;
+
+                                              return new
+                                                     {
+                                                         // The sum
+                                                         Total = total, // trailing
+                                                         Count /* last */
+                                                     };
+                                          }
+                                      }
+                                      """;
+
+        const string countFixedCode = """
+                                      class C
+                                      {
+                                          object M(int[] values)
+                                          {
+                                              var Total = values.Length;
+                                              var count = 1;
+
+                                              return new
+                                                     {
+                                                         // The sum
+                                                         Total, // trailing
+                                                         Count = count /* last */
+                                                     };
+                                          }
+                                      }
+                                      """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+
+        // The source holds two diagnostics, so each single action is checked on its own, line endings included
+        var plainSource = ConvertEndOfLine(RemoveMarkup(testCode), endOfLine);
+
+        Assert.AreEqual(ConvertEndOfLine(totalFixedCode, endOfLine), await TryApplyCodeFixAtAsync(plainSource, RH4115LocalVariableCasingAnalyzer.DiagnosticId, static root => GetLocalIdentifierLocation(root, "Total")));
+        Assert.AreEqual(ConvertEndOfLine(countFixedCode, endOfLine), await TryApplyCodeFixAtAsync(plainSource, RH4115LocalVariableCasingAnalyzer.DiagnosticId, static root => GetLocalIdentifierLocation(root, "Count")));
     }
 
     /// <summary>
@@ -2622,6 +2664,21 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  ?? [];
 
         return referencePaths.Select(static path => MetadataReference.CreateFromFile(path));
+    }
+
+    /// <summary>
+    /// Gets the location of the identifier of the local variable declarator with the provided name
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="name">Name of the local</param>
+    /// <returns>The location of the declarator's identifier</returns>
+    private static Location GetLocalIdentifierLocation(SyntaxNode root, string name)
+    {
+        return root.DescendantNodes()
+                   .OfType<VariableDeclaratorSyntax>()
+                   .Single(declarator => declarator.Identifier.ValueText == name)
+                   .Identifier
+                   .GetLocation();
     }
 
     #endregion // Methods

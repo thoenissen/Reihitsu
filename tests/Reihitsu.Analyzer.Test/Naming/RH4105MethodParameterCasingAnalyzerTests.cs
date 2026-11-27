@@ -2535,6 +2535,10 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                                 test.BatchFixedCode = testCode;
                                 test.FixedState.MarkupHandling = MarkupMode.Allow;
                                 test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+
+                                // The shared Fix All provider offers its action before it knows that every candidate is
+                                // skipped, so one Fix All iteration that changes nothing is allowed
+                                test.NumberOfFixAllIterations = -1;
                             });
     }
 
