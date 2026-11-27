@@ -24,6 +24,7 @@
 | 4 | Skeptic | Rare follow-up candidates (alignment clause on its own line in a hole; line break inside a `ref` return type; lambda attribute list leaving `(` at line start) | Dropped | Rare input classes (AGENTS.md, Code-fix coverage); skeptic itself rates them rare | No change made | 162ab85 |
 | 5 | Skeptic | #1568 change doc incomplete (initializer, conditional, switch arm, collection element etc.); #1698 needs A vs A′ input | Route amendment to a fresh spec author before the output batch | Output questions must show the real affected positions | Amendment only completes the question | 1b9626c |
 | 6 | Test implementer | Spec examples (FMT-BREAK-011/041/044) still show old anonymous-method block; change doc omits RH5201, RH5112, RH3202, RH5417 results | Route to a fresh spec author (06), parallel to implementer (07) | Answer 1B covers every position and every fix that formats such code | Covered by maintainer answer 1B | 640e8b9 |
+| 7 | Implementer | RH5111 Fix All test uses `VerifyCodeFixWithEndOfLine` on a two-diagnostic source; second step applies only one fix | Test mechanics wrong, expected output right: route to a fresh test implementer (08) to verify both line endings with a helper that fits Fix All | Asserted output unchanged | Expected output unchanged; only the harness call changes | b6f5c35 |
 
 ## Follow-up candidates
 
@@ -39,4 +40,5 @@
 - Asked: output-question batch 1 (#1568 A/B, #1698 A/A′/B/C, #1567 A/B). Answered: 1B, 2A, 3A.
 - Done: spec author 04 (383cb74), change docs Accepted.
 - Done: test implementer 05 (640e8b9).
-- Next: spec author 06 (spec examples + change doc fixes) and implementer 07 in parallel; then cleaner.
+- Done: spec author 06 (ec5b86f); implementer 07 (11f3b34, b6f5c35), one disputed RH5111 test.
+- Next: test implementer 08 (fix disputed test harness), then cleaner 09.
