@@ -18,27 +18,26 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (23 at the last batch, before the merges of 2026-11-27): #1085 #1086 #1087 #1088 #1089 #1090 #1399 #1400 #1567 #1568 #1589 #1607 #1698 #1771 #1836 #1912 #1924 #1936 #1948 #1949 #1956 #1958 #1963. Added by triage 2026-11-27: #1970 #1971 #1972 #1977 #1978 (`#1972` → `#1971` → `#1589`; `#1087 #1088 #1978`; #1970, #1977 own runs).
+Open in 1.6.0 (16): #1085 #1087 #1088 #1399 #1400 #1567 #1568 #1589 #1607 #1698 #1936 #1970 #1971 #1972 #1977 #1978.
 
-Merged since the previous batch: #1944 (#1926), #1951 (#1943), #1952 (#1722), #1953 (#1925), #1954 (#1275), #1955 (#1837), #1964 (cleanup). #1472 closed by the maintainer without a PR.
+Merged since the previous batch: #1965 (#1956 #1958 #1963), #1966 (#1924 #1949), #1967 (#1912), #1968 (#1836), #1969 (#1086), #1973 (#1090), #1974 (#1089), #1975 (#1771), #1976 (#1948).
 
-Runs in progress: none (no PR open). The start-now runs below have no claim PR and are treated as not started.
+Runs in progress: PR #1980 (claim for #1979, squad tool allow-lists, `.claude/agents/`, `squad/`; #1979 has no milestone yet — triage).
 
-Dependency graph: `inventory/batch-2026-11-26.md` (main at 68f236ea).
+Dependency graph: `inventory/batch-2026-11-27.md` (main at 4bbb3ceb).
 
-Start now: `#1956 #1958 #1963` · `#1924 #1949` · `#1912` · `#1836` · `#1771` · `#1086` · `#1089` · `#1090` · `#1948`.
+Start now: `#1568 #1698 #1567` · `#1607` · `#1085` · `#1087 #1088 #1978` · `#1970` · `#1972` · `#1977`.
 
 After merges:
-- after #1956 #1958 #1963 and #1912 → `#1568 #1698 #1567` (shares `PrecheckPhase.cs` with #1963 via #1567 option A, and `RH5112…AnalyzerTests.cs` with #1912 via #1568 option B) → `#1399` → `#1400 #1936` (serial on `indentation.md`)
-- after #1912 → `#1607`
-- after #1086 → `#1085`
-- after #1090 and #1771 (and #1924 #1949 only if it adds a spec) → `#1087 #1088` (new link: `casing.md`, and the new rule's fix derives from `CasingCodeFixProviderBase<T>`, which #1771 restructures)
-- after #1836 → `#1589`
+- after #1568 #1698 #1567 → `#1399` (`indentation.md`, `LayoutComputer.cs`) → `#1400 #1936` (`indentation.md`)
+- after #1972 → `#1971` (`using-directives.md`, FMT-USING-004)
+- after #1971 → `#1589` (audits the RH72xx guard #1971 changes; its file set is open, so it also waits for the code-fix runs #1607, #1085, `#1087 #1088 #1978`)
 
-Notes for the runs (evidence in the batch file, not decided): #1567 narrows to an explicit return type (`int⏎(int x) => x`); `static⏎(` is already joined. #1698's Before and option A are stale on main (`// e`, `a`, `}` at column 12, `// f` at 16 with a blank line); the run re-asks. #1568 holds. #1771 holds; escalation 9 comes first inside its run. #1912's search also hits `CodeFixRunCommandTests.cs` and `ApplyFixWrapperPositionalArgumentTests.cs`, which hold no message literals, so they are no shared file with #1924 #1949. #1836's output question is still open.
+Notes for the runs (evidence in the batch file, not decided): #1607 narrows to item 1 (items 2 and 3 are withheld by RH3004-008/-009 on main). #1567 narrows to an explicit return type. #1698's Before is stale on main; the run re-asks. #1977's example no longer reproduces (safety net). #1970: whichever run merges after it must not quote a resource text in a test. Side find closed: `class C { }` → `class C;` is FMT-STRUCT-017 (C# 12+), specified.
 
 ## Status
 
+Status 2026-11-27 (z): batch finished — graph rebuilt (`inventory/batch-2026-11-27.md`); start-now set of 7 runs given; no closes proposed; side find `class C;` is specified (FMT-STRUCT-017).
 Status 2026-11-27 (y): batch started — merges #1965–#1969 #1973–#1976 read (closed: #1956 #1958 #1963 #1086 #1089 #1090 #1771 #1836 #1912 #1924 #1949 #1948); PR #1980 open (claim for #1979, squad tool allow-lists, no milestone); re-check and graph delegated (`inventory/batch-2026-11-27.md`, main at 4bbb3ceb).
 Status 2026-11-27 (x): triage answered 1A, 2A, 3A; milestones set (all five → 1.6.0, no labels added); commented on #1589 #1971 #1972 #1977 #1978. Plan not yet rebuilt: nine merges since the last batch (#1965–#1969 #1973–#1976) — `/coordinator batch` next.
 Status 2026-11-27 (w): triage asked (`inventory/triage-2026-11-27.md`, main at 4bbb3ceb). 1 placements, all → 1.6.0: #1970 own tests run, start now; #1972 own docs run (FMT-USING-004 sentence only; SHARED-USING-009 already correct), start now; #1971 own behavior-change run after #1972 (`using-directives.md`), and #1589 moves behind #1971 (its audit covers the RH72xx guard); #1977 own tooling run, start now (example no longer reproduces since #1976; safety net); #1978 joins `/squad #1087 #1088 #1978`, start now (#1090 #1771 merged) (1A apply / 1B change rows; rec. 1A). 2 #1971 header directive before the first using: A fixes+formatter sort below it (rec.), B as main. 3 #1978 range variables: A RH4105 reports, title widens (rec.), B RH4115 reports, C not reported. Side find: formatter writes `class C;` for an empty `class C { }` (agent note, unchecked) — look at it in the batch.
@@ -64,4 +63,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-`/coordinator batch`: read the merges #1965–#1969 #1973–#1976, rebuild the graph with the triage of 2026-11-27, and check the side find (formatter writes `class C;` for an empty `class C { }`).
+`/coordinator triage` for #1979 (no milestone, PR #1980 in progress). On reports of merges: `/coordinator batch`.
