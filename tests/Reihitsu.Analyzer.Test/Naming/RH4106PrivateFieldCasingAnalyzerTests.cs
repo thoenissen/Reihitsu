@@ -1459,6 +1459,122 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     }
 
     /// <summary>
+    /// Verifies that the fix renames a static field and qualifies its reference with its type written with its namespace when
+    /// a local has the field's new name and a nested type of the referencing type has the name of the field's type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheStaticFieldReferenceWithItsTypeAndNamespaceWhenANestedTypeHidesTheTypeName()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    class Sample
+                                    {
+                                        private static int {|RH4106:Value|};
+
+                                        class Inner
+                                        {
+                                            class Sample
+                                            {
+                                            }
+
+                                            static int Get(int other)
+                                            {
+                                                var _value = 1;
+
+                                                return Value + _value + other;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     class Sample
+                                     {
+                                         private static int _value;
+
+                                         class Inner
+                                         {
+                                             class Sample
+                                             {
+                                             }
+
+                                             static int Get(int other)
+                                             {
+                                                 var _value = 1;
+
+                                                 return N.Sample._value + _value + other;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        // The renamer builds the multi-part qualifier as a qualified name, while the same text parses as a chain of member
+        // accesses; the fixed text is compared, the syntax structure of the fix result is not
+        await Verify(testCode, fixedCode, test => test.CodeActionValidationMode = CodeActionValidationMode.None);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a static field and qualifies its reference with its type behind <c>global::</c> when a
+    /// local has the field's new name and a nested type of the referencing type has the name of the field's type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheStaticFieldReferenceWithGlobalAndItsTypeWhenANestedTypeHidesTheTypeName()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private static int {|RH4106:Value|};
+
+                                    class Inner
+                                    {
+                                        class Sample
+                                        {
+                                        }
+
+                                        static int Get(int other)
+                                        {
+                                            var _value = 1;
+
+                                            return Value + _value + other;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private static int _value;
+
+                                     class Inner
+                                     {
+                                         class Sample
+                                         {
+                                         }
+
+                                         static int Get(int other)
+                                         {
+                                             var _value = 1;
+
+                                             return global::Sample._value + _value + other;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies that the fix renames the field and qualifies the assigned reference with <see langword="this"/> when a
     /// local of the method has the field's new name
     /// </summary>

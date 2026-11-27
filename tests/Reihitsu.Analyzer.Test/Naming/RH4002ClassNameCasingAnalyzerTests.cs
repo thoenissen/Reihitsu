@@ -772,6 +772,48 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
     }
 
     /// <summary>
+    /// Verifies that a class declared outside every namespace is renamed when a reference to it would bind to a nested type of
+    /// the new name, because the renamer qualifies that reference with <c>global::</c> so it keeps referring to the class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesAReferenceWithGlobalThatANestedTypeOfTheNewNameWouldCapture()
+    {
+        const string testCode = """
+                                class X
+                                {
+                                    class Order
+                                    {
+                                    }
+
+                                    order _value;
+                                }
+
+                                class {|RH4002:order|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class X
+                                 {
+                                     class Order
+                                     {
+                                     }
+
+                                     global::Order _value;
+                                 }
+
+                                 class Order
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies that a class keeps its diagnostic but gets no fix when code in an excluded <c>#if</c> branch references it, because the rename would leave that reference behind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
