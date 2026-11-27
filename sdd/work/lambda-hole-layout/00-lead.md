@@ -51,4 +51,4 @@
 - Done: spec checker 10 (0077a6e), consistent. main not ahead; build green.
 - Done: auditor 11 (0bffb84) on 498009c: #1568 pass, #1698 pass, #1567 findings (3).
 - Audited SHA: 498009c1169899ea8721d18776d8dae16ec03dae.
-- Repair round 1: done test impl 12 (ade09a1), implementer 13 (8fcadf5), spec author 14 (250da96). Done spec author 15 (d3b7f9f). Done cleaner 16 (8efa471, 122/122 focused). Done spec checker 17 (6a1ab4b) consistent. Next:, auditor 18 (repair only), validator 19.
+- Repair round 1: done test impl 12 (ade09a1), implementer 13 (8fcadf5), spec author 14 (250da96). Done spec author 15 (d3b7f9f). Done cleaner 16 (8efa471, 122/122 focused). Done spec checker 17 (6a1ab4b) consistent. Done auditor 18 (b18f82c): pass, text cleanup. Audited SHA: f371753c7c411c08d8a63898342088c2fcab07c2. Next: cleaner 19 (comment), text-only proof, validator 20, issue manager, publish.
