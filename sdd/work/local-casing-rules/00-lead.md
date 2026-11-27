@@ -43,6 +43,6 @@ Recorded before this run, in the issues (summarized):
 
 ## State
 
-- Last step: repair round 1 spec author done (5dd461ce). Next: spec checker (10), then auditor (11).
+- Last step: spec checker re-check consistent (42db51f5); main not ahead; Release build green. Next: auditor (11).
 - Earlier: spec author done (f9c9426f, pushed). Open output question: RH4117 positional subpatterns (A recommended); change docs list visible changes (local-casing-rule-split.md 7 cases, range-variable-casing.md 5 cases).
 - Next: skeptic, then output-question batch.
