@@ -19,6 +19,7 @@
 | 2 | skeptic | Architecture finding (two owners of the binding check) | Fix narrowly in `RewritesOtherCodeAsync` so the casing fix keeps the fix where the renamer only renamed and qualified, per unchanged SHARED-CASING-009; if no cheap check achieves it without un-withholding tested rewrite cases, keep the refusal and end with `Refs` | Rare class (SHARED-CASING-009 already decides it); narrowing is worth it only while cheap (AGENTS.md, Code-fix coverage) | Brings code back to an unchanged requirement | — |
 | 3 | skeptic | Input 1 | Already agrees on main; covered by existing tests, no work | Skeptic reproduced it with apply-fix | No change | — |
 | 4 | skeptic | Follow-up for shared ownership of the binding comparison | Not filed | Only serves a rare class; spec keeps the remaining checks separate by design | No output | — |
+| 5 | auditor (round 1) | Finding #1: token-kind qualifier list withholds fixes `main` offers (`Base<int[]>`, `int[,]`, `int?` type qualifiers) — FC-044, the guard predicts the renamer's qualifier | Architecture finding decided as a structural repair within the changed component: the qualifier is read from the renamed tree's syntax (the left side of the member access / qualified name / alias-qualified name / cref whose name is the renamed identifier), replacing the token-kind list; regression tests first. Repair round 1 | Refusing would keep a PR-introduced regression against `main`; reading the renamer's syntax removes the prediction instead of enumerating more token kinds | Restores `main`'s offered fixes and SHARED-CASING-009, unchanged | — |
 
 ## Follow-up candidates
 
@@ -32,4 +33,5 @@
 - Implementer done (`03-implementer.md`, tests pass; token-by-token comparison replaces GetChanges in `RewritesOtherCodeAsync`; stricter for non-qualifier inserted tokens and nullable/tuple type-argument qualifiers, unreached by tests — auditor to judge).
 - Cleaner done (`04-cleaner.md`, clean).
 - Spec checker done (`05-spec-checker.md`, consistent).
-- Next: auditor (`06-auditor.md`).
+- Auditor round 0 (`06-auditor.md`, audited head 123929e, base 2c77022): findings — #1 high. Repair round 1 open.
+- Next: test implementer (`07-test-implementer.md`) regression tests for #1, then implementer (`08-implementer.md`), cleaner, spec checker, auditor on the repair.
