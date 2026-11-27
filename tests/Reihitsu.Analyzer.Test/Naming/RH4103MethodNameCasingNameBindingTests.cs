@@ -2299,6 +2299,163 @@ public class RH4103MethodNameCasingNameBindingTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies, one expression at a time, that the fix renames the method and qualifies its call with
+    /// <see langword="this"/> when a local function of the calling method has the method's new name, because the renamer
+    /// only renames and qualifies the call and changes no other code
+    /// </summary>
+    /// <param name="expression">The returned expression, which calls the method and the local function</param>
+    /// <param name="fixedExpression">The returned expression after the rename</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("getValue() + GetValue() + other", "this.GetValue() + GetValue() + other")]
+    [DataRow("getValue() + GetValue()", "this.GetValue() + GetValue()")]
+    public async Task FixQualifiesTheCallNextToALocalFunctionWithTheNewName(string expression, string fixedExpression)
+    {
+        var testCode = $$"""
+                         class Sample
+                         {
+                             private int {|RH4103:getValue|}() => 1;
+
+                             int Get(int other)
+                             {
+                                 int GetValue() => 2;
+
+                                 return {{expression}};
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Sample
+                          {
+                              private int GetValue() => 1;
+
+                              int Get(int other)
+                              {
+                                  int GetValue() => 2;
+
+                                  return {{fixedExpression}};
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the method and qualifies its call with <see langword="this"/> when a local delegate
+    /// of the calling method has the method's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheCallNextToALocalDelegateWithTheNewName()
+    {
+        const string testCode = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH4103:getValue|}() => 1;
+
+                                    int Get(int other)
+                                    {
+                                        Func<int> GetValue = () => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class Sample
+                                 {
+                                     private int GetValue() => 1;
+
+                                     int Get(int other)
+                                     {
+                                         Func<int> GetValue = () => 2;
+
+                                         return this.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the method whose call the renamer only qualifies next to a local function with the
+    /// new name, and skips the method whose call the renamer would give a cast argument, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixAllQualifiesTheCallNextToALocalFunctionAndSkipsTheRenameThatWouldCastAnArgument()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public void {|RH4103:write|}(object value)
+                                    {
+                                    }
+
+                                    public void Write(int value)
+                                    {
+                                    }
+
+                                    private int {|RH4103:getValue|}() => 1;
+
+                                    public void Use(Box box) => box.write(1);
+
+                                    public int Get(int other)
+                                    {
+                                        int GetValue() => 2;
+
+                                        return getValue() + GetValue() + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Box
+                                 {
+                                     public void {|RH4103:write|}(object value)
+                                     {
+                                     }
+
+                                     public void Write(int value)
+                                     {
+                                     }
+
+                                     private int GetValue() => 1;
+
+                                     public void Use(Box box) => box.write(1);
+
+                                     public int Get(int other)
+                                     {
+                                         int GetValue() => 2;
+
+                                         return this.GetValue() + GetValue() + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -1233,6 +1233,344 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies, one expression at a time, that the fix renames the field and qualifies its reference with
+    /// <see langword="this"/> when a local of the method has the field's new name, because the renamer only renames and
+    /// qualifies the reference and changes no other code
+    /// </summary>
+    /// <param name="expression">The returned expression, which reads the field and the local</param>
+    /// <param name="fixedExpression">The returned expression after the rename</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("Value + _value + other", "this._value + _value + other")]
+    [DataRow("Value + _value + 1", "this._value + _value + 1")]
+    [DataRow("Value + _value + _value", "this._value + _value + _value")]
+    [DataRow("Value * _value * Value", "this._value * _value * this._value")]
+    [DataRow("Value + _value", "this._value + _value")]
+    [DataRow("_value + Value + other", "_value + this._value + other")]
+    [DataRow("other + Value + _value", "other + this._value + _value")]
+    [DataRow("Value + _value - Value", "this._value + _value - this._value")]
+    public async Task FixQualifiesTheFieldReferenceNextToALocalWithTheNewName(string expression, string fixedExpression)
+    {
+        var testCode = $$"""
+                         class Sample
+                         {
+                             private int {|RH4106:Value|};
+
+                             int Get(int other)
+                             {
+                                 var _value = 1;
+
+                                 return {{expression}};
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Sample
+                          {
+                              private int _value;
+
+                              int Get(int other)
+                              {
+                                  var _value = 1;
+
+                                  return {{fixedExpression}};
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the field and qualifies its reference with <see langword="this"/> when a
+    /// deconstruction variable of the method has the field's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheFieldReferenceNextToADeconstructionVariableWithTheNewName()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    int Get((int, int) pair)
+                                    {
+                                        var (_value, other) = pair;
+
+                                        return Value + _value + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private int _value;
+
+                                     int Get((int, int) pair)
+                                     {
+                                         var (_value, other) = pair;
+
+                                         return this._value + _value + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the field and qualifies its reference with <see langword="this"/> when a
+    /// parameter of the method has the field's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheFieldReferenceNextToAParameterWithTheNewName()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    int Get(int _value, int other)
+                                    {
+                                        return Value + _value + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private int _value;
+
+                                     int Get(int _value, int other)
+                                     {
+                                         return this._value + _value + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the field and qualifies its reference with <see langword="this"/> inside an
+    /// argument of a call when a local of the method has the field's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheFieldReferenceInsideAnArgumentNextToALocalWithTheNewName()
+    {
+        const string testCode = """
+                                class Box
+                                {
+                                    public void Write(object value)
+                                    {
+                                    }
+                                }
+
+                                class Sample
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    void Put(Box box)
+                                    {
+                                        var _value = 1;
+
+                                        box.Write(Value + _value + 2);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Box
+                                 {
+                                     public void Write(object value)
+                                     {
+                                     }
+                                 }
+
+                                 class Sample
+                                 {
+                                     private int _value;
+
+                                     void Put(Box box)
+                                     {
+                                         var _value = 1;
+
+                                         box.Write(this._value + _value + 2);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies, one expression at a time, that the fix renames a static field and qualifies its reference with its
+    /// type when a local of the method has the field's new name
+    /// </summary>
+    /// <param name="expression">The returned expression, which reads the field and the local</param>
+    /// <param name="fixedExpression">The returned expression after the rename</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [DataRow("Value + _value + other", "Sample._value + _value + other")]
+    [DataRow("Value + _value", "Sample._value + _value")]
+    public async Task FixQualifiesTheStaticFieldReferenceWithItsTypeNextToALocalWithTheNewName(string expression, string fixedExpression)
+    {
+        var testCode = $$"""
+                         class Sample
+                         {
+                             private static int {|RH4106:Value|};
+
+                             static int Get(int other)
+                             {
+                                 var _value = 1;
+
+                                 return {{expression}};
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          class Sample
+                          {
+                              private static int _value;
+
+                              static int Get(int other)
+                              {
+                                  var _value = 1;
+
+                                  return {{fixedExpression}};
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames the field and qualifies the assigned reference with <see langword="this"/> when a
+    /// local of the method has the field's new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixQualifiesTheAssignedFieldReferenceNextToALocalWithTheNewName()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    void Set(int other)
+                                    {
+                                        var _value = other;
+
+                                        Value = _value;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private int _value;
+
+                                     void Set(int other)
+                                     {
+                                         var _value = other;
+
+                                         this._value = _value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames two fields and qualifies the references of both with <see langword="this"/> when
+    /// locals of the method have their new names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixAllQualifiesTheReferencesOfEveryFieldNextToLocalsWithTheNewNames()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    private int {|RH4106:Count|};
+
+                                    int Get(int other)
+                                    {
+                                        var _value = 1;
+                                        var _count = 2;
+
+                                        return Value + _value + other + Count + _count + other;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private int _value;
+
+                                     private int _count;
+
+                                     int Get(int other)
+                                     {
+                                         var _value = 1;
+                                         var _count = 2;
+
+                                         return this._value + _value + other + this._count + _count + other;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when an anonymous object takes its member name from
+    /// the field and the member is read by that name, because the rename would change the member's name and the read
+    /// would no longer compile
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenAnAnonymousObjectMemberTakesItsNameFromTheField()
+    {
+        const string testCode = """
+                                class Sample
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    int Get()
+                                    {
+                                        var x = new { Value };
+
+                                        return x.Value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
