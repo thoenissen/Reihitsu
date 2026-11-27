@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH4118TupleElementCasingAnalyzer"/>
+/// Test methods for <see cref="RH4118TupleArgumentNameCasingAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118TupleElementCasingAnalyzer>
+public class RH4118TupleArgumentNameCasingAnalyzerTests : AnalyzerTestsBase<RH4118TupleArgumentNameCasingAnalyzer>
 {
     #region Tests
 
@@ -36,7 +36,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testCode, Diagnostics(RH4118TupleArgumentNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4118TupleArgumentNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
