@@ -84,14 +84,16 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <summary>
     /// Analyze statement. Blank lines are counted with <see cref="TokenGapAnalysis"/>, the one measure of SHARED-BLANK-001,
     /// so a line holding only whitespace directly below a trivia that ends with its own line break - a <c>///</c> comment
-    /// or a directive - counts as blank
+    /// or a directive - counts as blank. A statement inside an interpolation that cannot hold a line break is not reported,
+    /// because no blank line can be written in front of it (SHARED-STMT-005)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is TStatement statement
             && IsRelevant(statement)
-            && IsWithinStatementList(statement))
+            && IsWithinStatementList(statement)
+            && StringInterpolationUtilities.IsInsideSingleLineInterpolation(statement) == false)
         {
             var previousToken = GetPreviousToken(statement);
 

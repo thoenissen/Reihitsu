@@ -151,10 +151,16 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
     /// moved and the owner of the blank line finds no column for it in the text. The local function keeps its first line
     /// when it is converted, so the owner's decision is taken on the original text: the gap below the local function
     /// already spans lines, the next statement is not the terminal <c>break</c> that needs no blank line behind a closing
-    /// brace, and the owner cannot place the statement
+    /// brace, and the owner cannot place the statement. It is withheld as well for a local function inside an interpolation
+    /// that cannot hold a line break, where the block body's lines cannot be written (RH3208-004)
     /// </remarks>
     protected override bool CanRegisterCodeFix(SyntaxNode root, LocalFunctionStatementSyntax node)
     {
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(node))
+        {
+            return false;
+        }
+
         var element = GetListElement(node);
         var nextStatement = GetNextStatement(element);
 

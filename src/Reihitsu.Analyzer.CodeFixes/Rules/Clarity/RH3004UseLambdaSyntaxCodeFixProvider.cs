@@ -372,8 +372,9 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : ReihitsuCodeFixProviderBase
     /// build, where every edit the fix makes behind it can change a string's value (RH3004-008). Where the fix keeps the
     /// block as a block body, it moves the block's lines, so every such string or comment withholds it, because no reading
     /// of the text alone tells which of its lines are safe to move in every build, and so do a tab in front of a moving line
-    /// (RH3004-006) and a line break in the block other than the document's line ending, which the moved lines would keep
-    /// (SHARED-FIX-008)
+    /// (RH3004-006), a line break in the block other than the document's line ending, which the moved lines would keep
+    /// (SHARED-FIX-008), and an anonymous method inside an interpolation that cannot hold a line break, where the block
+    /// body's lines cannot be written (RH3004-010)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="text">Text of the document</param>
@@ -392,6 +393,11 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : ReihitsuCodeFixProviderBase
         if (keepsBlockBody == false)
         {
             return false;
+        }
+
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(anonymousMethodExpression))
+        {
+            return true;
         }
 
         var block = anonymousMethodExpression.Block;

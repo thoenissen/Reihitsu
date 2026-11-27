@@ -40,14 +40,16 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Analyzes constraint clauses for a declaration
+    /// Analyzes constraint clauses for a declaration. The clauses of a declaration inside an interpolation that cannot
+    /// hold a line break are not reported, because they cannot start their own lines there (RH5110-004)
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="declaration">Declaration</param>
     /// <param name="constraintClauses">Constraint clauses</param>
     private void AnalyzeConstraintClauses(SyntaxNodeAnalysisContext context, SyntaxNode declaration, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
     {
-        if (constraintClauses.Count == 0)
+        if (constraintClauses.Count == 0
+            || StringInterpolationUtilities.IsInsideSingleLineInterpolation(declaration))
         {
             return;
         }

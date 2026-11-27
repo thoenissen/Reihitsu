@@ -72,12 +72,19 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
     }
 
     /// <summary>
-    /// Analyzing all <see cref="SwitchExpressionSyntax"/> occurrences
+    /// Analyzing all <see cref="SwitchExpressionSyntax"/> occurrences. A switch expression inside an interpolation that
+    /// cannot hold a line break is not reported, because its braces cannot start their own lines there (RH5206-004)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSwitchExpression(SyntaxNodeAnalysisContext context)
     {
         var switchExpression = (SwitchExpressionSyntax)context.Node;
+
+        if (StringInterpolationUtilities.IsInsideSingleLineInterpolation(switchExpression))
+        {
+            return;
+        }
+
         var anchorColumn = switchExpression.GoverningExpression.GetFirstToken()
                                                                .GetLocation()
                                                                .GetLineSpan()

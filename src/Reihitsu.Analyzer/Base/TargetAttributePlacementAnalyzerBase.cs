@@ -68,7 +68,8 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
     }
 
     /// <summary>
-    /// Analyzes an attribute list
+    /// Analyzes an attribute list. A list that has to stand on its own line is not reported inside an interpolation that
+    /// cannot hold a line break, because the token after it cannot start a new line there (SHARED-ATTR-024)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnAttributeList(SyntaxNodeAnalysisContext context)
@@ -87,6 +88,7 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
         var expectedMode = ResolveEnforcedPlacementMode(attributeList);
         var hasViolation = expectedMode == TargetAttributePlacementMode.SeparateLine
                                ? closeLine == nextLine
+                                 && StringInterpolationUtilities.IsInsideSingleLineInterpolation(attributeList) == false
                                : closeLine != nextLine;
 
         // Both placements rewrite the gap between the closing bracket and the member token, so the code fix refuses
