@@ -42,4 +42,5 @@ The label makes the goals proposals, but the two decisions above are the maintai
 - Spec author amendment done (e78d882): 1B carried out, Status Accepted. Note for implementer: widen RH4124 analyzer class <summary>.
 - Test implementer done (fe5cd25): 9 RH4124-003 + 7 RH4122-004 tests; positives fail on missing diagnostics only.
 - Implementer done (5397936): +32/-3 in two analyzers; all tests pass.
-- Next: cleaner.
+- Cleaner done (7a4faa8): clean, Release 0 warnings.
+- Next: spec checker.
