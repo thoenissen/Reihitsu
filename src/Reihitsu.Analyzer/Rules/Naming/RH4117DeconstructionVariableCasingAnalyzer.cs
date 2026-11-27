@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -32,7 +33,7 @@ public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4117DeconstructionVariableCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.DeclarationExpression, CasingUtilities.IsCamelCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.SingleVariableDesignation, CasingUtilities.IsCamelCase)
     {
     }
 
@@ -41,13 +42,17 @@ public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase
     #region CasingAnalyzerBase
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Every variable of a deconstruction is a single variable designation; <see cref="DeconstructionVariableUtilities.IsDeconstructionVariable"/>
+    /// decides which ones belong to a deconstruction, in a declaration and in a pattern alike
+    /// </remarks>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        return node is DeclarationExpressionSyntax { Designation: ParenthesizedVariableDesignationSyntax tuple }
-                   ? tuple.DescendantNodes()
-                          .OfType<SingleVariableDesignationSyntax>()
-                          .Select(static variable => (variable.Identifier.ValueText, variable.Identifier.GetLocation()))
-                   : [];
+        if (node is SingleVariableDesignationSyntax designation
+            && DeconstructionVariableUtilities.IsDeconstructionVariable(designation))
+        {
+            yield return (designation.Identifier.ValueText, designation.Identifier.GetLocation());
+        }
     }
 
     #endregion // CasingAnalyzerBase

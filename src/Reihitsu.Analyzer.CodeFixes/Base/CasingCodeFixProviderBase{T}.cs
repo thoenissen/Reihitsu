@@ -99,7 +99,8 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     private static ISymbol GetDeclaredSymbol(SemanticModel model, T node, CancellationToken cancellationToken)
     {
         // Tuple elements are intentionally excluded because the renamer does not support them, which means only the
-        // declaration could be changed
+        // declaration could be changed. A query clause that declares no range variable, such as a where clause, has no
+        // declared symbol
         return node switch
                {
                    VariableDeclaratorSyntax variableDeclarator => model.GetDeclaredSymbol(variableDeclarator, cancellationToken),
@@ -110,6 +111,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
                    CatchDeclarationSyntax catchDeclaration => model.GetDeclaredSymbol(catchDeclaration, cancellationToken),
                    LocalFunctionStatementSyntax localFunctionStatement => model.GetDeclaredSymbol(localFunctionStatement, cancellationToken),
                    TypeParameterSyntax typeParameter => model.GetDeclaredSymbol(typeParameter, cancellationToken),
+                   QueryClauseSyntax queryClause => model.GetDeclaredSymbol(queryClause, cancellationToken),
+                   JoinIntoClauseSyntax joinIntoClause => model.GetDeclaredSymbol(joinIntoClause, cancellationToken),
+                   QueryContinuationSyntax queryContinuation => model.GetDeclaredSymbol(queryContinuation, cancellationToken),
                    _ => null
                };
     }
@@ -121,24 +125,16 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <param name="node">Node</param>
     /// <param name="identifier">The replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
+    /// <returns>The updated <see cref="Solution"/> with the code fix applied</returns>
+    /// <remarks>
+    /// The fix is only registered when <see cref="RenameDeclarationAsync"/> finds the rename safe, so the same rename is
+    /// applied here. Should it no longer be safe, the solution is left unchanged instead of producing an unsafe or
+    /// declaration-only rename
+    /// </remarks>
     private static async Task<Solution> ApplyCodeFixAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
     {
-        var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-        var declaredSymbol = model == null
-                                 ? null
-                                 : GetDeclaredSymbol(model, node, cancellationToken);
-
-        // The fix is only registered when a declared symbol is available, so a comprehensive rename is always
-        // possible here. Without a symbol the solution is left unchanged instead of producing a declaration-only
-        // rename that would leave references stale
-        if (declaredSymbol == null)
-        {
-            return document.Project.Solution;
-        }
-
-        return await Renamer.RenameSymbolAsync(document.Project.Solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
+        return await RenameDeclarationAsync(document, node, identifier, cancellationToken).ConfigureAwait(false)
+                   ?? document.Project.Solution;
     }
 
     /// <summary>
@@ -356,34 +352,35 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     }
 
     /// <summary>
-    /// Determines whether a comprehensive rename is unsafe, as <see cref="RenameWithoutConflictAsync"/> decides it
+    /// Renames a declaration and every reference to it when the rename is safe, as <see cref="RenameWithoutConflictAsync"/> decides it
     /// </summary>
     /// <param name="document">Document containing the declaration</param>
     /// <param name="node">Declaration node to rename</param>
     /// <param name="identifier">Proposed replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when the rename would conflict; otherwise, <see langword="false"/></returns>
-    private static async Task<bool> HasRenameConflictAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
+    /// <returns>The renamed solution when the rename is safe; otherwise, <see langword="null"/></returns>
+    private static async Task<Solution> RenameDeclarationAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (root == null)
         {
-            return true;
+            return null;
         }
 
-        var annotation = new SyntaxAnnotation(nameof(HasRenameConflictAsync));
+        var annotation = new SyntaxAnnotation(nameof(RenameDeclarationAsync));
         var annotatedSolution = document.WithSyntaxRoot(root.ReplaceNode(node, node.WithAdditionalAnnotations(annotation))).Project.Solution;
 
         return await RenameWithoutConflictAsync(annotatedSolution,
                                                 document.Id,
                                                 annotation,
                                                 identifier,
-                                                cancellationToken).ConfigureAwait(false) == null;
+                                                cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
+    /// Applies a rename, with the name of every anonymous object member that takes its name from a renamed reference
+    /// written explicitly (SHARED-CASING-015), only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
     /// no new name written where it is a keyword, no rewritten or rebound reference to a symbol outside the rename
     /// cascade, no reference of the cascade rewritten beyond its name, no new name that a member of an interface in the
@@ -413,27 +410,29 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
                                                                    string identifier,
                                                                    CancellationToken cancellationToken)
     {
-        var prepared = await PrepareRenameAsync(solution,
-                                                documentId,
-                                                annotation,
-                                                identifier,
-                                                cancellationToken).ConfigureAwait(false);
+        var prepared = await PrepareNamedRenameAsync(solution,
+                                                     documentId,
+                                                     annotation,
+                                                     identifier,
+                                                     cancellationToken).ConfigureAwait(false);
 
         if (prepared == null)
         {
             return null;
         }
 
+        var namedSolution = prepared.Value.Solution;
+
         // A new name that a member of an interface in the type hierarchy of a cascade property, event, or ordinary method
         // has may change which member implements it, which a rename may not do (SHARED-CASING-009)
-        if (await CasingRenameSafetyUtilities.HasInterfaceMemberOfNameInHierarchyAsync(solution, prepared.Value.Cascade, identifier, cancellationToken).ConfigureAwait(false))
+        if (await CasingRenameSafetyUtilities.HasInterfaceMemberOfNameInHierarchyAsync(namedSolution, prepared.Value.Cascade, identifier, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var renamedSolution = await Renamer.RenameSymbolAsync(solution,
+        var renamedSolution = await Renamer.RenameSymbolAsync(namedSolution,
                                                               prepared.Value.Symbol,
                                                               default,
                                                               identifier,
@@ -442,8 +441,8 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
 
         // A new name that the rename writes where it is a keyword, with the verbatim prefix or without it, only looks
         // corrected or does not compile (SHARED-CASING-013)
-        if (await CasingRenameSafetyUtilities.HasConflictAnnotationsAsync(solution, renamedSolution, cancellationToken).ConfigureAwait(false)
-            || await CasingRenameSafetyUtilities.WritesNameAsKeywordAsync(solution, renamedSolution, identifier, cancellationToken).ConfigureAwait(false))
+        if (await CasingRenameSafetyUtilities.HasConflictAnnotationsAsync(namedSolution, renamedSolution, cancellationToken).ConfigureAwait(false)
+            || await CasingRenameSafetyUtilities.WritesNameAsKeywordAsync(namedSolution, renamedSolution, identifier, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -460,9 +459,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
 
         // The rename may change no binding of a reference to a symbol outside the cascade, whether the renamer rewrites
         // that reference or leaves it as written (SHARED-CASING-009)
-        if (await CasingRenameSafetyUtilities.RewritesOtherCodeAsync(solution, renamedSolution, oldNames, identifier, cancellationToken).ConfigureAwait(false)
+        if (await CasingRenameSafetyUtilities.RewritesOtherCodeAsync(namedSolution, renamedSolution, oldNames, identifier, cancellationToken).ConfigureAwait(false)
             || await CasingRenameSafetyUtilities.CountReferenceLocationsAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false)
-               != await CasingRenameSafetyUtilities.CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
+               != await CasingRenameSafetyUtilities.CountReferenceLocationsAsync(namedSolution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -475,17 +474,56 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
         var renamedNames = oldNames.Add(identifier);
 
         if (CasingRenameSafetyUtilities.HasCallerArgumentExpressionNaming(prepared.Value.Cascade, renamedNames, identifier, cancellationToken)
-            || await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
+            || await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(namedSolution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
-        if (await CasingRenameSafetyUtilities.ChangesProjectsUnsafelyAsync(solution, renamedSolution, cancellationToken).ConfigureAwait(false))
+        if (await CasingRenameSafetyUtilities.ChangesProjectsUnsafelyAsync(namedSolution, renamedSolution, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
 
         return renamedSolution;
+    }
+
+    /// <summary>
+    /// Writes the name of every anonymous object member that takes its name from a reference of the rename explicitly
+    /// (SHARED-CASING-015), then resolves the declaration's symbol and its rename cascade in the solution with the names
+    /// written, as <see cref="PrepareRenameAsync"/> does
+    /// </summary>
+    /// <param name="solution">Annotated solution</param>
+    /// <param name="documentId">Document containing the declaration</param>
+    /// <param name="annotation">Declaration tracking annotation</param>
+    /// <param name="identifier">Proposed identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// The solution with the member names written, which every check of the rename compares against, the symbol to
+    /// rename, and its rename cascade; or <see langword="null"/> when the rename is unsafe
+    /// </returns>
+    private static async Task<(Solution Solution, ISymbol Symbol, ImmutableArray<ISymbol> Cascade)?> PrepareNamedRenameAsync(Solution solution,
+                                                                                                                             DocumentId documentId,
+                                                                                                                             SyntaxAnnotation annotation,
+                                                                                                                             string identifier,
+                                                                                                                             CancellationToken cancellationToken)
+    {
+        var prepared = await PrepareRenameAsync(solution, documentId, annotation, identifier, cancellationToken).ConfigureAwait(false);
+
+        if (prepared == null)
+        {
+            return null;
+        }
+
+        var namedSolution = await CasingAnonymousMemberUtilities.NameAnonymousObjectMembersAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false);
+
+        if (namedSolution != solution)
+        {
+            prepared = await PrepareRenameAsync(namedSolution, documentId, annotation, identifier, cancellationToken).ConfigureAwait(false);
+        }
+
+        return prepared == null
+                   ? null
+                   : (namedSolution, prepared.Value.Symbol, prepared.Value.Cascade);
     }
 
     /// <summary>
@@ -839,7 +877,7 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
                 var declaredSymbol = GetDeclaredSymbol(model, node, context.CancellationToken);
 
                 if (declaredSymbol != null
-                    && await HasRenameConflictAsync(context.Document, node, identifier, context.CancellationToken).ConfigureAwait(false) == false)
+                    && await RenameDeclarationAsync(context.Document, node, identifier, context.CancellationToken).ConfigureAwait(false) != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, identifier, cancellationToken),

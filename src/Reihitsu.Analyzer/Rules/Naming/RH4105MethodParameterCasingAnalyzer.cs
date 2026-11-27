@@ -6,13 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// RH4105: Method parameter names should be in camelCase
+/// RH4105: Parameter and query range variable names should be in camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase
@@ -32,7 +33,10 @@ public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4105MethodParameterCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, SyntaxKind.Parameter, CasingUtilities.IsCamelCase)
+        : base(DiagnosticId,
+               DiagnosticCategory.Naming,
+               [SyntaxKind.Parameter, .. RangeVariableDeclarationUtilities.DeclarationKinds],
+               CasingUtilities.IsCamelCase)
     {
     }
 
@@ -41,15 +45,24 @@ public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase
     #region CasingAnalyzerBase
 
     /// <inheritdoc/>
-    /// <remarks>A parameter without a name, such as the receiver parameter of <c>extension(long)</c>, has nothing to check and is skipped.</remarks>
+    /// <remarks>
+    /// A parameter without a name, such as the receiver parameter of <c>extension(long)</c>, has nothing to check and is
+    /// skipped, as is a parameter of a record's primary constructor. A range variable is checked at the query clause that
+    /// declares it, never at a later use. A parameter or range variable named <c>_</c> is not checked
+    /// </remarks>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        if (node is ParameterSyntax parameter
-            && parameter.Identifier.Span.IsEmpty == false
-            && parameter.Identifier.ValueText != "_"
-            && parameter.Parent is not ParameterListSyntax { Parent: RecordDeclarationSyntax })
+        var identifier = node switch
+                         {
+                             ParameterSyntax { Parent: not ParameterListSyntax { Parent: RecordDeclarationSyntax } } parameter => parameter.Identifier,
+                             ParameterSyntax => default,
+                             _ => RangeVariableDeclarationUtilities.GetIdentifier(node)
+                         };
+
+        if (identifier.Span.IsEmpty == false
+            && identifier.ValueText != "_")
         {
-            yield return (parameter.Identifier.ValueText, parameter.Identifier.GetLocation());
+            yield return (identifier.ValueText, identifier.GetLocation());
         }
     }
 
