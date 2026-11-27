@@ -43,4 +43,5 @@
 - Round 2 test implementer done (`12-test-implementer.md`, 7 tests pin (a)–(d); cref arm reachable, implementer skipped — no production change needed).
 - Round 2 cleaner done (`13-cleaner.md`, clean).
 - Round 2 spec checker done (`14-spec-checker.md`, consistent).
-- Next: auditor on round 2 (`15-auditor.md`).
+- Merged origin/main 5db426f (no overlap). Round 2 auditor (`15-auditor.md`): pass. Audited SHA: bde5ae4c1d6f148d5df5390d4347623a8cb3ee78.
+- Next: validator (`16-validator.md`), then publish.
