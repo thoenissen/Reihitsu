@@ -24,6 +24,8 @@ The label makes the goals proposals, but the two decisions above are the maintai
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | New requirements or widen existing -001? | New RH4124-003 and RH4122-004 | New tests carry their own tags; existing requirements stay intact | Spec structure only; the visible change itself is the maintainer's decision on #1089 | 6a0ff3c |
+| 2 | spec author | SHARED-DIAG-007 Uses row for unnamed extension receiver? | None | An unnamed receiver has no name to check, as RH4105-004 treats it | Unnamed receiver is not reported either way | 6a0ff3c |
 
 ## Follow-up candidates
 
@@ -32,4 +34,6 @@ The label makes the goals proposals, but the two decisions above are the maintai
 ## Worklist / next step
 
 - Claim done (commit on branch, draft PR #1974), SDK installed.
-- Next: spec author.
+- Spec author done (6a0ff3c): change doc Draft, RH4124-003, RH4122-004.
+- Pending output question for the batch before the test implementer: RH4124 title/message wording (spec author's OQ1, A keep / B widen, recommends B).
+- Next: skeptic.
