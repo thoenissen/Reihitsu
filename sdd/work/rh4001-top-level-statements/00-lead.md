@@ -30,6 +30,6 @@
 
 ## State
 
-- Last step finished: skeptic (02, d366fb0, verdict proceed, no output questions).
-- Next step: test implementer (must cover the skeptic's mismatched `Startup.cs` with statements only inside a member).
+- Last step finished: test implementer (03, 5d70005 tests, ab83178 handover; 2 of 5 RH4001-007 tests fail as intended).
+- Next step: implementer.
 - Pending: spec author status-only follow-up (change doc Accepted) before spec checker.
