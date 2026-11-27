@@ -40,32 +40,6 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Gets the value of a declared namespace name
-    /// </summary>
-    /// <param name="nameSyntax">Namespace name syntax</param>
-    /// <returns>The identifier values joined by dots</returns>
-    private static string GetNamespaceName(NameSyntax nameSyntax)
-    {
-        return string.Join(".", NamespaceCasingHelper.GetLocations(nameSyntax).Select(part => part.Name));
-    }
-
-    /// <summary>
-    /// Gets the full name a namespace declaration declares: the values of the names of every enclosing namespace declaration,
-    /// outermost first, followed by the value of its own name, joined by dots
-    /// </summary>
-    /// <param name="namespaceSyntax">Namespace declaration</param>
-    /// <returns>The full declared namespace name</returns>
-    private static string GetFullNamespaceName(BaseNamespaceDeclarationSyntax namespaceSyntax)
-    {
-        var names = namespaceSyntax.AncestorsAndSelf()
-                                   .OfType<BaseNamespaceDeclarationSyntax>()
-                                   .Select(declaration => GetNamespaceName(declaration.Name))
-                                   .Reverse();
-
-        return string.Join(".", names);
-    }
-
-    /// <summary>
     /// Start of the compilation
     /// </summary>
     /// <param name="context">Context</param>
@@ -89,7 +63,7 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     private void OnNamespaceDeclarationSyntax(Configuration configuration, SyntaxNodeAnalysisContext context)
     {
         if (context.Node is BaseNamespaceDeclarationSyntax namespaceSyntax
-            && configuration.Naming.AllowedNamespaceDeclarations.Contains(GetFullNamespaceName(namespaceSyntax)) == false)
+            && configuration.Naming.AllowedNamespaceDeclarations.Contains(string.Join(".", NamespaceCasingHelper.GetFullNameParts(namespaceSyntax))) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(namespaceSyntax.Name.GetLocation()));
         }

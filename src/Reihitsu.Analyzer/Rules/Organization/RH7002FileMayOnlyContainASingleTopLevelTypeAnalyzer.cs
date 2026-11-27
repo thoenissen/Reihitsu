@@ -50,11 +50,7 @@ public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAna
     /// <returns>The key</returns>
     private static string GetTypeKey(BaseTypeDeclarationSyntax typeDeclaration)
     {
-        var namespaceNames = typeDeclaration.Ancestors()
-                                            .OfType<BaseNamespaceDeclarationSyntax>()
-                                            .Reverse()
-                                            .SelectMany(static namespaceDeclaration => NamespaceCasingHelper.GetLocations(namespaceDeclaration.Name))
-                                            .Select(static part => part.Name);
+        var namespaceNames = NamespaceCasingHelper.GetFullNameParts(typeDeclaration);
         var arity = typeDeclaration is TypeDeclarationSyntax { TypeParameterList: not null } genericDeclaration
                         ? genericDeclaration.TypeParameterList.Parameters.Count
                         : 0;

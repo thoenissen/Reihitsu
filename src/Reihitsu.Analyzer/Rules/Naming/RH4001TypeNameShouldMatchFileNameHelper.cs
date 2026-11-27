@@ -19,9 +19,7 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     /// <returns>The filename segment before the first dot, without any EF migration timestamp prefix, and without the final extension</returns>
     internal static string GetComparableFileName(string filePath)
     {
-        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
-        var firstDotIndex = fileNameWithoutExtension.IndexOf('.');
-        var stem = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
+        var stem = GetStem(Path.GetFileNameWithoutExtension(filePath));
 
         return stem.Substring(GetTimestampPrefixLength(stem));
     }
@@ -61,13 +59,24 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     internal static string GetRenamedFileName(string originalFilePath, MemberDeclarationSyntax typeDeclaration)
     {
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFilePath);
-        var firstDotIndex = fileNameWithoutExtension.IndexOf('.');
-        var stem = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
+        var stem = GetStem(fileNameWithoutExtension);
         var prefix = stem.Substring(0, GetTimestampPrefixLength(stem));
-        var suffix = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(firstDotIndex) : string.Empty;
+        var suffix = fileNameWithoutExtension.Substring(stem.Length);
         var extension = Path.GetExtension(originalFilePath);
 
         return $"{prefix}{GetExpectedFileNameStem(typeDeclaration)}{suffix}{extension}";
+    }
+
+    /// <summary>
+    /// Gets the stem of a file name: the part in front of its first dot, or the whole name when it holds no dot
+    /// </summary>
+    /// <param name="fileNameWithoutExtension">File name without its final extension</param>
+    /// <returns>The stem</returns>
+    private static string GetStem(string fileNameWithoutExtension)
+    {
+        var firstDotIndex = fileNameWithoutExtension.IndexOf('.');
+
+        return firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
     }
 
     /// <summary>
