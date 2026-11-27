@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -3108,7 +3109,16 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10));
+
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     #endregion // Tests

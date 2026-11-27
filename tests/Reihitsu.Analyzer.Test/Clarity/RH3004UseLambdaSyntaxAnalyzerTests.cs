@@ -1836,7 +1836,16 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10));
+
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     #endregion // Tests
