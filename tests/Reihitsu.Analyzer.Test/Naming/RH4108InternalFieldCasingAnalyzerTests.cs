@@ -241,6 +241,41 @@ public class RH4108InternalFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the fix of an internal field keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    internal int {|RH4108:value|};
+
+                                    string M()
+                                    {
+                                        return new { value }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     internal int Value;
+
+                                     string M()
+                                     {
+                                         return new { value = Value }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

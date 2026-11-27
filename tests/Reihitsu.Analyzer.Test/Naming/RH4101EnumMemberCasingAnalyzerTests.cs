@@ -274,6 +274,47 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies the fix of an enum member keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                enum Color
+                                {
+                                    {|RH4101:red|},
+                                }
+
+                                class C
+                                {
+                                    string M()
+                                    {
+                                        return new { Color.red }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 enum Color
+                                 {
+                                     Red,
+                                 }
+
+                                 class C
+                                 {
+                                     string M()
+                                     {
+                                         return new { red = Color.Red }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -1324,6 +1324,31 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
         await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
+    /// <summary>
+    /// Verifies the fix of a record primary constructor parameter keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                public record R(int {|RH4120:value|})
+                                {
+                                    public string Text { get; } = new { value }.ToString();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public record R(int Value)
+                                 {
+                                     public string Text { get; } = new { value = Value }.ToString();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -534,6 +534,41 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     }
 
     /// <summary>
+    /// Verifies the fix of a public field keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int {|RH4109:value|};
+
+                                    public string M()
+                                    {
+                                        return new { value }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public int Value;
+
+                                     public string M()
+                                     {
+                                         return new { value = Value }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Asserts that the fix was withheld, or that it renamed the field and every reference in every project without a
     /// compile error that the solution did not have
     /// </summary>

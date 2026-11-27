@@ -1661,14 +1661,13 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
     }
 
     /// <summary>
-    /// Verifies that a field keeps its diagnostic but gets no fix when an anonymous object takes its member name from
-    /// the field and the member is read by that name, because the rename would change the member's name and the read
-    /// would no longer compile
+    /// Verifies that the fix keeps the name of an anonymous object member that takes its name from the field and is read by
+    /// that name, so the read still compiles
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-CASING-009")]
-    public async Task NoFixIsOfferedWhenAnAnonymousObjectMemberTakesItsNameFromTheField()
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberThatTakesItsNameFromTheField()
     {
         const string testCode = """
                                 class Sample
@@ -1684,7 +1683,147 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                 }
                                 """;
 
-        await Verify(testCode, testCode);
+        const string fixedCode = """
+                                 class Sample
+                                 {
+                                     private int _value;
+
+                                     int Get()
+                                     {
+                                         var x = new { Value = _value };
+
+                                         return x.Value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the name of an anonymous object member whose whole expression is a member access that ends
+    /// with the field, while a member with a name of its own is only renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedByAMemberAccess()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    int M(C other)
+                                    {
+                                        var item = new { this.Value, Other = other?.Value };
+
+                                        return item.Value + (item.Other ?? 0);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value;
+
+                                     int M(C other)
+                                     {
+                                         var item = new { Value = this._value, Other = other?._value };
+
+                                         return item.Value + (item.Other ?? 0);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the names of anonymous object members named by a member access and by the field itself
+    /// in two methods of one type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNamesOfAnonymousObjectMembersInEveryMethod()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    string M()
+                                    {
+                                        return new { this.Value }.ToString();
+                                    }
+
+                                    int N()
+                                    {
+                                        var item = new { Value };
+
+                                        return item.Value;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value;
+
+                                     string M()
+                                     {
+                                         return new { Value = this._value }.ToString();
+                                     }
+
+                                     int N()
+                                     {
+                                         var item = new { Value = _value };
+
+                                         return item.Value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the name of an anonymous object member whose whole expression is a conditional access
+    /// that ends with the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedByAConditionalAccess()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int {|RH4106:Value|};
+
+                                    string M(C other)
+                                    {
+                                        return new { other?.Value }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value;
+
+                                     string M(C other)
+                                     {
+                                         return new { Value = other?._value }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

@@ -1058,6 +1058,45 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
+    /// Verifies the fix of an event keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    public event Action {|RH4102:changed|};
+
+                                    string M()
+                                    {
+                                        return new { changed }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     public event Action Changed;
+
+                                     string M()
+                                     {
+                                         return new { changed = Changed }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>
