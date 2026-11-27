@@ -35,4 +35,5 @@
 - Done: spec author (01), change doc `sdd/changes/2026-11/rh4001-rh4009-names.md` Draft; its visible output changes are covered by maintainer answers 1–2 → no output-question stop.
 - Done: skeptic (02, b884bf7) — proceed; no output questions, no follow-ups.
 - Done: spec author amendment (03, 48a1ecf); change doc Accepted.
-- Next: test implementer.
+- Done: test implementer (04, e8a9d0e, cd68c69) — 19 new failing tests, 4 new passing.
+- Next: implementer.
