@@ -30,6 +30,6 @@
 
 ## State
 
-- Last step finished: test implementer (03, 5d70005 tests, ab83178 handover; 2 of 5 RH4001-007 tests fail as intended).
-- Next step: implementer.
+- Last step finished: implementer (04, 9db50e8 code, ad704b6 handover; all tests green in Debug).
+- Next step: cleaner, then spec author status-only (Accepted), then spec checker.
 - Pending: spec author status-only follow-up (change doc Accepted) before spec checker.
