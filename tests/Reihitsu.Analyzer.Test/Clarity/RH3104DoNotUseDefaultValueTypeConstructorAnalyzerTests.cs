@@ -51,7 +51,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -310,7 +310,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -347,7 +347,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -392,7 +392,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1325,7 +1325,7 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : BatchCodeF
         // Both operands of the same comparison are rewritten, so the two replacements share one parent node
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor.", 2));
+                                  Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

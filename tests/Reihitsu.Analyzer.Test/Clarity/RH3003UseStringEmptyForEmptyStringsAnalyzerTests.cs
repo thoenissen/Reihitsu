@@ -46,7 +46,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -382,7 +382,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1348,7 +1348,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
         // between its two replacements
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings.", 2));
+                                  Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

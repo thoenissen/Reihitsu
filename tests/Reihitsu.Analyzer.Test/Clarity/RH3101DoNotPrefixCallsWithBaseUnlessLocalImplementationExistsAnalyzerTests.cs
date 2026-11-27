@@ -63,7 +63,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -261,7 +261,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -304,7 +304,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -353,7 +353,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1381,7 +1381,7 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
         // rewrites replace nodes whose spans do not overlap, so the batch merges them in a single pass
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base unless a local implementation exists.", 2));
+                                  Diagnostics(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

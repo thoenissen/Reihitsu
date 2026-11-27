@@ -50,7 +50,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -215,7 +215,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -289,7 +289,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1357,7 +1357,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1379,7 +1379,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1579,7 +1579,7 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
         // Both operands of the same AND expression are swapped, so the two rewrites replace siblings of one parent node
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions.", 2));
+                                  Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

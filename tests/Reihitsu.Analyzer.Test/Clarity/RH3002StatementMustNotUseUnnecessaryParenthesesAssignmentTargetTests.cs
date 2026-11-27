@@ -537,7 +537,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -577,7 +577,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -613,7 +613,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -649,7 +649,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+        await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -685,7 +685,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -725,7 +725,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -763,7 +763,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -801,7 +801,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -838,7 +838,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -874,7 +874,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2));
+        await Verify(testCode, fixedCode, static config => config.NumberOfFixAllIterations = 1, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -906,7 +906,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -988,7 +988,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1022,7 +1022,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1058,7 +1058,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1169,7 +1169,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1209,7 +1209,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1271,7 +1271,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1309,7 +1309,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1343,7 +1343,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1379,7 +1379,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1417,7 +1417,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1453,7 +1453,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1489,7 +1489,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1525,7 +1525,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1559,7 +1559,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1595,7 +1595,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1643,7 +1643,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+        await Verify(testCode, fixedCode, static config => config.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat));
 
         AssertParseIsPreserved(testCode, fixedCode);
     }
@@ -1718,7 +1718,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAssignmentTargetTest
         // Both pairs are rewritten together, building the outer replacement from the already fixed inner pair
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses", 2),
+                                  Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

@@ -38,7 +38,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -198,7 +198,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -225,7 +225,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -302,7 +302,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax.", 2));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -329,7 +329,7 @@ public class RH3007DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH3007Do
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
+        await Verify(testCode, Diagnostics(RH3007DoNotUseQuerySyntaxAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

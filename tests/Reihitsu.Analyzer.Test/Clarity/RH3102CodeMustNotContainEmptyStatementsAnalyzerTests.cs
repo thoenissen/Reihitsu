@@ -48,7 +48,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -238,7 +238,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -286,7 +286,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+        await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -645,7 +645,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
         // Verifying multiple consecutive empty statements are reported and fixed
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements.", 2),
+                                  Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, MessageFormat, 2),
                                   config => config.NumberOfFixAllIterations = 1);
     }
 
