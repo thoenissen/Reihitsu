@@ -558,17 +558,179 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
     }
 
     /// <summary>
-    /// Verifies that the analyzer reports and the formatter does not reorder a block whose first directive is led by a nullable directive
+    /// Verifies the specification example: the analyzer reports a block whose first directive is led by a nullable directive, and the formatter reorders it with the directive at the top so that it is no longer reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-USING-009")]
-    public async Task FormatterKeepsAReportedBlockLedByANullableDirective()
+    public async Task FormatterOrganizesAReportedBlockLedByANullableDirective()
     {
         const string input = """
                              #nullable enable
                              using {|RH7207:System.Linq|};
                              using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the analyzer reports a block led by a nullable directive in canonical order without its group blank line, and the formatter adds the blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task FormatterAddsTheGroupBlankLineToABlockLedByANullableDirective()
+    {
+        const string input = """
+                             #nullable enable
+                             using {|RH7207:System|};
+                             using Microsoft.Win32;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 #nullable enable
+                                 using System;
+
+                                 using Microsoft.Win32;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's region case: the analyzer reports a block opened by a region, and the formatter reorders it and frames the region so that it is no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task FormatterOrganizesAReportedBlockOpenedByARegion()
+    {
+        const string input = """
+                             #region Usings
+                             using {|RH7207:System.Linq|};
+                             using System;
+                             #endregion
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 #region Usings
+
+                                 using System;
+                                 using System.Linq;
+
+                                 #endregion // Usings
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's case of a comment behind a blank line below a header directive: the formatter keeps the directive, the blank line, and the comment at the top, and the result is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task FormatterKeepsTheHeaderOfAReportedBlockLedByANullableDirectiveAtTheTop()
+    {
+        const string input = """
+                             #nullable enable
+
+                             // About Linq
+                             using {|RH7207:System.Linq|};
+                             using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 #nullable enable
+
+                                 // About Linq
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the analyzer reports a block behind a conditional group, and the formatter does not reorder it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task FormatterKeepsAReportedBlockBehindAConditionalGroup()
+    {
+        const string input = """
+                             #if DEBUG
+                             using System.Diagnostics;
+                             #endif
+                             using {|RH7207:System.Linq|};
+                             using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        await VerifyFormatterKeepsReportedShape(input);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the analyzer reports a block that a conditional group encloses, and the formatter does not reorder it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task FormatterKeepsAReportedBlockEnclosedByAConditionalGroup()
+    {
+        const string input = """
+                             #if !LEGACY
+                             using {|RH7207:System.Linq|};
+                             using System;
+                             #endif
 
                              class C
                              {

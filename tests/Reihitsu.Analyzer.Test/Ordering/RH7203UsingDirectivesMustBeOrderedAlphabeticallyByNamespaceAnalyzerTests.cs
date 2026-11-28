@@ -497,15 +497,17 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Verifies the specification example: a <c>#nullable</c> directive in front of the first directive makes the block unsafe,
-    /// so it is reported without a code fix
+    /// Verifies the specification example: a <c>#nullable</c> directive in front of the first directive does not make the block unsafe, so it is reported and the code fix reorders it with the directive at the top
     /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7203-001")]
     [Requirement("RH7203-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockLedByANullableDirectiveIsReportedWithoutCodeFix()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveIsReportedAndFixed(string endOfLine)
     {
         const string testCode = """
                                 #nullable enable
@@ -514,10 +516,22 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
 
                                 class C
                                 {
+                                    int x;
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
     /// <summary>
@@ -601,6 +615,781 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                 """;
 
         await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix for a block led by a <c>#nullable</c> directive lays the block out as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task CodeFixOfABlockLedByANullableDirectiveMatchesTheFormatter()
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyCodeFixMatchesFormatter(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line behind a header directive stays behind it at the top of the fixed block
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveAndABlankLineIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> directive in front of the first directive does not keep the code fix away, and stays at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByAPragmaDirectiveIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                #pragma warning disable CS0105
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #pragma warning disable CS0105
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#define</c> directive in front of the first directive does not keep the code fix away, and stays in front of the file's first token
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByADefineDirectiveIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                #define TRACE_X
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #define TRACE_X
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's region case: a <c>#region</c> in front of the block does not keep the code fix away, and the fix keeps the region as written, directly above and below the block
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockOpenedByARegionIsFixedWithTheRegionAsWritten(string endOfLine)
+    {
+        const string testCode = """
+                                #region Usings
+                                using System.Linq;
+                                using {|RH7203:System|};
+                                #endregion
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #region Usings
+                                 using System;
+                                 using System.Linq;
+                                 #endregion
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's case of a comment header above a directive: the header, its blank line, and the directive stay at the top of the fixed block
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentHeaderAboveAHeaderDirectiveStaysAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                // Header
+
+                                #nullable enable
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's case of a comment directly below a header directive: the comment stays at the top with the directive, and no blank line is added
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentDirectlyBelowAHeaderDirectiveStaysAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 // About Linq
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's case of a comment behind a blank line below a header directive: the directive, the blank line, and the comment stay at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentBehindABlankLineBelowAHeaderDirectiveStaysAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+
+                                 // About Linq
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a copyright header, a blank line, and two directives stay at the top of the fixed block, and that a directive behind the block stays behind it
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CopyrightHeaderAndTwoDirectivesStayAtTheTopOfTheFixedBlock(string endOfLine)
+    {
+        const string testCode = """
+                                // <copyright file="C.cs">
+                                // Header
+                                // </copyright>
+
+                                #nullable enable
+                                #pragma warning disable CS0105
+                                using System.Linq;
+                                using {|RH7203:System|};
+                                #pragma warning restore CS0105
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // <copyright file="C.cs">
+                                 // Header
+                                 // </copyright>
+
+                                 #nullable enable
+                                 #pragma warning disable CS0105
+                                 using System;
+                                 using System.Linq;
+                                 #pragma warning restore CS0105
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a header directive in front of the block of a namespace with a body does not keep the code fix away; the directive stays at the top as written and the directives keep the namespace's indentation
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HeaderDirectiveOfANamespaceWithABodyIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    #nullable enable
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     #nullable enable
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                         int x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a header directive in front of the block of a file-scoped namespace does not keep the code fix away
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HeaderDirectiveOfAFileScopedNamespaceIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N;
+
+                                #nullable enable
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N;
+
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a header directive in front of a block of global directives does not keep the code fix away
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HeaderDirectiveInFrontOfGlobalDirectivesIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                global using System.Linq;
+                                global using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 global using System;
+                                 global using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a header directive does not make a block safe that also holds a directive in front of a later directive, so it is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HeaderDirectiveWithADirectiveInFrontOfALaterDirectiveIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System.Linq;
+                                #pragma warning disable CS0105
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a directive between the tokens of the block's first directive makes the block unsafe, so it is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task PragmaBetweenTokensOfTheFirstDirectiveIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                using
+                                #pragma warning disable CS0105
+                                    System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a header directive does not make a block safe that also holds a directive between the tokens of its first directive
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HeaderDirectiveWithPragmaBetweenTokensOfTheFirstDirectiveIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using
+                                #pragma warning disable CS0105
+                                    System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a build that does not define the symbol, a conditional group in front of the block makes it unsafe, so it is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupInFrontOfTheBlockIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a build that defines the symbol, the conditional group's directive is the block's first directive and its <c>#endif</c> stands between two directives, so the block is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupInFrontOfTheBlockIsReportedWithoutCodeFixInABuildThatCompilesIt(string endOfLine)
+    {
+        const string testCode = """
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine), null, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an <c>#if</c> in front of the block whose <c>#endif</c> stands behind it makes the block unsafe, so it is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupEnclosingTheBlockIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #if !LEGACY
+                                using System.Linq;
+                                using {|RH7203:System|};
+                                #endif
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group in front of the block makes it unsafe also when a non-conditional directive stands in front of the group
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HeaderDirectiveInFrontOfAConditionalGroupInFrontOfTheBlockIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that fixing a document whose compilation-unit block is led by a header directive and whose namespace block holds a directive between its directives organizes only the compilation-unit block, one diagnostic at a time and with Fix All, while the diagnostic of the other block stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task FixAllOrganizesTheHeaderDirectiveBlockAndKeepsTheBlockWithADirectiveBetweenItsDirectives()
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                namespace N
+                                {
+                                    using System.Text;
+                                #pragma warning disable CS0105
+                                    using {|RH7203:System.IO|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 namespace N
+                                 {
+                                     using System.Text;
+                                 #pragma warning disable CS0105
+                                     using {|RH7203:System.IO|};
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All organizes a compilation-unit block and a namespace block that are both led by a header directive, each with its directive at the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task FixAllOrganizesTwoBlocksLedByHeaderDirectives()
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                namespace N
+                                {
+                                    #pragma warning disable CS0105
+                                    using System.Text;
+                                    using {|RH7203:System.IO|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 namespace N
+                                 {
+                                     #pragma warning disable CS0105
+                                     using System.IO;
+                                     using System.Text;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
     }
 
     /// <summary>

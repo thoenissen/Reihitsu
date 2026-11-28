@@ -583,6 +583,41 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a block with a preprocessor directive in front of its first directive is fixed, with the directive at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveIsFixedWithTheDirectiveAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using static System.Math;
+                                using static {|RH7206:System.Console|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using static System.Console;
+                                 using static System.Math;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

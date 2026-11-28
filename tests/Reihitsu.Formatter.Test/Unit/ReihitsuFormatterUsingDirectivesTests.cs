@@ -1013,6 +1013,231 @@ public class ReihitsuFormatterUsingDirectivesTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the specification example: with the compilation unit as scope, a <c>#region</c> in front of the block stays directly above the new first directive, the <c>#endregion</c> behind the block stays directly below the last one, and the region is not framed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-030")]
+    [Requirement("FMT-USING-012")]
+    public async Task RegionOpeningTheBlockStaysAsWrittenAtTheTopOfTheReorderedBlock()
+    {
+        const string input = """
+                             #region Usings
+                             using System.Linq;
+                             using System;
+                             #endregion
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                #region Usings
+                                using System;
+                                using System.Linq;
+                                #endregion
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's case of a comment header above a directive: with the compilation unit as scope, the header, its blank line, and the directive stay at the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-030")]
+    [Requirement("FMT-USING-012")]
+    public async Task HeaderDirectiveBehindAHeaderBlankLineStaysAtTheTopOfTheReorderedBlock()
+    {
+        const string input = """
+                             // Header
+
+                             #nullable enable
+                             using System.Linq;
+                             using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                // Header
+
+                                #nullable enable
+                                using System;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's case of a comment behind a blank line below a header directive: with the compilation unit as scope, the directive, the blank line, and the comment stay at the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-030")]
+    [Requirement("FMT-USING-012")]
+    public async Task CommentBehindABlankLineBelowAHeaderDirectiveStaysAtTheTopOfTheReorderedBlock()
+    {
+        const string input = """
+                             #nullable enable
+
+                             // About Linq
+                             using System.Linq;
+                             using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                #nullable enable
+
+                                // About Linq
+                                using System;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+    }
+
+    /// <summary>
+    /// Verifies that in a namespace with a body, a header directive stays at the top as written, and the directives keep the whitespace of the original first directive's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-030")]
+    [Requirement("FMT-USING-011")]
+    [Requirement("FMT-USING-012")]
+    public async Task HeaderDirectiveChangesNoDirectiveIndentationInANamespaceWithABody()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 #nullable enable
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    #nullable enable
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: with the compilation unit as scope, a block led by a header directive whose order is canonical gets the blank line between its groups
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-030")]
+    [Requirement("SHARED-USING-009")]
+    public async Task HeaderDirectiveBlockGetsItsGroupBlankLine()
+    {
+        const string input = """
+                             #nullable enable
+                             using System;
+                             using Microsoft.Win32;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                #nullable enable
+                                using System;
+
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+    }
+
+    /// <summary>
+    /// Verifies that with the compilation unit as scope, a block behind a conditional group is not reordered and only the line two directives share is split
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-030")]
+    [Requirement("SHARED-USING-009")]
+    public async Task BlockBehindAConditionalGroupIsNotReordered()
+    {
+        const string input = """
+                             #if DEBUG
+                             using System.Diagnostics;
+                             #endif
+                             using System.Linq; using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System.Linq;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+    }
+
+    /// <summary>
     /// Selects the only namespace with a body in the document's root
     /// </summary>
     /// <param name="root">The document's root</param>
