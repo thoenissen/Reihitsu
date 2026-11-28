@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -2773,6 +2774,604 @@ public class RH3004UseLambdaSyntaxMultiLineTokenAndDirectiveTests : BatchCodeFix
                                             var s = $"{x
                                                 + 1}";
                                             Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment over two lines in the parameter list on the
+    /// expression-body path, next to a comment on one line: both anonymous methods are fixed, the later line of the
+    /// comment keeps its column although it no longer stands under the comment's first line, the comment on one line
+    /// moves with the parameter list, and formatting the result changes nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfAParameterListCommentThatSpansLinesInItsColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> a = {|RH3004:delegate|} (int x /* first
+                                                                              second */) { return x; };
+                                        Func<int, int> c = {|RH3004:delegate|} (int x /* note */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> a = (int x /* first
+                                                                               second */) => x;
+                                         Func<int, int> c = (int x /* note */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in the parameter list whose later line stands left of the column the
+    /// parameter list moves to: the fix is offered, the later line keeps its column, and the expression body follows on
+    /// the comment's last line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfAParameterListCommentLeftOfTheNewParameterListColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                            second */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                             second */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in the parameter list whose later line stands left of the column the
+    /// parameter list moves to, in a document whose line breaks are CRLF: the fix is offered, the later line keeps its
+    /// column, and the line breaks stay CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfAParameterListCommentLeftOfTheNewParameterListColumnWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                            second */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                             second */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in the parameter list of an <c>async</c> anonymous method on the
+    /// expression-body path: the parameter list moves behind <c>async</c> and one space, the later line of the comment
+    /// keeps its column, and the expression body follows on the comment's last line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfAParameterListCommentOfAnAsyncAnonymousMethod()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, Task<int>> g = async {|RH3004:delegate|} (int x /* first
+                                                    second */) { return await Task.FromResult(x); };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Threading.Tasks;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, Task<int>> g = async (int x /* first
+                                                     second */) => await Task.FromResult(x);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment over two lines in the parameter list with the closing
+    /// parenthesis on a line after the comment's last line: the fix is offered, the later line of the comment keeps its
+    /// column, the arrow and the expression body follow the closing parenthesis on its line, and formatting the result
+    /// changes nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixPlacesTheExpressionBodyBehindAClosingParenthesisOnALineAfterTheParameterListComment()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                            second */
+                                            ) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                             second */
+                                                             ) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in the parameter list with the closing parenthesis on a line after
+    /// the comment's last line, in a document whose line breaks are CRLF: the arrow and the expression body follow the
+    /// closing parenthesis on its line, and the line breaks stay CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixPlacesTheExpressionBodyBehindAClosingParenthesisOnALineAfterTheParameterListCommentWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                            second */
+                                            ) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                             second */
+                                                             ) => x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment over two lines behind a comma next to one between a
+    /// parameter and a comma on a later line: the first anonymous method is fixed with the later line of the comment in
+    /// its column, and for the second the diagnostic stays and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task FixKeepsAParameterListCommentBehindACommaAndIsWithheldForOneInFrontOfACommaOnALaterLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int, int> a = {|RH3004:delegate|} (int x, /* first
+                                            second */ int y) { return x + y; };
+                                        Func<int, int, int> b = {|RH3004:delegate|} (int x /* first
+                                            second */, int y) { return x + y; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int, int> a = (int x, /* first
+                                             second */ int y) => x + y;
+                                         Func<int, int, int> b = {|RH3004:delegate|} (int x /* first
+                                             second */, int y) { return x + y; };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines between a parameter and the comma behind it, with the comma on a
+    /// later line than the parameter: the formatter refuses the lambda the fix builds, so the diagnostic is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task FixWithheldForAParameterListCommentBetweenAParameterAndACommaOnALaterLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int, int> b = {|RH3004:delegate|} (int x /* first
+                                                    second */, int y) { return x + y; };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines between the opening parenthesis and the first parameter: the fix is
+    /// offered, the later line of the comment keeps its column, and the space between the comment and the parameter is
+    /// removed as for a comment on one line there
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfACommentInFrontOfTheFirstParameter()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} ( /* first
+                                                    second */ int x) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = ( /* first
+                                                     second */int x) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a comment written with two asterisks over two lines in the parameter list on the expression-body path:
+    /// the fix is offered, and the later line of the comment keeps its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfADelimitedDocumentationCommentInTheParameterList()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /** first
+                                                    second */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /** first
+                                                     second */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in a parameter list that starts on the line after <c>delegate</c>:
+    /// the lambda starts where the anonymous method started, the parameter list and the comment's first line move into
+    /// the column of <c>delegate</c>, and the later line of the comment keeps its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixMovesTheParameterListOntoTheLineOfDelegateAndKeepsTheLaterCommentLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|}
+                                                    (int x /* first
+                                                    second */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                                     second */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in the parameter list whose later line starts in column 0: the fix
+    /// is offered, and the later line stays in column 0
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfAParameterListCommentInColumnZero()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                        second */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                         second */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over three lines in the parameter list whose later lines stand in different
+    /// columns: the fix is offered, and every later line keeps its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsEveryLaterLineOfAParameterListCommentOverThreeLines()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                                        second
+                                                    third */) { return x; };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                                         second
+                                                     third */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a delimited comment over two lines in the parameter list of an anonymous method whose single
+    /// <c>return</c> statement stands in a block on lines of its own: the fix writes an expression body behind the
+    /// comment's last line, and the later line of the comment keeps its column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-011")]
+    public async Task FixKeepsTheLaterLineOfAParameterListCommentWhenTheBlockStandsOnLinesOfItsOwn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> g = {|RH3004:delegate|} (int x /* first
+                                                    second */)
+                                                {
+                                                    return x;
+                                                };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> g = (int x /* first
+                                                     second */) => x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a delimited comment that opens behind the opening brace and ends in front
+    /// of the block's first statement, once in front of a call and once in front of the block's only statement, a
+    /// <c>return</c>: the comment keeps the block a block body, the diagnostics are reported, and no code fix is
+    /// offered for either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForADelimitedCommentThatOpensBehindTheOpeningBraceAndEndsInFrontOfTheFirstStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void Foo()
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Action a = {|RH3004:delegate|} () { /* first
+                                            second */ Foo();
+                                        };
+                                        Func<int, int> b = {|RH3004:delegate|} (int x) { /* first
+                                            second */ return x;
                                         };
                                     }
                                 }
