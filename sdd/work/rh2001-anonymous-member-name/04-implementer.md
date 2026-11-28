@@ -48,3 +48,30 @@ _None_ beyond lead decision 4, which this change carries out: RH2001 no longer d
 
 ## Follow-up candidates
 - A casing-fix test for a multi-line anonymous creation whose member name the fix writes, pinning the layout after the elastic-trivia fix (if the lead does not take it as part of this run).
+
+## Round 2 — lead decision 8 (option A)
+
+Commit: 31c86f4 — production commit "RH2001: Fix All through a solution-scoped mode of DocumentOrderFixAllProvider".
+Verdict: tests pass
+
+### Changes
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Analyzer.CodeFixes/Core/DocumentOrderFixAllProvider.cs` | Opt-in solution-scoped mode, no new type: the class now derives from `FixAllProvider`; new factory `CreateSolutionScoped(analyzer, title)` returns the instance itself, whose `GetFixAsync` runs `ApplySolutionFixAllAsync`. That method takes the documents of the scope (document, project, solution) one after another, each from the solution the earlier fixes produced; a document whose text an earlier fix changed is analyzed again (`GetDiagnosticsAsync`), else the context's diagnostics are used; then the existing `ApplyFixAllAsync`/passes run on it. `ApplyPassAsync` gained `keepsSolution`: in that mode the next document is the fix's changed document with its whole solution (so a rename in another partial part is kept) instead of `WithText` on the old one. `Create` is unchanged and passes `keepsSolution: false`, so the ~20 document-mode users run exactly the old code path. Class summary and the changed methods' docs updated. | SHARED-FIX-002 |
+| `src/Reihitsu.Analyzer.CodeFixes/Rules/Design/RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs` | `GetFixAllProvider` returns `DocumentOrderFixAllProvider.CreateSolutionScoped(new RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer(), CodeFixResources.RH2001Title)` instead of `BatchFixer`. | SHARED-FIX-002, RH2001-012 |
+
+### Production diff size
+Round delta: 2 files changed, 89 insertions(+), 9 deletions(-) (doc comments included), under the ~100-line bound. Whole run vs `origin/main`: 3 files changed, 125 insertions(+), 34 deletions(-). No new type; one new internal static member (`CreateSolutionScoped`) and one override (`GetFixAsync`) on an internal class.
+
+### Tests run
+- `scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~RH2001PrivateAutoPropertiesShouldNotBeUsed"`: `Passed: 340, Failed: 0` (the partial-part-in-another-document test passes under Fix All as well).
+- `scripts/test.sh --configuration Debug --project analyzer`: `Passed: 12428, Failed: 0`.
+- `scripts/test.sh --configuration Debug --project architecture`: `Passed: 221`.
+- `scripts/build.sh --configuration Debug`: 0 warnings (a first draft made `ApplyPassAsync` an instance method, RH7103; kept static with a parameter instead).
+
+### Disputed tests or scope
+- Scope growth the lead already accepted under decision 8: a shared helper with other consumers gains a mode. Its document mode is untouched in behavior.
+- Known limit of the solution mode, not exercised by any test: a document re-analyzed because an earlier fix changed it uses all diagnostics the analyzer reports on its current code, not only those whose fix was offered on the starting code (SHARED-FIX-002's "offered on the code the application starts from"). For RH2001 that needs diagnostics in two parts of one partial type whose fixes interact; rare. No guard added.
+
+### Follow-up candidates
+- Unchanged from round 1 (casing layout test after the elastic-token fix, decision 9).
