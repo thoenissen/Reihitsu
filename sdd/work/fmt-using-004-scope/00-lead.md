@@ -17,6 +17,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Leave SHARED-USING-009 and `code-fixes.md` unchanged, against the issue's file list | Yes | The issue's comment narrows the scope, and SHARED-USING-009 (in `shared/using-directive-ordering.md`) already scopes the statement | Spec text only | e5ed931 |
+| 2 | Spec author | Keep FMT-USING-004's title | Yes | The title does not claim the blank-line rule for the whole formatter | Spec text only | e5ed931 |
+| 3 | Lead | No change doc | Yes | Records existing behavior; no output changes | Spec text only | e5ed931 |
 
 ## Follow-up candidates
 
@@ -24,5 +27,5 @@
 
 ## State
 
-- Last step: claim, lane claimed.
-- Next: spawn the spec author.
+- Last step: spec author done (01-spec-author.md, e5ed931), pushed. No output questions.
+- Next: spec checker.
