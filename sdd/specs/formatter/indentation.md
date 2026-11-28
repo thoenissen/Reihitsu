@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `ContinuationLineContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `QueryClauseContributor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
+| Uses | FMT-BLANK-011, FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-BREAK-044, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -265,9 +265,9 @@ class C
 
 ### FMT-INDENT-006 — A comment on its own line takes the column of the code that follows it
 
-The formatter MUST indent a comment that starts its line — as decided by SHARED-BLANK-002 — to the column of the token it precedes. When that token stands behind another comment that leads the token's line, the line starts with that comment: the comment on its own line above takes the column the token's line starts in, which is the column of the leading comment, not the column of the token behind it (FMT-INDENT-030): in a method body, `  // above` above `            /* c */ M();` gives `        // above` above `        /* c */ M();`. A comment that precedes a closing brace MUST be indented one level deeper than the brace, inside the scope it closes; a comment that precedes the closing delimiter of a collection expression, a list pattern, or a positional pattern MUST be indented one level deeper than the delimiter, in the column of the construct's elements (FMT-INDENT-025), and a comment that precedes the closing parenthesis of a parenthesized pattern MUST be indented to the column of the pattern inside it, four columns right of the opening parenthesis (FMT-INDENT-026). Each of these closing delimiters closes content that this spec indents one level deeper than the delimiter, as the closing brace of an initializer does (FMT-PIPE-014). A comment that precedes the closing delimiter of any other construct, such as the closing parenthesis of an argument list, is not decided by this sentence and takes the column of that delimiter. A comment that does not start its line, such as a delimited documentation comment written behind an opening brace, MUST be left where it is and MUST NOT receive indentation in the middle of its line.
+The formatter MUST indent a comment that starts its line — as decided by SHARED-BLANK-002 — to the column of the token it precedes. When that token stands behind another comment that leads the token's line, the line starts with that comment: the comment on its own line above takes the column the token's line starts in, which is the column of the leading comment, not the column of the token behind it (FMT-INDENT-030): in a method body, `  // above` above `            /* c */ M();` gives `        // above` above `        /* c */ M();`. A comment that precedes a closing brace MUST be indented one level deeper than the brace, inside the scope it closes — except the closing brace of an interpolation (`InterpolationSyntax`) of a regular, verbatim, or single-line raw interpolated string, which closes no content one level deeper: the lines of its hole and the brace itself are continuation lines of the statement (FMT-INDENT-034), so a comment that precedes that brace MUST be indented to the column of the brace, also when the hole's content stands in another column, such as an operand aligned under the one above it. Which string the interpolation belongs to decides, not where that string stands: the closing brace of an interpolation of a regular string nested in a hole of a multi-line raw string literal takes the comment to its own column as well, while the closing brace of an interpolation of a multi-line raw string literal keeps the comment one level deeper; a comment that precedes the closing delimiter of a collection expression, a list pattern, or a positional pattern MUST be indented one level deeper than the delimiter, in the column of the construct's elements (FMT-INDENT-025), and a comment that precedes the closing parenthesis of a parenthesized pattern MUST be indented to the column of the pattern inside it, four columns right of the opening parenthesis (FMT-INDENT-026). Each of these closing delimiters closes content that this spec indents one level deeper than the delimiter, as the closing brace of an initializer does (FMT-PIPE-014). A comment that precedes the closing delimiter of any other construct, such as the closing parenthesis of an argument list, is not decided by this sentence and takes the column of that delimiter. A comment that does not start its line, such as a delimited documentation comment written behind an opening brace, MUST be left where it is and MUST NOT receive indentation in the middle of its line.
 
-Why: A comment on its own line describes the code below it and reads as part of that code's block. A comment at the end of a scope describes the scope's contents, not the brace. Indenting a comment that shares a line with code would insert whitespace into the middle of that line.
+Why: A comment on its own line describes the code below it and reads as part of that code's block. A comment at the end of a scope describes the scope's contents, not the brace. The hole of an interpolation that is not part of a multi-line raw string literal holds no content one level deeper than its closing brace, so a comment there one level deeper would stand apart from the lines around it; the comment takes the column of the brace it precedes, as in front of the closing delimiter of any construct whose content is not one level deeper. Indenting a comment that shares a line with code would insert whitespace into the middle of that line.
 
 Example:
 
@@ -417,6 +417,94 @@ class C
                   );
 
         return b && c && d;
+    }
+}
+```
+
+and a comment in front of the closing brace of an interpolation of a regular, a verbatim, or a single-line raw interpolated string, also one nested in a hole of a multi-line raw string literal, takes the column of the brace, also when the hole's content stands in another column, while one in front of the closing brace of a multi-line raw string literal's own interpolation stays one level deeper than the brace. FMT-BLANK-011 puts a blank line above each of these comments:
+
+```csharp
+class C
+{
+    string M(int a, int b)
+    {
+        var t = $"{
+            // e
+            a
+            // f
+            }";
+        var u = $"{a +
+            b
+            // f
+            }";
+        var v = $@"{
+            a
+        // f
+            }";
+        var s = $"""{
+            a
+            // f
+            }""";
+        var n = $"""
+            {$"{
+                a
+                // f
+                }"}
+            """;
+        var r = $$"""
+                  {{
+                      a
+                  // f
+                  }}
+                  """;
+
+        return t + u + v + s + n + r;
+    }
+}
+```
+
+```csharp
+class C
+{
+    string M(int a, int b)
+    {
+        var t = $"{
+            // e
+            a
+
+            // f
+            }";
+        var u = $"{a
+                   + b
+
+            // f
+            }";
+        var v = $@"{
+            a
+
+            // f
+            }";
+        var s = $"""{
+            a
+
+            // f
+            }""";
+        var n = $"""
+                 {$"{
+                     a
+
+                     // f
+                     }"}
+                 """;
+        var r = $$"""
+                  {{
+                      a
+
+                      // f
+                  }}
+                  """;
+
+        return t + u + v + s + n + r;
     }
 }
 ```
@@ -2335,15 +2423,183 @@ class C
 }
 ```
 
-### FMT-INDENT-031 — An anonymous method in a raw-string hole aligns like a block lambda
+### FMT-INDENT-031 — An anonymous method's block aligns like a block lambda
 
-When an anonymous method lies in an interpolation hole of a multi-line interpolated raw string literal and its opening brace starts a line, the formatter MUST shift its block — its braces and every line between them — so the opening brace starts in the column of the anonymous method's anchor: the `async` keyword of an async anonymous method, otherwise the `delegate` keyword, also behind a `static` modifier. The anchor is the one FMT-INDENT-028 takes for a block lambda in the same position: an `async` lambda aligns at `async`, a `static` one past `static`. The lines inside the block MUST keep their indentation relative to the opening brace, one level deeper for the block's statements as in every block (FMT-INDENT-002). The column of the anchor is measured after the literal moved (FMT-RAW-007, FMT-INDENT-030).
+When the opening brace of an anonymous method's block starts a line, the formatter MUST shift the block — its braces and every line between them — so the opening brace starts in the column of the anonymous method's anchor: the `async` keyword of an async anonymous method, otherwise the `delegate` keyword, also behind a `static` modifier. The anchor is the one FMT-INDENT-028 takes for a block lambda in the same position: an `async` lambda aligns at `async`, a `static` one past `static`. The lines inside the block MUST keep their indentation relative to the opening brace, one level deeper for the block's statements as in every block (FMT-INDENT-002). The column of the anchor is measured where this phase puts it (FMT-INDENT-030), also after a multi-line raw string literal around it moved (FMT-RAW-007).
 
-The hole is the innermost interpolation hole of a multi-line interpolated raw string literal that contains the anonymous method. A regular, verbatim, or single-line raw interpolated string that lies in that hole does not end it: an anonymous method in a hole of such a nested string lies in the outer hole as well, and its block aligns under its anchor as above, as the block lambda in the same position aligns at its own anchor (FMT-INDENT-028). A nested multi-line interpolated raw string literal does end it: an anonymous method in one of its holes lies in that nested literal's hole.
+This holds wherever the anonymous method stands — as an argument, as the value of a field, a declaration, an assignment, a compound assignment, or a return statement, in an object initializer, a conditional branch, a switch-expression arm, or a collection expression, in a chain of calls, inside the block body of a lambda or of another anonymous method, and in an interpolation hole of any interpolated string — exactly as FMT-INDENT-028 aligns a block lambda in every position. A block whose opening brace does not start its line, such as one that stays on the line of `delegate` in an interpolation that cannot hold a line break (FMT-BREAK-044), is not shifted.
 
-This does not apply to an anonymous method that lies inside the block body of a lambda or of another anonymous method, when that body lies in the same hole — between the anonymous method and the hole, whether or not a nested regular, verbatim, or single-line raw string lies between the body and the anonymous method. That body places the anonymous method's lines as it places every line inside it: from the scope depth, relative to the body's opening brace (FMT-INDENT-028 for a lambda, this requirement for an anonymous method). Outside every hole of a multi-line interpolated raw string literal — outside interpolation holes, and in a hole of a regular, verbatim, or single-line raw interpolated string that no hole of a multi-line interpolated raw string literal encloses — an anonymous method's block takes its column from the scope depth (FMT-INDENT-002) as before.
+Why: An anonymous method can start anywhere on its line, typically after `=` or inside an argument list, as a lambda can. Aligning its block with its own first token keeps the block visually attached to it rather than to the statement around it, the layout FMT-INDENT-028 gives the block lambda that is the newer spelling of the same construct. The maintainer decided that an interpolation hole has no layout rules of its own, so the anonymous method has one layout in every position: the scope-depth column, which it took outside the holes of multi-line raw string literals before, is not available inside them (FMT-RAW-007), while the anchor is available everywhere. The rest of the anonymous method is formatted as everywhere else: its braces and statements start their own lines (FMT-BREAK-002, FMT-BREAK-006), and its body is one level deeper than its braces.
 
-Why: Inside a hole of a multi-line raw string literal, the scope-depth column that an anonymous method's block takes everywhere else is not available. FMT-RAW-007 forbids that column there, because it does not move with the literal. Without an alignment, the lines kept whatever column the line-break phase left them in, so the same input ended in different columns depending on where the literal stood. Aligning to the anchor, which lies inside the literal, places the block wherever the literal stands, in the same way FMT-INDENT-028 places a block lambda in the same position. The rest of the anonymous method is formatted as everywhere else: its braces and statements start their own lines (FMT-BREAK-002, FMT-BREAK-006), and its body is one level deeper than its braces.
+Example — as an argument, followed by another argument, behind a `static` modifier (under `delegate`), behind an `async` modifier (under `async`), with a parameter list, and as the value of a declaration, an assignment, and a return statement:
+
+```csharp
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    object M(Func<int> f, int y = 0)
+    {
+        var x = M(delegate { return 1; }, 2);
+        Func<int> s = static delegate { return 1; };
+        Func<Task<int>> t = async delegate { return 1; };
+        Func<int, int> d = delegate (int a) { return a; };
+        Func<int> g;
+        g = delegate { return 1; };
+
+        return M(delegate { return 1; });
+    }
+}
+```
+
+```csharp
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    object M(Func<int> f, int y = 0)
+    {
+        var x = M(delegate
+                  {
+                      return 1;
+                  },
+                  2);
+        Func<int> s = static delegate
+                             {
+                                 return 1;
+                             };
+        Func<Task<int>> t = async delegate
+                            {
+                                return 1;
+                            };
+        Func<int, int> d = delegate (int a)
+                           {
+                               return a;
+                           };
+        Func<int> g;
+        g = delegate
+            {
+                return 1;
+            };
+
+        return M(delegate
+                 {
+                     return 1;
+                 });
+    }
+}
+```
+
+Example — as a field's value, in an object initializer, in a conditional branch, in a switch-expression arm, as a collection element, behind `+=`, in a chain of calls (each block under its own `delegate`, the second measured after the first moved), and nested in another anonymous method's block, as a block lambda aligns in each of these positions (FMT-INDENT-028):
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class D
+{
+    public Func<int> F { get; set; }
+}
+
+class C
+{
+    private Func<int> _f = delegate { return 1; };
+
+    event EventHandler E;
+
+    int M(Func<int> f, int k = 0)
+    {
+        var d1 = new D { F = delegate { return 1; } };
+        Func<int> c1 = k > 0 ? delegate { return 1; } : null;
+        var a = k switch
+        {
+            0 => M(delegate { return 1; }),
+            _ => 2,
+        };
+        Func<int>[] arr = [delegate { return 1; }, null];
+        E += delegate { Console.WriteLine(); };
+        var q = new List<int>().Select(delegate (int b) { return b; }).Where(delegate (int b) { return b > 0; });
+
+        return M(delegate { return M(delegate { return 2; }); });
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class D
+{
+    public Func<int> F { get; set; }
+}
+
+class C
+{
+    private Func<int> _f = delegate
+                           {
+                               return 1;
+                           };
+
+    event EventHandler E;
+
+    int M(Func<int> f, int k = 0)
+    {
+        var d1 = new D
+                 {
+                     F = delegate
+                         {
+                             return 1;
+                         }
+                 };
+        Func<int> c1 = k > 0
+                           ? delegate
+                             {
+                                 return 1;
+                             }
+                           : null;
+        var a = k switch
+                {
+                    0 => M(delegate
+                           {
+                               return 1;
+                           }),
+                    _ => 2,
+                };
+        Func<int>[] arr = [
+                              delegate
+                              {
+                                  return 1;
+                              },
+                              null
+                          ];
+        E += delegate
+             {
+                 Console.WriteLine();
+             };
+
+        var q = new List<int>().Select(delegate (int b)
+                                       {
+                                           return b;
+                                       }).Where(delegate (int b)
+                                                {
+                                                    return b > 0;
+                                                });
+
+        return M(delegate
+                 {
+                     return M(delegate
+                              {
+                                  return 2;
+                              });
+                 });
+    }
+}
+```
 
 Example — the literal moves 13 columns to the right, and the anonymous method's block aligns under `delegate`:
 
@@ -2504,7 +2760,7 @@ class C
 }
 ```
 
-The same input with the literal already aligned gives the same output. A single-line raw string that no multi-line raw hole encloses keeps the scope-depth layout:
+The same input with the literal already aligned gives the same output. A single-line raw string that no multi-line raw hole encloses aligns the block under `delegate` as well:
 
 ```csharp
 class C
@@ -2521,9 +2777,22 @@ class C
 }
 ```
 
-is left unchanged.
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var c = $"""in {M(delegate
+                          {
+                              return 1;
+                          })}""";
 
-Example — inside the block body of a lambda in the same hole, the anonymous method's block takes the scope depth relative to the lambda's brace, and outside a hole the scope depth of the statement:
+        return 0;
+    }
+}
+```
+
+Example — inside the block body of a lambda, in a hole as outside one, the anonymous method's block aligns under `delegate`, measured after the lambda's body moved:
 
 ```csharp
 class C
@@ -2540,15 +2809,42 @@ class C
                       })}
                  """;
 
-        return M(delegate
+        return M(() =>
         {
-            return 1;
+            return M(delegate
+            {
+                return 1;
+            });
         });
     }
 }
 ```
 
-is left unchanged.
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 G {M(() =>
+                      {
+                          return M(delegate
+                                   {
+                                       return 1;
+                                   });
+                      })}
+                 """;
+
+        return M(() =>
+                 {
+                     return M(delegate
+                              {
+                                  return 1;
+                              });
+                 });
+    }
+}
+```
 
 Example — the same holds when a regular interpolated string lies between the lambda's body and the anonymous method:
 
@@ -2568,6 +2864,38 @@ class C
                  """;
 
         return 0;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(System.Func<int> f)
+    {
+        var a = $"""
+                 G {M(() =>
+                      {
+                          return M($"x{M(delegate
+                                         {
+                                             return 1;
+                                         })}");
+                      })}
+                 """;
+
+        return 0;
+    }
+}
+```
+
+Example — with language version C# 10, an anonymous method in an interpolation of a regular interpolated string stays on one line (FMT-BREAK-044); its opening brace does not start a line, and nothing is shifted:
+
+```csharp
+class C
+{
+    string M(System.Func<int> f)
+    {
+        return $"{M(delegate { return 1; })}";
     }
 }
 ```

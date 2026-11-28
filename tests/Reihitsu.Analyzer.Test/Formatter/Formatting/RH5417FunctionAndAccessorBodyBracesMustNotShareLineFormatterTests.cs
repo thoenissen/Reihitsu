@@ -160,9 +160,9 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineFormatterTests :
                                                                                return item;
                                                                            };
                                      System.Func<int, int> Anonymous = delegate(int item)
-                                     {
-                                         return item;
-                                     };
+                                                                       {
+                                                                           return item;
+                                                                       };
                                  }
                                  """;
 

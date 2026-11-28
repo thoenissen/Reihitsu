@@ -383,11 +383,11 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: inside the block body of a lambda in the same hole, an anonymous method's block takes the scope depth relative to the lambda's brace, and outside a hole the scope depth of the statement
+    /// Verifies the spec example: inside the block body of a lambda, in a hole as outside one, the block of an anonymous method aligns under <c>delegate</c>, measured after the lambda's body moved
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void SpecExampleAnonymousMethodInsideBlockLambdaBodyOfTheSameHoleAndOutsideHoleKeepScopeDepth()
+    public void SpecExampleAnonymousMethodInsideBlockLambdaBodyInHoleAndOutsideHoleAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -405,24 +405,52 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                                    })}
                                               """;
 
-                                     return M(delegate
+                                     return M(() =>
                                      {
-                                         return 1;
+                                         return M(delegate
+                                         {
+                                             return 1;
+                                         });
                                      });
                                  }
                              }
                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 G {M(() =>
+                                                      {
+                                                          return M(delegate
+                                                                   {
+                                                                       return 1;
+                                                                   });
+                                                      })}
+                                                 """;
+
+                                        return M(() =>
+                                                 {
+                                                     return M(delegate
+                                                              {
+                                                                  return 1;
+                                                              });
+                                                 });
+                                    }
+                                }
+                                """";
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that an anonymous method inside the block body of another anonymous method in the same hole takes the scope depth relative to the outer block's brace, while the outer block aligns under its <c>delegate</c>
+    /// Verifies that an anonymous method inside the block body of another anonymous method in the same hole aligns its block under its own <c>delegate</c>, measured after the outer block aligned under its <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void AnonymousMethodInsideAnonymousMethodOfTheSameHoleTakesScopeDepthOfTheOuterBody()
+    public void AnonymousMethodInsideAnonymousMethodOfTheSameHoleAlignsUnderItsDelegate()
     {
         // Arrange
         const string input = """"
@@ -445,9 +473,9 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                                  Hello {M(delegate
                                                           {
                                                               return M(delegate
-                                                              {
-                                                                  return 1;
-                                                              });
+                                                                       {
+                                                                           return 1;
+                                                                       });
                                                           })}
                                                  """;
                                     }
@@ -511,11 +539,11 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an anonymous method in a hole of a single-line raw literal takes the scope depth of the statement, as outside a hole
+    /// Verifies that an anonymous method in a hole of a single-line raw literal aligns its block under <c>delegate</c>, as outside a hole
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void AnonymousMethodInHoleOfSingleLineLiteralTakesScopeDepth()
+    public void AnonymousMethodInHoleOfSingleLineLiteralAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -533,9 +561,9 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                     int M(System.Func<int> f)
                                     {
                                         var b = $"""Hello {M(delegate
-                                        {
-                                            return 1;
-                                        })}""";
+                                                             {
+                                                                 return 1;
+                                                             })}""";
                                     }
                                 }
                                 """";
@@ -1443,11 +1471,11 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: an anonymous method in a single-line raw interpolated string that no hole of a multi-line raw literal encloses keeps the scope-depth layout
+    /// Verifies the spec example: an anonymous method in a single-line raw interpolated string that no hole of a multi-line raw literal encloses aligns its block under <c>delegate</c> as well
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void SpecExampleAnonymousMethodInSingleLineRawStringNoMultiLineHoleEnclosesKeepsScopeDepth()
+    public void SpecExampleAnonymousMethodInSingleLineRawStringNoMultiLineHoleEnclosesAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -1464,17 +1492,31 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                  }
                              }
                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var c = $"""in {M(delegate
+                                                          {
+                                                              return 1;
+                                                          })}""";
+
+                                        return 0;
+                                    }
+                                }
+                                """";
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that an anonymous method in a regular interpolated string that no hole of a multi-line raw literal encloses keeps the scope-depth layout
+    /// Verifies that an anonymous method in a regular interpolated string that no hole of a multi-line raw literal encloses aligns its block under <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void AnonymousMethodInRegularStringNoMultiLineHoleEnclosesKeepsScopeDepth()
+    public void AnonymousMethodInRegularStringNoMultiLineHoleEnclosesAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -1491,17 +1533,31 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                  }
                              }
                              """";
+        const string expected = """
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var c = $"in {M(delegate
+                                                        {
+                                                            return 1;
+                                                        })}";
+
+                                        return 0;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that an anonymous method in a verbatim interpolated string that no hole of a multi-line raw literal encloses keeps the scope-depth layout
+    /// Verifies that an anonymous method in a verbatim interpolated string that no hole of a multi-line raw literal encloses aligns its block under <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void AnonymousMethodInVerbatimStringNoMultiLineHoleEnclosesKeepsScopeDepth()
+    public void AnonymousMethodInVerbatimStringNoMultiLineHoleEnclosesAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -1518,17 +1574,31 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                  }
                              }
                              """";
+        const string expected = """
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var c = $@"in {M(delegate
+                                                         {
+                                                             return 1;
+                                                         })}";
+
+                                        return 0;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies the spec example: an anonymous method in a regular interpolated string inside the block body of a lambda in the hole keeps the scope depth relative to the lambda's brace
+    /// Verifies the spec example: an anonymous method in a regular interpolated string inside the block body of a lambda in the hole aligns its block under <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void SpecExampleAnonymousMethodInRegularStringInsideBlockLambdaBodyInHoleKeepsScopeDepth()
+    public void SpecExampleAnonymousMethodInRegularStringInsideBlockLambdaBodyInHoleAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -1550,17 +1620,36 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                  }
                              }
                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 G {M(() =>
+                                                      {
+                                                          return M($"x{M(delegate
+                                                                         {
+                                                                             return 1;
+                                                                         })}");
+                                                      })}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that an anonymous method in a single-line raw interpolated string inside the block body of a lambda in the hole keeps the scope depth relative to the lambda's brace
+    /// Verifies that an anonymous method in a single-line raw interpolated string inside the block body of a lambda in the hole aligns its block under <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void AnonymousMethodInSingleLineRawStringInsideBlockLambdaBodyInHoleKeepsScopeDepth()
+    public void AnonymousMethodInSingleLineRawStringInsideBlockLambdaBodyInHoleAlignsUnderDelegate()
     {
         // Arrange
         const string input = """"
@@ -1582,17 +1671,36 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                  }
                              }
                              """";
+        const string expected = """"
+                                class C
+                                {
+                                    int M(System.Func<int> f)
+                                    {
+                                        var a = $"""
+                                                 G {M(() =>
+                                                      {
+                                                          return M($"""x{M(delegate
+                                                                           {
+                                                                               return 1;
+                                                                           })}""");
+                                                      })}
+                                                 """;
+
+                                        return 0;
+                                    }
+                                }
+                                """";
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
-    /// Verifies that an anonymous method in a regular interpolated string inside the block body of another anonymous method in the hole takes the scope depth relative to the outer block's brace, while the outer block aligns under its <c>delegate</c>
+    /// Verifies that an anonymous method in a regular interpolated string inside the block body of another anonymous method in the hole aligns its block under its own <c>delegate</c>, measured after the outer block aligned under its <c>delegate</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-031")]
-    public void AnonymousMethodInRegularStringInsideAnonymousMethodOfTheSameHoleTakesScopeDepthOfTheOuterBody()
+    public void AnonymousMethodInRegularStringInsideAnonymousMethodOfTheSameHoleAlignsUnderItsDelegate()
     {
         // Arrange
         const string input = """"
@@ -1617,9 +1725,9 @@ public class AnonymousMethodHoleAlignmentTests : FormatterTestsBase
                                                  Hello {M(delegate
                                                           {
                                                               return M($"x{M(delegate
-                                                              {
-                                                                  return 1;
-                                                              })}");
+                                                                             {
+                                                                                 return 1;
+                                                                             })}");
                                                           })}
                                                  """;
 

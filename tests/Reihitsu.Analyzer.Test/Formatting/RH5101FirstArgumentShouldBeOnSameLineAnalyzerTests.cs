@@ -1053,6 +1053,44 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
         await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix, which formats the argument list, aligns the block of the anonymous method it joins onto the opening parenthesis under <c>delegate</c>, in the column of the argument behind it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyFixAlignsTheBlockOfAnAnonymousMethodArgumentUnderDelegate(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    object M(System.Func<int> f, int y = 0)
+                                    {
+                                        return M(
+                                            {|RH5101:delegate { return 1; }|}, 2);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     object M(System.Func<int> f, int y = 0)
+                                     {
+                                         return M(delegate
+                                                  {
+                                                      return 1;
+                                                  },
+                                                  2);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -142,9 +142,9 @@ public sealed class CodeFixRunCommandLanguageVersionTests
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.Contains("+        return $\"a {F(delegate\n"
-                            + "+        {\n"
-                            + "+            return 1;\n"
-                            + "+        })} b\";\n",
+                            + "+                      {\n"
+                            + "+                          return 1;\n"
+                            + "+                      })} b\";\n",
                             output);
             Assert.AreEqual(string.Empty, error);
         }

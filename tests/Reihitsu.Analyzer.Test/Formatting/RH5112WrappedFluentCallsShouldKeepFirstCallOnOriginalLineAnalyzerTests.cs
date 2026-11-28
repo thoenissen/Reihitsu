@@ -23,7 +23,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
 
     /// <summary>
     /// Source in a file indented by two spaces whose chain is the expression of a statement behind two blank lines, with its
-    /// first link wrapped, an anonymous method argument whose block the depth places, and a space in front of the statement's
+    /// first link wrapped, an anonymous method argument whose block aligns under <c>delegate</c>, and a space in front of the statement's
     /// semicolon
     /// </summary>
     private const string ChainOfStatementInTwoSpaceIndentedFileTestData = """
@@ -79,9 +79,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
 
 
                                                                                 b.A(delegate
-                                                                                {
-                                                                                    M(b);
-                                                                                }) ;
+                                                                                    {
+                                                                                        M(b);
+                                                                                    }) ;
                                                                               }
                                                                             }
                                                                             """;
@@ -1317,9 +1317,9 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
 
 
                                             b.A(delegate
-                                            {
-                                                M(b);
-                                            }) ;
+                                                {
+                                                    M(b);
+                                                }) ;
                                       }
                                   }
                                   """;

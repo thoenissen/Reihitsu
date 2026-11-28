@@ -164,5 +164,139 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
                               ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 4, 11, 4, 12, MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that anonymous method blocks aligned under their anchor in a field, an object initializer, a conditional branch, a switch-expression arm, a collection expression, behind <c>+=</c>, in a chain, and nested are not reported and stay as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyAnonymousMethodBlocksAlignedUnderTheirAnchorAreNotReportedAndStayAsWritten()
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+                              using System.Linq;
+
+                              class D
+                              {
+                                  public Func<int> F { get; set; }
+                              }
+
+                              class C
+                              {
+                                  private Func<int> _f = delegate
+                                                         {
+                                                             return 1;
+                                                         };
+
+                                  event EventHandler E;
+
+                                  int M(Func<int> f, int k = 0)
+                                  {
+                                      var d1 = new D
+                                               {
+                                                   F = delegate
+                                                       {
+                                                           return 1;
+                                                       }
+                                               };
+                                      Func<int> c1 = k > 0
+                                                         ? delegate
+                                                           {
+                                                               return 1;
+                                                           }
+                                                         : null;
+                                      var a = k switch
+                                              {
+                                                  0 => M(delegate
+                                                         {
+                                                             return 1;
+                                                         }),
+                                                  _ => 2,
+                                              };
+                                      Func<int>[] arr = [
+                                                            delegate
+                                                            {
+                                                                return 1;
+                                                            },
+                                                            null
+                                                        ];
+                                      E += delegate
+                                           {
+                                               Console.WriteLine();
+                                           };
+
+                                      var q = new List<int>().Select(delegate (int b)
+                                                                     {
+                                                                         return b;
+                                                                     }).Where(delegate (int b)
+                                                                              {
+                                                                                  return b > 0;
+                                                                              });
+
+                                      return M(delegate
+                                               {
+                                                   return M(delegate
+                                                            {
+                                                                return 2;
+                                                            });
+                                               });
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatter(source);
+    }
+
+    /// <summary>
+    /// Verifies that comments in the column of the closing brace of an interpolation of a regular, a verbatim, or a single-line raw interpolated string, also one nested in a hole of a multi-line raw string literal, are not reported and stay as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-006")]
+    public async Task VerifyCommentsInTheBraceColumnOfInterpolationsAreNotReportedAndStayAsWritten()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  string M(int a, int b)
+                                  {
+                                      var t = $"{
+                                          // e
+                                          a
+
+                                          // f
+                                          }";
+                                      var u = $"{a
+                                                 + b
+
+                                          // f
+                                          }";
+                                      var v = $@"{
+                                          a
+
+                                          // f
+                                          }";
+                                      var s = $"""{
+                                          a
+
+                                          // f
+                                          }""";
+                                      var n = $"""
+                                               {$"{
+                                                   a
+
+                                                   // f
+                                                   }"}
+                                               """;
+
+                                      return t + u + v + s + n;
+                                  }
+                              }
+                              """";
+
+        await VerifyFormatter(source);
+    }
+
     #endregion // Tests
 }

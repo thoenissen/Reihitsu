@@ -63,7 +63,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Source whose chain is the expression of a statement indented two columns deeper than its depth, behind two blank
-    /// lines, with an anonymous method argument whose block the depth places, a misaligned wrapped link, and a space in
+    /// lines, with an anonymous method argument whose block aligns under <c>delegate</c>, a misaligned wrapped link, and a space in
     /// front of the statement's semicolon
     /// </summary>
     private const string ChainOfStatementOffItsDepthTestData = """
@@ -122,9 +122,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
 
                                                                            b.A(delegate
-                                                                           {
-                                                                               M(b);
-                                                                           })
+                                                                               {
+                                                                                   M(b);
+                                                                               })
                                                                             .C() ;
                                                                      }
                                                                  }
@@ -2716,9 +2716,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
 
                                       b.A(delegate
-                                      {
-                                          M(b);
-                                      })
+                                          {
+                                              M(b);
+                                          })
                                        .C() ;
                                     }
                                   }
@@ -2729,7 +2729,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies the other side of the statement's indentation: the fix of a chain that is the expression of a statement at its
-    /// depth changes only the chain, places the anonymous method's block by the depth, and keeps the blank lines in front of
+    /// depth changes only the chain, aligns the anonymous method's block under <c>delegate</c>, and keeps the blank lines in front of
     /// the statement and the space in front of its semicolon as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2789,9 +2789,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
 
                                           b.A(delegate
-                                          {
-                                              M(b);
-                                          })
+                                              {
+                                                  M(b);
+                                              })
                                            .C() ;
                                       }
                                   }

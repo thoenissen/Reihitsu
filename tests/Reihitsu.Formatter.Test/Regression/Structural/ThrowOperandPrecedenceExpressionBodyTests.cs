@@ -496,8 +496,8 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                 public class Test
                                 {
                                     public int X => throw delegate
-                                    {
-                                    };
+                                                          {
+                                                          };
                                 }
                                 """;
 

@@ -83,5 +83,42 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedFormatterTests : Fo
         await VerifyFormatter(testData);
     }
 
+    /// <summary>
+    /// Verifies that a block lambda whose body holds an anonymous method aligned under <c>delegate</c>, in a raw-string hole and outside one, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyAnonymousMethodInLambdaBodyAlignedUnderDelegateIsNotReportedAndStaysAsWritten()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  int M(System.Func<int> f)
+                                  {
+                                      var a = $"""
+                                               G {M(() =>
+                                                    {
+                                                        return M(delegate
+                                                                 {
+                                                                     return 1;
+                                                                 });
+                                                    })}
+                                               """;
+
+                                      return M(() =>
+                                               {
+                                                   return M(delegate
+                                                            {
+                                                                return 1;
+                                                            });
+                                               });
+                                  }
+                              }
+                              """";
+
+        await VerifyFormatter(source);
+    }
+
     #endregion // Tests
 }

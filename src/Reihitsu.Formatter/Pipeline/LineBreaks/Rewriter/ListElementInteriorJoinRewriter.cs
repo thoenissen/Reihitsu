@@ -29,7 +29,8 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </para>
 /// <para>
 /// A gap that another owner already lays out is never joined: list boundaries (separators, element starts, closers),
-/// the opening parenthesis of a parameter list other than a lambda's, the gaps of an attached part - in front of an
+/// the opening parenthesis of every parameter list except that of a parenthesized lambda without a return type (the gap
+/// behind a return type is <see cref="LineBreakListRewriter"/>'s), the gaps of an attached part - in front of an
 /// argument list, an element access, a conditional element access, or a null-forgiving operator, and between the
 /// <c>?</c> and the <c>[</c> of a conditional element access (<see cref="AttachedPartLineStartRewriter"/>) -, operator wraps of binary, conditional, member-access, postfix,
 /// is-pattern, and assignment expressions, multi-line literals, attribute-list placement, and every line inside a
@@ -162,10 +163,13 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return true;
         }
 
-        // LineBreakListRewriter collapses the opening parenthesis of an anonymous method's parameter list onto the
-        // delegate keyword's line, matching RH5105, which covers every parameter-list owner except a parenthesized
-        // lambda; the lambda's opening gap has no other owner and is joined here
-        if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent is ParameterListSyntax { Parent: not ParenthesizedLambdaExpressionSyntax })
+        // LineBreakListRewriter collapses the opening parenthesis of every parameter-list owner onto the line of the token
+        // in front of it: the owners RH5105 covers, among them an anonymous method's delegate keyword, and a parenthesized
+        // lambda's explicit return type. Only the opening gap of a parenthesized lambda without a return type has no other
+        // owner and is joined here
+        if (token.IsKind(SyntaxKind.OpenParenToken)
+            && token.Parent is ParameterListSyntax parameterList
+            && parameterList.Parent is not ParenthesizedLambdaExpressionSyntax { ReturnType: null })
         {
             return true;
         }

@@ -440,6 +440,94 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which formats the misaligned lambda, aligns the block of an anonymous method inside the lambda's body under <c>delegate</c>, measured after the lambda's block moved
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-031")]
+    public async Task VerifyFixAlignsTheBlockOfAnAnonymousMethodInTheLambdaBodyUnderDelegate(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    object M(System.Func<object> f)
+                                    {
+                                        return M(() =>
+                                            {|RH5205:{|}
+                                                return M(delegate { return 1; });
+                                            });
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     object M(System.Func<object> f)
+                                     {
+                                         return M(() =>
+                                                  {
+                                                      return M(delegate
+                                                               {
+                                                                   return 1;
+                                                               });
+                                                  });
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which formats the misaligned lambda, puts a comment in front of the closing brace of an interpolation of a regular interpolated string in the lambda's body in the column of that brace
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-INDENT-006")]
+    public async Task VerifyFixPutsACommentInFrontOfTheClosingBraceOfARegularInterpolationInTheBraceColumn(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string N(System.Func<string> f, int a)
+                                    {
+                                        return N(() =>
+                                            {|RH5205:{|}
+                                                return $"{
+                                                    a
+                                                    // f
+                                                    }";
+                                            }, a);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string N(System.Func<string> f, int a)
+                                     {
+                                         return N(() =>
+                                                  {
+                                                      return $"{
+                                                          a
+
+                                                          // f
+                                                          }";
+                                                  }, a);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

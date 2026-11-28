@@ -15,10 +15,8 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// <item><description>Parenthesized lambda: the <c>(</c> token</description></item>
 /// <item><description>Simple lambda: the parameter identifier</description></item>
 /// </list>
-/// The block of an anonymous method is aligned the same way, to the <c>async</c> keyword of an async anonymous method and
-/// otherwise to the <c>delegate</c> keyword, but only where the scope depth cannot place it: in an interpolation hole of
-/// a multi-line interpolated raw string, also through regular, verbatim, or single-line raw strings nested in it, and
-/// outside the block body of a lambda or anonymous method in that hole (FMT-INDENT-031)
+/// The block of an anonymous method is aligned the same way wherever the anonymous method stands, to the <c>async</c>
+/// keyword of an async anonymous method and otherwise to the <c>delegate</c> keyword (FMT-INDENT-031)
 /// </summary>
 internal sealed class LambdaAlignmentContributor : ILayoutContributor
 {
@@ -75,42 +73,6 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
         return anonymousMethod.DelegateKeyword;
     }
 
-    /// <summary>
-    /// Determines whether the block of an anonymous method is aligned to its anchor: the line of its opening brace is a
-    /// line of a hole of a multi-line interpolated raw string, as <see cref="LayoutModel"/> registered it, that hole holds
-    /// the anonymous method, and no block lies between the hole and the anonymous method. The registration takes the
-    /// innermost such hole, so a regular, verbatim, or single-line raw interpolated string nested in the hole does not
-    /// end it, while a nested multi-line raw string does. Outside such a hole the block takes its column from the scope
-    /// depth, and inside the block body of a lambda or another anonymous method in the same hole it takes the scope depth
-    /// relative to that body, which already moves with the literal
-    /// </summary>
-    /// <param name="anonymousMethod">The anonymous method expression</param>
-    /// <param name="model">The layout model holding the registered hole lines</param>
-    /// <returns><see langword="true"/> if the block is aligned to the anchor; otherwise, <see langword="false"/></returns>
-    private static bool IsAlignedInRawStringHole(AnonymousMethodExpressionSyntax anonymousMethod, LayoutModel model)
-    {
-        if (model.TryGetRawStringHole(LayoutComputer.GetLine(anonymousMethod.Block.OpenBraceToken), out var hole) == false
-            || hole.Span.Contains(anonymousMethod.Span) == false)
-        {
-            return false;
-        }
-
-        foreach (var ancestor in anonymousMethod.Ancestors())
-        {
-            if (ancestor == hole)
-            {
-                return true;
-            }
-
-            if (ancestor is BlockSyntax)
-            {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
     #endregion // Methods
 
     #region ILayoutContributor
@@ -137,7 +99,7 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
                 }
                 break;
 
-            case AnonymousMethodExpressionSyntax anonymousMethod when IsAlignedInRawStringHole(anonymousMethod, model):
+            case AnonymousMethodExpressionSyntax anonymousMethod:
                 {
                     block = anonymousMethod.Block;
                     anchorToken = GetAnchorToken(anonymousMethod);

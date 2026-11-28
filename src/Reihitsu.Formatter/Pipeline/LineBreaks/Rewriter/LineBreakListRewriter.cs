@@ -75,7 +75,8 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// Collapses a parameter-list opener — the opening parenthesis, or the opening bracket of an indexer's parameter list
     /// (FMT-BREAK-011) — when the owning declaration contains the previous token whose trailing trivia owns the line
     /// break. This is the single collapse policy for every parameter-list owner covered by
-    /// <c>RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer</c>'s <c>ParameterListParentPolicy</c>, and for indexers:
+    /// <c>RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer</c>'s <c>ParameterListParentPolicy</c>, for indexers, and
+    /// for a parenthesized lambda with an explicit return type (FMT-BREAK-045):
     /// unlike a policy scoped to the parameter list alone, resolving the previous token from the owning declaration
     /// reaches it even when a type-parameter list separates the declaration token from the opening parenthesis
     /// </summary>
@@ -626,6 +627,19 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
         return node == null
                    ? null
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+    {
+        node = (ParenthesizedLambdaExpressionSyntax)base.VisitParenthesizedLambdaExpression(node);
+
+        // The opening parenthesis joins the line of an explicit return type (FMT-BREAK-045), also inside a list element,
+        // where ListElementInteriorJoinRewriter leaves this gap to this rewriter; without a return type, the gap in front of
+        // the parenthesis belongs to the requirements that own it (FMT-BREAK-011, FMT-BREAK-015, FMT-BREAK-041)
+        return node?.ReturnType == null
+                   ? node
                    : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
     }
 

@@ -886,9 +886,9 @@ public class DeclaredNameSpacingTests : FormatterTestsBase
 
                                         Func<int?, int[], int> f = (int? g, int[] h) => 0;
                                         Func<int?, int[], int> d = delegate(int? m, int[] n)
-                                        {
-                                            return 0;
-                                        };
+                                                                   {
+                                                                       return 0;
+                                                                   };
                                     }
                                 }
 
