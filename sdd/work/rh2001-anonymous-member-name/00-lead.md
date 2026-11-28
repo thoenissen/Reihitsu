@@ -29,14 +29,17 @@ The maintainer answered the issue's output question in an issue comment: option 
 | 8 | implementer | BatchFixer drops one of two RH2001 fixes (row 18 and the inherited Fix All scenario); options A sequential solution-scoped Fix All, B DocumentOrderFixAllProvider (loses partial-part renames), C two iterations + SHARED-FIX-002 exception | A. Prefer an opt-in solution-scoped mode of the existing `DocumentOrderFixAllProvider` (no new type, other users unchanged); else a private provider in RH2001 like the casing one. Over ~100 production lines: stop and report (escalation 9) | SHARED-FIX-002 (unchanged) demands one Fix All pass; B breaks partial parts; C needs a visible exception | Brings RH2001 Fix All to an unchanged requirement | 31c86f4 |
 | 9 | implementer | Adjacent fix: `CasingAnonymousMemberUtilities.WriteMemberName` drops the elastic marker on `=` | Take it in (1 line, component the run changes, pinned by the RH2001 own-initializer test) | Without it the RH2001 result breaks layout | Casing tests unchanged and green | a13a255 |
 | 10 | implementer | Solution mode re-analyzes a document an earlier fix changed and uses every diagnostic there, not only those offered on the starting code | Accept without guard | Only reached by interacting fixes in two parts of one partial type: rare class | Rare class; no output in question |  31c86f4 |
+| 11 | auditor 1 | Repair round 1 worklist | Findings 1 (cross-document re-analysis branch untested) and 2 (duplicated `WithEndOfLine` helper) → test implementer; hints not routed | Both PR-introduced | Tests only | pending |
+| 12 | auditor 1 | Fix All action title now `RH2001Title` (as the casing fixes) | Keep | Matches the casing fixes; the IDE presents Fix All by scope | Same title as the single fix, like every casing fix | 31c86f4 |
 
 ## Follow-up candidates
 
 - A casing-fix test pinning the layout of a multi-line anonymous creation whose member name the fix writes (04-implementer.md).
+- Two owners compose Fix All sequentially across documents: `CasingCodeFixProviderBase<T>.CasingFixAllProvider` and the solution mode of `DocumentOrderFixAllProvider` (FC-015, 07-auditor.md).
 
 ## Audited SHA
 
-—
+- Audit 1: ae16c90 vs main 13b0ed2 — findings (repair round 1).
 
 ## Open worklist / next step
 
@@ -48,4 +51,5 @@ The maintainer answered the issue's output question in an issue comment: option 
 - Implementer round 2 (31c86f4/83013bb): all tests green; opt-in solution mode of DocumentOrderFixAllProvider.
 - Cleaner done (8f20d37): clean.
 - Spec checker done (19371ac): consistent.
-- Next: auditor.
+- Auditor 1 (4a7f19b): 2 findings.
+- Next: repair round 1 — test implementer, then cleaner, spec checker, auditor (repair only).
