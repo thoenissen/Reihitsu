@@ -37,6 +37,7 @@ Notes for the runs (evidence in the batch file, not decided): #1607 narrows to i
 
 ## Status
 
+Status 2026-11-28 (a): triage of #1982 #1988 #1989 #1990 #1994 started; assessment delegated (`inventory/triage-2026-11-28.md`, main at 13b0ed23). Nothing asked yet.
 Status 2026-11-27 (z): batch finished — graph rebuilt (`inventory/batch-2026-11-27.md`); start-now set of 7 runs given; no closes proposed; side find `class C;` is specified (FMT-STRUCT-017).
 Status 2026-11-27 (y): batch started — merges #1965–#1969 #1973–#1976 read (closed: #1956 #1958 #1963 #1086 #1089 #1090 #1771 #1836 #1912 #1924 #1949 #1948); PR #1980 open (claim for #1979, squad tool allow-lists, no milestone); re-check and graph delegated (`inventory/batch-2026-11-27.md`, main at 4bbb3ceb).
 Status 2026-11-27 (x): triage answered 1A, 2A, 3A; milestones set (all five → 1.6.0, no labels added); commented on #1589 #1971 #1972 #1977 #1978. Plan not yet rebuilt: nine merges since the last batch (#1965–#1969 #1973–#1976) — `/coordinator batch` next.
