@@ -117,8 +117,8 @@ public class UsingDirectiveRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that in a block a directive forbids to reorder, same-line directives are split while their order and
-    /// the missing group separator are left as they are
+    /// Verifies the specification example: in a block a directive between its directives forbids to reorder, same-line
+    /// directives are split while their order and the missing group separator are left as they are
     /// </summary>
     [TestMethod]
     [Requirement("FMT-USING-004")]
@@ -126,8 +126,8 @@ public class UsingDirectiveRequirementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-                             #nullable enable
                              using System.Linq; using System;
+                             #pragma warning disable CS0105
                              using Microsoft.CodeAnalysis;
 
                              class C
@@ -136,9 +136,9 @@ public class UsingDirectiveRequirementTests : FormatterTestsBase
                              }
                              """;
         const string expected = """
-                                #nullable enable
                                 using System.Linq;
                                 using System;
+                                #pragma warning disable CS0105
                                 using Microsoft.CodeAnalysis;
 
                                 class C

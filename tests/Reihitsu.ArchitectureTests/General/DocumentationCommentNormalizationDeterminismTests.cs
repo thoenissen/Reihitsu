@@ -3,6 +3,8 @@ using System.IO;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
@@ -38,7 +40,7 @@ public sealed class DocumentationCommentNormalizationDeterminismTests
     public void DocumentationPrefixNormalizationPathsUseNoRegularExpressions()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act and assert
         foreach (var relativePath in _guardedPaths)
@@ -58,30 +60,4 @@ public sealed class DocumentationCommentNormalizationDeterminismTests
     }
 
     #endregion // Tests
-
-    #region Methods
-
-    /// <summary>
-    /// Locates the repository root by walking up from the test assembly location
-    /// </summary>
-    /// <returns>The repository root directory</returns>
-    /// <exception cref="DirectoryNotFoundException">The repository root could not be located</exception>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
-    }
-
-    #endregion // Methods
 }
