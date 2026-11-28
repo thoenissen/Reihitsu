@@ -34,3 +34,16 @@
 - Batches 1, 1b, 1c answered. Next: fresh spec author (03) rewrites change doc + specs per answers; then fresh skeptic (04) on the amended diff; then any new output questions; then test implementer.
 - Old: batch 1b (scope of the declaration, timing, reach of the initializer line rule).
 - Old: output-question batch 1 (Q1 scope A/B, Q2 switch-section #endregion, Q3 anonymous object, Q4 patterns, Q5 other aligned lists, Q6 entry 9, Q7 entry 10, Q8 code-fix results). Next after answers: route to spec author, then test implementer.
+
+## Confirmed examples (maintainer: "looks good")
+
+Array initializers (statements at column 8, fields at 4):
+1. `int[,] b = { {⏎1, 2⏎}, { 3, 4 } };` → outer `{` stays behind `=` (col 19), `}` own line at 19; multi-line row: `{` own line at 23, `1, 2` at 27, `},` at 23; single-line row `{ 3, 4 }` own line at 23.
+2. `var e = new[] {⏎1, 2⏎};` → `var e = new[]` / `{` at 16 / `1, 2` at 20 / `};` at 16.
+3. `var f = new int[,] { { 1, 2 }, {⏎3, 4⏎} };` → `var f = new int[,]` / `{` at 16 / `{ 1, 2 },` at 20 / `{` at 20 / `3, 4` at 24 / `}` at 20 / `};` at 16.
+4. `int[,] g = { { 1,⏎2 }, { 3, 4 } };` → row is multi-line: `{` at 23, `1,` and `2` each at 27 (element line breaks kept as written), `},` at 23, `{ 3, 4 }` at 23, `};` at 19.
+5. Fully single-line initializers (`int[,] a = { { 1, 2 }, { 3, 4 } };`, `var h = new[] { 1, 2 };`) stay as written.
+6. Field `int[] F = { 1,⏎2 };` → `int[] F = {` / `1,` at 18 / `2` at 18 / `};` at 14.
+Regions:
+7. Regions between members, also between a nested type's members, stay supported.
+8. Unsupported: a region in a method body, a field initializer, a parameter list, a member's attribute arguments; whole file left unchanged, CLI reports `error: <file>(line,col): unsupported syntax: <reason>. The file was left unchanged.`; code fixes that format such a member are not offered on it.
