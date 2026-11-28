@@ -47,7 +47,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnonymousMemberTests : Ba
                                   }
                                   """;
 
-        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(resultData, endOfLine));
     }
 
     /// <summary>
@@ -803,7 +803,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnonymousMemberTests : Ba
                                   }
                                   """;
 
-        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(resultData, endOfLine));
     }
 
     /// <summary>
@@ -833,6 +833,66 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnonymousMemberTests : Ba
                                   """;
 
         await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All over two <c>partial</c> parts in two documents fixes both properties in one pass, when the fix
+    /// in the first document writes member names in the second document that move the second property's declaration
+    /// further than the gap in front of it; Fix All in document fixes one document per pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-012")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllFixesAPropertyInAnotherPartialPartWhoseDeclarationTheFixOfTheFirstPartMoves()
+    {
+        const string source = """
+                              partial class Sample
+                              {
+                                  private int {|RH2001:Value|} { get; set; }
+                              }
+                              """;
+        const string fixedSource = """
+                                   partial class Sample
+                                   {
+                                       private int _value;
+                                   }
+                                   """;
+        const string otherSource = """
+                                   partial class Sample
+                                   {
+                                       object First() => new { Value };
+
+                                       object Second() => new { Value };
+
+                                       object Third() => new { Value };
+
+                                       private int {|RH2001:Name|} { get; set; }
+                                   }
+                                   """;
+        const string fixedOtherSource = """
+                                        partial class Sample
+                                        {
+                                            object First() => new { Value = _value };
+
+                                            object Second() => new { Value = _value };
+
+                                            object Third() => new { Value = _value };
+
+                                            private int _name;
+                                        }
+                                        """;
+
+        await Verify(source,
+                     fixedSource,
+                     static test =>
+                            {
+                                test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                                test.FixedState.Sources.Add(("/0/Test1.cs", fixedOtherSource));
+                                test.NumberOfFixAllInDocumentIterations = 2;
+                                test.NumberOfFixAllInProjectIterations = 1;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     /// <summary>
@@ -894,21 +954,6 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnonymousMemberTests : Ba
     }
 
     #endregion // Tests
-
-    #region Methods
-
-    /// <summary>
-    /// Writes the provided text with the given line break
-    /// </summary>
-    /// <param name="text">Text</param>
-    /// <param name="endOfLine">Line break</param>
-    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
-    private static string WithEndOfLine(string text, string endOfLine)
-    {
-        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
-    }
-
-    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
