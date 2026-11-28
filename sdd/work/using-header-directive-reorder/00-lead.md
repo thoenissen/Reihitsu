@@ -15,6 +15,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | The answer's phrase "between or after its usings": does a directive behind the last using now block the fix? | Read it as "after the first using"; a directive behind the block keeps its fix (SHARED-USING-009 unchanged there) | The literal reading would remove an existing fix that no one asked to remove; the issue is about narrowing the guard | Today's output for that input stays as it is | 616e3b6 |
+| 2 | skeptic | Case 3 (#region around the block) needs asking? | No: it is case 1 with the directive on top, and region framing is unchanged FMT-BLANK-013 | Single reading under answer 1 | Covered by answer 1 and unchanged requirements | 616e3b6 |
+| 3 | skeptic | Internal wording suggestions ("that using directive" in FMT-USING-012, "among its directives" in RHxxxx-001, an FMT-USING-012 example for directive + blank line) | Take all three; route to spec author with the answers | Clarity, no output effect | Spec wording only | pending |
 
 ## Follow-up candidates
 
@@ -22,4 +25,6 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (change doc + spec diff).
+- Spec author 01 done (616e3b6), skeptic 02 done (d50eb50): verdict output question.
+- Now: waiting for the maintainer on batch 1 (questions 1–6: cases 2, 4, 5, 6, 7 and escalation 10 on declaring directives inside a using block unsupported).
+- Next: route answers + decision 3 to the spec author (continue, a86743313ec3ecb5c, or fresh), then status Accepted, then test implementer.
