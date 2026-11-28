@@ -30,6 +30,7 @@
 ## Worklist / next step
 
 - Spec author 01 done (616e3b6), skeptic 02 done (d50eb50): verdict output question.
+- Spec author 03 done (3830bc4, Accepted). Open: question 7 (change doc case 8, a conditional group enclosing the whole block: A reorder / B no fix, recommended B), asked in the chat; waiting.
 - Batch 1 fully answered (incl. 3A 4B).
 - Next: fresh spec author amends change doc + specs per answers 2–3 and decision 3, sets Status: Accepted; then test implementer.
 - Was: waiting for the maintainer on batch 1 (questions 1–6: cases 2, 4, 5, 6, 7 and escalation 10 on declaring directives inside a using block unsupported).
