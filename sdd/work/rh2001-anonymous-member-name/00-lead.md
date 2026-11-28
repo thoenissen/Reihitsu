@@ -57,4 +57,5 @@ The maintainer answered the issue's output question in an issue comment: option 
 - Repair 1 cleaner done (a16d4e5): clean.
 - Repair 1 spec checker done: consistent.
 - Repair 1 audit passed.
-- Next: validator (final tree) and issue manager (two follow-up candidates), then publish.
+- Issue manager done (11f07a8): created #1999 (casing layout test), #2000 (one owner for sequential Fix All).
+- Next: validator result, then publish.
