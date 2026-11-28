@@ -1861,5 +1861,178 @@ public class ListElementInteriorJoinTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a single-line interpolated string that starts the first element of a wrapped collection expression in an
+    /// argument list is not joined onto the opening bracket: it starts the line after the bracket, as a plain string literal does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-015")]
+    [Requirement("FMT-BREAK-022")]
+    public void InterpolatedStringStartingTheFirstElementOfACollectionExpressionInAnArgumentIsNotJoinedOntoTheBracket()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object a, object b, int y)
+                                 {
+                                     M(null, [
+                                         $"a{y}",
+                                         "b"
+                                     ], y);
+                                     M(null, [
+                                         "a",
+                                         "b"
+                                     ], y);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object a, object b, int y)
+                                    {
+                                        M(null,
+                                          [
+                                              $"a{y}",
+                                              "b"
+                                          ],
+                                          y);
+                                        M(null,
+                                          [
+                                              "a",
+                                              "b"
+                                          ],
+                                          y);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line interpolated string that starts the first element of a collection initializer in an argument
+    /// list is not joined onto the opening brace: it starts the line after the brace, as a plain string literal does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-015")]
+    [Requirement("FMT-BREAK-021")]
+    public void InterpolatedStringStartingTheFirstElementOfACollectionInitializerInAnArgumentIsNotJoinedOntoTheBrace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object a, object b, int y)
+                                 {
+                                     M(null, new System.Collections.Generic.List<string>
+                                     {
+                                         $"a{y}",
+                                         "b"
+                                     }, y);
+                                     M(null, new System.Collections.Generic.List<string>
+                                     {
+                                         "a",
+                                         "b"
+                                     }, y);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object a, object b, int y)
+                                    {
+                                        M(null,
+                                          new System.Collections.Generic.List<string>
+                                          {
+                                              $"a{y}",
+                                              "b"
+                                          },
+                                          y);
+                                        M(null,
+                                          new System.Collections.Generic.List<string>
+                                          {
+                                              "a",
+                                              "b"
+                                          },
+                                          y);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line interpolated string that starts the first element of a wrapped complex element initializer in
+    /// an argument list is not joined onto the element's opening brace: it starts the line after the brace, as a plain string
+    /// literal does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-015")]
+    [Requirement("FMT-BREAK-022")]
+    public void InterpolatedStringStartingTheFirstElementOfAComplexElementInitializerInAnArgumentIsNotJoinedOntoTheBrace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object a, object b, int y)
+                                 {
+                                     M(null, new System.Collections.Generic.Dictionary<string, string>
+                                     {
+                                         {
+                                             $"a{y}",
+                                             "b"
+                                         }
+                                     }, y);
+                                     M(null, new System.Collections.Generic.Dictionary<string, string>
+                                     {
+                                         {
+                                             "a",
+                                             "b"
+                                         }
+                                     }, y);
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(object a, object b, int y)
+                                    {
+                                        M(null,
+                                          new System.Collections.Generic.Dictionary<string, string>
+                                          {
+                                              {
+                                                  $"a{y}",
+                                                  "b"
+                                              }
+                                          },
+                                          y);
+                                        M(null,
+                                          new System.Collections.Generic.Dictionary<string, string>
+                                          {
+                                              {
+                                                  "a",
+                                                  "b"
+                                              }
+                                          },
+                                          y);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

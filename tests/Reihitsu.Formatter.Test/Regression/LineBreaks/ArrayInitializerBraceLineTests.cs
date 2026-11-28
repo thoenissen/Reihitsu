@@ -1311,5 +1311,325 @@ public class ArrayInitializerBraceLineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that an initializer whose only line break is one the chain layout removes later in the line-break phase is on one
+    /// line: the first link joined onto its root, also behind a conditional access's <c>?</c>, leaves the declaration's
+    /// initializer, the array creation's, and the <c>stackalloc</c> creation's on one line, and their braces stay where they are
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void InitializerWhoseOnlyLineBreakTheChainLayoutJoinsStaysOnOneLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(string z)
+                                 {
+                                     int[] a = { z
+                                         .Length };
+                                     var b = new object[] { z?
+                                         .Length };
+                                     System.Span<int> c = stackalloc int[] { z
+                                         .Length };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(string z)
+                                    {
+                                        int[] a = { z.Length };
+                                        var b = new object[] { z?.Length };
+                                        System.Span<int> c = stackalloc int[] { z.Length };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an initializer whose only line break is one the list layout removes later in the line-break phase is on one
+    /// line: an argument list, a bracketed argument list, a type argument list, and a lambda's parameter list joined onto one line
+    /// leave the array initializer around them on one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void InitializerWhoseOnlyLineBreakTheListLayoutJoinsStaysOnOneLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int[] w)
+                                 {
+                                     var c = new[] { N(
+                                         1, 2) };
+                                     var d = new[] { w[
+                                         0] };
+                                     var e = new[] { typeof(System.Collections.Generic.Dictionary<
+                                         int, int>) };
+                                     var f = new System.Func<int, int>[] { (
+                                         int q) => q };
+                                 }
+
+                                 int N(int x, int y)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int[] w)
+                                    {
+                                        var c = new[] { N(1, 2) };
+                                        var d = new[] { w[0] };
+                                        var e = new[] { typeof(System.Collections.Generic.Dictionary<int, int>) };
+                                        var f = new System.Func<int, int>[] { (int q) => q };
+                                    }
+
+                                    int N(int x, int y)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a row whose only line break is one the chain layout removes later in the line-break phase is on one line,
+    /// and so is the declaration's initializer around it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void RowWhoseOnlyLineBreakTheChainLayoutJoinsStaysOnOneLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(string z)
+                                 {
+                                     int[,] h = { { z
+                                         .Length, 1 }, { 2, 3 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(string z)
+                                    {
+                                        int[,] h = { { z.Length, 1 }, { 2, 3 } };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the judgment on the lines the phase's other rules leave: a binary operator wrap, a conditional
+    /// expression's wrap, and a chain with two wrapped links stay on several lines, so the initializer around them puts its
+    /// braces on lines of their own
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void InitializerWithAWrapTheOtherRulesKeepPutsItsBracesOnLinesOfTheirOwn()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(string z, int[] w)
+                                 {
+                                     var i = new[] { 1 +
+                                         2 };
+                                     var j = new[] { w.Length > 0
+                                         ? 1
+                                         : 2 };
+                                     var k = new[] { z
+                                         .Trim()
+                                         .Length };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(string z, int[] w)
+                                    {
+                                        var i = new[]
+                                                {
+                                                    1
+                                                    + 2
+                                                };
+                                        var j = new[]
+                                                {
+                                                    w.Length > 0
+                                                        ? 1
+                                                        : 2
+                                                };
+                                        var k = new[]
+                                                {
+                                                    z.Trim()
+                                                     .Length
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing brace of a multi-line array initializer starts the line below a comment that starts its line in
+    /// front of it, for a delimited comment as for a line comment, behind <c>new[]</c> and behind a declaration's <c>=</c>; the
+    /// comment keeps its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void ClosingBraceBehindACommentThatStartsItsLineStartsTheLineBelowIt()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = new[] { 1,
+                                     2
+                                     /* c */ };
+                                     int[] e = { 1,
+                                     2
+                                     /* c */ };
+                                     var d = new[] { 1,
+                                     2
+                                     // c
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = new[]
+                                                {
+                                                    1,
+                                                    2
+
+                                                    /* c */
+                                                };
+                                        int[] e = {
+                                                      1,
+                                                      2
+
+                                                      /* c */
+                                                  };
+                                        var d = new[]
+                                                {
+                                                    1,
+                                                    2
+
+                                                    // c
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the closing brace of a multi-line row starts the line below a comment that starts its line in front of it,
+    /// and the row behind it starts the line below the brace's line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void ClosingBraceOfARowBehindACommentThatStartsItsLineStartsTheLineBelowIt()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[,] b = { { 1,
+                                     2
+                                     /* c */ }, { 3, 4 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[,] b = {
+                                                       {
+                                                           1,
+                                                           2
+
+                                                           /* c */
+                                                       },
+                                                       { 3, 4 }
+                                                   };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited comment that spans several lines behind the last element stays on that element's line, its text
+    /// unchanged, and the closing brace starts the line below the comment's last line, for an array creation and for a row
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void ClosingBraceBehindAMultiLineCommentBehindTheLastElementStartsTheLineBelowIt()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var c = new[] { 1,
+                                     2 /* x
+                                     y */ };
+                                     int[,] r = { { 1,
+                                     2 /* x
+                                     y */ }, { 3, 4 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var c = new[]
+                                                {
+                                                    1,
+                                                    2 /* x
+                                        y */
+                                                };
+                                        int[,] r = {
+                                                       {
+                                                           1,
+                                                           2 /* x
+                                        y */
+                                                       },
+                                                       { 3, 4 }
+                                                   };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
