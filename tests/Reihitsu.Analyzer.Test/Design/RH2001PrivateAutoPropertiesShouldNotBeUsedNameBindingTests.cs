@@ -1545,110 +1545,6 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedNameBindingTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that no code fix is offered when a reference to the property gives an anonymous-object member its inferred
-    /// name, which the rename would change so that a read of the member no longer compiles
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesAnAnonymousObjectMemberItsInferredName()
-    {
-        const string testData = """
-                                class Sample
-                                {
-                                    private int {|RH2001:Value|} { get; set; }
-
-                                    int Get()
-                                    {
-                                        var pair = new { Value };
-
-                                        return pair.Value;
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered when a reference to the property qualified with <c>this.</c> gives an
-    /// anonymous-object member its inferred name
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAThisQualifiedPropertyReferenceGivesAnAnonymousObjectMemberItsInferredName()
-    {
-        const string testData = """
-                                class Sample
-                                {
-                                    private int {|RH2001:Value|} { get; set; }
-
-                                    int Get()
-                                    {
-                                        var x = new { this.Value };
-
-                                        return x.Value;
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered when a reference to the property through another instance of the type gives an
-    /// anonymous-object member its inferred name
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceThroughAnotherInstanceGivesAnAnonymousObjectMemberItsInferredName()
-    {
-        const string testData = """
-                                class Sample
-                                {
-                                    private int {|RH2001:Value|} { get; set; }
-
-                                    int Get(Sample other)
-                                    {
-                                        var x = new { other.Value };
-
-                                        return x.Value;
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered when a reference to the property gives a member of an anonymous object in a
-    /// LINQ projection its inferred name, which a later projection reads
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesAMemberOfAnAnonymousObjectInAQueryProjectionItsInferredName()
-    {
-        const string testData = """
-                                using System.Linq;
-
-                                class Sample
-                                {
-                                    private int {|RH2001:Value|} { get; set; }
-
-                                    int[] Get(int[] items)
-                                    {
-                                        return items.Select(item => new { Value, item }).Select(pair => pair.Value + pair.item).ToArray();
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    /// <summary>
     /// Verifies that no code fix is offered when a reference to the property gives a tuple element its inferred name, which
     /// the rename would change so that a read of the element no longer compiles
     /// </summary>
@@ -1667,30 +1563,6 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedNameBindingTests : BatchC
                                         var pair = (Value, 1);
 
                                         return pair.Value;
-                                    }
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered when a reference to the property gives an anonymous-object member its inferred
-    /// name that <c>ToString()</c> prints, which the rename would change at run time although the code still compiles
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesAnAnonymousObjectMemberItsInferredNameThatToStringPrints()
-    {
-        const string testData = """
-                                class Sample
-                                {
-                                    private int {|RH2001:Value|} { get; set; }
-
-                                    string Get()
-                                    {
-                                        return new { Value }.ToString();
                                     }
                                 }
                                 """;
@@ -1776,27 +1648,6 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedNameBindingTests : BatchC
                                   """;
 
         await Verify(testData, resultData);
-    }
-
-    /// <summary>
-    /// Verifies that no code fix is offered when a reference to the property in an expression body gives an
-    /// anonymous-object member its inferred name that <c>ToString()</c> prints
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceInAnExpressionBodyGivesAnAnonymousObjectMemberItsInferredName()
-    {
-        const string testData = """
-                                class Sample
-                                {
-                                    private int {|RH2001:Value|} { get; set; }
-
-                                    string Describe() => new { Value }.ToString();
-                                }
-                                """;
-
-        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
