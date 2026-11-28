@@ -498,42 +498,6 @@ public class ChainedContinuationKeywordTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a <c>#region</c>/<c>#endregion</c> pair already correctly laid out between a
-    /// hand-braced if-block and its <c>else</c> — matching the layout the region-formatting phase
-    /// already produces for the same shape when braces are synthesized — is left byte-identical, so
-    /// the new own-line step neither adds nor removes any of the blank lines that layout requires
-    /// </summary>
-    [TestMethod]
-    public void RegionBetweenAlreadyBracedIfAndElseStaysUnchanged()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M(bool x)
-                                 {
-                                     if (x)
-                                     {
-                                         Foo();
-                                     }
-
-                                     #region Else branch
-
-                                     else
-                                     {
-                                         Bar();
-                                     }
-
-                                     #endregion // Else branch
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies that an own-line comment already separating a hand-braced if-block from its <c>else</c>
     /// is left unchanged by the new own-line step — the blank line the formatter's blank-line phase
     /// already inserts before a standalone comment in this position is pre-existing, unrelated behavior

@@ -198,9 +198,12 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return true;
         }
 
-        if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
+        // The tokens inside an interpolated string, and the start of one that spans lines, keep their lines; the start of a
+        // single-line one is decided like any other token, so a construct that lays out its own lines keeps it on its line
+        if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString
+            && (token != interpolatedString.StringStartToken || SpansLines(interpolatedString)))
         {
-            return token != interpolatedString.StringStartToken || SpansLines(interpolatedString);
+            return true;
         }
 
         return ListElementInteriorUtilities.FindOwningConstruct(token, element) != null;

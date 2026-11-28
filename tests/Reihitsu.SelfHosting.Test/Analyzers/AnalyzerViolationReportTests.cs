@@ -215,7 +215,8 @@ public sealed class AnalyzerViolationReportTests
 
         // Assert
         Assert.AreSequenceEqual(new[]
-                                { $"{Path.Combine("Sample", "A.cs")}:5",
+                                {
+                                    $"{Path.Combine("Sample", "A.cs")}:5",
                                     $"{Path.Combine("Sample", "B.cs")}:5",
                                     $"{Path.Combine("Sample", "B.cs")}:6"
                                 },

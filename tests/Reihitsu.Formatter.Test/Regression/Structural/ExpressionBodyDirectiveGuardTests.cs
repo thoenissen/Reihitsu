@@ -136,38 +136,6 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region pair following the expression is refused. The rewrite cannot safely
-    /// re-host a directive pair between the expression and its terminating semicolon without changing
-    /// directive placement and token boundaries
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    public void MethodWithRegionAfterExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int A() => 1
-
-                                 #region R
-
-                                 #endregion // R
-
-                                     ;
-
-                                 public int B()
-                                 {
-                                     return 2;
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies that a region opened before the arrow refuses the input as unsupported
     /// </summary>
     [TestMethod]

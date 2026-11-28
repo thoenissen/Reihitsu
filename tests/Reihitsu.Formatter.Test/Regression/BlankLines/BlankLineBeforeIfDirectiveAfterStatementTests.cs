@@ -536,44 +536,39 @@ public class BlankLineBeforeIfDirectiveAfterStatementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a <c>#region</c>/<c>#endregion</c> block between two statements still receives
-    /// its own required blank lines without any run holding two consecutive blank lines
+    /// Verifies that a <c>#region</c>/<c>#endregion</c> block between two members still receives
+    /// its own required blank lines without any run holding two consecutive blank lines; between two statements, the
+    /// formatter refuses it (FMT-UNSUP-023)
     /// </summary>
     [TestMethod]
-    public void RegionDirectiveBetweenStatementsHoldsNoDoubledBlankLine()
+    public void RegionDirectiveBetweenMembersHoldsNoDoubledBlankLine()
     {
         // Arrange
         const string input = """
                              public class Implementation
                              {
-                                 public void Start()
-                                 {
-                                     var bar = "foo1";
+                                 private string _first = "foo1";
 
-                                     #region Detail
-                                     bar = "foo2";
-                                     #endregion
+                                 #region Detail
+                                 private string _second = "foo2";
+                                 #endregion
 
-                                     bar = "foo2";
-                                 }
+                                 private string _third = "foo2";
                              }
                              """;
 
         const string expected = """
                                 public class Implementation
                                 {
-                                    public void Start()
-                                    {
-                                        var bar = "foo1";
+                                    private string _first = "foo1";
 
-                                        #region Detail
+                                    #region Detail
 
-                                        bar = "foo2";
+                                    private string _second = "foo2";
 
-                                        #endregion // Detail
+                                    #endregion // Detail
 
-                                        bar = "foo2";
-                                    }
+                                    private string _third = "foo2";
                                 }
                                 """;
 

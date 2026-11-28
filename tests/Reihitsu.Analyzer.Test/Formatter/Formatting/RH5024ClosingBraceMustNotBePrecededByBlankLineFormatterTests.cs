@@ -97,7 +97,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineFormatterTests : Form
         const string input = """
                              class C
                              {
-                                 void M()
+                                 class D
                                  {
                                      #region R
 

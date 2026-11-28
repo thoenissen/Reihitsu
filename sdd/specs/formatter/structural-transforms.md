@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-BREAK-041, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DIAG-010, SHARED-DOC-004, SHARED-TRAIL-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-BREAK-041, FMT-BREAK-046, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, FMT-UNSUP-013, FMT-UNSUP-023, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DIAG-010, SHARED-DOC-004, SHARED-GETONLY-007, SHARED-TRAIL-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -297,9 +297,9 @@ class C
 
 ### FMT-STRUCT-007 — Directives that cannot survive keep the expression body
 
-The formatter MUST keep the expression body of a member covered by FMT-STRUCT-004 or FMT-STRUCT-005 when a conditional directive in the span from the arrow to the semicolon has its partner outside that span, or when a `#region` or `#endregion` lies in that span. A balanced conditional group, or another directive between the expression and the semicolon, MUST NOT block the conversion; it travels inside the created statement. A directive or disabled text in front of the arrow or between the arrow and the expression is a shape the formatter refuses as a whole (FMT-UNSUP-013, FMT-UNSUP-012), so the conversion never meets one.
+The formatter MUST keep the expression body of a member covered by FMT-STRUCT-004 or FMT-STRUCT-005 when a conditional directive in the span from the arrow to the semicolon has its partner outside that span, or when a `#region` or `#endregion` lies in that span. A balanced conditional group, or another directive between the expression and the semicolon, MUST NOT block the conversion; it travels inside the created statement. A directive or disabled text in front of the arrow or between the arrow and the expression is a shape the formatter refuses as a whole (FMT-UNSUP-013, FMT-UNSUP-012), so the conversion never meets one. A `#region` or `#endregion` in the span from the arrow to the semicolon stands behind the member's first token, inside the member, so the formatter refuses the input as a whole before it converts anything (FMT-UNSUP-023): the formatter never meets the region clause, which stays because the analyzer rules decide by it (SHARED-BODY-001).
 
-Why: Splitting a conditional group orphans the half that stays behind, and a region cannot keep both endpoints in place while the span is rebuilt. The decision is `ExpressionBodyRewriteUtilities.BlocksRewrite` in `Reihitsu.Core`, which the analyzer rules of FMT-STRUCT-004 and FMT-STRUCT-005 consult too, so an analyzer never reports a member whose fix would be refused; it also holds the case of a directive between the arrow and the expression, and of a `#region` or `#endregion` in the arrow's leading trivia, which those rules do not report (SHARED-BODY-001), although the formatter refuses the input before it converts anything.
+Why: Splitting a conditional group orphans the half that stays behind, and a region cannot keep both endpoints in place while the span is rebuilt. The decision is `ExpressionBodyRewriteUtilities.BlocksRewrite` in `Reihitsu.Core`, which the analyzer rules of FMT-STRUCT-004 and FMT-STRUCT-005 consult too, so an analyzer never reports a member whose fix would be refused; it also holds the case of a directive between the arrow and the expression, and of a `#region` or `#endregion` in the arrow's leading trivia, which those rules do not report (SHARED-BODY-001), although the formatter refuses the input before it converts anything; the same holds for a region directive anywhere in the span, which the formatter refuses as one inside a member (FMT-UNSUP-023), and for which the analyzer rules still decide by this predicate, so they do not report a member whose region the conversion would split.
 
 Example — a balanced group between the expression and the semicolon does not block the conversion:
 
@@ -576,9 +576,9 @@ class C
 
 ### FMT-STRUCT-013 — Directives that cannot survive keep the accessor block
 
-The formatter MUST keep an accessor's block when a conditional directive inside the block has its partner outside it, or when a `#region` or `#endregion` lies anywhere in the block. A balanced conditional group wholly inside the expression MUST NOT block the conversion.
+The formatter MUST keep an accessor's block when a conditional directive inside the block has its partner outside it, or when a `#region` or `#endregion` lies anywhere in the block. A balanced conditional group wholly inside the expression MUST NOT block the conversion. A region directive in an accessor's block stands inside the property or indexer, behind its first token, so the formatter refuses the input as a whole before it converts anything (FMT-UNSUP-023): the formatter never meets the region clause, which stays because the get-only member rules decide by the same predicate which getter blocks this requirement keeps (SHARED-GETONLY-007).
 
-Why: These are the hazards of FMT-STRUCT-007 in the opposite direction. Removing the braces would orphan half of a conditional group, and a region cannot keep both endpoints in place while the accessor is rebuilt.
+Why: These are the hazards of FMT-STRUCT-007 in the opposite direction. Removing the braces would orphan half of a conditional group, and a region cannot keep both endpoints in place while the accessor is rebuilt. The formatter refuses a region inside a member before this phase runs, but the decision is shared with the get-only member rules, which analyze the code without that refusal; stating the region clause here keeps their report and the formatter's conversion one decision.
 
 Example:
 
@@ -1535,7 +1535,7 @@ When the formatter removes a trailing comma under FMT-STRUCT-019 or FMT-STRUCT-0
 
 Why: A line break already ends the last element's line, so a comment behind it starts a new line, and in the text that line belongs to the closing brace (FMT-PIPE-021). Joining it to the last element's line would move a comment between lines, and behind a `//` comment it is not possible at all. The closing brace's leading comment is then laid out like any other comment in front of a closing brace, in one pass, which is what a second pass gives today.
 
-Example:
+Example — the array initializer spans several lines, so its braces take lines of their own as well (FMT-BREAK-046):
 
 ```csharp
 enum E { A,
@@ -1563,7 +1563,9 @@ enum E
 
 class C
 {
-    int[] _a = new[] { 1,
+    int[] _a = new[]
+               {
+                   1,
                    2
 
                    // comma

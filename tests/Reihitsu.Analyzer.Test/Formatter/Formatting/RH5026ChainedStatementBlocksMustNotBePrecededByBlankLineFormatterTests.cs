@@ -58,38 +58,6 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
     }
 
     /// <summary>
-    /// Verifies code with a blank line directly below a region directive is left unchanged by the formatter and not
-    /// reported, so the formatter and the analyzer agree
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5026-005")]
-    public async Task VerifyFormatterKeepsBlankLineBelowRegionDirectiveAndAnalyzerReportsNothing()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M(int a)
-                                 {
-                                     if (a > 0)
-                                     {
-                                     }
-
-                                     #region R
-
-                                     else
-                                     {
-                                     }
-
-                                     #endregion // R
-                                 }
-                             }
-                             """;
-
-        await VerifyFormatter(input);
-    }
-
-    /// <summary>
     /// Verifies that the formatter removes the blank line between an own-line comment and <c>else</c>, <c>catch</c>, and
     /// <c>finally</c>, so its output is not reported
     /// </summary>

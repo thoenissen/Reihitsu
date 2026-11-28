@@ -17,7 +17,7 @@ namespace Reihitsu.Formatter.Pipeline.Precheck;
 /// FMT-UNSUP-003). <see cref="FindUnsupportedSyntax"/> is the one statement of the unsupported shapes; the phase and
 /// <see cref="ReihitsuFormatter.FindUnsupportedSyntax"/> both ask it (FMT-UNSUP-007)
 /// </summary>
-internal sealed class PrecheckPhase : IFormattingPhase
+internal sealed partial class PrecheckPhase : IFormattingPhase
 {
     #region Constants
 
@@ -181,6 +181,12 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// alias (FMT-UNSUP-022)
     /// </summary>
     internal const string NameEqualsCommentReason = "a comment or directive behind the = of an attribute argument or a using alias";
+
+    /// <summary>
+    /// The reason given for an active region directive inside a member, in the header of a type, or anywhere in a file with
+    /// top-level statements (FMT-UNSUP-023)
+    /// </summary>
+    internal const string RegionInsideMemberReason = "a region directive inside a member";
 
     #endregion // Constants
 
@@ -676,7 +682,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// Adds the candidates of the shapes listed after every other shape, in this order: a gap the line-break phase joins
     /// (FMT-UNSUP-017), a list of omitted type arguments (FMT-UNSUP-018), the gap behind an assignment operator or the
     /// <c>=</c> of an equals-value clause (FMT-UNSUP-020), the gap behind the <c>=&gt;</c> of a switch-expression arm
-    /// (FMT-UNSUP-021), and the gap behind the <c>=</c> of an attribute argument or a using alias (FMT-UNSUP-022)
+    /// (FMT-UNSUP-021), the gap behind the <c>=</c> of an attribute argument or a using alias (FMT-UNSUP-022), and a region
+    /// directive inside a member (FMT-UNSUP-023)
     /// </summary>
     /// <param name="node">The node the precheck decides on</param>
     /// <param name="candidates">The candidates in their order of precedence</param>
@@ -736,7 +743,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
                                 (firstOmittedTypeArgumentTrivia, OmittedTypeArgumentCommentReason),
                                 (firstAssignmentTrivia, AssignmentCommentReason),
                                 (firstSwitchArmTrivia, SwitchArmExpressionCommentReason),
-                                (firstNameEqualsTrivia, NameEqualsCommentReason)
+                                (firstNameEqualsTrivia, NameEqualsCommentReason),
+                                (FindRegionDirectiveInsideMember(node), RegionInsideMemberReason)
                             ]);
     }
 

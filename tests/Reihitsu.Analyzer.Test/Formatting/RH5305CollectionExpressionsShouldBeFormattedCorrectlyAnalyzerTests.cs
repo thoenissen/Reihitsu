@@ -775,6 +775,35 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a collection expression that holds a region directive is reported, and that no code fix is offered, because
+    /// the formatter refuses a region directive inside a member, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-023")]
+    public async Task VerifyNoFixIsOfferedForACollectionExpressionThatHoldsARegion()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      int[] a = {|RH5305:[
+                                          #region R
+                                          1,
+                                          #endregion
+                                          2
+                                          ]|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

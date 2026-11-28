@@ -103,39 +103,6 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
     }
 
     /// <summary>
-    /// Verifies code with a blank line directly below a region directive is left unchanged by the formatter and not
-    /// reported, so the formatter and the analyzer agree
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5025-007")]
-    public async Task VerifyFormatterKeepsBlankLineBelowRegionDirectiveAndAnalyzerReportsNothing()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     var d = new System.Collections.Generic.Dictionary<string, int>
-                                             {
-                                                 { "a", 1 },
-
-                                     #region A
-
-                                                 { "b", 2 },
-
-                                     #endregion // A
-
-                                                 { "c", 3 }
-                                             };
-                                 }
-                             }
-                             """;
-
-        await VerifyFormatter(input);
-    }
-
-    /// <summary>
     /// Verifies that the formatter removes the blank line between an own-line comment and the opening brace of an array
     /// initializer, so its output is not reported
     /// </summary>

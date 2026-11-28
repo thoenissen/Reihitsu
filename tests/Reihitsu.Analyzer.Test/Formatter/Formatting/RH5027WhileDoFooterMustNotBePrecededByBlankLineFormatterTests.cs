@@ -54,37 +54,6 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineFormatterTests : For
     }
 
     /// <summary>
-    /// Verifies code with a blank line directly below a region directive is left unchanged by the formatter and not
-    /// reported, so the formatter and the analyzer agree
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH5027-005")]
-    public async Task VerifyFormatterKeepsBlankLineBelowRegionDirectiveAndAnalyzerReportsNothing()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M(int a)
-                                 {
-                                     do
-                                     {
-                                         a++;
-                                     }
-
-                                     #region R
-
-                                     while (a < 3);
-
-                                     #endregion // R
-                                 }
-                             }
-                             """;
-
-        await VerifyFormatter(input);
-    }
-
-    /// <summary>
     /// Verifies that the formatter removes the blank line between an own-line comment and a do statement's <c>while</c>, so
     /// its output is not reported
     /// </summary>

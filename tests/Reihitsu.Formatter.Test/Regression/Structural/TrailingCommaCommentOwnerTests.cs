@@ -76,7 +76,9 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
 
                                 class C
                                 {
-                                    int[] _a = new[] { 1,
+                                    int[] _a = new[]
+                                               {
+                                                   1,
                                                    2
 
                                                    // comma
@@ -119,7 +121,9 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int[] _a = new[] { 1,
+                                    int[] _a = new[]
+                                               {
+                                                   1,
                                                    2
 
                                                    // comma

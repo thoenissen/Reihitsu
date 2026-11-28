@@ -1029,37 +1029,6 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region directive inside the accessor body keeps the accessor block
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-013")]
-    public void RegionInsideBodyKeepsBlock()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 private int _x;
-
-                                 public int X
-                                 {
-                                     get
-                                     {
-                                         #region Value
-
-                                         return _x;
-
-                                         #endregion // Value
-                                     }
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies that a conditional group that opens inside the expression and closes outside the body keeps the accessor block
     /// </summary>
     [TestMethod]
@@ -1512,45 +1481,6 @@ public class ExpressionBodiedAccessorTests : FormatterTestsBase
                              #endif
                                              ;
                                      }
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a region wholly inside the returned expression keeps the accessor block, because the rewrite cannot
-    /// keep both region endpoints in place
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-013")]
-    public void RegionInsideExpressionKeepsBlock()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int X
-                                 {
-                                     get
-                                     {
-                                         return Compute(
-
-                                         #region Value
-
-                                                        1
-
-                                         #endregion // Value
-
-                                                        );
-                                     }
-                                 }
-
-                                 private static int Compute(int value)
-                                 {
-                                     return value;
                                  }
                              }
                              """;

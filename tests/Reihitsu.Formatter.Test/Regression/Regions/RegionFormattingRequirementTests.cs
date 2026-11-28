@@ -129,12 +129,12 @@ public class RegionFormattingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region opened among the members and closed inside a method body keeps both directives in
+    /// Verifies that a region opened among the members and closed inside the body of a nested type keeps both directives in
     /// place and is still named
     /// </summary>
     [TestMethod]
     [Requirement("FMT-REGION-005")]
-    public void RegionClosedInsideMethodBodyKeepsItsDirectivesAndIsNamed()
+    public void RegionClosedInsideNestedTypeBodyKeepsItsDirectivesAndIsNamed()
     {
         // Arrange
         const string input = """
@@ -142,9 +142,9 @@ public class RegionFormattingRequirementTests : FormatterTestsBase
                              {
                                  #region members
 
-                                 void M()
+                                 class D
                                  {
-                                     var x = 1;
+                                     int _x;
 
                                      #endregion
                                  }
@@ -155,9 +155,9 @@ public class RegionFormattingRequirementTests : FormatterTestsBase
                                 {
                                     #region Members
 
-                                    void M()
+                                    class D
                                     {
-                                        var x = 1;
+                                        int _x;
 
                                         #endregion // Members
                                     }

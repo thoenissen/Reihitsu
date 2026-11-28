@@ -299,45 +299,6 @@ public class RegionLineFormTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that several spaces in front of the description of a region inside a method body become one space
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-REGION-007")]
-    public void SeveralSpacesInRegionLineInsideMethodBodyBecomeOneSpace()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     #region    Setup
-
-                                     var x = 1;
-
-                                     #endregion // Setup
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        #region Setup
-
-                                        var x = 1;
-
-                                        #endregion // Setup
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that the <c>#region</c> lines of a nested pair each get the form, and each <c>#endregion</c> repeats its own
     /// description
     /// </summary>
@@ -367,7 +328,7 @@ public class RegionLineFormTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region opened among the members and closed inside a method body gets the form and keeps both directives
+    /// Verifies that a region opened among the members and closed inside the body of a nested type gets the form and keeps both directives
     /// in place
     /// </summary>
     [TestMethod]
@@ -381,9 +342,9 @@ public class RegionLineFormTests : FormatterTestsBase
                              {
                                  #region    Members
 
-                                 void M()
+                                 class D
                                  {
-                                     var x = 1;
+                                     int _x;
 
                                      #endregion
                                  }
@@ -394,9 +355,9 @@ public class RegionLineFormTests : FormatterTestsBase
                                 {
                                     #region Members
 
-                                    void M()
+                                    class D
                                     {
-                                        var x = 1;
+                                        int _x;
 
                                         #endregion // Members
                                     }

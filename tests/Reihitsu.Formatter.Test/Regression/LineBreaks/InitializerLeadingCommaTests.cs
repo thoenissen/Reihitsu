@@ -163,8 +163,10 @@ public class InitializerLeadingCommaTests : FormatterTestsBase
                                                     1, 2,
                                                     3, 4
                                                 };
-                                        int[] y = { 1,
-                                                      2 };
+                                        int[] y = {
+                                                      1,
+                                                      2
+                                                  };
                                     }
                                 }
                                 """;
@@ -338,7 +340,7 @@ public class InitializerLeadingCommaTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that commas that start a line in an implicitly typed array and in a <c>stackalloc</c> array initializer move
-    /// behind the element in front of them, and the arrays' other line breaks stay as written
+    /// behind the element in front of them, and the arrays' other line breaks between the elements stay as written
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-038")]
@@ -365,10 +367,16 @@ public class InitializerLeadingCommaTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var w = new[] { 1,
-                                                    2 };
-                                        Span<int> s = stackalloc int[] { 1,
-                                                          2 };
+                                        var w = new[]
+                                                {
+                                                    1,
+                                                    2
+                                                };
+                                        Span<int> s = stackalloc int[]
+                                                      {
+                                                          1,
+                                                          2
+                                                      };
                                     }
                                 }
                                 """;

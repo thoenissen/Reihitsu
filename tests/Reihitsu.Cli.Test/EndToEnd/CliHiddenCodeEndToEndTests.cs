@@ -16,7 +16,8 @@ namespace Reihitsu.Cli.Test.EndToEnd;
 /// combined field declarations (FMT-UNSUP-010, FMT-STRUCT-022); and for files with a comment or directive between a binary operator
 /// and its right operand (FMT-UNSUP-011); and for files with a comment or directive between the arrow of an expression body and its
 /// expression (FMT-UNSUP-012) or the code in front of it (FMT-UNSUP-013); and for files with a comment or directive in front of an
-/// argument list, an element access, or a null-forgiving operator (FMT-UNSUP-014)
+/// argument list, an element access, or a null-forgiving operator (FMT-UNSUP-014); and for files with a region directive inside a
+/// member (FMT-UNSUP-023)
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -289,6 +290,42 @@ public class CliHiddenCodeEndToEndTests
     /// The summary line for one skipped file
     /// </summary>
     private const string SkippedSummaryLine = "Skipped 1 file(s) with code hidden in another build configuration.";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-023 change's first visible output example: a region in a method body, whose <c>#region</c> starts
+    /// in line 5, column 9
+    /// </summary>
+    private const string RegionInMethodBodySource = "class C\n{\n    void M(int x)\n    {\n        #region Setup\n        var a = x;\n        #endregion\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-023 change's example of a region in a field's initializer, whose <c>#region</c> starts in line 4,
+    /// column 19
+    /// </summary>
+    private const string RegionInFieldInitializerSource = "class C\n{\n    int[] F = [\n                  #region R\n                  1,\n                  #endregion\n                  2\n              ];\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-023 change's example of a region in a parameter list, whose <c>#region</c> starts in line 4,
+    /// column 12
+    /// </summary>
+    private const string RegionInParameterListSource = "class C\n{\n    void M(int a,\n           #region R\n           int b)\n           #endregion\n    {\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-023 change's example of a region in a member's attribute arguments, whose <c>#region</c> starts in
+    /// line 11, column 8
+    /// </summary>
+    private const string RegionInAttributeArgumentsSource = "class A : System.Attribute\n{\n    public A(int a, int b)\n    {\n    }\n}\n\nclass C\n{\n    [A(1,\n       #region At\n       2)]\n       #endregion\n    void N()\n    {\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-023 change's example of a region in the header of a type, whose first <c>#region</c> starts in
+    /// line 10, column 11
+    /// </summary>
+    private const string RegionInTypeHeaderSource = "interface I\n{\n}\n\nclass B\n{\n}\n\nclass C : B,\n          #region Interfaces\n          I\n          #endregion\n{\n}\n\nrecord R(int A,\n         #region More\n         int B);\n         #endregion\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-023 change's example of regions in a file with top-level statements, whose first <c>#region</c>
+    /// starts in line 3, column 1
+    /// </summary>
+    private const string RegionInTopLevelFileSource = "using System;\n\n#region Setup\nvar a = 1;\n#endregion\n\nConsole.WriteLine(a);\n\nclass D\n{\n    #region Fields\n    private int _b;\n    #endregion\n}\n";
 
     #endregion // Constants
 
@@ -829,6 +866,38 @@ public class CliHiddenCodeEndToEndTests
             Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.AreEqual(string.Empty, error);
             Assert.AreEqual(expected, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output examples of FMT-UNSUP-023: files with a region directive in a method body, a field's
+    /// initializer, a parameter list, a member's attribute arguments, the header of a type, and a file with top-level statements
+    /// are each left unchanged, reported with the reason and the first region directive's line and column, and the run exits with
+    /// code 2
+    /// </summary>
+    /// <param name="source">The file's text</param>
+    /// <param name="line">The reported line</param>
+    /// <param name="column">The reported column</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-023")]
+    [DataRow(RegionInMethodBodySource, 5, 9, DisplayName = "Region in a method body")]
+    [DataRow(RegionInFieldInitializerSource, 4, 19, DisplayName = "Region in a field's initializer")]
+    [DataRow(RegionInParameterListSource, 4, 12, DisplayName = "Region in a parameter list")]
+    [DataRow(RegionInAttributeArgumentsSource, 11, 8, DisplayName = "Region in a member's attribute arguments")]
+    [DataRow(RegionInTypeHeaderSource, 10, 11, DisplayName = "Region in the header of a type")]
+    [DataRow(RegionInTopLevelFileSource, 3, 1, DisplayName = "Region in a file with top-level statements")]
+    public async Task RegionDirectiveInsideAMemberIsReportedAsUnsupported(string source, int line, int column)
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("r.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a region directive inside a member. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
 

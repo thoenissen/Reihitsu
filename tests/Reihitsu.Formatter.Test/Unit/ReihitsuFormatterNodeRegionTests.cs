@@ -277,44 +277,6 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region inside a method body is kept by a node-level entry point that formats the method
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-028")]
-    public async Task FormatNodeInDocumentAsyncKeepsRegionInsideFormattedMethod()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     #region    setup
-
-                                     var x=1;
-
-                                     #endregion
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        #region    setup
-
-                                        var x = 1;
-
-                                        #endregion
-                                    }
-                                }
-                                """;
-
-        await AssertNodeInDocument(input, expected, root => root.DescendantNodes().OfType<MethodDeclarationSyntax>().First(), contextSelector: null);
-    }
-
-    /// <summary>
     /// Verifies that a region opened in front of a top-level type and closed inside it is kept as a whole by a node-level entry
     /// point that formats the type
     /// </summary>
@@ -821,9 +783,13 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
 
         var target = targetSelector(root);
 
-        return contextSelector == null
-                   ? (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output
-                   : (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, contextSelector(root), TestContext.CancellationToken)).Output;
+        var result = contextSelector == null
+                         ? await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)
+                         : await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, contextSelector(root), TestContext.CancellationToken);
+
+        Assert.IsNull(result.Unsupported, $"The formatter must not refuse the target as unsupported: {result.Unsupported?.Reason}");
+
+        return result.Output;
     }
 
     #endregion // Methods

@@ -845,6 +845,36 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         await Verify(testCode, test => test.SolutionTransforms.Add(CreateLanguageVersionTransform(LanguageVersion.CSharp10)));
     }
 
+    /// <summary>
+    /// Verifies that a switch expression that holds a region directive among its arms is reported, and that no code fix is offered,
+    /// because the formatter refuses a region directive inside a member, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-023")]
+    public async Task VerifyNoFixIsOfferedForASwitchExpressionThatHoldsARegion()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int x)
+                                  {
+                                      return {|RH5206:x switch
+                                      {
+                                          #region R
+                                          1 => 2,
+                                          #endregion
+                                          _ => 3
+                                      }|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

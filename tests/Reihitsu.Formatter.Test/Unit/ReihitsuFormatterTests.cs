@@ -496,8 +496,8 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> keeps both region directives inside a detached node, with their
-    /// text as written, while it formats the code around them
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> keeps both region directives between the members of a detached
+    /// type, with their text as written, while it formats the code around them
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-028")]
@@ -505,19 +505,19 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         // Arrange
         const string inputWithLf = """
-                                   void M()
+                                   class C
                                    {
                                    #region inner
-                                       var value=1;
+                                       int value=1;
                                    #endregion
                                    }
                                    """;
         const string expectedWithLf = """
-                                      void M()
+                                      class C
                                       {
                                           #region inner
 
-                                          var value = 1;
+                                          int value = 1;
 
                                           #endregion
                                       }
@@ -527,13 +527,13 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         {
             var input = NormalizeLineEndings(inputWithLf, endOfLine);
             var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
-            var detachedMethod = SyntaxFactory.ParseMemberDeclaration(input);
+            var detachedType = SyntaxFactory.ParseMemberDeclaration(input);
 
-            Assert.IsNotNull(detachedMethod, "Expected the fixture to parse as a method declaration.");
-            Assert.IsNull(detachedMethod.Parent, "Test setup must use a detached node.");
+            Assert.IsNotNull(detachedType, "Expected the fixture to parse as a type declaration.");
+            Assert.IsNull(detachedType.Parent, "Test setup must use a detached node.");
 
             // Act
-            var firstResult = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).Output;
+            var firstResult = ReihitsuFormatter.FormatNode(detachedType, cancellationToken: TestContext.CancellationToken).Output;
             var firstPass = firstResult.ToFullString();
 
             // Assert
@@ -542,11 +542,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                             $"Detached-node formatting should retain both directives under {DescribeLineEnding(endOfLine)} line endings.");
             AssertUsesLineEnding(firstPass, endOfLine);
 
-            var reparsedMethod = SyntaxFactory.ParseMemberDeclaration(firstPass);
+            var reparsedType = SyntaxFactory.ParseMemberDeclaration(firstPass);
 
-            Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
+            Assert.IsNotNull(reparsedType, "Expected the first-pass output to parse as a type declaration.");
 
-            var secondResult = ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).Output;
+            var secondResult = ReihitsuFormatter.FormatNode(reparsedType, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(firstPass,
                             secondResult.ToFullString(),
@@ -562,8 +562,8 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     public void FormatNodeFormatsDetachedNodeHoldingAForeignLineBreak()
     {
         // Arrange
-        const string inputWithLf = "void M()\n{\n#region inner\n    var value=1;¶#endregion\n}";
-        const string expectedWithLf = "void M()\n{\n    #region inner\n\n    var value = 1;\n\n    #endregion\n}";
+        const string inputWithLf = "class C\n{\n#region inner\n    int value=1;¶#endregion\n}";
+        const string expectedWithLf = "class C\n{\n    #region inner\n\n    int value = 1;\n\n    #endregion\n}";
 
         foreach (var endOfLine in _lineEndings)
         {
@@ -573,21 +573,21 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             foreach (var foreignLineBreak in foreignLineBreaks)
             {
                 var description = $"{DescribeLineEnding(endOfLine)} line endings with {string.Join(" ", foreignLineBreak.Select(character => $"U+{(int)character:X4}"))} as the foreign line break";
-                var detachedMethod = SyntaxFactory.ParseMemberDeclaration(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak));
+                var detachedType = SyntaxFactory.ParseMemberDeclaration(NormalizeLineEndings(inputWithLf, endOfLine).Replace("¶", foreignLineBreak));
 
-                Assert.IsNotNull(detachedMethod, "Expected the fixture to parse as a method declaration.");
+                Assert.IsNotNull(detachedType, "Expected the fixture to parse as a type declaration.");
 
                 // Act
-                var firstPass = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
+                var firstPass = ReihitsuFormatter.FormatNode(detachedType, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
                 // Assert
                 Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
                 AssertUsesLineEnding(firstPass, endOfLine);
 
-                var reparsedMethod = SyntaxFactory.ParseMemberDeclaration(firstPass);
+                var reparsedType = SyntaxFactory.ParseMemberDeclaration(firstPass);
 
-                Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
-                Assert.AreEqual(firstPass, ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).Output.ToFullString(), $"The second pass must not change the output under {description}.");
+                Assert.IsNotNull(reparsedType, "Expected the first-pass output to parse as a type declaration.");
+                Assert.AreEqual(firstPass, ReihitsuFormatter.FormatNode(reparsedType, cancellationToken: TestContext.CancellationToken).Output.ToFullString(), $"The second pass must not change the output under {description}.");
             }
         }
     }
@@ -896,8 +896,8 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps both region directives inside the target
-    /// root, with their text as written, while it formats the code around them
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps both region directives between the members
+    /// of a type inside the target root, with their text as written, while it formats the code around them
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -908,25 +908,19 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         const string inputWithLf = """
                                    class C
                                    {
-                                       void M()
-                                       {
                                    #region inner
-                                           var value=1;
+                                       int value=1;
                                    #endregion
-                                       }
                                    }
                                    """;
         const string expectedWithLf = """
                                       class C
                                       {
-                                          void M()
-                                          {
-                                              #region inner
+                                          #region inner
 
-                                              var value = 1;
+                                          int value = 1;
 
-                                              #endregion
-                                          }
+                                          #endregion
                                       }
                                       """;
 

@@ -125,8 +125,11 @@ public class TrailingCommaDocumentationCommentTests : FormatterTestsBase
 
                                     void M()
                                     {
-                                        var m = new[] { 1,
-                                                    2 /** two */ };
+                                        var m = new[]
+                                                {
+                                                    1,
+                                                    2 /** two */
+                                                };
                                     }
                                 }
                                 """;

@@ -68,7 +68,9 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
                                  {
                                      private static void Method()
                                      {
-                                         var values = new[] { 2 // Final value
+                                         var values = new[]
+                                                      {
+                                                          2 // Final value
                                                       };
                                      }
                                  }

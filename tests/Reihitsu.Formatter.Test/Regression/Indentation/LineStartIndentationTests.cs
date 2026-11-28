@@ -319,93 +319,60 @@ public class LineStartIndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: region directives take the member column inside a type and the label column between switch sections
+    /// Verifies the spec example: the region directives of a namespace, a type, and a nested type take the column of the
+    /// members they stand between, also in front of the closing brace of a type or a namespace
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-010")]
-    public void RegionDirectivesTakeTheMemberOrLabelColumn()
+    public void RegionDirectivesTakeTheMemberColumn()
     {
         const string input = """
-                             class C
+                             namespace N
                              {
-                                     #region Fields
-
-                                 private int _x;
-
-                               #endregion // Fields
-
-                                 void M(int x)
-                                 {
-                                     switch (x)
-                                     {
-                                             #region Cases
-
-                                         case 1:
-                                             break;
-
-                                     #endregion // Cases
-                                     }
-                                 }
+                                   #region Types
+                               class C
+                               {
+                               #region Fields
+                                       private int _a;
+                                       #endregion
+                                  class D
+                                  {
+                                  #region Methods
+                                      void M()
+                                      {
+                                      }
+                                          #endregion
+                                  }
+                               }
+                                       #endregion
                              }
                              """;
         const string expected = """
-                                class C
+                                namespace N
                                 {
-                                    #region Fields
+                                    #region Types
 
-                                    private int _x;
-
-                                    #endregion // Fields
-
-                                    void M(int x)
+                                    class C
                                     {
-                                        switch (x)
+                                        #region Fields
+
+                                        private int _a;
+
+                                        #endregion // Fields
+
+                                        class D
                                         {
-                                            #region Cases
+                                            #region Methods
 
-                                            case 1:
-                                                break;
+                                            void M()
+                                            {
+                                            }
 
-                                            #endregion // Cases
+                                            #endregion // Methods
                                         }
                                     }
-                                }
-                                """;
 
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that region directives inside a method body take the statement column
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-010")]
-    public void RegionDirectivesInsideABlockTakeTheStatementColumn()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                             #region Body
-
-                                     var x = 1;
-
-                                             #endregion // Body
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        #region Body
-
-                                        var x = 1;
-
-                                        #endregion // Body
-                                    }
+                                    #endregion // Types
                                 }
                                 """;
 
