@@ -39,4 +39,4 @@
 
 ## Worklist / next step
 
-- Claim done (48e5073, PR #2002). Spec author done (d9ba2be): verdict needs a test; no output or open questions, so no output-question batch. Lane widened to tests (decision 2). Skeptic done (57ef020): proceed, no output questions. Spec author amendment done (4f3df83): six characterization tests needed (03-spec-author). No output questions, so no batch stop. Next: test implementer, then cleaner, spec checker, validator.
+- Claim done (48e5073, PR #2002). Spec author done (d9ba2be): verdict needs a test; no output or open questions, so no output-question batch. Lane widened to tests (decision 2). Skeptic done (57ef020): proceed, no output questions. Spec author amendment done (4f3df83): six characterization tests needed (03-spec-author). No output questions, so no batch stop. Test implementer done (4da0f80): 9 characterization tests pass, no production change. Next: cleaner, spec checker, validator.
