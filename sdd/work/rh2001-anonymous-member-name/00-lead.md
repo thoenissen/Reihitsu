@@ -19,6 +19,9 @@ The maintainer answered the issue's output question in an issue comment: option 
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | spec author | Fold the anonymous-member behavior into RH2001-011 or a new requirement? | New requirement RH2001-012; RH2001-011 keeps only tuples | RH2001-011's title is about withholding the fix | Spec structure only; output is the maintainer's answer B | 0070611 |
+| 2 | spec author | Edit SHARED-CASING-015's scope sentence to name RH2001? | No; RH2001 lists SHARED-CASING-015 under Uses | Avoids an RH2001 row in the casing spec; the conflict is resolved by RH2001 following the scope sentence | Spec wording only | 0070611 |
+| 3 | spec author | List `CasingAnonymousMemberUtilities` as a SHARED-CASING code owner? | Yes | It implements SHARED-CASING-015 and was unowned | Spec metadata only | 0070611 |
 
 ## Follow-up candidates
 
@@ -30,4 +33,5 @@ None yet.
 
 ## Open worklist / next step
 
-- Next: spec author (change doc + spec diff).
+- Spec author done (01-spec-author.md, 0070611): no output questions.
+- Next: skeptic (premise + spec diff).
