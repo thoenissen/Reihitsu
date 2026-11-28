@@ -13,6 +13,7 @@
 
 2. Batch 1 (questions 1–6, in the chat): 1A — RH7207 reports a header-led sorted block without its group blank line, fix and formatter add it. 2A — comment header, blank line, `#nullable enable`: fix and formatter reorder, header and directive stay on top. 5B — a conditional group (`#if`…`#endif`, disabled text) in front of the block: stays reported without a fix, the formatter keeps the block ("don't make it complicated"). 6A — a directive inside a using block is not declared unsupported.
 3. Ask-back on 3/4 (chat), answer `3A 4B`: 3A — a comment directly below the header directive stays on top as part of the header, no blank line is added (`#nullable enable` / `// About Linq` / `using System;` / `using System.Linq;`). 4B — a comment after a blank line below the header directive also stays on top: `#nullable enable` / blank / `// About Linq` / `using System;` / `using System.Linq;`. The answer covers blocks with a header directive only; it does not change FMT-USING-009 for blocks without a directive.
+4. Question 7 (change doc case 8, a conditional group that encloses the whole using block, `#if !LEGACY` / usings / `#endif`): answer B — unchanged from today: reported, no fix offered, the formatter keeps the block. Asked with the reasoning "any `#if` in front of the block means no fix, whether or not the group's other branch holds a using".
 
 ## Decisions taken
 
@@ -30,7 +31,7 @@
 ## Worklist / next step
 
 - Spec author 01 done (616e3b6), skeptic 02 done (d50eb50): verdict output question.
-- Spec author 03 done (3830bc4, Accepted). Open: question 7 (change doc case 8, a conditional group enclosing the whole block: A reorder / B no fix, recommended B), asked in the chat; waiting.
+- Spec author 03 done (3830bc4, Accepted). Question 7 answered B; routed to spec author (continued) to amend; then test implementer.
 - Batch 1 fully answered (incl. 3A 4B).
 - Next: fresh spec author amends change doc + specs per answers 2–3 and decision 3, sets Status: Accepted; then test implementer.
 - Was: waiting for the maintainer on batch 1 (questions 1–6: cases 2, 4, 5, 6, 7 and escalation 10 on declaring directives inside a using block unsupported).
