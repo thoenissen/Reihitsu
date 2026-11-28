@@ -47,4 +47,5 @@ The maintainer answered the issue's output question in an issue comment: option 
 - Implementer round 1 (04-implementer.md, a13a255/b84af93): blocked on Fix All merge; decided 8 = A.
 - Implementer round 2 (31c86f4/83013bb): all tests green; opt-in solution mode of DocumentOrderFixAllProvider.
 - Cleaner done (8f20d37): clean.
-- Next: spec checker.
+- Spec checker done (19371ac): consistent.
+- Next: auditor.
