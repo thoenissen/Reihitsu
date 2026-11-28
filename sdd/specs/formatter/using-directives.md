@@ -142,8 +142,8 @@ Why: Splitting a line moves no directive across a preprocessor directive and cha
 Example:
 
 ```csharp
-#nullable enable
 using System.Linq; using System;
+#pragma warning disable CS0105
 using Microsoft.CodeAnalysis;
 
 class C
@@ -153,9 +153,9 @@ class C
 ```
 
 ```csharp
-#nullable enable
 using System.Linq;
 using System;
+#pragma warning disable CS0105
 using Microsoft.CodeAnalysis;
 
 class C
@@ -774,3 +774,150 @@ class C
 ```
 
 Formatting the whole document then moves the comment and both directives to column 0 (FMT-INDENT); the code fixes do not.
+
+### FMT-USING-012 — Preprocessor directives in front of the block stay at the top
+
+When the leading trivia of a reordered block's original first directive holds a preprocessor directive (SHARED-USING-009) and the reorder moves that directive away from the top, the trivia from the start of that leading trivia through the end of its last preprocessor directive — every preprocessor directive in it, the disabled text of a conditional group, and the comments and blank lines in front of the last directive — MUST stay at the top of the block, in its order. FMT-USING-009 MUST be applied to the trivia behind the last preprocessor directive alone: the comments there up to and including the last blank line among them stay at the top as well, and only the comments after that blank line move with the directive; when no blank line stands behind the last preprocessor directive, the whole leading trivia stays at the top. The trivia that stays at the top is the header of FMT-USING-009, so FMT-USING-010 and FMT-USING-011 treat it as they treat that header. A block whose first directive keeps its position keeps its leading trivia as written, as FMT-USING-009 states.
+
+Why: A preprocessor directive in front of the block stands in front of every directive of the block; only because it stays at the top does a reorder move no using across it (SHARED-USING-009), so FMT-USING-009's blank-line split may not carry it away with the directive, also when it follows a header's blank line. Behind the last directive the split is FMT-USING-009's, unchanged: the directive above a comment does not separate the comment from the header the way a blank line does, so a comment directly below it stays at the top, as a comment directly above the first directive of a block without a directive does.
+
+Example — the directive and the disabled text of a conditional group stay at the top; in a build that does not define `DEBUG`, `using System.Diagnostics;` is disabled text:
+
+```csharp
+#if DEBUG
+using System.Diagnostics;
+#endif
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#if DEBUG
+using System.Diagnostics;
+#endif
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a directive behind a header's blank line stays at the top, where FMT-USING-009 alone would move it with `System.Linq`:
+
+```csharp
+// Header
+
+#nullable enable
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+// Header
+
+#nullable enable
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a comment directly below the directive stays at the top, because no blank line stands behind the directive:
+
+```csharp
+#nullable enable
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#nullable enable
+// About Linq
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+while a comment behind a blank line below the directive moves with its directive and keeps a blank line above it (FMT-USING-010):
+
+```csharp
+#nullable enable
+
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#nullable enable
+
+using System;
+
+// About Linq
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and the formatter frames a `#region` in front of the block as any region (FMT-BLANK-013); the `#endregion` behind the block is the leading trivia of `class C` and stays where it is:
+
+```csharp
+#region Usings
+using System.Linq;
+using System;
+#endregion
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#region Usings
+
+using System;
+using System.Linq;
+
+#endregion // Usings
+
+class C
+{
+    int x;
+}
+```
+
+The output of FMT-PIPE-030, which the RH7201–RH7207 code fixes use, keeps the region as written: `#region Usings` directly above `using System;`, and `#endregion` directly below `using System.Linq;`.
