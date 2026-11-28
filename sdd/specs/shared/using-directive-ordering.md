@@ -493,13 +493,13 @@ class C
 }
 ```
 
-### SHARED-USING-009 — Blocks with preprocessor directives among their directives are not reordered
+### SHARED-USING-009 — Blocks with preprocessor directives among their directives or disabled text in front of them are not reordered
 
-The formatter MUST NOT reorder a using block, and the code fixes of RH7201–RH7207 MUST NOT be offered for a diagnostic in it, when a preprocessor directive (`#if`, `#nullable`, `#pragma`, `#region`, …) stands in the leading trivia of any token of the block other than the first token of its first directive: in the leading trivia of a later directive, which puts it between two directives, or in the leading trivia of a token inside a directive, the first directive included, which puts it between that directive's tokens. A preprocessor directive in the leading trivia of the first token of the block's first directive stands in front of the block — a `#nullable enable` or `#pragma warning disable` header, a `#region` that opens the block, or a whole conditional group in front of it — and does not make the block unsafe: the formatter reorders such a block, the code fixes are offered for it, and every such directive stays at the top of the block (FMT-USING-012). A preprocessor directive that follows the last using directive belongs to the next declaration and does not make the block unsafe either. The first directive is the first one the analyzed build compiles (SHARED-DIAG-008): a conditional group in front of it is in its leading trivia, also when another build compiles a using inside that group. Only a preprocessor directive makes the block unsafe: text inside a comment is the comment's text (SHARED-DIAG-003), so a line of a `/* */` or `/** */` comment that starts with `#` is not a directive and does not make the block unsafe.
+The formatter MUST NOT reorder a using block, and the code fixes of RH7201–RH7207 MUST NOT be offered for a diagnostic in it, when a preprocessor directive (`#if`, `#nullable`, `#pragma`, `#region`, …) stands in the leading trivia of any token of the block other than the first token of its first directive: in the leading trivia of a later directive, which puts it between two directives, or in the leading trivia of a token inside a directive, the first directive included, which puts it between that directive's tokens. They MUST NOT either when the leading trivia of the first token of the block's first directive holds disabled text, the code a conditional group excludes from the analyzed build. A preprocessor directive in the leading trivia of the first token of the block's first directive stands in front of the block — a `#nullable enable` or `#pragma warning disable` header, or a `#region` that opens the block — and, as long as no disabled text stands there, does not make the block unsafe: the formatter reorders such a block, the code fixes are offered for it, and that leading trivia stays at the top of the block (FMT-USING-012). A conditional group whose `#if` stands in front of the block and whose `#endif` follows it excludes nothing in front of the block in a build that compiles the block, so it does not make the block unsafe. A preprocessor directive that follows the last using directive belongs to the next declaration and does not make the block unsafe either. The first directive is the first one the analyzed build compiles (SHARED-DIAG-008). Only a preprocessor directive or disabled text makes the block unsafe: text inside a comment is the comment's text (SHARED-DIAG-003), so a line of a `/* */` or `/** */` comment that starts with `#` is not a directive and does not make the block unsafe.
 
 The RH7201–RH7207 analyzers MUST report such a block as their own requirements state, judging the using directives the analyzed build compiles (SHARED-DIAG-008): a using directive in a branch the build excludes is absent, and a directive is compared with the other directives of its block whatever preprocessor directives lie between them, as SHARED-USING-007 compares it across directives of other groups. RH7207 MUST report such a block only when its directives differ from the canonical order, and MUST NOT report it for its blank lines: the formatter does not lay out the group boundaries of such a block (FMT-USING-004), and RH7207's check of the blank lines is a layout check whose fix lays the block out as the formatter does, so it does not report the blank lines the formatter leaves or writes there (SHARED-DIAG-010).
 
-Why: Moving a using across a `#if` changes which directives are compiled, and moving it across `#nullable` or `#pragma` changes the context it is compiled in, so neither the formatter nor a fix may reorder a block with a directive among its directives. A directive in front of the first directive stands in front of every directive of the block whatever order they take, so a reorder that keeps it at the top moves no using across it, in any build, and that block is reordered like a block without one; a directive can only stand in leading trivia, so the token whose leading trivia holds it is all the check needs. A directive keeps the fix and the formatter away, not the rule: the rules judge the block the analyzed build compiles, as every rule does (SHARED-DIAG-008), and a diagnostic without a fix is a supported end state. The author corrects such a block by hand — a conditional group is moved as a whole or split into one group per position; an order that satisfies every build always exists. The blank lines between groups are different: the formatter's using phase leaves them as written in such a block, and other requirements of the formatter write blank lines there, such as those around a `#region` (FMT-BLANK-013), so checking them would report the formatter's own output.
+Why: Moving a using across a `#if` changes which directives are compiled, and moving it across `#nullable` or `#pragma` changes the context it is compiled in, so neither the formatter nor a fix may reorder a block with a directive among its directives. A directive in front of the first directive stands in front of every directive of the block whatever order they take, so a reorder that keeps it at the top moves no using across it, in any build, and that block is reordered like a block without one; a directive can only stand in leading trivia, so the token whose leading trivia holds it is all the check needs. Disabled text in front of the block is code another build compiles, often a using, and in that build the block holds a directive between its directives; the maintainer chose to keep such a block unfixed in every build rather than to judge a reorder for one build at a time, which keeps the check to the kind of trivia in front of the block. A directive keeps the fix and the formatter away, not the rule: the rules judge the block the analyzed build compiles, as every rule does (SHARED-DIAG-008), and a diagnostic without a fix is a supported end state. The author corrects such a block by hand — a conditional group is moved as a whole or split into one group per position; an order that satisfies every build always exists. The blank lines between groups are different: the formatter's using phase leaves them as written in such a block, and other requirements of the formatter write blank lines there, such as those around a `#region` (FMT-BLANK-013), so checking them would report the formatter's own output.
 
 Example — in a build that does not define `DEBUG`, the block is reported, no code fix is offered, and the formatter leaves it unchanged:
 
@@ -571,7 +571,7 @@ class C
 }
 ```
 
-Example — a conditional group in front of the block, in a build that does not define `DEBUG`, is in the leading trivia of `System.Linq`, the block's first directive, so the block is reported, and the code fixes and the formatter reorder it:
+Example — a conditional group in front of the block makes it unsafe: in a build that does not define `DEBUG`, `using System.Diagnostics;` is disabled text in the leading trivia of `System.Linq`, the block's first directive, so the block is reported, no code fix is offered, and the formatter leaves it unchanged:
 
 ```csharp
 #if DEBUG
@@ -586,12 +586,15 @@ class C
 }
 ```
 
+and in a build that defines `DEBUG`, `System.Diagnostics` is the first directive and `#endif` stands in the leading trivia of the second, so the block is unsafe there as well.
+
+Example — a conditional group that encloses the block holds no disabled text in front of it in a build that compiles the block: `#if !LEGACY` is in the leading trivia of `System.Linq` and `#endif` in the leading trivia of `class C`, so, in a build that does not define `LEGACY`, the block is reported, and the code fixes and the formatter reorder it:
+
 ```csharp
-#if DEBUG
-using System.Diagnostics;
+#if !LEGACY
+using {|RH7207:System.Linq|};
+using {|RH7203:System|};
 #endif
-using System;
-using System.Linq;
 
 class C
 {
@@ -599,7 +602,17 @@ class C
 }
 ```
 
-while in a build that defines `DEBUG`, `System.Diagnostics` is the first directive and `#endif` stands in the leading trivia of the second, so the block is unsafe in that build: reported, no code fix offered, and the formatter leaves it unchanged.
+```csharp
+#if !LEGACY
+using System;
+using System.Linq;
+#endif
+
+class C
+{
+    int x;
+}
+```
 
 Example — a directive between the tokens of a using directive makes the block unsafe as well, so it is reported, no code fix is offered, and the formatter leaves it unchanged:
 
