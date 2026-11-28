@@ -18,9 +18,11 @@ namespace Reihitsu.Analyzer.CodeFixes.Core;
 /// again by its provider on the code the fixes in front of it produced, so its guard decides on that code, as applying
 /// the fixes one after another does (SHARED-FIX-002). A diagnostic whose fix the provider withholds on that code, or on
 /// the starting code, stays as it is. A diagnostic inside code that an earlier fix rewrote or moved is found again on the changed document, by
-/// running the rule's analyzer on it, and fixed where that fix left it, until no diagnostic whose fix is offered remains
+/// running the rule's analyzer on it, and fixed where that fix left it, until no diagnostic whose fix is offered remains.
+/// In the solution-scoped mode, each fix keeps every document its fix changes, such as the other parts of a partial type
+/// that a rename reaches, and the documents are fixed one after another on the solution the fixes before them produced
 /// </summary>
-internal sealed class DocumentOrderFixAllProvider
+internal sealed class DocumentOrderFixAllProvider : FixAllProvider
 {
     #region Fields
 
@@ -28,6 +30,11 @@ internal sealed class DocumentOrderFixAllProvider
     /// Analyzer that reports the diagnostics the code fix corrects
     /// </summary>
     private readonly DiagnosticAnalyzer _analyzer;
+
+    /// <summary>
+    /// Title of the Fix All action in the solution-scoped mode, or <see langword="null"/> in the document-scoped mode
+    /// </summary>
+    private readonly string _solutionScopedTitle;
 
     #endregion // Fields
 
@@ -37,9 +44,11 @@ internal sealed class DocumentOrderFixAllProvider
     /// Constructor
     /// </summary>
     /// <param name="analyzer">Analyzer that reports the diagnostics the code fix corrects</param>
-    private DocumentOrderFixAllProvider(DiagnosticAnalyzer analyzer)
+    /// <param name="solutionScopedTitle">Title of the Fix All action in the solution-scoped mode, or <see langword="null"/></param>
+    private DocumentOrderFixAllProvider(DiagnosticAnalyzer analyzer, string solutionScopedTitle)
     {
         _analyzer = analyzer;
+        _solutionScopedTitle = solutionScopedTitle;
     }
 
     #endregion // Constructor
@@ -53,7 +62,19 @@ internal sealed class DocumentOrderFixAllProvider
     /// <returns>The Fix All provider</returns>
     public static FixAllProvider Create(DiagnosticAnalyzer analyzer)
     {
-        return FixAllProvider.Create(new DocumentOrderFixAllProvider(analyzer).ApplyFixAllAsync);
+        return FixAllProvider.Create(new DocumentOrderFixAllProvider(analyzer, null).ApplyFixAllAsync);
+    }
+
+    /// <summary>
+    /// Creates the solution-scoped Fix All provider for a code fix that also changes other documents than its diagnostic's
+    /// own: every change of a fix is kept, and each document is fixed on the solution the fixes before it produced
+    /// </summary>
+    /// <param name="analyzer">Analyzer that reports the diagnostics the code fix corrects</param>
+    /// <param name="title">Title of the Fix All action</param>
+    /// <returns>The Fix All provider</returns>
+    public static FixAllProvider CreateSolutionScoped(DiagnosticAnalyzer analyzer, string title)
+    {
+        return new DocumentOrderFixAllProvider(analyzer, title);
     }
 
     /// <summary>
@@ -63,8 +84,9 @@ internal sealed class DocumentOrderFixAllProvider
     /// <param name="context">Fix All context</param>
     /// <param name="document">Document</param>
     /// <param name="diagnostics">Diagnostics of the document</param>
+    /// <param name="keepsSolution">Whether each fix keeps the changes of its whole solution (solution-scoped mode)</param>
     /// <returns>The changed document, whether a fix was applied, and whether a fix changed code that held a later diagnostic</returns>
-    private static async Task<(Document Document, bool HasFixed, bool HasLostDiagnostic)> ApplyPassAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+    private static async Task<(Document Document, bool HasFixed, bool HasLostDiagnostic)> ApplyPassAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics, bool keepsSolution)
     {
         var cancellationToken = context.CancellationToken;
         var orderedDiagnostics = diagnostics.Where(static diagnostic => diagnostic.Location.IsInSource)
@@ -102,9 +124,11 @@ internal sealed class DocumentOrderFixAllProvider
             }
 
             // The next document is built from the changed text, so that its tree is parsed incrementally and its text
-            // need not be written out again for every fix
+            // need not be written out again for every fix; the solution-scoped mode keeps the fix's whole solution instead
             currentText = currentText.WithChanges(changes);
-            currentDocument = currentDocument.WithText(currentText);
+            currentDocument = keepsSolution
+                                  ? changedDocument
+                                  : currentDocument.WithText(currentText);
             hasFixed = true;
 
             for (var laterIndex = diagnosticIndex + 1; laterIndex < currentSpans.Count; laterIndex++)
@@ -246,7 +270,7 @@ internal sealed class DocumentOrderFixAllProvider
 
         for (var pass = 0; pass < maximumPasses; pass++)
         {
-            var result = await ApplyPassAsync(context, currentDocument, currentDiagnostics).ConfigureAwait(false);
+            var result = await ApplyPassAsync(context, currentDocument, currentDiagnostics, _solutionScopedTitle != null).ConfigureAwait(false);
 
             currentDocument = result.Document;
 
@@ -290,5 +314,61 @@ internal sealed class DocumentOrderFixAllProvider
                                 .ToImmutableArray();
     }
 
+    /// <summary>
+    /// Applies the fixes of every document of the Fix All scope in the solution-scoped mode, one document after another,
+    /// each on the solution the fixes of the documents before it produced. A document that an earlier fix changed is
+    /// analyzed again, so its diagnostics are located on its current code
+    /// </summary>
+    /// <param name="context">Fix All context</param>
+    /// <returns>The solution with every fix applied</returns>
+    private async Task<Solution> ApplySolutionFixAllAsync(FixAllContext context)
+    {
+        var documents = context.Scope switch
+                        {
+                            FixAllScope.Document when context.Document != null => [context.Document],
+                            FixAllScope.Project when context.Project != null => context.Project.Documents.ToList(),
+                            FixAllScope.Solution => context.Solution.Projects.SelectMany(static project => project.Documents).ToList(),
+                            _ => new List<Document>()
+                        };
+        var solution = context.Solution;
+
+        foreach (var startingDocument in documents)
+        {
+            var diagnostics = await context.GetDocumentDiagnosticsAsync(startingDocument).ConfigureAwait(false);
+            var currentDocument = solution.GetDocument(startingDocument.Id);
+
+            if (diagnostics.IsEmpty
+                || currentDocument == null)
+            {
+                continue;
+            }
+
+            var startingText = await startingDocument.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+            var currentText = await currentDocument.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
+            if (currentText.ContentEquals(startingText) == false)
+            {
+                diagnostics = await GetDiagnosticsAsync(context, currentDocument).ConfigureAwait(false);
+            }
+
+            solution = (await ApplyFixAllAsync(context, currentDocument, diagnostics).ConfigureAwait(false)).Project.Solution;
+        }
+
+        return solution;
+    }
+
     #endregion // Methods
+
+    #region FixAllProvider
+
+    /// <inheritdoc/>
+    /// <remarks>Reached only in the solution-scoped mode; <see cref="Create"/> returns a document-based provider</remarks>
+    public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+    {
+        return Task.FromResult(CodeAction.Create(_solutionScopedTitle,
+                                                 cancellationToken => ApplySolutionFixAllAsync(fixAllContext.WithCancellationToken(cancellationToken)),
+                                                 fixAllContext.CodeActionEquivalenceKey));
+    }
+
+    #endregion // FixAllProvider
 }

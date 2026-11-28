@@ -713,7 +713,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.CreateSolutionScoped(new RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer(), CodeFixResources.RH2001Title);
     }
 
     #endregion // CodeFixProvider
