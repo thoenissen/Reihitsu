@@ -5,7 +5,7 @@
 | ID prefix | FMT-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingPhase`, `UsingDirectiveOrderingRewriter`, `UsingGrouping`, `UsingLeadingTriviaBuilder`, `UsingTrailingTriviaBuilder` |
-| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, SHARED-BLANK-001, FMT-PIPE-003, FMT-PIPE-030, FMT-BLANK-011, FMT-CLEAN-001, SHARED-FIX-006, SHARED-FIX-007 |
+| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, SHARED-BLANK-001, FMT-PIPE-003, FMT-PIPE-030, FMT-BLANK-011, FMT-BLANK-013, FMT-CLEAN-001, SHARED-FIX-006, SHARED-FIX-007 |
 
 This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how a using block is rebuilt once its canonical order is known — blank lines between groups, one directive per line, and where header, leading, and trailing comments end up. The order itself and the safety guard are the shared policy in SHARED-USING. The code fixes of RH7201–RH7207 organize the one block they fix through `ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync`, which runs this phase alone on the block's scope (FMT-PIPE-030), so its output is also their output.
 
@@ -135,9 +135,9 @@ class C
 
 ### FMT-USING-004 — Unsafe blocks only get one directive per line
 
-For a block that SHARED-USING-009 forbids to reorder, the formatter MUST keep the order of the directives, their blank lines, and all their trivia, and MUST only separate directives that share a line, as in FMT-USING-003. It MUST NOT add group-separating blank lines to such a block.
+For a block that SHARED-USING-009 forbids to reorder, the using phase MUST keep the order of the directives, their blank lines, and all their trivia, and MUST only separate directives that share a line, as in FMT-USING-003. It MUST NOT add group-separating blank lines to such a block. This binds the using phase only: blank lines that another requirement writes inside such a block, such as those that frame a `#region` or `#endregion` between its directives (FMT-BLANK-013), are not affected.
 
-Why: Splitting a line moves no directive across a preprocessor directive and changes nothing that is compiled, so it is safe where reordering is not. Adding blank lines between groups would only half-organize a block whose order the formatter is not allowed to fix.
+Why: Splitting a line moves no directive across a preprocessor directive and changes nothing that is compiled, so it is safe where reordering is not. Adding blank lines between groups would only half-organize a block whose order the formatter is not allowed to fix. The requirement is scoped to the using phase because the blank-line phase runs later over the whole document and frames a region inside the block as it frames any region, so the formatter's output can hold blank lines in such a block that the using phase did not write.
 
 Example:
 
