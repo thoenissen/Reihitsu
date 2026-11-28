@@ -35,6 +35,7 @@
 
 - Last step finished: spec author (01, c9404e4; change doc Draft; open output question 1 + several change-doc entries needing answers).
 - Skeptic (02, c1f75f2): verdict output question; premise holds, reachable via CLI; no architecture findings; escalation 10 not an option (deletes no special case).
+- Skeptic 04 done (3d7023b): spec states answers correctly; 2 new output questions; internal choices for spec author (FMT-INDENT-010 sentence defers to FMT-PIPE-018; cite FMT-BREAK-016; AGENTS table summary completeness; FMT-UNSUP-023 input = context for WithContext; stackalloc[] implicit form). Waiting: batch 2 (03 Q1–Q5 as 1–5, 04 Q1–Q2 as 6–7).
 - Spec author 03 done (2956db2): FMT-UNSUP-023 (region inside a member), FMT-BREAK-046 (array-initializer braces); 5 open output questions in 03; scope warning ~217 test literals hold a region inside a member. Next: skeptic 04, then batch 2.
 - Batches 1, 1b, 1c answered. Earlier plan: fresh spec author (03) rewrites change doc + specs per answers; then fresh skeptic (04) on the amended diff; then any new output questions; then test implementer.
 - Old: batch 1b (scope of the declaration, timing, reach of the initializer line rule).
