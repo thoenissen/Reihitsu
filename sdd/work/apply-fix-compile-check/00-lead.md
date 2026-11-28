@@ -23,5 +23,5 @@ None yet.
 
 ## State
 
-- Last step: test implementer (01-test-implementer.md, de445df) — 5 failing tests reproduce.
-- Next: implementer; it also updates scripts/README.md, the `FixtureOutcome.InvalidResult` doc comment, and the `RunAsync` languageVersion doc.
+- Last step: implementer (02-implementer.md, 57bfc75, a55ef23) — all tests pass.
+- Next: cleaner, then spec checker.
