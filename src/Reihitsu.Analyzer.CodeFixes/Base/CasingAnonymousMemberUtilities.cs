@@ -107,7 +107,7 @@ internal static class CasingAnonymousMemberUtilities
         var name = SyntaxFactory.IdentifierName(nameToken.WithoutTrivia())
                                 .WithLeadingTrivia(expression.GetLeadingTrivia())
                                 .WithTrailingTrivia(SyntaxFactory.Space);
-        var nameEquals = SyntaxFactory.NameEquals(name, SyntaxFactory.Token(SyntaxKind.EqualsToken).WithTrailingTrivia(SyntaxFactory.Space));
+        var nameEquals = SyntaxFactory.NameEquals(name, SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.EqualsToken, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
 
         return member.WithNameEquals(nameEquals)
                      .WithExpression(expression.WithoutLeadingTrivia());
