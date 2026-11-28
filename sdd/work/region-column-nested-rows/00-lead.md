@@ -13,6 +13,7 @@
   - Q1–Q5 (region directive columns inside initializers, patterns, lists, switch sections): a region inside a member is to be declared **unsupported** (escalation 10, answered: declare). Scope of "inside a member" and whether it is declared in this run are asked back (batch 1b).
   - Q6 (row opening behind `}, {`): neither option fits. Rule given instead: each initializer is either single-line or multi-line, judged per initializer when nested; a multi-line initializer puts its `{` and `}` on their own lines. Its reach (rows only vs every array initializer) is asked back (batch 1b).
   - Batch 1b answered: 1A (every region directive from a member's first to its last token is unsupported — bodies, accessors, lambdas, switch sections, field/property initializers, parameter lists, the member's attribute arguments; a nested type is not a member, regions between its members stay supported), 2A (declared in this run), 3A (every array initializer — outer, rows, `new[] { … }` — follows the single-/multi-line rule; multi-line puts `{` and `}` on their own lines). Addition: the `{` on its own line should start under the `=` and not be wrapped (meaning asked back in batch 1c: placement for `new[]` and what "not wrapped" refers to).
+  - Batch 1c answered (brace placement of a multi-line array initializer): when the initializer stands directly behind `=` (`int[,] b = { … }`), its `{` stays on the `=` line; with `new[]` / `new T[…]`, the `{` goes on its own line under `new` (as collection initializers do today). Rows inside and the `}` follow the multi-line rule (own lines).
   - Q7, Q8: not answered; Q8 becomes moot under the declaration (fixes withheld, SHARED-FIX-010). Q7 (comment-led row brace) is a rare class: lead leaves it to local refusal / asks again only if needed.
 
 ## Decisions taken
@@ -30,5 +31,6 @@
 
 - Last step finished: spec author (01, c9404e4; change doc Draft; open output question 1 + several change-doc entries needing answers).
 - Skeptic (02, c1f75f2): verdict output question; premise holds, reachable via CLI; no architecture findings; escalation 10 not an option (deletes no special case).
-- Batch 1 asked and answered (see above). Waiting: batch 1b (scope of the declaration, timing, reach of the initializer line rule).
+- Batches 1, 1b, 1c answered. Next: fresh spec author (03) rewrites change doc + specs per answers; then fresh skeptic (04) on the amended diff; then any new output questions; then test implementer.
+- Old: batch 1b (scope of the declaration, timing, reach of the initializer line rule).
 - Old: output-question batch 1 (Q1 scope A/B, Q2 switch-section #endregion, Q3 anonymous object, Q4 patterns, Q5 other aligned lists, Q6 entry 9, Q7 entry 10, Q8 code-fix results). Next after answers: route to spec author, then test implementer.
