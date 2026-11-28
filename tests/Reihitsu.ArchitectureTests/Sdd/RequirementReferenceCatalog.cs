@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
@@ -128,10 +130,7 @@ internal static class RequirementReferenceCatalog
 
             foreach (var file in Directory.EnumerateFiles(projectDirectory, "*.cs", SearchOption.AllDirectories).OrderBy(path => path, StringComparer.Ordinal))
             {
-                var segments = Path.GetRelativePath(projectDirectory, file).Replace('\\', '/').Split('/');
-
-                if (segments.Contains("bin", StringComparer.Ordinal) == false
-                    && segments.Contains("obj", StringComparer.Ordinal) == false)
+                if (BuildOutputDirectories.Contains(projectDirectory, file) == false)
                 {
                     yield return file;
                 }

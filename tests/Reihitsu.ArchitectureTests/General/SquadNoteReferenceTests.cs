@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.ArchitectureTests.Helpers;
 
 namespace Reihitsu.ArchitectureTests.General;
 
@@ -44,14 +45,15 @@ public sealed class SquadNoteReferenceTests
     private const string RunWorkFolder = "sdd/work/";
 
     /// <summary>
+    /// Version-control directory the scan never enters, next to the build output that
+    /// <see cref="BuildOutputDirectories"/> decides
+    /// </summary>
+    private const string VersionControlDirectory = ".git";
+
+    /// <summary>
     /// Extensions of the text files the scan reads
     /// </summary>
     private static readonly string[] _scannedExtensions = [".md", ".cs", ".sh", ".yml", ".yaml", ".json", ".txt", ".props", ".targets", ".csproj"];
-
-    /// <summary>
-    /// Directory names the scan never enters: version control and build output
-    /// </summary>
-    private static readonly string[] _skippedDirectories = [".git", "bin", "obj"];
 
     /// <summary>
     /// Matches a reference to a Markdown file in a notes folder, by repository path or by relative path, and
@@ -71,7 +73,7 @@ public sealed class SquadNoteReferenceTests
     public void RepositoryFilesReferenceNoSquadNote()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = ScanForNoteReferences(repositoryRoot);
@@ -87,24 +89,18 @@ public sealed class SquadNoteReferenceTests
     public void ScanDetectsRepositoryPathAndRelativeLink()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(root, "AGENTS.md", $"See `{NotesFolder}2026-01-01-run.md` for details.\n");
-            WriteFile(Path.Combine(root, "squad", "roles"), "role.md", $"Read [the note](../{NotesSegment}/topic.md).\n");
+            fixture.WriteFile("AGENTS.md", $"See `{NotesFolder}2026-01-01-run.md` for details.\n");
+            fixture.WriteFile(Path.Combine("squad", "roles", "role.md"), $"Read [the note](../{NotesSegment}/topic.md).\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.HasCount(2, findings);
             Assert.Contains(finding => finding.StartsWith("AGENTS.md:1:", StringComparison.Ordinal), findings);
             Assert.Contains(finding => finding.StartsWith("squad/roles/role.md:1:", StringComparison.Ordinal), findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -116,24 +112,18 @@ public sealed class SquadNoteReferenceTests
     public void ScanIgnoresReadmePlaceholdersNotesAndBuildOutput()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(Path.Combine(root, "squad"), "lead.md", $"Write `{NotesFolder}<yyyy-mm-dd>-<slug>.md` in the form [{NotesSegment}/{NotesReadme}]({NotesSegment}/{NotesReadme}).\n");
-            WriteFile(Path.Combine(root, "squad", NotesSegment), "2026-01-01-run.md", $"Follows {NotesSegment}/2025-12-31-run.md.\n");
-            WriteFile(Path.Combine(root, "src", "Sample", "obj"), "Sample.md", $"`{NotesFolder}2026-01-01-run.md`\n");
-            WriteFile(Path.Combine(root, "src", "Sample", "bin"), "Sample.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("squad", "lead.md"), $"Write `{NotesFolder}<yyyy-mm-dd>-<slug>.md` in the form [{NotesSegment}/{NotesReadme}]({NotesSegment}/{NotesReadme}).\n");
+            fixture.WriteFile(Path.Combine("squad", NotesSegment, "2026-01-01-run.md"), $"Follows {NotesSegment}/2025-12-31-run.md.\n");
+            fixture.WriteFile(Path.Combine("src", "Sample", "obj", "Sample.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("src", "Sample", "bin", "Sample.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.IsEmpty(findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -145,21 +135,15 @@ public sealed class SquadNoteReferenceTests
     public void ScanIgnoresNoteReferenceInRunHandover()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(Path.Combine(root, "sdd", "work", "sample-run"), "01-test-implementer.md", $"The run's note will be `{NotesFolder}2026-01-01-sample-run.md`.\n");
+            fixture.WriteFile(Path.Combine("sdd", "work", "sample-run", "01-test-implementer.md"), $"The run's note will be `{NotesFolder}2026-01-01-sample-run.md`.\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.IsEmpty(findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -171,22 +155,16 @@ public sealed class SquadNoteReferenceTests
     public void ScanIgnoresNoteReferencesAnywhereBelowSddWork()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(Path.Combine(root, "sdd", "work"), "overview.md", $"`{NotesFolder}2026-01-01-run.md`\n");
-            WriteFile(Path.Combine(root, "sdd", "work", "sample-run", "scratch"), "Probe.cs", $"// ../../../../squad/{NotesSegment}/2026-01-01-run.md\n");
+            fixture.WriteFile(Path.Combine("sdd", "work", "overview.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("sdd", "work", "sample-run", "scratch", "Probe.cs"), $"// ../../../../squad/{NotesSegment}/2026-01-01-run.md\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.IsEmpty(findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -198,25 +176,19 @@ public sealed class SquadNoteReferenceTests
     public void ScanDetectsNoteReferenceInPermanentFilesBesideRunHandover()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(Path.Combine(root, "sdd", "work", "sample-run"), "00-lead.md", $"`{NotesFolder}2026-01-01-sample-run.md`\n");
-            WriteFile(Path.Combine(root, "sdd"), "README.md", $"See `{NotesFolder}2026-01-01-sample-run.md`.\n");
-            WriteFile(root, "AGENTS.md", $"See `{NotesFolder}2026-01-01-sample-run.md`.\n");
+            fixture.WriteFile(Path.Combine("sdd", "work", "sample-run", "00-lead.md"), $"`{NotesFolder}2026-01-01-sample-run.md`\n");
+            fixture.WriteFile(Path.Combine("sdd", "README.md"), $"See `{NotesFolder}2026-01-01-sample-run.md`.\n");
+            fixture.WriteFile("AGENTS.md", $"See `{NotesFolder}2026-01-01-sample-run.md`.\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.HasCount(2, findings);
             Assert.Contains(finding => finding.StartsWith("sdd/README.md:1:", StringComparison.Ordinal), findings);
             Assert.Contains(finding => finding.StartsWith("AGENTS.md:1:", StringComparison.Ordinal), findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -228,24 +200,18 @@ public sealed class SquadNoteReferenceTests
     public void ScanDetectsNoteReferenceInPathsSharingSddWorkPrefix()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(Path.Combine(root, "sdd"), "workflow.md", $"`{NotesFolder}2026-01-01-run.md`\n");
-            WriteFile(Path.Combine(root, "sdd", "work-archive"), "run.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("sdd", "workflow.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("sdd", "work-archive", "run.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.HasCount(2, findings);
             Assert.Contains(finding => finding.StartsWith("sdd/workflow.md:1:", StringComparison.Ordinal), findings);
             Assert.Contains(finding => finding.StartsWith("sdd/work-archive/run.md:1:", StringComparison.Ordinal), findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -257,24 +223,18 @@ public sealed class SquadNoteReferenceTests
     public void ScanDetectsNoteReferenceInWorkFolderOutsideRepositorySddWork()
     {
         // Arrange
-        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
-
-        try
+        using (var fixture = new FixtureDirectory())
         {
-            WriteFile(Path.Combine(root, "src", "Sample", "work"), "Sample.md", $"`{NotesFolder}2026-01-01-run.md`\n");
-            WriteFile(Path.Combine(root, "documentation", "sdd", "work"), "page.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("src", "Sample", "work", "Sample.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
+            fixture.WriteFile(Path.Combine("documentation", "sdd", "work", "page.md"), $"`{NotesFolder}2026-01-01-run.md`\n");
 
             // Act
-            var findings = ScanForNoteReferences(root);
+            var findings = ScanForNoteReferences(fixture.Path);
 
             // Assert
             Assert.HasCount(2, findings);
             Assert.Contains(finding => finding.StartsWith("src/Sample/work/Sample.md:1:", StringComparison.Ordinal), findings);
             Assert.Contains(finding => finding.StartsWith("documentation/sdd/work/page.md:1:", StringComparison.Ordinal), findings);
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
         }
     }
 
@@ -337,7 +297,10 @@ public sealed class SquadNoteReferenceTests
 
         foreach (var subdirectory in Directory.EnumerateDirectories(directory))
         {
-            if (_skippedDirectories.Contains(Path.GetFileName(subdirectory), StringComparer.OrdinalIgnoreCase))
+            var directoryName = Path.GetFileName(subdirectory);
+
+            if (string.Equals(directoryName, VersionControlDirectory, StringComparison.OrdinalIgnoreCase)
+                || BuildOutputDirectories.IsBuildOutputDirectoryName(directoryName))
             {
                 continue;
             }
@@ -347,39 +310,6 @@ public sealed class SquadNoteReferenceTests
                 yield return filePath;
             }
         }
-    }
-
-    /// <summary>
-    /// Writes a fixture file, creating its directory when needed
-    /// </summary>
-    /// <param name="directory">Directory of the file</param>
-    /// <param name="fileName">File name</param>
-    /// <param name="content">File content</param>
-    private static void WriteFile(string directory, string fileName, string content)
-    {
-        Directory.CreateDirectory(directory);
-        File.WriteAllText(Path.Combine(directory, fileName), content);
-    }
-
-    /// <summary>
-    /// Locates the repository root by walking up from the test assembly's directory to the solution file
-    /// </summary>
-    /// <returns>The full path of the repository root</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
@@ -456,10 +458,7 @@ internal static class SpecCatalog
 
             foreach (var file in Directory.EnumerateFiles(projectDirectory, searchPattern, SearchOption.AllDirectories))
             {
-                var segments = Path.GetRelativePath(projectDirectory, file).Replace('\\', '/').Split('/');
-
-                if (segments.Contains("bin", StringComparer.Ordinal) == false
-                    && segments.Contains("obj", StringComparer.Ordinal) == false)
+                if (BuildOutputDirectories.Contains(projectDirectory, file) == false)
                 {
                     yield return file;
                 }
