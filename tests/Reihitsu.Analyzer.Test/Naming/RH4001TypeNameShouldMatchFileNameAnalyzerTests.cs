@@ -1377,5 +1377,230 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      });
     }
 
+    /// <summary>
+    /// Verifies that the code fix keeps the 14-digit timestamp prefix of a migration file and replaces only the name behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixKeepsTimestampPrefix()
+    {
+        await VerifyRename("public class {|RH4001:SomeMigration|}", "public class SomeMigration", "20210501083748_InitialCreate.cs", "20210501083748_SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the timestamp prefix and the part of the file name from its first dot
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixKeepsTimestampPrefixAndDottedFileSuffix()
+    {
+        await VerifyRename("public partial class {|RH4001:SomeMigration|}", "public partial class SomeMigration", "20210501083748_InitialCreate.Part1.cs", "20210501083748_SomeMigration.Part1.cs");
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the timestamp prefix and writes the type parameters of a generic type in braces behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixKeepsTimestampPrefixForGenericType()
+    {
+        await VerifyRename("public class {|RH4001:Cache|}<T>", "public class Cache<T>", "20210501083748_InitialCreate.cs", "20210501083748_Cache{T}.cs");
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the timestamp prefix and derives the name behind it from the value of a verbatim type name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixKeepsTimestampPrefixAndRenamesAfterValueOfVerbatimTypeName()
+    {
+        await VerifyRename("public class {|RH4001:@SomeMigration|}", "public class @SomeMigration", "20210501083748_InitialCreate.cs", "20210501083748_SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that a prefix of 13 digits followed by an underscore is no timestamp prefix, so the code fix replaces the whole name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-005")]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixReplacesThirteenDigitPrefixWithTheName()
+    {
+        await VerifyRename("public class {|RH4001:SomeMigration|}", "public class SomeMigration", "2021050108374_InitialCreate.cs", "SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that a prefix of 15 digits is no timestamp prefix, because the 14 digits are not followed by an underscore, so the code fix replaces the whole name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-005")]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixReplacesFifteenDigitPrefixWithTheName()
+    {
+        await VerifyRename("public class {|RH4001:SomeMigration|}", "public class SomeMigration", "202105010837480_InitialCreate.cs", "SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that a prefix that is not all digits is no timestamp prefix, so the code fix replaces the whole name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-005")]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixReplacesNonDigitPrefixWithTheName()
+    {
+        await VerifyRename("public class {|RH4001:SomeMigration|}", "public class SomeMigration", "V2021050108374_InitialCreate.cs", "SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps the timestamp prefix when nothing stands behind it in the file name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixKeepsTimestampPrefixWithoutNameBehindIt()
+    {
+        await VerifyRename("public class {|RH4001:SomeMigration|}", "public class SomeMigration", "20210501083750_.cs", "20210501083750_SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps only the first timestamp prefix and replaces everything behind it, a second prefix included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-008")]
+    public async Task CodeFixKeepsOnlyTheFirstOfTwoTimestampPrefixes()
+    {
+        await VerifyRename("public class {|RH4001:SomeMigration|}", "public class SomeMigration", "20210501083751_20210501083748_X.cs", "20210501083751_SomeMigration.cs");
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the folder already holds a document with the new file name that keeps the timestamp prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-006")]
+    public async Task NoFixIsOfferedWhenDocumentWithTheTimestampPrefixedNewFileNameExists()
+    {
+        const string testCode = """
+                                namespace Migrations
+                                {
+                                    public class {|RH4001:SomeMigration|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string existingTargetCode = """
+                                          namespace Archive
+                                          {
+                                              public class SomeMigration
+                                              {
+                                              }
+                                          }
+                                          """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/20210501083748_InitialCreate.cs", testCode));
+                         test.TestState.Sources.Add(("/0/20210501083748_SomeMigration.cs", existingTargetCode));
+                         test.FixedState.Sources.Add(("/0/20210501083748_InitialCreate.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/20210501083748_SomeMigration.cs", existingTargetCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a document named after the type without the timestamp prefix does not withhold the code fix, which keeps the prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-006")]
+    [Requirement("RH4001-008")]
+    public async Task FixIsOfferedWhenOnlyDocumentWithTheUnprefixedNameExists()
+    {
+        const string testCode = """
+                                namespace Migrations
+                                {
+                                    public class {|RH4001:SomeMigration|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Migrations
+                                 {
+                                     public class SomeMigration
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        const string existingCode = """
+                                    namespace Archive
+                                    {
+                                        public class SomeMigration
+                                        {
+                                        }
+                                    }
+                                    """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/20210501083748_InitialCreate.cs", testCode));
+                         test.TestState.Sources.Add(("/0/SomeMigration.cs", existingCode));
+                         test.FixedState.Sources.Add(("/0/SomeMigration.cs", existingCode));
+                         test.FixedState.Sources.Add(("/0/20210501083748_SomeMigration.cs", fixedCode));
+                     });
+    }
+
     #endregion // Tests
+
+    #region Helpers
+
+    /// <summary>
+    /// Verifies that the code fix renames a file that declares one type with an empty body, and leaves its content unchanged
+    /// </summary>
+    /// <param name="declaration">The type declaration without its body, with the expected diagnostic marked</param>
+    /// <param name="fixedDeclaration">The same declaration without the markup</param>
+    /// <param name="fileName">The file name before the fix</param>
+    /// <param name="newFileName">The file name the fix is expected to produce</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyRename(string declaration, string fixedDeclaration, string fileName, string newFileName)
+    {
+        var testCode = $$"""
+                         {{declaration}}
+                         {
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          {{fixedDeclaration}}
+                          {
+                          }
+                          """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(($"/0/{fileName}", testCode));
+                         test.FixedState.Sources.Add(($"/0/{newFileName}", fixedCode));
+                     });
+    }
+
+    #endregion // Helpers
 }

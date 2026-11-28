@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -579,6 +580,258 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
                      });
     }
 
+    /// <summary>
+    /// Verifies the specification example: a nested namespace whose full name is on the list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task NestedNamespaceWhoseFullNameIsOnTheListIsNotReported()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace B
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "A.B");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a nested namespace whose own name, but not its full name, is on the list is reported on its own name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task NestedNamespaceWhoseOwnNameOnlyIsOnTheListIsReported()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace {|RH4009:B|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "B");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a namespace declared at file level is not nested, so it is compared by its own name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task FileLevelNamespaceNextToAnotherIsComparedByItsOwnName()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                }
+
+                                namespace B
+                                {
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "B");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: dotted names and several levels of nesting are joined into the full name, and only the nested namespace whose full name is not on the list is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task NamespacesNestedOnSeveralLevelsAreComparedByTheirFullNames()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace B.C
+                                    {
+                                        namespace D
+                                        {
+                                        }
+
+                                        namespace {|RH4009:E|}
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "A.B.C", "A.B.C.D");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: each enclosing namespace is compared on its own, so the outer namespace is reported and the nested one whose full name is on the list is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task EnclosingNamespaceIsComparedOnItsOwn()
+    {
+        const string testCode = """
+                                namespace {|RH4009:A|}
+                                {
+                                    namespace B
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A.B");
+    }
+
+    /// <summary>
+    /// Verifies that an intermediate enclosing namespace is compared by its own full name, so it is reported while the namespace nested in it, whose full name is on the list, is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task IntermediateEnclosingNamespaceIsComparedByItsFullName()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace {|RH4009:B|}
+                                    {
+                                        namespace C
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "A.B.C");
+    }
+
+    /// <summary>
+    /// Verifies that a nested namespace with a dotted name whose full name is not on the list is reported on its whole own name, also when
+    /// its own name is on the list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task NestedNamespaceIsReportedOnItsWholeOwnName()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace {|RH4009:B.C|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "B.C");
+    }
+
+    /// <summary>
+    /// Verifies that the full name of a nested namespace is compared case-sensitively, and that its own name on the list does not allow it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task FullNameOfNestedNamespaceIsComparedCaseSensitively()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace {|RH4009:B|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "B", "a.B");
+    }
+
+    /// <summary>
+    /// Verifies that the verbatim prefix on the name of an enclosing namespace is not part of the full name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task VerbatimPrefixOnEnclosingNamespaceIsNotPartOfTheFullName()
+    {
+        const string testCode = """
+                                namespace @A
+                                {
+                                    namespace B
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "A.B");
+    }
+
+    /// <summary>
+    /// Verifies that the verbatim prefix on the name of a nested namespace is not part of the full name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task VerbatimPrefixOnNestedNamespaceIsNotPartOfTheFullName()
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace @B
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "A.B");
+    }
+
+    /// <summary>
+    /// Verifies that a Unicode escape in the name of an enclosing namespace is replaced by its character in the full name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task UnicodeEscapeInEnclosingNamespaceIsReplacedInTheFullName()
+    {
+        const string testCode = """
+                                namespace \u0041
+                                {
+                                    namespace B
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A", "A.B");
+    }
+
+    /// <summary>
+    /// Verifies that whitespace and a comment inside the dotted name of an enclosing namespace are not part of the full name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4009-003")]
+    public async Task WhitespaceAndCommentInEnclosingNamespaceNameAreNotPartOfTheFullName()
+    {
+        const string testCode = """
+                                namespace A . /* x */ B
+                                {
+                                    namespace C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyWithAllowListEntries(testCode, "A.B", "A.B.C");
+    }
+
     #endregion // Methods
 
     #region Helpers
@@ -596,6 +849,26 @@ public class RH4009NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH4009Na
                      {
                          var configuration = $$"""
                                                { "naming": { "allowedNamespaceDeclarations": [ "{{allowedNamespace}}" ] } }
+                                               """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the analyzer with a configuration whose allow-list holds the given entries
+    /// </summary>
+    /// <param name="testCode">Test code</param>
+    /// <param name="allowedNamespaces">The entries of the allow-list</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyWithAllowListEntries(string testCode, params string[] allowedNamespaces)
+    {
+        await Verify(testCode,
+                     test =>
+                     {
+                         var entries = string.Join(", ", allowedNamespaces.Select(allowedNamespace => $"\"{allowedNamespace}\""));
+                         var configuration = $$"""
+                                               { "naming": { "allowedNamespaceDeclarations": [ {{entries}} ] } }
                                                """;
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));

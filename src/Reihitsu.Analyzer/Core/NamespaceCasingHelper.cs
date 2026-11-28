@@ -43,5 +43,20 @@ internal static class NamespaceCasingHelper
         }
     }
 
+    /// <summary>
+    /// Gets the values of the identifiers of the namespace a node is declared in: the names of every namespace declaration
+    /// that is or encloses the node, outermost first, each identifier as returned by <see cref="GetLocations"/>
+    /// </summary>
+    /// <param name="node">Namespace declaration, or a node inside one</param>
+    /// <returns>The identifier values of the full namespace name, outermost first; empty when no namespace declaration encloses the node</returns>
+    internal static IEnumerable<string> GetFullNameParts(SyntaxNode node)
+    {
+        return node.AncestorsAndSelf()
+                   .OfType<BaseNamespaceDeclarationSyntax>()
+                   .Reverse()
+                   .SelectMany(static namespaceDeclaration => GetLocations(namespaceDeclaration.Name))
+                   .Select(static part => part.Name);
+    }
+
     #endregion // Methods
 }
