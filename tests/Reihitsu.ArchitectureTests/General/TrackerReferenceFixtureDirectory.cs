@@ -6,7 +6,7 @@ namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
 /// Creates and cleans up a temporary directory holding disposable fixture files for one
-/// <see cref="SelfReferentialTrackerReferenceTests"/> test
+/// <see cref="SelfReferentialTrackerReferenceTests"/> or <see cref="ResourceTextLiteralTests"/> test
 /// </summary>
 internal sealed class TrackerReferenceFixtureDirectory : IDisposable
 {
