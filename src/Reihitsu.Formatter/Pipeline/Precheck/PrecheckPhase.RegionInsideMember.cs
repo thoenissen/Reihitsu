@@ -42,19 +42,15 @@ internal sealed partial class PrecheckPhase
                 continue;
             }
 
-            foreach (var trivia in token.LeadingTrivia)
-            {
-                if (SyntaxTriviaUtilities.IsRegionDirective(trivia)
-                    && SyntaxTriviaUtilities.IsInactiveDirective(trivia) == false)
-                {
-                    if (exceptsMemberPositions
-                        && (token == firstToken || StandsBetweenMembers(token)))
-                    {
-                        break;
-                    }
+            var directive = token.LeadingTrivia.Where(static trivia => SyntaxTriviaUtilities.IsRegionDirective(trivia)
+                                                                       && SyntaxTriviaUtilities.IsInactiveDirective(trivia) == false)
+                                               .Cast<SyntaxTrivia?>()
+                                               .FirstOrDefault();
 
-                    return trivia;
-                }
+            if (directive != null
+                && (exceptsMemberPositions == false || (token != firstToken && StandsBetweenMembers(token) == false)))
+            {
+                return directive;
             }
         }
 
