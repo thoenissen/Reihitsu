@@ -46,7 +46,7 @@ public enum FixtureOutcome
 
     /// <summary>
     /// Applying the code fix produced source that no longer parses or compiles: under the run's language version, it carries
-    /// more distinct messages for some compile error ID than the fixture did, and an ID the fixture lacks counts from zero
+    /// a compile error ID the fixture did not have
     /// </summary>
     InvalidResult
 }
