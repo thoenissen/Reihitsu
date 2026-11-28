@@ -485,34 +485,82 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
     }
 
     /// <summary>
-    /// Verifies no code fix is offered for a letterless local variable whose conversion cannot produce a valid identifier
+    /// Verifies a local variable named <c>_</c> is not reported in a declaration statement, a foreach statement, a catch
+    /// declaration, and a using declaration, while a name that only starts with <c>_</c> is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NoCodeFixForLetterlessLocalVariable()
+    [Requirement("RH4115-004")]
+    public async Task LocalNamedDiscardIsNotReported()
     {
         const string testCode = """
-                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                using System;
+
+                                class C
                                 {
-                                    public class DataLoader
+                                    void M()
                                     {
-                                        public void Load()
+                                        int _ = 42;
+                                        int {|RH4115:_count|} = 0;
+                                    }
+
+                                    void N(int[] values)
+                                    {
+                                        foreach (var _ in values)
                                         {
-                                            int _ = 42;
+                                        }
+
+                                        try
+                                        {
+                                        }
+                                        catch (Exception _)
+                                        {
+                                        }
+                                    }
+
+                                    void O()
+                                    {
+                                        using var _ = (IDisposable)null;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a local variable named <c>_</c> is not reported in the initializer of a for statement, a using statement,
+    /// and a fixed statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-004")]
+    public async Task LocalNamedDiscardIsNotReportedInForUsingAndFixedStatements()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                class C
+                                {
+                                    unsafe void M(int[] values)
+                                    {
+                                        for (int _ = 0; ;)
+                                        {
+                                            break;
+                                        }
+
+                                        using (var _ = new StringReader(""))
+                                        {
+                                        }
+
+                                        fixed (int* _ = values)
+                                        {
                                         }
                                     }
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH4115LocalVariableCasingAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<VariableDeclaratorSyntax>()
-                                                               .Single(declarator => declarator.Identifier.ValueText == "_")
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testCode, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
     }
 
     /// <summary>
@@ -1652,6 +1700,591 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies local constants are not reported, whatever their name, while a local variable without <c>const</c> next to
+    /// them is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-005")]
+    public async Task LocalConstantsAreNotChecked()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        const int MaxValue = 3, Max_Count = 4;
+                                        int {|RH4115:Total|} = MaxValue + Max_Count;
+
+                                        return Total;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies local constants in a constructor, a local function, a lambda, an anonymous method, and a switch section are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-005")]
+    public async Task LocalConstantsAreNotCheckedInAnyContainer()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    C()
+                                    {
+                                        const int Initial = 0;
+                                        Action a = delegate { const int Delay = Initial; };
+                                    }
+
+                                    int M(int value)
+                                    {
+                                        int Local()
+                                        {
+                                            const int Limit = 1;
+
+                                            return Limit;
+                                        }
+
+                                        Func<int> f = () =>
+                                        {
+                                            const int Step = 2;
+
+                                            return Step;
+                                        };
+
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                const int Offset = 3;
+
+                                                return Offset;
+                                        }
+
+                                        return Local() + f();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no variable of a deconstruction is reported, whether it is declared by a parenthesized designation, inside a
+    /// tuple on the left of a deconstruction or of a foreach statement, or by a deconstruction pattern
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-002")]
+    public async Task VariablesOfEveryDeconstructionFormAreNotChecked()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M((int, int) pair, (object, object) objects, List<(int, int)> pairs)
+                                    {
+                                        var (First, Second) = pair;
+                                        (var Third, var Fourth) = pair;
+                                        (int Fifth, var (Sixth, Seventh)) = (1, pair);
+
+                                        foreach (var (Key, Value) in pairs)
+                                        {
+                                        }
+
+                                        foreach ((var Name, var Count) in pairs)
+                                        {
+                                        }
+
+                                        if (pair is var (Left, Right))
+                                        {
+                                        }
+
+                                        if (objects is (var Item, int Number))
+                                        {
+                                        }
+
+                                        if (objects is (int Positive and > 0, _))
+                                        {
+                                        }
+
+                                        if (objects is (string { Length: > 0 } Text, { } Any))
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies pattern variables outside a deconstruction stay reported: the variable that names a whole pattern, a property
+    /// pattern variable inside a positional pattern, and a simple pattern variable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-002")]
+    public async Task PatternVariablesOutsideADeconstructionAreReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(object input, (int, int) pair, (string, int) named)
+                                    {
+                                        if (pair is (1, 2) {|RH4115:Both|})
+                                        {
+                                        }
+
+                                        if (named is ({ Length: var {|RH4115:Size|} }, _))
+                                        {
+                                        }
+
+                                        if (input is int {|RH4115:Number|})
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the deconstruction variables of nested tuples, nested designations, typed, named, nested, and wrapped
+    /// positional subpatterns, positional patterns inside property and list patterns, and switch statements and switch
+    /// expressions are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-002")]
+    public async Task DeconstructionVariablesInNestedAndSwitchPositionsAreNotChecked()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                record Point(int X, int Y);
+
+                                class Holder
+                                {
+                                    public (int, int) Pair { get; set; }
+                                }
+
+                                class C
+                                {
+                                    int M((int, int) pair, (object, object) objects, ((int, int), int) nested, (int[], int) withList, Point point, Holder holder, (int, int)[] pairs, int existing)
+                                    {
+                                        ((var First, var Second), var Third) = nested;
+                                        (existing, var Fourth) = pair;
+
+                                        foreach ((var Name, (var Low, var High)) in new List<(int, (int, int))>())
+                                        {
+                                        }
+
+                                        if (nested is var ((Left, Right), Last))
+                                        {
+                                        }
+
+                                        if (nested is ((var Inner, var Outer), var Tail))
+                                        {
+                                        }
+
+                                        if (point is Point(var PointX, var PointY))
+                                        {
+                                        }
+
+                                        if (holder is { Pair: (var Key, _) })
+                                        {
+                                        }
+
+                                        if (pairs is [(var Head, _), ..])
+                                        {
+                                        }
+
+                                        if (objects is (Item1: var Named, _))
+                                        {
+                                        }
+
+                                        if (objects is (> 0 and int Positive, _))
+                                        {
+                                        }
+
+                                        if (objects is ((var Wrapped), (int Typed)))
+                                        {
+                                        }
+
+                                        if (withList is ([_, _] Items, _))
+                                        {
+                                        }
+
+                                        if (nested is ((1, 2) Matched, _))
+                                        {
+                                        }
+
+                                        switch (objects)
+                                        {
+                                            case (var Start, var End):
+                                                break;
+                                        }
+
+                                        return pair switch
+                                        {
+                                            var (Lower, Upper) => Lower + Upper,
+                                        };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies pattern variables that receive no whole element of a positional pattern stay reported: a parenthesized
+    /// top-level pattern, a list pattern element and slice, also inside a positional pattern, a property pattern variable,
+    /// a whole-pattern variable, a var pattern, and an out variable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4115-001")]
+    [Requirement("RH4115-002")]
+    public async Task PatternVariablesThatReceiveNoWholeElementAreReported()
+    {
+        const string testCode = """
+                                class Holder
+                                {
+                                    public (int, int) Pair { get; set; }
+                                }
+
+                                class C
+                                {
+                                    void M(object input, (object, object) objects, (int[], int) withList, int[] values, Holder holder)
+                                    {
+                                        if (input is (var {|RH4115:Paren|}))
+                                        {
+                                        }
+
+                                        if (values is [var {|RH4115:First|}, .. var {|RH4115:Rest|}])
+                                        {
+                                        }
+
+                                        if (withList is ([var {|RH4115:Element|}, ..], _))
+                                        {
+                                        }
+
+                                        if (holder is { Pair: var {|RH4115:Whole|} })
+                                        {
+                                        }
+
+                                        if (objects is (var item, _) {|RH4115:Outer|})
+                                        {
+                                        }
+
+                                        if (input is var {|RH4115:Value|})
+                                        {
+                                        }
+
+                                        int.TryParse("1", out var {|RH4115:Parsed|});
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the name of an anonymous object member whose whole expression is the renamed local, while a
+    /// member with a name of its own is only renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    [Requirement("RH4115-003")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheLocal()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    object M(int[] values)
+                                    {
+                                        var {|RH4115:Total|} = values.Sum();
+
+                                        return values.Select(Value => new { Value, Total, Doubled = Value * 2 }).First();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     object M(int[] values)
+                                     {
+                                         var total = values.Sum();
+
+                                         return values.Select(Value => new { Value, Total = total, Doubled = Value * 2 }).First();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the member name when the anonymous object's <c>ToString</c> result is the only observer of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberThatToStringReads()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(int[] values)
+                                    {
+                                        var {|RH4115:Total|} = values.Length;
+                                        var o = new { Total };
+
+                                        return o.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(int[] values)
+                                     {
+                                         var total = values.Length;
+                                         var o = new { Total = total };
+
+                                         return o.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the name of an anonymous object member that is read by its name afterwards, so the read still
+    /// compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberReadByItsName()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int[] values)
+                                    {
+                                        var {|RH4115:Total|} = values.Length;
+                                        var o = new { Total };
+
+                                        return o.Total;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int[] values)
+                                     {
+                                         var total = values.Length;
+                                         var o = new { Total = total };
+
+                                         return o.Total;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix writes the member name and keeps the layout and the comments of a multi-line anonymous object, with
+    /// both line endings, for the single fix of each local and for the fix of both
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheLayoutAndCommentsOfAMultiLineAnonymousObjectMember(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    object M(int[] values)
+                                    {
+                                        var {|RH4115:Total|} = values.Length;
+                                        var {|RH4115:Count|} = 1;
+
+                                        return new
+                                               {
+                                                   // The sum
+                                                   Total, // trailing
+                                                   Count /* last */
+                                               };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     object M(int[] values)
+                                     {
+                                         var total = values.Length;
+                                         var count = 1;
+
+                                         return new
+                                                {
+                                                    // The sum
+                                                    Total = total, // trailing
+                                                    Count = count /* last */
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        const string totalFixedCode = """
+                                      class C
+                                      {
+                                          object M(int[] values)
+                                          {
+                                              var total = values.Length;
+                                              var Count = 1;
+
+                                              return new
+                                                     {
+                                                         // The sum
+                                                         Total = total, // trailing
+                                                         Count /* last */
+                                                     };
+                                          }
+                                      }
+                                      """;
+
+        const string countFixedCode = """
+                                      class C
+                                      {
+                                          object M(int[] values)
+                                          {
+                                              var Total = values.Length;
+                                              var count = 1;
+
+                                              return new
+                                                     {
+                                                         // The sum
+                                                         Total, // trailing
+                                                         Count = count /* last */
+                                                     };
+                                          }
+                                      }
+                                      """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+
+        // The source holds two diagnostics, so each single action is checked on its own, line endings included
+        var plainSource = ConvertEndOfLine(RemoveMarkup(testCode), endOfLine);
+
+        Assert.AreEqual(ConvertEndOfLine(totalFixedCode, endOfLine), await TryApplyCodeFixAtAsync(plainSource, RH4115LocalVariableCasingAnalyzer.DiagnosticId, static root => GetLocalIdentifierLocation(root, "Total")));
+        Assert.AreEqual(ConvertEndOfLine(countFixedCode, endOfLine), await TryApplyCodeFixAtAsync(plainSource, RH4115LocalVariableCasingAnalyzer.DiagnosticId, static root => GetLocalIdentifierLocation(root, "Count")));
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the member name in a nested anonymous object and in every anonymous object that names a
+    /// member after the local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfEveryAnonymousObjectMemberNamedAfterTheLocal()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(int[] values)
+                                    {
+                                        var {|RH4115:Total|} = values.Length;
+                                        var first = new { Outer = new { Total } };
+                                        var second = new { Total, Text = Total.ToString() };
+
+                                        return first.ToString() + second;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(int[] values)
+                                     {
+                                         var total = values.Length;
+                                         var first = new { Outer = new { Total = total } };
+                                         var second = new { Total = total, Text = total.ToString() };
+
+                                         return first.ToString() + second;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies an anonymous object member whose name the compiler takes from another identifier than the renamed local
+    /// gets no name written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixWritesNoNameForAMemberNamedAfterAnotherIdentifier()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M()
+                                    {
+                                        var {|RH4115:Text|} = "abc";
+
+                                        return new { Text.Length, Copy = Text }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M()
+                                     {
+                                         var text = "abc";
+
+                                         return new { text.Length, Copy = text }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -2031,6 +2664,21 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  ?? [];
 
         return referencePaths.Select(static path => MetadataReference.CreateFromFile(path));
+    }
+
+    /// <summary>
+    /// Gets the location of the identifier of the local variable declarator with the provided name
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="name">Name of the local</param>
+    /// <returns>The location of the declarator's identifier</returns>
+    private static Location GetLocalIdentifierLocation(SyntaxNode root, string name)
+    {
+        return root.DescendantNodes()
+                   .OfType<VariableDeclaratorSyntax>()
+                   .Single(declarator => declarator.Identifier.ValueText == name)
+                   .Identifier
+                   .GetLocation();
     }
 
     #endregion // Methods

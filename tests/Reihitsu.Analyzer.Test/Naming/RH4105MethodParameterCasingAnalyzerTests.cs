@@ -2123,6 +2123,526 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the range variables of every query clause that declares one are reported once on their declaration, while
+    /// their later uses are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-005")]
+    public async Task RangeVariablesOfEveryQueryClauseAreReported()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(int[] values, int[] others)
+                                    {
+                                        var doubled = from {|RH4105:Value|} in values
+                                                      let {|RH4105:Doubled_Value|} = Value * 2
+                                                      select Doubled_Value;
+
+                                        var joined = from int {|RH4105:Item|} in values
+                                                     join {|RH4105:Other|} in others on Item equals Other
+                                                     select Item + Other;
+
+                                        var grouped = from value in values
+                                                      join other in others on value equals other into {|RH4105:Matches|}
+                                                      select Matches.Count();
+
+                                        var continued = from value in values
+                                                        group value by value % 2 into {|RH4105:Parity|}
+                                                        select Parity.Key into {|RH4105:Key|}
+                                                        select Key;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies range variables in camelCase are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-005")]
+    public async Task RangeVariablesInCamelCaseAreNotReported()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(int[] values)
+                                    {
+                                        var names = from value in values
+                                                    let doubledValue = value * 2
+                                                    select doubledValue;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the range variables of a later from clause, a typed join clause, and a query nested in another query, in a
+    /// lambda, and in a field initializer are reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-005")]
+    public async Task RangeVariablesInEveryEnclosingScopeAreReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    private static readonly IEnumerable<int> Field = from {|RH4105:Number|} in new[] { 1 } select Number;
+
+                                    void M(int[] values, int[] others)
+                                    {
+                                        var pairs = from value in values
+                                                    from {|RH4105:Second|} in others
+                                                    join int {|RH4105:Third|} in others on Second equals Third
+                                                    select (from {|RH4105:Inner|} in values select Inner + value).Count();
+
+                                        Func<IEnumerable<int>> f = () => from {|RH4105:Element|} in values select Element;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a range variable with the verbatim prefix is reported by its value text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-005")]
+    public async Task VerbatimRangeVariableIsReportedByItsValueText()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] values)
+                                    {
+                                        return (from {|RH4105:@Value|} in values select @Value).ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a parameter and a range variable named <c>_</c> and the parameters of record primary constructors are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-002")]
+    public async Task DiscardParametersRangeVariablesAndRecordParametersAreNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Linq;
+
+                                public record class R(int ParameterName);
+
+                                public record struct S(int ParameterName);
+
+                                public class C
+                                {
+                                    public void M(object _, EventArgs e)
+                                    {
+                                        Func<int, int, int> f = (_, _) => 0;
+                                    }
+
+                                    public int N(int[] values)
+                                    {
+                                        return (from _ in values select 1).Count();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames the range variables of every clause and every reference to them, also across a query continuation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-006")]
+    public async Task FixRenamesRangeVariablesAndTheirReferencesAcrossAContinuation()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] values, int[] others)
+                                    {
+                                        return (from {|RH4105:Value|} in values
+                                                let {|RH4105:Doubled|} = Value * 2
+                                                join int {|RH4105:Other|} in others on Doubled equals Other into {|RH4105:Matches|}
+                                                select new { Item = Value, Count = Matches.Count() } into {|RH4105:Projected|}
+                                                select Projected.Item + Projected.Count).ToArray();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int[] M(int[] values, int[] others)
+                                     {
+                                         return (from value in values
+                                                 let doubled = value * 2
+                                                 join int other in others on doubled equals other into matches
+                                                 select new { Item = value, Count = matches.Count() } into projected
+                                                 select projected.Item + projected.Count).ToArray();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix renames the range variables of a join and a continuation behind select, with every later use
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-005")]
+    [Requirement("RH4105-006")]
+    public async Task FixRenamesRangeVariablesOfAJoinIntoAndASelectContinuation()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] values, int[] others)
+                                    {
+                                        return (from {|RH4105:Value|} in values
+                                                let {|RH4105:Doubled|} = Value * 2
+                                                join int {|RH4105:Other|} in others on Doubled equals Other into {|RH4105:Matches|}
+                                                select Matches.Count() into {|RH4105:Count|}
+                                                select Count).ToArray();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int[] M(int[] values, int[] others)
+                                     {
+                                         return (from value in values
+                                                 let doubled = value * 2
+                                                 join int other in others on doubled equals other into matches
+                                                 select matches.Count() into count
+                                                 select count).ToArray();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the names of anonymous object members that range variables name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-006")]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNamesOfAnonymousObjectMembersThatRangeVariablesName()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    object M(int[] values)
+                                    {
+                                        return (from {|RH4105:Value|} in values
+                                                let {|RH4105:Doubled|} = Value * 2
+                                                select new { Value, Doubled }).First();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     object M(int[] values)
+                                     {
+                                         return (from value in values
+                                                 let doubled = value * 2
+                                                 select new { Value = value, Doubled = doubled }).First();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix keeps the name of an anonymous object member that a range variable names inside a nested query
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberInANestedQuery()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    object M(int[] values)
+                                    {
+                                        return (from {|RH4105:Value|} in values
+                                                select (from other in values select new { Value }).First()).First();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     object M(int[] values)
+                                     {
+                                         return (from value in values
+                                                 select (from other in values select new { Value = value }).First()).First();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a range variable keeps its diagnostic but gets no fix when its derived name needs the verbatim prefix
+    /// inside the query
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-013")]
+    public async Task NoFixIsOfferedWhenTheDerivedRangeVariableNameNeedsTheVerbatimPrefix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] values)
+                                    {
+                                        return (from {|RH4105:Group|} in values select Group).ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a range variable keeps its diagnostic but gets no fix when its new name would collide with a local
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewRangeVariableNameWouldCollideWithALocal()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] values)
+                                    {
+                                        int value = 1;
+
+                                        return (from {|RH4105:Value|} in values select Value + value).ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the single fix renames the first of two range variables of one query whose names convert to the same
+    /// name and is withheld for the second, while Fix All skips both
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-CASING-010")]
+    public async Task RangeVariablesWithTheSameNewNameInOneQueryAreNotFixed()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] first, int[] second)
+                                    {
+                                        return (from {|RH4105:Value|} in first
+                                                from {|RH4105:VALUE|} in second
+                                                select Value + VALUE).ToArray();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int[] M(int[] first, int[] second)
+                                     {
+                                         return (from value in first
+                                                 from {|RH4105:VALUE|} in second
+                                                 select value + VALUE).ToArray();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // Fix All skips both colliding names, so the batch result is the unchanged source
+                                test.BatchFixedCode = testCode;
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+
+                                // The shared Fix All provider offers its action before it knows that every candidate is
+                                // skipped, so one Fix All iteration that changes nothing is allowed
+                                test.NumberOfFixAllIterations = -1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that a range variable keeps its diagnostic but gets no fix when an excluded <c>#if</c> branch inside the
+    /// query references it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task NoFixIsOfferedWhenAnExcludedBranchReferencesTheRangeVariable()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    int[] M(int[] values)
+                                    {
+                                        return (from {|RH4105:Value|} in values
+                                #if NEVER
+                                                where Value > 0
+                                #endif
+                                                select Value).ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a lambda parameter keeps the name of an anonymous object member whose whole expression is the
+    /// parameter, while a member with a name of its own is only renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    [Requirement("RH4105-003")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterALambdaParameter()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    object M(int[] values)
+                                    {
+                                        var Total = values.Sum();
+
+                                        return values.Select({|RH4105:Value|} => new { Value, Total, Doubled = Value * 2 }).First();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     object M(int[] values)
+                                     {
+                                         var Total = values.Sum();
+
+                                         return values.Select(value => new { Value = value, Total, Doubled = value * 2 }).First();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a parameter writes no name for an anonymous object member that the compiler names after another
+    /// identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixWritesNoNameForAMemberNamedAfterAnotherIdentifier()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string {|RH4105:Text|})
+                                    {
+                                        return new { Text.Length }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string text)
+                                     {
+                                         return new { text.Length }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region Methods

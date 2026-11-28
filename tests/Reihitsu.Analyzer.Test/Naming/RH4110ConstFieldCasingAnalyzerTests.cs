@@ -288,6 +288,41 @@ public class RH4110ConstFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4110C
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the fix of a constant field keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private const int {|RH4110:maxValue|} = 3;
+
+                                    string M()
+                                    {
+                                        return new { maxValue }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private const int MaxValue = 3;
+
+                                     string M()
+                                     {
+                                         return new { maxValue = MaxValue }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

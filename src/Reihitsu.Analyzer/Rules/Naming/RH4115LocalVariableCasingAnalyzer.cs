@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -49,14 +50,18 @@ public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase
 
     #endregion // Constructor
 
-    #region CasingAnalyzerBase
+    #region Methods
 
-    /// <inheritdoc/>
-    protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
+    /// <summary>
+    /// Gets the identifiers of the local variables a node declares that this rule checks
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns>The identifiers</returns>
+    private static IEnumerable<SyntaxToken> GetDeclaredIdentifiers(SyntaxNode node)
     {
         var declaration = node switch
                           {
-                              LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Declaration,
+                              LocalDeclarationStatementSyntax { IsConst: false } localDeclaration => localDeclaration.Declaration,
                               ForStatementSyntax forStatement => forStatement.Declaration,
                               UsingStatementSyntax usingStatement => usingStatement.Declaration,
                               FixedStatementSyntax fixedStatement => fixedStatement.Declaration,
@@ -65,27 +70,42 @@ public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase
 
         if (declaration != null)
         {
-            foreach (var identifier in declaration.Variables
-                                                  .Select(variable => variable.Identifier))
+            foreach (var variable in declaration.Variables)
             {
-                yield return (identifier.ValueText, identifier.GetLocation());
+                yield return variable.Identifier;
             }
         }
 
         if (node is ForEachStatementSyntax forEachStatement)
         {
-            yield return (forEachStatement.Identifier.ValueText, forEachStatement.Identifier.GetLocation());
+            yield return forEachStatement.Identifier;
         }
 
-        if (node is SingleVariableDesignationSyntax { Parent: not ParenthesizedVariableDesignationSyntax } designation)
+        if (node is SingleVariableDesignationSyntax designation
+            && DeconstructionVariableUtilities.IsDeconstructionVariable(designation) == false)
         {
-            yield return (designation.Identifier.ValueText, designation.Identifier.GetLocation());
+            yield return designation.Identifier;
         }
 
         if (node is CatchDeclarationSyntax { Identifier.RawKind: not 0 } catchDeclaration)
         {
-            yield return (catchDeclaration.Identifier.ValueText, catchDeclaration.Identifier.GetLocation());
+            yield return catchDeclaration.Identifier;
         }
+    }
+
+    #endregion // Methods
+
+    #region CasingAnalyzerBase
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// A local constant is left to RH4128, a variable of a deconstruction to RH4117, as <see cref="DeconstructionVariableUtilities.IsDeconstructionVariable"/>
+    /// decides it, and a local named <c>_</c> is not checked
+    /// </remarks>
+    protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
+    {
+        return GetDeclaredIdentifiers(node).Where(static identifier => identifier.ValueText != "_")
+                                           .Select(static identifier => (identifier.ValueText, identifier.GetLocation()));
     }
 
     #endregion // CasingAnalyzerBase

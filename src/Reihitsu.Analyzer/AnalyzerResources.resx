@@ -406,10 +406,10 @@
     <value>Local function names should be in PascalCase</value>
   </data>
   <data name="RH4105Title" xml:space="preserve">
-    <value>Method parameter names should be in camelCase</value>
+    <value>Parameter and query range variable names should be in camelCase</value>
   </data>
   <data name="RH4105MessageFormat" xml:space="preserve">
-    <value>Method parameter names should be in camelCase</value>
+    <value>Parameter and query range variable names should be in camelCase</value>
   </data>
   <data name="RH4106Title" xml:space="preserve">
     <value>Private field names should be in _camelCase</value>
@@ -572,6 +572,12 @@
   </data>
   <data name="RH4127MessageFormat" xml:space="preserve">
     <value>Single-letter catch exception variable names should not be used</value>
+  </data>
+  <data name="RH4128Title" xml:space="preserve">
+    <value>Local constant names should be in camelCase</value>
+  </data>
+  <data name="RH4128MessageFormat" xml:space="preserve">
+    <value>Local constant names should be in camelCase</value>
   </data>
   <data name="RH7301MessageFormat" xml:space="preserve">
     <value>#region and #endregion descriptions should match</value>

@@ -331,6 +331,41 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the fix of a protected field keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    protected int {|RH4107:Value|};
+
+                                    string M()
+                                    {
+                                        return new { Value }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     protected int _value;
+
+                                     string M()
+                                     {
+                                         return new { Value = _value }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

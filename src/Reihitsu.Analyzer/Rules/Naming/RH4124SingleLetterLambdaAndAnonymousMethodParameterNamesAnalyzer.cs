@@ -62,15 +62,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer : 
     /// <param name="context">Context</param>
     private void OnRangeVariableDeclaration(SyntaxNodeAnalysisContext context)
     {
-        var identifier = context.Node switch
-                         {
-                             FromClauseSyntax fromClause => fromClause.Identifier,
-                             LetClauseSyntax letClause => letClause.Identifier,
-                             JoinClauseSyntax joinClause => joinClause.Identifier,
-                             JoinIntoClauseSyntax joinIntoClause => joinIntoClause.Identifier,
-                             QueryContinuationSyntax queryContinuation => queryContinuation.Identifier,
-                             _ => default
-                         };
+        var identifier = RangeVariableDeclarationUtilities.GetIdentifier(context.Node);
 
         if (SingleLetterIdentifierUtilities.HasSingleLetterName(identifier.ValueText))
         {
@@ -88,12 +80,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer : 
         base.Initialize(context);
 
         context.RegisterSyntaxNodeAction(OnParameter, SyntaxKind.Parameter);
-        context.RegisterSyntaxNodeAction(OnRangeVariableDeclaration,
-                                         SyntaxKind.FromClause,
-                                         SyntaxKind.LetClause,
-                                         SyntaxKind.JoinClause,
-                                         SyntaxKind.JoinIntoClause,
-                                         SyntaxKind.QueryContinuation);
+        context.RegisterSyntaxNodeAction(OnRangeVariableDeclaration, RangeVariableDeclarationUtilities.DeclarationKinds);
     }
 
     #endregion // DiagnosticAnalyzer

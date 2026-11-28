@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.Core;
 
@@ -15,7 +16,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Naming;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH4105MethodParameterCasingCodeFixProvider))]
-public class RH4105MethodParameterCasingCodeFixProvider : CasingCodeFixProviderBase<ParameterSyntax>
+public class RH4105MethodParameterCasingCodeFixProvider : CasingCodeFixProviderBase<SyntaxNode>
 {
     #region Constructor
 
@@ -32,9 +33,11 @@ public class RH4105MethodParameterCasingCodeFixProvider : CasingCodeFixProviderB
     #region CasingCodeFixProviderBase
 
     /// <inheritdoc/>
-    protected override string GetIdentifier(ParameterSyntax node)
+    protected override string GetIdentifier(SyntaxNode node)
     {
-        return node.Identifier.ValueText;
+        return node is ParameterSyntax parameter
+                   ? parameter.Identifier.ValueText
+                   : RangeVariableDeclarationUtilities.GetIdentifier(node).ValueText;
     }
 
     #endregion // CasingCodeFixProviderBase

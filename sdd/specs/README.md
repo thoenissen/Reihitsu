@@ -141,6 +141,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH4125.md](analyzer/RH4125.md) | RH4125 | `RH4125SingleLetterLocalVariableNamesAnalyzer` |
 | [analyzer/RH4126.md](analyzer/RH4126.md) | RH4126 | `RH4126SingleLetterForeachIterationVariableNamesAnalyzer` |
 | [analyzer/RH4127.md](analyzer/RH4127.md) | RH4127 | `RH4127SingleLetterCatchExceptionVariableNamesAnalyzer` |
+| [analyzer/RH4128.md](analyzer/RH4128.md) | RH4128 | `RH4128LocalConstantCasingAnalyzer`, `RH4128LocalConstantCasingCodeFixProvider` |
 | [analyzer/RH5001.md](analyzer/RH5001.md) | RH5001 | `RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5002.md](analyzer/RH5002.md) | RH5002 | `RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider` |
 | [analyzer/RH5003.md](analyzer/RH5003.md) | RH5003 | `RH5003WhileStatementsShouldBePrecededByABlankLineAnalyzer`, `RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider` |

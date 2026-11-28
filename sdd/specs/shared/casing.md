@@ -16,6 +16,7 @@ This spec covers the rules that require one kind of name to be written in a nami
 - The naming style of type parameters — RH4121.
 - Names that must not be a single letter — RH4122 to RH4127.
 - Whether a type's name matches its file name — RH4001; which namespaces may be declared — RH4009.
+- Tuple element names that the compiler infers from a renamed reference, such as `Value` in `(Value, 1)`: the rename changes them, and a read of such an element by its old name withholds the fix as SHARED-CASING-009 states.
 - The names of the parameters and type parameters of a member whose name SHARED-CASING-014 exempts: the compiler does not require an override or an implementation to repeat them, so RH4105 and RH4121 decide them like any other.
 
 ## Requirements
@@ -1820,3 +1821,73 @@ public static class Native
 ```
 
 `getpid` and `getuid` are not reported; `parentId` and `localPid` name their entry point and are reported. The same holds for a `partial` method declared with `[LibraryImport("libc")]`, and for `[DllImport("libc", EntryPoint = nameof(getpid))]`, which has an `EntryPoint` argument and is reported.
+
+### SHARED-CASING-015 — The fix keeps the name of an anonymous object member
+
+When a reference that the rename (SHARED-CASING-007) renames gives a member of an anonymous object creation its name, the code fix MUST write that member's name explicitly, as `Name = ` in front of the member's renamed expression, with the name the member had before the rename. A member gets its name from a reference when the member has no `Name =` of its own and the compiler takes the member's name from the identifier of the reference: the reference is the member's whole expression, such as `Value` in `new { Value }`, or the name that ends a member access or a conditional access that is the member's whole expression, such as `Value` in `new { this.Value }`, `new { other.Value }`, or `new { other?.Value }`. This holds for every code fix that renames a reported name as SHARED-CASING-007 states. The member's other trivia stays where it was, and the rest of the rename is unchanged.
+
+A member that has a name of its own, such as `new { Item = Value }`, and a member whose name the compiler takes from another identifier, such as `Length` in `new { Value.Length }`, are renamed as SHARED-CASING-007 states and get no name written. A member whose expression the compiler cannot name, such as `new { Value + 1 }`, does not compile and does not occur.
+
+Why: The compiler names such a member after the identifier, so the rename alone would rename the member as well: the text that `ToString()` returns, and the names that a serializer or reflection reads, would change, which SHARED-FIX-003 forbids, and a read of the member by its old name, such as `item.Value`, would no longer compile. Written explicitly with its old name, the member keeps its name, its type, and its position, so the anonymous type stays the same type and every read of it stays valid. The name it keeps is the one it had, so it collides with no other member. Projecting a value into an anonymous object by its bare name is a common shape, also of query syntax, so the fix keeps the member rather than being withheld for it.
+
+Example — RH4105 and RH4115:
+
+```csharp
+using System.Linq;
+
+class C
+{
+    object M(int[] values)
+    {
+        var {|RH4115:Total|} = values.Sum();
+
+        return values.Select({|RH4105:Value|} => new { Value, Total, Doubled = Value * 2 }).First();
+    }
+}
+```
+
+```csharp
+using System.Linq;
+
+class C
+{
+    object M(int[] values)
+    {
+        var total = values.Sum();
+
+        return values.Select(value => new { Value = value, Total = total, Doubled = value * 2 }).First();
+    }
+}
+```
+
+Example — a member access, for RH4106, where the member is read by its name:
+
+```csharp
+class C
+{
+    private int {|RH4106:Value|};
+
+    int M(C other)
+    {
+        var item = new { this.Value, Other = other?.Value };
+
+        return item.Value + (item.Other ?? 0);
+    }
+}
+```
+
+```csharp
+class C
+{
+    private int _value;
+
+    int M(C other)
+    {
+        var item = new { Value = this._value, Other = other?._value };
+
+        return item.Value + (item.Other ?? 0);
+    }
+}
+```
+
+`Other = other?.Value` has a name of its own and is only renamed.

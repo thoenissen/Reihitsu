@@ -901,6 +901,41 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         await Verify(testCode, test => test.TestState.AdditionalReferences.Add(reference));
     }
 
+    /// <summary>
+    /// Verifies the fix of a public property keeps the name of an anonymous object member that the compiler takes from a renamed reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-015")]
+    public async Task FixKeepsTheNameOfAnAnonymousObjectMemberNamedAfterTheRenamedName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int {|RH4114:value|} { get; set; }
+
+                                    public string M()
+                                    {
+                                        return new { value }.ToString();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public int Value { get; set; }
+
+                                     public string M()
+                                     {
+                                         return new { value = Value }.ToString();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
