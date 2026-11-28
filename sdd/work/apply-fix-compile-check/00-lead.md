@@ -26,4 +26,6 @@ None yet.
 ## State
 
 - Audited SHAs: 7847c6c (05, findings), 84d1ee7 (10, findings #3 architecture, #4 comment). Repair rounds used: 1.
-- Architecture change (decision 3) done: 11-test-implementer (7a19d4d), 12-implementer (7238636). Next: cleaner, spec checker, auditor on the change, validator.
+- Architecture change (decision 3) done: 11 (7a19d4d), 12 (7238636), 13, 14.
+- Audit 15 PASSED on e3a65bbb1eb79f0f39da5f574f0610129d2cc07f (audited SHA). Hint for PR review notes: an ID-only check misses a second unavailable-feature error under the same ID (CS8936) when the fixture already has one.
+- Next: validator, then publish.
