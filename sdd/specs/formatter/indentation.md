@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `ContinuationLineContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `QueryClauseContributor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BLANK-011, FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-BREAK-044, FMT-BREAK-046, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-018, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, FMT-UNSUP-023, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
+| Uses | FMT-BLANK-011, FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-BREAK-044, FMT-BREAK-046, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-018, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-REGION-006, FMT-REGION-007, FMT-SWITCH-001, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, FMT-UNSUP-023, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -625,11 +625,11 @@ class C
 
 ### FMT-INDENT-010 — Region directives are indented like the members around them
 
-The formatter MUST indent an active `#region` or `#endregion` directive to the member column of the position it is in: the column of the members of the type, the namespace, or the file whose members it stands between, also in front of the closing brace of a type or a namespace, where it takes the column of the members that brace closes. A region directive in disabled text MUST NOT be touched.
+The formatter MUST indent an active `#region` or `#endregion` directive to the member column of the position it is in: the column of the members of the type, the namespace, or the file whose members it stands between, also in front of the closing brace of a type or a namespace, where it takes the column of the members that brace closes. A region directive in a conditional-compilation branch the current build does not compile MUST NOT be re-indented: it keeps the column it is written in. "Not re-indented" is all this requirement says of such a directive. It is a directive, not disabled text — the parser reads it as an inactive `#region` or `#endregion` directive, while only the other lines of the branch are disabled text — so the whitespace and text rules for directives apply to it as to an active one: a tab in front of it or between its tokens becomes four spaces (FMT-TAB-001, FMT-TAB-002), and its description and its `#endregion` comment are written as FMT-REGION-006 and FMT-REGION-007 state.
 
 A region directive inside a member — behind the member's first token, up to its last token — reaches no phase in whole-document formatting: the formatter refuses such an input (FMT-UNSUP-023), and so it does a file with top-level statements that holds a region directive. The one region directive inside a member that the phases receive stands in the leading trivia of the first token of a node-level input (FMT-UNSUP-023 excepts it). That directive is the target's leading trivia, which `FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` write back as it stands in the document, in its column (FMT-PIPE-018); this requirement gives it no column. `FormatNode` is given a property or an indexer declaration by its callers, and a region directive in front of one stands in front of a member's first token, not inside a member.
 
-Why: Regions group members and belong to the structure they group, so they take that structure's column; a misindented region would otherwise look as if it belonged to an outer or inner scope. A region inside a member groups statements or the elements of an expression, where the column of what it groups has no single answer; the maintainer declared that shape unsupported instead of deciding a column for it. Disabled text is never rewritten (FMT-INDENT-011).
+Why: Regions group members and belong to the structure they group, so they take that structure's column; a misindented region would otherwise look as if it belonged to an outer or inner scope. A region inside a member groups statements or the elements of an expression, where the column of what it groups has no single answer; the maintainer declared that shape unsupported instead of deciding a column for it. A region directive in a branch the build does not compile stands among disabled text, whose structure is unknown (FMT-INDENT-011), so no member column is known for it, and it keeps its column as the lines around it do. Its own tokens are parsed, though, so replacing a tab and writing its text need no structure around it; leaving them as written would keep a tab that no other directive keeps and an `#endregion` comment the analyzer reports in inactive branches too (FMT-REGION-006).
 
 Example — the regions of a namespace, a type, and a nested type take the column of the members they stand between:
 
@@ -683,6 +683,36 @@ namespace N
     #endregion // Types
 }
 ```
+
+Example — the region directives of a branch the build does not compile keep their columns, two and ten, while their text is written as for an active region, and the disabled text between them is left as written:
+
+```csharp
+class C
+{
+#if NEVER
+  #region inner
+    disabled
+          #endregion
+#endif
+
+    int _a;
+}
+```
+
+```csharp
+class C
+{
+#if NEVER
+  #region Inner
+    disabled
+          #endregion // Inner
+#endif
+
+    int _a;
+}
+```
+
+Example — not shown as blocks because the input contains tabs: in the same class, a branch `#if NEVER` whose three lines are a tab and `#region Inner`, a tab and `disabled`, and a tab and `#endregion` becomes four spaces and `#region Inner`, the unchanged tab and `disabled`, and four spaces and `#endregion // Inner`. The tabs in front of the directives are replaced (FMT-TAB-001) and the directives then keep the column the replacement gives them; the tab in the disabled text is kept (FMT-TAB-003).
 
 ### FMT-INDENT-011 — Disabled text and literal content are never re-indented
 
@@ -1195,7 +1225,7 @@ class C
 
 When the `when` keyword of a pattern case label starts a line, the formatter MUST indent it one level deeper than the `case` keyword.
 
-Why: The guard belongs to the label, so it must not reach the column of the section's statements, one level deeper, nor sit at the label's own column, where it would look like another label.
+Why: The guard belongs to the label, so its line is a continuation of the label and takes the column FMT-INDENT-034 gives the continuation lines no other requirement places: one level deeper than the line its construct starts on. At the label's own column it would look like another label. The section's statements stand in the same column, one level deeper than `case` (FMT-INDENT-003); the colon that ends the label on the `when` line tells the guard apart from the statement below it, as the example shows with `when` and `break;` in one column.
 
 Example:
 
@@ -2136,9 +2166,11 @@ class C
 
 ### FMT-INDENT-028 — Lambda block bodies align to the lambda
 
-The formatter MUST shift the block body of a lambda — its braces and every line between them — so the opening brace starts in the column of the lambda's anchor: the `async` keyword of an async lambda, otherwise the opening parenthesis of a parenthesized lambda or the parameter of a simple lambda. The lines inside the body MUST keep their indentation relative to the opening brace.
+The formatter MUST shift the block body of a lambda — its braces and every line between them — so the opening brace starts in the column of the lambda's anchor: the `async` keyword of an async lambda, otherwise the opening parenthesis of a parenthesized lambda's parameter list or the parameter of a simple lambda. The lines inside the body MUST keep their indentation relative to the opening brace.
 
-Why: A lambda can start anywhere on its line, typically after `=` or inside an argument list. Aligning its body with the lambda's own start keeps the body visually attached to the lambda rather than to the statement around it.
+The anchor is the lambda's `async` keyword, or else the first token of its parameters, and not the lambda's first token: what a lambda can carry in front of `async` or its parameters — a `static` modifier, an attribute list, and the explicit return type of a parenthesized lambda — is never the anchor. The block of `static x => …` aligns under `x`, and that of `int (x) => …`, `static int (x) => …`, and `[A] (x) => …` under `(`; the block of `static async x => …` aligns under `async`.
+
+Why: A lambda can start anywhere on its line, typically after `=` or inside an argument list. Aligning its body with the lambda's own start keeps the body visually attached to the lambda rather than to the statement around it. The maintainer kept the parameter list's `(` as the anchor of a lambda with an explicit return type: anchoring at the lambda's first token instead would move the block of every `static` and attributed lambda as well, which align at `async` or their parameters.
 
 Example:
 
@@ -2178,6 +2210,58 @@ class C
                                                    {
                                                        await System.Threading.Tasks.Task.Yield();
                                                    };
+    }
+}
+```
+
+Example — a lambda with an explicit return type, behind a `static` modifier or not, aligns its block under the parameter list's `(`, and a `static` simple lambda under its parameter:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> a = int (x) =>
+        {
+            return x;
+        };
+
+        Func<int, int> b = static int (x) =>
+        {
+            return x;
+        };
+
+        Func<int, int> c = static x =>
+        {
+            return x;
+        };
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<int, int> a = int (x) =>
+                               {
+                                   return x;
+                               };
+
+        Func<int, int> b = static int (x) =>
+                                      {
+                                          return x;
+                                      };
+
+        Func<int, int> c = static x =>
+                                  {
+                                      return x;
+                                  };
     }
 }
 ```
