@@ -13,7 +13,7 @@ This spec covers the region phase: the capitalization of `#region` descriptions,
 
 - Indentation of region directives — FMT-INDENT.
 - Blank lines around region directives — FMT-BLANK.
-- Whether a region is placed sensibly, for example straddling a type body; a region directive inside a member is refused as unsupported (FMT-UNSUP-023). The formatter keeps a misplaced region; removing it is an explicit analyzer code-fix action.
+- Whether a region is placed sensibly, for example straddling a type body; an active region directive inside a member is refused as unsupported (FMT-UNSUP-023), while an inactive one is not refused and is written under FMT-REGION-006 and FMT-REGION-007. The formatter keeps a misplaced region; removing it is an explicit analyzer code-fix action.
 - Unbalanced regions. A `#region` without `#endregion` (or the reverse) is a syntax error, so the whole file is left unchanged under FMT-PIPE-005.
 - Any directive other than `#region` and `#endregion`.
 - Region directives in the code a node-level entry point formats: no requirement of this spec applies there; what node-level formatting still does to them is stated in FMT-PIPE-028.
@@ -276,7 +276,7 @@ class C
 
 ### FMT-REGION-005 — Region directives are never added, removed, or moved
 
-The formatter MUST keep every `#region` and `#endregion` directive at its position in the token stream, including a region whose directives sit in different type bodies, and MUST still name such a pair under FMT-REGION-001 and FMT-REGION-002. A region directive inside a member reaches no phase: the formatter refuses the input (FMT-UNSUP-023).
+The formatter MUST keep every `#region` and `#endregion` directive at its position in the token stream, including a region whose directives sit in different type bodies, and MUST still name such a pair under FMT-REGION-001 and FMT-REGION-002. An active region directive inside a member reaches no phase: the formatter refuses the input (FMT-UNSUP-023). An inactive one is not refused and stays at its position as every other region directive.
 
 Why: Removing or relocating a region changes the structure the author chose and, for a region that straddles a type body, can orphan one of its directives. Correcting a misplaced region is a decision for the user, offered by the analyzer's code fix, not a layout normalization.
 
