@@ -20,8 +20,10 @@
 
 - F1 (01-spec-author): blank line inserted after an opening `[`/`(` before a `#region` and before a closing `]`/`)` after an `#endregion`, but not for `{`/`}` — blank-line phase.
 - F2 (01-spec-author): a region inside a wrapped method chain, binary expression, or query takes the statement column; spec leaves it unspecified.
+- F3 (02-skeptic): RH7304 vs FMT-INDENT-010 for regions crossing a construct's end (attribute list `)]`) or in a base list; RH7304's `IsWithinElementBody` treats initializers/parameter lists/attribute args/base lists as between declarations, which SHARED-TYPEREGION-005 does not state.
 
 ## State
 
 - Last step finished: spec author (01, c9404e4; change doc Draft; open output question 1 + several change-doc entries needing answers).
-- Next: skeptic (02), then output-question batch.
+- Skeptic (02, c1f75f2): verdict output question; premise holds, reachable via CLI; no architecture findings; escalation 10 not an option (deletes no special case).
+- Waiting: output-question batch 1 (Q1 scope A/B, Q2 switch-section #endregion, Q3 anonymous object, Q4 patterns, Q5 other aligned lists, Q6 entry 9, Q7 entry 10, Q8 code-fix results). Next after answers: route to spec author, then test implementer.
