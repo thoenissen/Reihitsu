@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
@@ -67,7 +69,7 @@ public sealed class ResourceTextLiteralTests
     public void TestSourcesQuoteNoResourceText()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var resourceTexts = LoadRepositoryResourceTexts(repositoryRoot);
 
         // Act
@@ -85,7 +87,7 @@ public sealed class ResourceTextLiteralTests
     public void RepositoryResourceTextsAreReadFromBothFilesAndDecoded()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var perFile = _resourceFilePaths.Select(path => LoadResourceTexts([Path.Combine(repositoryRoot, path)]))
@@ -105,12 +107,12 @@ public sealed class ResourceTextLiteralTests
     public void ScanReportsRealResourceTextWithFileAndLine()
     {
         // Arrange
-        var resourceTexts = LoadRepositoryResourceTexts(FindRepositoryRoot());
+        var resourceTexts = LoadRepositoryResourceTexts(RepositoryRoot.Find());
         var quotedText = resourceTexts[0];
         IReadOnlyList<ResourceTextLiteral> findings;
 
         // Act
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             var literal = SymbolDisplay.FormatLiteral(quotedText, quote: true);
 
@@ -135,7 +137,7 @@ public sealed class ResourceTextLiteralTests
         IReadOnlyList<string> resourceTexts;
 
         // Act
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             var path = fixture.WriteFile("Sample.resx",
                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
@@ -427,7 +429,7 @@ public sealed class ResourceTextLiteralTests
         IReadOnlyList<ResourceTextLiteral> findings;
 
         // Act
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs", source);
 
@@ -446,7 +448,7 @@ public sealed class ResourceTextLiteralTests
     public void ScanIgnoresDiagnosticIdArgumentsAndSharedWordsWithRealTexts()
     {
         // Arrange
-        var resourceTexts = LoadRepositoryResourceTexts(FindRepositoryRoot());
+        var resourceTexts = LoadRepositoryResourceTexts(RepositoryRoot.Find());
 
         // Act
         var findings = ScanSource("        var arguments = new[] { \"--rule\", \"RH5001\", \"--check\", \"src\" };\n"
@@ -468,7 +470,7 @@ public sealed class ResourceTextLiteralTests
         IReadOnlyList<ResourceTextLiteral> findings;
 
         // Act
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile(Path.Combine("Project", "bin", "Debug", "Sample.cs"), source);
             fixture.WriteFile(Path.Combine("Project", "obj", "Release", "Sample.cs"), source);
@@ -542,13 +544,12 @@ public sealed class ResourceTextLiteralTests
 
         foreach (var filePath in Directory.EnumerateFiles(rootDirectory, "*.cs", SearchOption.AllDirectories))
         {
-            var relativePath = Path.GetRelativePath(rootDirectory, filePath);
-
-            if (IsInBuildOutputDirectory(relativePath))
+            if (BuildOutputDirectories.Contains(rootDirectory, filePath))
             {
                 continue;
             }
 
+            var relativePath = Path.GetRelativePath(rootDirectory, filePath);
             var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath), parseOptions);
 
             foreach (var token in tree.GetRoot().DescendantTokens())
@@ -589,7 +590,7 @@ public sealed class ResourceTextLiteralTests
         var footer = string.Join(endOfLine, "    }", "}", string.Empty);
         var source = $"{header}{body}{footer}";
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs", source);
 
@@ -614,22 +615,6 @@ public sealed class ResourceTextLiteralTests
     }
 
     /// <summary>
-    /// Determines whether a path relative to the scanned root lies under a <c>bin</c> or <c>obj</c> directory
-    /// </summary>
-    /// <param name="relativePath">Path relative to the scanned root</param>
-    /// <returns><see langword="true"/> if the file is build output; otherwise, <see langword="false"/></returns>
-    private static bool IsInBuildOutputDirectory(string relativePath)
-    {
-        // An array, because two separate char arguments resolve to the Split(char, int, StringSplitOptions) overload
-#pragma warning disable S3878 // Passing params arguments here would resolve to the wrong Split overload
-        var segments = relativePath.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]);
-#pragma warning restore S3878
-
-        return segments.Any(segment => string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase)
-                                       || string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
     /// Formats every finding into a single assertion message
     /// </summary>
     /// <param name="findings">Findings to describe</param>
@@ -645,27 +630,6 @@ public sealed class ResourceTextLiteralTests
                                                + "Read it through the test base's MessageFormat property or the resource class instead.");
 
         return $"Found {findings.Count} literal(s) that quote a resource text:\n{string.Join("\n", lines)}";
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

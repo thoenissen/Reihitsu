@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
@@ -104,7 +106,7 @@ internal static class RoslynVersionOwnership
         var rootProps = Path.GetFullPath(Path.Combine(repositoryRoot, RootPropsFileName));
 
         foreach (var path in Directory.EnumerateFiles(repositoryRoot, "*", SearchOption.AllDirectories)
-                                      .Where(path => IsSkipped(Path.GetRelativePath(repositoryRoot, path)) == false)
+                                      .Where(path => IsSkipped(repositoryRoot, path) == false)
                                       .OrderBy(path => path, StringComparer.Ordinal))
         {
             var file = Path.GetRelativePath(repositoryRoot, path).Replace(Path.DirectorySeparatorChar, '/');
@@ -321,16 +323,18 @@ internal static class RoslynVersionOwnership
     }
 
     /// <summary>
-    /// Determines whether a path lies in build output or in a directory whose name starts with a dot
+    /// Determines whether a path lies in build output, as <see cref="BuildOutputDirectories.Contains"/> decides, or in a
+    /// directory whose name starts with a dot
     /// </summary>
-    /// <param name="relativePath">Path relative to the repository root</param>
-    /// <returns><see langword="true"/> when a directory of the path is <c>bin</c>, <c>obj</c>, or starts with a dot</returns>
-    private static bool IsSkipped(string relativePath)
+    /// <param name="repositoryRoot">Repository root the scan walks</param>
+    /// <param name="path">Path of a file below <paramref name="repositoryRoot"/></param>
+    /// <returns><see langword="true"/> when a directory of the path below the root is build output or starts with a dot</returns>
+    private static bool IsSkipped(string repositoryRoot, string path)
     {
-        var segments = relativePath.Split(_directorySeparators);
+        var segments = Path.GetRelativePath(repositoryRoot, path).Split(_directorySeparators);
 
-        return segments.Take(segments.Length - 1)
-                       .Any(segment => segment is "bin" or "obj" || segment.StartsWith('.'));
+        return BuildOutputDirectories.Contains(repositoryRoot, path)
+               || segments.Take(segments.Length - 1).Any(segment => segment.StartsWith('.'));
     }
 
     /// <summary>
