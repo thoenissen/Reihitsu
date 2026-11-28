@@ -1105,6 +1105,156 @@ public class ArrayInitializerBraceLineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that in a jagged array the element behind a multi-line <c>new[]</c> element stays on the line of its closing brace:
+    /// only a row of a multi-dimensional array moves the element behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void ElementBehindAMultiLineImplicitArrayCreationInAJaggedArrayStaysOnTheBracesLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[][] j = { new[] {
+                                     1
+                                     }, new[] { 2 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[][] j = {
+                                                        new[]
+                                                        {
+                                                            1
+                                                        }, new[] { 2 }
+                                                    };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that in a jagged array the element behind a multi-line <c>new int[]</c> element stays on the line of its closing
+    /// brace, as behind a <c>new[]</c> element
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void ElementBehindAMultiLineArrayCreationInAJaggedArrayStaysOnTheBracesLine()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[][] j = { new int[] {
+                                     1
+                                     }, new int[] { 2 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[][] j = {
+                                                        new int[]
+                                                        {
+                                                            1
+                                                        }, new int[] { 2 }
+                                                    };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that in a jagged array a line break the author wrote in front of the element behind a multi-line array creation
+    /// stays as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void LineBreakInFrontOfTheElementBehindAMultiLineArrayCreationInAJaggedArrayStaysAsWritten()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[][] j = { new[] {
+                                     1
+                                     },
+                                     new[] { 2 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[][] j = {
+                                                        new[]
+                                                        {
+                                                            1
+                                                        },
+                                                        new[] { 2 }
+                                                    };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the row side of the jagged-array sentence: the element behind a multi-line row of a multi-dimensional array starts
+    /// the line below the row's closing brace
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-046")]
+    public void ElementBehindAMultiLineRowStartsTheLineBelowItsClosingBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[,] r = { {
+                                     1
+                                     }, { 2 } };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[,] r = {
+                                                       {
+                                                           1
+                                                       },
+                                                       { 2 }
+                                                   };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies the specification example of FMT-INDENT-023: the rows of a multi-dimensional array are laid out like complex element
     /// initializers, their closing brace under their opening brace, while the braces of an array creation inside an array
     /// initializer align to its <c>new</c>
