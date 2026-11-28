@@ -34,3 +34,8 @@ _None._ The maintainer's answer B settles the issue's question.
 ## Follow-up candidates
 
 _None._
+
+## Amendment (lead decision 5)
+
+- RH2001-012 reworded: the fix keeps the member's name "as SHARED-CASING-015 states", which writes "the name the member had before the rename"; it no longer says "the property's name", so the escaped/verbatim spelling (skeptic's internal choice) follows the shared requirement alone. No output example changes.
+- Change doc `sdd/changes/2026-11/rh2001-anonymous-member-name.md` set to `Status: Accepted`; no output questions are open.

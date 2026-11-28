@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH2001-004, RH2001-011, RH2001-012 (added); RH2001 now uses SHARED-CASING-015 |
 | Depends on | [RH4105 checks the casing of query range variables, and casing fixes keep anonymous object member names](range-variable-casing.md) |
