@@ -164,7 +164,7 @@ class C
 }
 ```
 
-and a block with disabled text in front of it is unsafe as well (SHARED-USING-009), so in a build that does not define `DEBUG` only its shared line is split:
+and a block with a conditional group in front of it is unsafe as well (SHARED-USING-009), so only its shared line is split; in a build that does not define `DEBUG`:
 
 ```csharp
 #if DEBUG
