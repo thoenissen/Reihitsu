@@ -21,6 +21,7 @@
 | 2 | skeptic | One bin/obj rule for all sites, incl. dot directories? | Shared check decides bin/obj only (OrdinalIgnoreCase, directory segments only); each scan keeps its own dot-directory rule | A uniform dot rule changes which files two scans read | Test code only | |
 | 3 | skeptic | Tracker scan splits the absolute path, so a root under a `bin`/`obj` directory silently checks nothing | Adjacent fix: shared check works on paths relative to the scanned root, with a test for a root under `obj` | Small, in the touched component, gets a test | Test code only | |
 | 4 | skeptic | Seven root lookups in other test projects | Drop, not a follow-up | Cross-assembly sharing is a separate structural change with no defect behind it; the issue is scoped to `ArchitectureTests` | Nothing filed | |
+| 6 | test impl. | Optional: convert `SquadNoteReferenceTests` inline roots to the fixture type | Accepted | Same helper, issue's purpose | Test code only | 43c71da |
 | 5 | skeptic | Fixture shape | One neutral fixture type; scan-specific writers (`WriteSpec`, `CreateFixture`) stay with their scans | Skeptic's recommendation | Test code only | |
 
 ## Follow-up candidates
@@ -29,5 +30,5 @@
 
 ## State
 
-- Last step: skeptic (01, proceed narrower).
-- Next: test implementer.
+- Last step: test implementer (02, tests written, 43c71da; lane check tests confirmed).
+- Next: cleaner (incl. BOM check of new files), then spec checker, validator.
