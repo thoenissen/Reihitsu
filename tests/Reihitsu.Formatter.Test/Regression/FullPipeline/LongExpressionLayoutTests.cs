@@ -218,12 +218,15 @@ public class LongExpressionLayoutTests : FormatterTestsBase
                                 {
                                     internal int[] M()
                                     {
-                                        var a = new[] { 0, 1, 2, // two
+                                        var a = new[]
+                                                {
+                                                    0, 1, 2, // two
                                                     3,
                                 #if DEBUG
                                             4,
                                 #endif
-                                                    5 };
+                                                    5
+                                                };
 
                                         return a;
                                     }

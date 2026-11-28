@@ -228,54 +228,6 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted between an <c>#if</c> directive directly after the opening brace of a
-    /// method body and the region directive below it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-013")]
-    [Requirement("SHARED-BLANK-005")]
-    public void RegionBelowIfDirectiveAfterMethodBodyBraceGetsBlankLine()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                             #if !DEBUG
-                                     #region A
-
-                                     M();
-
-                                     #endregion // A
-
-                             #endif
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                #if !DEBUG
-
-                                        #region A
-
-                                        M();
-
-                                        #endregion // A
-
-                                #endif
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a blank line is inserted between an <c>#if</c> directive directly after the opening brace of a
     /// block-scoped namespace and the region directive below it
     /// </summary>
     [TestMethod]
@@ -314,75 +266,6 @@ public class RegionDirectiveLineAboveTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a blank line is inserted between an <c>#if</c> directive directly after the opening brace of a
-    /// switch block and the region directive below it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-013")]
-    [Requirement("SHARED-BLANK-005")]
-    public void RegionBelowIfDirectiveAfterSwitchBlockBraceGetsBlankLine()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M(int a)
-                                 {
-                                     switch (a)
-                                     {
-                             #if !DEBUG
-                                         #region A
-
-                                         case 1:
-                                             break;
-
-                                         #endregion // A
-
-                             #endif
-                                     }
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertBlankLinesAbove(input, ("#if !DEBUG", false), ("#region A", true));
-    }
-
-    /// <summary>
-    /// Verifies that a blank line is inserted between an <c>#if</c> directive directly after the opening brace of an
-    /// accessor list and the region directive below it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-013")]
-    [Requirement("SHARED-BLANK-005")]
-    public void RegionBelowIfDirectiveAfterAccessorListBraceGetsBlankLine()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int P
-                                 {
-                             #if !DEBUG
-                                     #region A
-
-                                     get
-                                     {
-                                         return 0;
-                                     }
-
-                                     #endregion // A
-
-                             #endif
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertBlankLinesAbove(input, ("#if !DEBUG", false), ("#region A", true));
     }
 
     /// <summary>

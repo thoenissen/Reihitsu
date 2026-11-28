@@ -758,42 +758,6 @@ public class PositionalPatternClosingParenthesisBlankLineTests : FormatterTestsB
     }
 
     /// <summary>
-    /// Verifies that the blank line directly below an <c>#endregion</c> in front of the closing parenthesis of a positional
-    /// pattern clause is kept, and that a missing one is inserted. Only the blank lines are asserted: no requirement decides
-    /// the column of a region directive inside a positional pattern clause
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-019")]
-    public void KeepsAndInsertsBlankLineBelowEndRegionBeforeClosingParenthesisOfPositionalPatternClause()
-    {
-        const string input = DeconstructableType + """
-                                                   class C
-                                                   {
-                                                       bool M(object o)
-                                                       {
-                                                           var a = o is P(
-                                                               1,
-                                                               #region R
-                                                               2
-                                                               #endregion // R
-
-                                                           );
-                                                           var b = o is P(
-                                                               1,
-                                                               #region S
-                                                               2
-                                                               #endregion // S
-                                                           ) { X: 1 };
-
-                                                           return a && b;
-                                                       }
-                                                   }
-                                                   """;
-
-        AssertBlankLinesAbove(input, (");", true), (") { X: 1 };", true));
-    }
-
-    /// <summary>
     /// Verifies that the closing parenthesis of a parenthesized variable designation is not named, so the blank line in front
     /// of it is kept. Only the blank lines are asserted: no requirement decides the columns of a parenthesized variable
     /// designation's lines

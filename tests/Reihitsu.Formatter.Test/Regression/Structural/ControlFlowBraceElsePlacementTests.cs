@@ -148,57 +148,6 @@ public class ControlFlowBraceElsePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a <c>#region</c> between the unbraced then-branch and <c>else</c> is preserved and
-    /// ends up exactly as the region-formatting phase already lays out a hand-braced counterpart —
-    /// a blank line around both the region and its <c>else</c> content, and a matching <c>#endregion</c>
-    /// comment
-    /// </summary>
-    [TestMethod]
-    public void RegionBetweenUnbracedThenBranchAndElseIsPreserved()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M(bool x)
-                                 {
-                                     if (x)
-                                         Foo();
-                                     #region Else branch
-                                     else
-                                         Bar();
-                                     #endregion
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    void M(bool x)
-                                    {
-                                        if (x)
-                                        {
-                                            Foo();
-                                        }
-
-                                        #region Else branch
-
-                                        else
-                                        {
-                                            Bar();
-                                        }
-
-                                        #endregion // Else branch
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that a blank line separating an unbraced <c>if</c>/<c>else</c> statement from the next
     /// statement survives brace insertion
     /// </summary>

@@ -23,50 +23,30 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that the blank line above a property is kept when the property holds a region, whose directives keep their text
+    /// Verifies that the blank line above a nested type is kept when the type holds a region between its members, whose
+    /// directives keep their text; a region inside a member refuses the target (FMT-UNSUP-023)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task KeepsBlankLineAbovePropertyHoldingARegion()
+    public async Task KeepsBlankLineAboveNestedTypeHoldingARegion()
     {
         const string input = """
                              public class TestClass
                              {
                                  private string _d;
 
-                                 public string Description
+                                 public class Inner
                                  {
-                                     set
-                                     {
-                                         #region assign
+                                     #region assign
 
-                                         _d = value;
+                                     private string _e;
 
-                                         #endregion
-                                     }
+                                     #endregion
                                  }
                              }
                              """;
-        const string expected = """
-                                public class TestClass
-                                {
-                                    private string _d;
 
-                                    public string Description
-                                    {
-                                        set
-                                        {
-                                            #region assign
-
-                                            _d = value;
-
-                                            #endregion
-                                        }
-                                    }
-                                }
-                                """;
-
-        await AssertFormatsTarget(input, expected, SelectSingle<PropertyDeclarationSyntax>);
+        await AssertFormatsTarget(input, input, root => root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single(type => type.Identifier.ValueText == "Inner"));
     }
 
     /// <summary>
@@ -3048,9 +3028,11 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
 
             Assert.IsNotNull(root, "Expected a syntax root in the test document.");
 
-            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken)).Output;
+            var formattingResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken);
 
-            return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+            Assert.IsNull(formattingResult.Unsupported, $"The formatter must not refuse the target as unsupported: {formattingResult.Unsupported?.Reason}");
+
+            return (await formattingResult.Output.GetTextAsync(TestContext.CancellationToken)).ToString();
         }
     }
 

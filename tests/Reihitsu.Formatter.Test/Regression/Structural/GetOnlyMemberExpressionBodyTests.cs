@@ -1033,34 +1033,6 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region directive inside the accessor list keeps the accessor list
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-015")]
-    public void RegionInsideAccessorListKeepsAccessorList()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 private int _value;
-
-                                 public int Value
-                                 {
-                                     #region Getter
-
-                                     get => _value;
-
-                                     #endregion // Getter
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies that a get-only property is not converted below C# 6, which introduced expression-bodied properties
     /// </summary>
     [TestMethod]

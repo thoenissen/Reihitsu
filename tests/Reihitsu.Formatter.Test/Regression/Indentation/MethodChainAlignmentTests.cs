@@ -2233,11 +2233,14 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = new int[] { 1,
-                                                    2 }.Select(item => item)
-                                                       .Where(alpha,
-                                                              beta)
-                                                       .ToList();
+                                        var x = new int[]
+                                                {
+                                                    1,
+                                                    2
+                                                }.Select(item => item)
+                                                 .Where(alpha,
+                                                        beta)
+                                                 .ToList();
                                     }
                                 }
                                 """;
@@ -2319,12 +2322,15 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = new int[] { 1,
-                                                    2 }.Select(item =>
-                                                               {
-                                                                   return item;
-                                                               })
-                                                       .ToList();
+                                        var x = new int[]
+                                                {
+                                                    1,
+                                                    2
+                                                }.Select(item =>
+                                                         {
+                                                             return item;
+                                                         })
+                                                 .ToList();
                                     }
                                 }
                                 """;
@@ -2361,11 +2367,14 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = new int[] { 1,
-                                                    2 }.Select(flag
-                                                                   ? one
-                                                                   : two)
-                                                       .ToList();
+                                        var x = new int[]
+                                                {
+                                                    1,
+                                                    2
+                                                }.Select(flag
+                                                             ? one
+                                                             : two)
+                                                 .ToList();
                                     }
                                 }
                                 """;
@@ -2415,14 +2424,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a chain rooted in a multi-line array initializer whose closing brace shares its
-    /// line with an element aligns its continuation dot to the first invoked link. The initializer
-    /// correction does not apply here (the brace is not first on its line), so the anchor falls back
-    /// to the adjusted-column lookup — which is resolved after the initializer has claimed its own
-    /// line, rather than against that line's block indentation.
-    /// <para>
-    /// The initializer's own layout is deliberately left untouched: only the continuation dot moves
-    /// </para>
+    /// Verify that a chain rooted in a multi-line array initializer written with its closing brace on
+    /// the line of an element aligns its continuation dot to the first invoked link, which stands
+    /// behind the closing brace once the brace starts its own line (FMT-BREAK-046)
     /// </summary>
     [TestMethod]
     public void MultiLineArrayInitializerWithTrailingCloseBraceAlignsToInvokedLink()
@@ -2445,9 +2449,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = new int[] { 1,
-                                                    2 }.Select(item => item)
-                                                       .ToList();
+                                        var x = new int[]
+                                                {
+                                                    1,
+                                                    2
+                                                }.Select(item => item)
+                                                 .ToList();
                                     }
                                 }
                                 """;
@@ -2598,51 +2605,6 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a <c>#region</c> directive in front of the first link has the same effect as a comment: every link
-    /// starts its own line at the root column
-    /// </summary>
-    [TestMethod]
-    public void RegionAboveCommentExemptChainWithSharedInvokedLinkLineStartsEveryLinkAtRootColumn()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     var x = a
-                                         #region Chain
-                                         .Prop.Foo()
-                                         .Bar().Baz();
-                                         #endregion
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var x = a
-
-                                        #region Chain
-
-                                                .Prop
-                                                .Foo()
-                                                .Bar()
-                                                .Baz();
-
-                                        #endregion // Chain
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that disabled text (an <c>#if false</c> body) in front of the first link has the same effect as a comment:
     /// every link starts its own line at the root column
     /// </summary>
@@ -2769,8 +2731,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a chain rooted in a multi-line implicit array initializer whose closing brace
-    /// shares its line with an element aligns its continuation dot to the first invoked link
+    /// Verify that a chain rooted in a multi-line implicit array initializer written with its closing
+    /// brace on the line of an element aligns its continuation dot to the first invoked link, which
+    /// stands behind the closing brace once the brace starts its own line (FMT-BREAK-046)
     /// </summary>
     [TestMethod]
     public void MultiLineImplicitArrayInitializerWithTrailingCloseBraceAlignsToInvokedLink()
@@ -2793,9 +2756,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = new[] { 1,
-                                                    2 }.Select(item => item)
-                                                       .ToList();
+                                        var x = new[]
+                                                {
+                                                    1,
+                                                    2
+                                                }.Select(item => item)
+                                                 .ToList();
                                     }
                                 }
                                 """;
@@ -2885,8 +2851,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verify that a chain rooted in a parenthesized array creation whose closing brace shares its
-    /// line with an element aligns its continuation dot to the first invoked link
+    /// Verify that a chain rooted in a parenthesized array creation written with its closing brace on
+    /// the line of an element aligns its continuation dot to the first invoked link, which stands
+    /// behind the parenthesis once the brace starts its own line (FMT-BREAK-046)
     /// </summary>
     [TestMethod]
     public void ChainRootedInParenthesizedArrayCreationAlignsToInvokedLink()
@@ -2909,9 +2876,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = (new int[] { 1,
-                                                     2 }).Select(item => item)
-                                                         .ToList();
+                                        var x = (new int[]
+                                                 {
+                                                     1,
+                                                     2
+                                                 }).Select(item => item)
+                                                   .ToList();
                                     }
                                 }
                                 """;

@@ -382,25 +382,25 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that below a region directive the blank line the region rule requires is inserted above a glued comment,
-    /// and that below another directive the author's blank line is kept and none is inserted in front of the directive
+    /// Verifies the spec example: below a region directive in front of a type's closing brace the blank line the region rule
+    /// requires is inserted above a glued comment, and that below another directive the author's blank line is kept and none is inserted in front of the directive
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
     public void KeepsBlankLinesOfGapWithDirectiveInFrontOfGluedComment()
     {
         const string input = """
+                             class D
+                             {
+                                 #region R
+
+                                 int _a;
+
+                                 #endregion // R
+                             /* d */ }
+
                              class C
                              {
-                                 void M(int a)
-                                 {
-                                     #region R
-
-                                     a++;
-
-                                     #endregion // R
-                                 /* d */ }
-
                                  void N(int a)
                                  {
                                      a++;
@@ -410,18 +410,18 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                              }
                              """;
         const string expected = """
+                                class D
+                                {
+                                    #region R
+
+                                    int _a;
+
+                                    #endregion // R
+
+                                /* d */ }
+
                                 class C
                                 {
-                                    void M(int a)
-                                    {
-                                        #region R
-
-                                        a++;
-
-                                        #endregion // R
-
-                                    /* d */ }
-
                                     void N(int a)
                                     {
                                         a++;
@@ -432,34 +432,6 @@ public class GluedCommentBlankLineTests : FormatterTestsBase
                                 """;
 
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the blank line below an <c>#endregion</c> in front of a comment glued to the closing bracket of a list
-    /// pattern is kept. Only the blank lines are asserted: no requirement decides the column of a region directive inside
-    /// a pattern
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-018")]
-    public void KeepsBlankLineBelowEndRegionInFrontOfCommentGluedToListPatternBracket()
-    {
-        const string input = """
-                             class C
-                             {
-                                 bool M(object o)
-                                 {
-                                     return o is [
-                                             1,
-                                             #region R
-                                             2
-                                             #endregion // R
-
-                                         /* d */ ];
-                                 }
-                             }
-                             """;
-
-        AssertBlankLinesAbove(input, ("/* d */ ]", true));
     }
 
     /// <summary>

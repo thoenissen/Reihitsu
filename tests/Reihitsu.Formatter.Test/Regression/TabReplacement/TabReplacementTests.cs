@@ -160,9 +160,12 @@ public class TabReplacementTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        var x = new[] { a,
+                                        var x = new[]
+                                                {
+                                                    a,
 
-                                                    /** c */ b };
+                                                    /** c */ b
+                                                };
                                     }
                                 }
                                 """;

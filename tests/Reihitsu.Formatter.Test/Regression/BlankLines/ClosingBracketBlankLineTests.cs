@@ -120,69 +120,6 @@ public class ClosingBracketBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line directly below an <c>#endregion</c> in front of the closing bracket of a collection
-    /// expression is kept, and that a missing one is inserted. Only the blank lines are asserted: no requirement decides
-    /// the column of a region directive inside a collection expression
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-019")]
-    public void KeepsAndInsertsBlankLineBelowEndRegionBeforeClosingBracket()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int[] G = [
-                                     1,
-                                     #region R
-                                     2,
-                                     #endregion // R
-
-                                 ];
-
-                                 void M()
-                                 {
-                                     Use([
-                                         1,
-                                         #region S
-                                         2,
-                                         #endregion // S
-                                     ]);
-                                 }
-                             }
-                             """;
-
-        AssertBlankLinesAbove(input, ("];", true), ("]);", true));
-    }
-
-    /// <summary>
-    /// Verifies that the blank line directly below an <c>#endregion</c> in front of the closing parenthesis of a
-    /// parenthesized pattern is kept. Only the blank lines are asserted: no requirement decides the columns of a
-    /// parenthesized pattern's lines
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-019")]
-    public void KeepsBlankLineBelowEndRegionBeforeClosingParenthesisOfParenthesizedPattern()
-    {
-        const string input = """
-                             class C
-                             {
-                                 bool M(object o)
-                                 {
-                                     return o is (
-                                         1
-                                         #region R
-                                         or 2
-                                         #endregion // R
-
-                                         );
-                                 }
-                             }
-                             """;
-
-        AssertBlankLinesAbove(input, (");", true));
-    }
-
-    /// <summary>
     /// Verifies that before the closing bracket of a collection expression the blank line above an <c>#if</c> stays and
     /// the one below its <c>#endif</c> is removed
     /// </summary>

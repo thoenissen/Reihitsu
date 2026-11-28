@@ -5,8 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Regions;
 
 /// <summary>
-/// Regression tests for region pairs that straddle element-body boundaries. The formatter keeps
-/// both endpoints so a formatting pass never orphans a directive or deletes user-authored regions
+/// Regression tests for region pairs that straddle type-body boundaries. The formatter keeps
+/// both endpoints so a formatting pass never orphans a directive or deletes user-authored regions; a pair
+/// that straddles a member body holds a region directive inside a member, which the formatter refuses (FMT-UNSUP-023)
 /// </summary>
 [TestClass]
 public class StraddlingRegionPairTests : FormatterTestsBase
@@ -14,165 +15,37 @@ public class StraddlingRegionPairTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a region opened between an indexer declaration and its accessor list is
-    /// preserved together with its matching closing directive
+    /// Verifies that a region opened among the members of a nested type and closed among the members of the outer type is
+    /// preserved together with its matching closing directive and named
     /// </summary>
     [TestMethod]
     [Requirement("FMT-REGION-005")]
-    public void RegionStraddlingAnAccessorListIsPreservedAsAPair()
+    public void RegionOpenedInsideANestedTypeBodyAndClosedOutsideIsPreservedAsAPair()
     {
         // Arrange
         const string input = """
-                             class C
+                             public class C
                              {
-                             #region Members
-
-                                 public int this[int index]
-                             #region Inner
+                                 private class D
                                  {
-                                     get { return 0; }
+                                     #region members
+                                     private int _x;
                                  }
-                             #endregion
 
-                             #endregion
+                                 #endregion
                              }
                              """;
         const string expected = """
-                                class C
+                                public class C
                                 {
-                                    #region Members
-
-                                    public int this[int index]
-
-                                    #region Inner
-
+                                    private class D
                                     {
-                                        get => 0;
-                                    }
+                                        #region Members
 
-                                    #endregion // Inner
+                                        private int _x;
+                                    }
 
                                     #endregion // Members
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a region opened between a method declaration and its body is preserved together
-    /// with its matching closing directive
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-REGION-005")]
-    public void RegionStraddlingAMethodBodyIsPreservedAsAPair()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                             #region Members
-
-                                 public int M()
-                             #region Inner
-                                 {
-                                     return 0;
-                                 }
-                             #endregion
-
-                             #endregion
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    #region Members
-
-                                    public int M()
-
-                                    #region Inner
-
-                                    {
-                                        return 0;
-                                    }
-
-                                    #endregion // Inner
-
-                                    #endregion // Members
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a region whose closing directive sits inside a method body remains paired with
-    /// its opening directive
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-REGION-005")]
-    public void RegionClosingInsideAMethodBodyIsPreservedAsAPair()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 #region Members
-
-                                 public void M()
-                                 {
-                                     #endregion
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    #region Members
-
-                                    public void M()
-                                    {
-                                        #endregion // Members
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a region fully contained in a method body is preserved and formatted
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-REGION-005")]
-    public void RegionFullyInsideAMethodBodyIsPreservedAndFormatted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public void M()
-                                 {
-                             #region Inner
-                                     var value = 1;
-                             #endregion
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    public void M()
-                                    {
-                                        #region Inner
-
-                                        var value = 1;
-
-                                        #endregion // Inner
-                                    }
                                 }
                                 """;
 

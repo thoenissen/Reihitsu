@@ -164,6 +164,11 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string NameEqualsCommentReason = "a comment or directive behind the = of an attribute argument or a using alias";
 
+    /// <summary>
+    /// The reason the formatter gives for a region directive inside a member (FMT-UNSUP-023)
+    /// </summary>
+    protected const string RegionInsideMemberReason = "a region directive inside a member";
+
     #endregion // Constants
 
     #region Fields

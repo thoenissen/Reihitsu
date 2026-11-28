@@ -69,32 +69,6 @@ public class RegionDirectlyAfterOpeningBraceTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an empty region directly after the opening brace of a method body gets no blank
-    /// line after the brace
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-007")]
-    [Requirement("SHARED-BLANK-005")]
-    public void EmptyRegionAfterMethodBodyBraceGetsNoBlankLineAfterTheBrace()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     #region A
-
-                                     #endregion // A
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies that an empty region directly after the opening brace of a block-scoped namespace gets
     /// no blank line after the brace
     /// </summary>
@@ -133,93 +107,6 @@ public class RegionDirectlyAfterOpeningBraceTests : FormatterTestsBase
                                  #region A
 
                                  #endregion // A
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that an empty region directly after the opening brace of a statement block gets no
-    /// blank line after the brace
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-007")]
-    [Requirement("SHARED-BLANK-005")]
-    public void EmptyRegionAfterStatementBlockBraceGetsNoBlankLineAfterTheBrace()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M(bool b)
-                                 {
-                                     if (b)
-                                     {
-                                         #region A
-
-                                         #endregion // A
-                                     }
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that an empty region directly after the opening brace of a switch statement gets no
-    /// blank line after the brace
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-007")]
-    [Requirement("SHARED-BLANK-005")]
-    public void EmptyRegionAfterSwitchStatementBraceGetsNoBlankLineAfterTheBrace()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M(int x)
-                                 {
-                                     switch (x)
-                                     {
-                                         #region A
-
-                                         #endregion // A
-                                     }
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that an empty region directly after the opening brace of an accessor body gets no blank
-    /// line after the brace
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-007")]
-    [Requirement("SHARED-BLANK-005")]
-    public void EmptyRegionAfterAccessorBodyBraceGetsNoBlankLineAfterTheBrace()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int P
-                                 {
-                                     set
-                                     {
-                                         #region A
-
-                                         #endregion // A
-                                     }
-                                 }
                              }
                              """;
 
@@ -291,50 +178,6 @@ public class RegionDirectlyAfterOpeningBraceTests : FormatterTestsBase
                                     int _x;
 
                                     #endregion // A
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comment first after a method body brace is separated from a region that holds a
-    /// statement
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BLANK-013")]
-    [Requirement("SHARED-BLANK-005")]
-    public void CommentFirstAfterMethodBraceIsSeparatedFromRegionHoldingStatement()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     // c
-                                     #region A
-
-                                     var v = 1;
-
-                                     #endregion // A
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        // c
-
-                                        #region A
-
-                                        var v = 1;
-
-                                        #endregion // A
-                                    }
                                 }
                                 """;
 
