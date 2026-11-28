@@ -53,4 +53,5 @@ The maintainer answered the issue's output question in an issue comment: option 
 - Spec checker done (19371ac): consistent.
 - Auditor 1 (4a7f19b): 2 findings.
 - Repair 1 test implementer done (0f63e34).
-- Next: cleaner, spec checker, auditor (repair only).
+- Repair 1 cleaner done (a16d4e5): clean.
+- Next: spec checker, auditor (repair only).
