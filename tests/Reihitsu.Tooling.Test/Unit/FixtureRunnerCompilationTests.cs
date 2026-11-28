@@ -11,9 +11,8 @@ namespace Reihitsu.Tooling.Test.Unit;
 
 /// <summary>
 /// Tests for the check of <see cref="FixtureRunner"/> that a fix result compiles under the chosen language version: a result
-/// is an invalid result, even when it parses, when for some error ID it carries more distinct messages than the fixture (an
-/// ID the fixture lacks counts from zero), while a result that compiles, keeps or repeats the fixture's errors, or only
-/// renames a symbol that the message of an existing error names, is fixed
+/// is an invalid result, even when it parses, when it carries an error ID the fixture did not have, while a result that
+/// compiles, or whose errors carry only IDs the fixture already had, is fixed, whatever names their messages show
 /// </summary>
 [TestClass]
 public sealed class FixtureRunnerCompilationTests
@@ -226,24 +225,8 @@ public sealed class FixtureRunnerCompilationTests
     }
 
     /// <summary>
-    /// Verifies that a fix result which brings in a compile error with the same ID as the fixture's own (CS0246) but for
-    /// another name is an invalid result: the ID now carries two distinct messages where the fixture had one
-    /// </summary>
-    /// <returns>A task representing the asynchronous test operation</returns>
-    [TestMethod]
-    public async Task RunAsyncReportsInvalidResultWhenTheFixAddsAnErrorWithTheSameIdForAnotherName()
-    {
-        // Act
-        var result = await RunMarkerFixAsync(UnknownTypeSource, "Other other = null;\n\n        return 1;", "return 1;");
-
-        // Assert
-        Assert.AreEqual(FixtureOutcome.InvalidResult, result.Outcome);
-        Assert.AreEqual(1, result.Iterations);
-    }
-
-    /// <summary>
     /// Verifies that a fix result which renames the type that contains a member named in an existing error (CS0161 names
-    /// <c>sample.M()</c>, then <c>Sample.M()</c>) is fixed: the error's ID keeps one distinct message
+    /// <c>sample.M()</c>, then <c>Sample.M()</c>) is fixed: the fixture already had the error's ID
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
@@ -297,28 +280,46 @@ public sealed class FixtureRunnerCompilationTests
     }
 
     /// <summary>
-    /// Verifies that a fix result which renames the type named in an existing error and also brings in a second error of the
-    /// same ID (CS0161 for another member) is an invalid result: the ID now carries two distinct messages where the fixture
-    /// had one, although each message differs from the fixture's anyway
+    /// Verifies that a fix which renames one of several same-named symbols per iteration is fixed. Two methods each carry an
+    /// out parameter <c>Value</c> that is never assigned, so CS0177 names <c>Value</c> twice; after the first iteration it
+    /// names <c>value</c> and <c>Value</c>, two different messages of an ID the fixture already had
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
-    public async Task RunAsyncReportsInvalidResultWhenTheFixRenamesATypeAndAddsAnErrorWithTheSameId()
+    public async Task RunAsyncReportsFixedWhenTheFixRenamesOneOfSeveralSameNamedSymbolsPerIteration()
     {
+        // Arrange
+        const string source = "internal class Sample\n{\n    internal void First(out int Value)\n    {\n    }\n\n    internal void Second(out int Value)\n    {\n    }\n}\n";
+        const string expected = "internal class Sample\n{\n    internal void First(out int value)\n    {\n    }\n\n    internal void Second(out int value)\n    {\n    }\n}\n";
+        const string reportedText = "out int Value";
+
+        var target = new CodeFixTarget(FakeDiagnostic.Id,
+                                       [new TextReportingFakeAnalyzer(text => text.Contains(reportedText, StringComparison.Ordinal))],
+                                       new SourceTransformingFakeCodeFix(text =>
+                                                                         {
+                                                                             var index = text.IndexOf(reportedText, StringComparison.Ordinal);
+
+                                                                             return $"{text[..index]}out int value{text[(index + reportedText.Length)..]}";
+                                                                         }));
+
         // Act
-        var result = await RunReplacingFixAsync("internal class sample\n{\n    internal int M()\n    {\n    }\n}\n",
-                                                "class sample\n{\n",
-                                                "class Sample\n{\n    internal int N()\n    {\n    }\n\n");
+        var result = await FixtureRunner.RunAsync(target,
+                                                  source,
+                                                  FixtureLineEndings.LineFeed,
+                                                  10,
+                                                  "Fixture.cs",
+                                                  LanguageVersion.Latest,
+                                                  TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(FixtureOutcome.InvalidResult, result.Outcome);
-        Assert.AreEqual(1, result.Iterations);
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual(2, result.Iterations);
+        Assert.AreEqual(expected, result.FinalSource);
     }
 
     /// <summary>
     /// Verifies that a fix result which drops the fixture's error (CS0246) and brings in one of another ID (CS0103) is an
-    /// invalid result, although the result has as many distinct errors as the fixture: the distinct messages are counted per
-    /// ID, not in total
+    /// invalid result, although the result has as many errors as the fixture: CS0103 is an ID the fixture did not have
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
