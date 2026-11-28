@@ -33,4 +33,5 @@
 
 - Last step: test implementer (02, tests written, 43c71da; lane check tests confirmed).
 - Cleaner (03): clean, 0 warnings.
-- Next: spec checker, then validator.
+- Spec checker (04): consistent.
+- Next: validator, then publish.
