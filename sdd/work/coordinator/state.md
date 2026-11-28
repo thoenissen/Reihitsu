@@ -37,6 +37,7 @@ Notes for the runs: #1399 untouched by #1985 (different constructs). #1994 picks
 
 ## Status
 
+Status 2026-11-28 (f): triage asked (`inventory/triage-2026-11-28b.md`, main at c3377002). 1 placements: #1999 close as completed (test `FixKeepsTheLayoutAndCommentsOfAMultiLineAnonymousObjectMember` already on main); #2000 close as not planned (providers decide differently: shared one re-analyzes, casing one checks collisions up front); #2001 by question 2 (1A apply / 1B change rows; rec. 1A). 2 #2001 new rule for multi-line array-initializer braces: A no rule, close not planned; B new rule + fix (rec.), joins 1.10.0 counterpart run `#1739 #1159 #1637 #1638 #1560 #1827 #1930 #1988`, after #1876 (1.7.0) and #1774 (1.8.0).
 Status 2026-11-28 (e): triage of #1999 #2000 #2001 started; assessment delegated (`inventory/triage-2026-11-28b.md`, main at c3377002). Nothing asked yet. Side find: #1995 #1996 #1997 #1998 merged since the last batch — batch after the triage answer.
 Status 2026-11-28 (d): batch — merges #1980 #1983–#1987 #1991–#1993 read (closed #1085 #1087 #1088 #1567 #1568 #1607 #1698 #1970 #1972 #1977 #1978 #1979); graph rebuilt; start-now set of 4 runs given; no closes proposed. #1982 stays without a milestone (decided).
 Status 2026-11-28 (c): triage answered (1A, #1982 no milestone; 2B; 3B); milestones set (#1988 → 1.10.0, #1989 → 1.7.0, #1990 #1994 → 1.6.0); roadmap updated; commented on six issues. Plan not rebuilt: merges #1983–#1987 #1991–#1993 since the last batch — `/coordinator batch` next.
