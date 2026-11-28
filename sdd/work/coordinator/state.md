@@ -19,25 +19,25 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (16): #1085 #1087 #1088 #1399 #1400 #1567 #1568 #1589 #1607 #1698 #1936 #1970 #1971 #1972 #1977 #1978.
+Open in 1.6.0 (7): #1399 #1400 #1589 #1936 #1971 #1990 #1994.
 
-Merged since the previous batch: #1965 (#1956 #1958 #1963), #1966 (#1924 #1949), #1967 (#1912), #1968 (#1836), #1969 (#1086), #1973 (#1090), #1974 (#1089), #1975 (#1771), #1976 (#1948).
+Merged since the previous batch: #1980 (#1979), #1983, #1984 (#1607), #1985 (#1568 #1698 #1567), #1986 (#1085), #1987 (#1087 #1088 #1978), #1991 (#1972), #1992 (#1970), #1993 (#1977).
 
-Runs in progress: PR #1980 (claim for #1979, squad tool allow-lists, `.claude/agents/`, `squad/`; #1979 has no milestone yet — triage).
+Runs in progress: none (no PR open).
 
-Dependency graph: `inventory/batch-2026-11-27.md` (main at 4bbb3ceb).
+Dependency graph: rebuilt directly (main at 13b0ed23); previous graph `inventory/batch-2026-11-27.md`.
 
-Start now: `#1568 #1698 #1567` · `#1607` · `#1085` · `#1087 #1088 #1978` · `#1970` · `#1972` · `#1977`.
+Start now: `#1399` · `#1971` · `#1990` · `#1994`. File sets: #1399 `indentation.md`, `LayoutComputer.cs` and formatter tests; #1971 `UsingDirectiveOrderingSafety.cs`, RH72xx analyzers/fixes, `using-directives.md`, `using-directive-ordering.md`; #1990 RH2001 fix, `RH2001.md` spec, `casing.md` (SHARED-CASING-015); #1994 the 15 test files holding `FindRepositoryRoot` and the fixture-directory types (architecture, analyzer self-hosting, formatter ownership, tooling tests). No shared file found; #1994's `LayoutContributorOwnershipTests.cs` is no file #1399 is known to change.
 
 After merges:
-- after #1568 #1698 #1567 → `#1399` (`indentation.md`, `LayoutComputer.cs`) → `#1400 #1936` (`indentation.md`)
-- after #1972 → `#1971` (`using-directives.md`, FMT-USING-004)
-- after #1971 → `#1589` (audits the RH72xx guard #1971 changes; its file set is open, so it also waits for the code-fix runs #1607, #1085, `#1087 #1088 #1978`)
+- after #1399 → `#1400 #1936` (`indentation.md`)
+- after #1971 and #1990 → `#1589` (audits the RH72xx guard #1971 changes and the RH2001 case #1990 adds; its file set is open, so it starts when no code-fix run is open)
 
-Notes for the runs (evidence in the batch file, not decided): #1607 narrows to item 1 (items 2 and 3 are withheld by RH3004-008/-009 on main). #1567 narrows to an explicit return type. #1698's Before is stale on main; the run re-asks. #1977's example no longer reproduces (safety net). #1970: whichever run merges after it must not quote a resource text in a test. Side find closed: `class C { }` → `class C;` is FMT-STRUCT-017 (C# 12+), specified.
+Notes for the runs: #1399 untouched by #1985 (different constructs). #1994 picks one bin/obj skip rule (see its comment).
 
 ## Status
 
+Status 2026-11-28 (d): batch — merges #1980 #1983–#1987 #1991–#1993 read (closed #1085 #1087 #1088 #1567 #1568 #1607 #1698 #1970 #1972 #1977 #1978 #1979); graph rebuilt; start-now set of 4 runs given; no closes proposed. #1982 stays without a milestone (decided).
 Status 2026-11-28 (c): triage answered (1A, #1982 no milestone; 2B; 3B); milestones set (#1988 → 1.10.0, #1989 → 1.7.0, #1990 #1994 → 1.6.0); roadmap updated; commented on six issues. Plan not rebuilt: merges #1983–#1987 #1991–#1993 since the last batch — `/coordinator batch` next.
 Status 2026-11-28 (b): triage asked (`inventory/triage-2026-11-28.md`, main at 13b0ed23). 1 placements: #1982 → Maintenance (4), no squad run, measure once ~10 run notes exist; #1989 → 1.7.0 joins `#1517 #1519 #1654 #862 #1937`; #1994 → 1.6.0 own tests run, start now; #1988 by question 2; #1990 by question 3 (1A apply / 1B change rows; rec. 1A). 2 #1988 new RH5205 counterpart for anonymous-method blocks: A no rule, close not planned (rec.), B new rule, joins 1.10.0 counterpart run. 3 #1990 RH2001 fix where a reference names an anonymous-object member: A unchanged (docs fix scoping SHARED-CASING-015, then close), B fix writes `new { Value = _value }` (rec.), 1.6.0 own analyzer run, start now, #1589 also waits for it.
 Status 2026-11-28 (a): triage of #1982 #1988 #1989 #1990 #1994 started; assessment delegated (`inventory/triage-2026-11-28.md`, main at 13b0ed23). Nothing asked yet.
@@ -67,4 +67,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-`/coordinator batch`: read the merges #1980 #1983–#1987 #1991–#1993 and rebuild the graph with #1990 and #1994 (#1589 waits for #1971, #1990 and the code-fix runs).
+On reports of merges: `/coordinator batch`. On new issues without a milestone (other than #1982, which stays without one): `/coordinator triage`.
