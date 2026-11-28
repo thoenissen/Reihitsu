@@ -29,7 +29,7 @@ Known dependencies: registry files (`*.resx`, rulesets, spec index) make the ana
 Theme: T11 part A (line-break joins, extension blocks, switch arms, one-owner refactors); T7 clarity/design/performance/organization rule scope; Playground.
 
 Runs, in order:
-- **Formatter/LineBreakPhase one-owner refactors, first in their files:** `#1517 #1519 #1654 #862 #1937` (#1937 after #1935 and 1.6.0's indentation runs).
+- **Formatter/LineBreakPhase one-owner refactors, first in their files:** `#1517 #1519 #1654 #862 #1937 #1989` (#1989 same ownership pattern as #1654; #1937 after #1935 and 1.6.0's indentation runs).
 - **Formatter/unowned joins (one OQ round):** `#1639 #1645 #1646 #1648 #1652 #1653 #1829 #1830 #1927` → after #953 (1.6.0). #1645 may already be shipped by #1920: check and close first. #1927's inputs are run before its output question.
 - **Formatter/extension blocks (owner set once, OQ):** `#1636 #1785 #1446 #1845 #1959 #1960` (#1959 2A and #1960 3C/4A decided).
 - **Formatter/lists and switch arms:** `#956` (narrowed, OQ) `#955 #1442` (#956 before #1739 in 1.10.0).
@@ -75,7 +75,7 @@ Runs, in order:
 - **Analyzer/line-start facts, first where reports change:** `#1512 #1157 #1156 #1080 #1433`.
 - **Analyzer/RH53xx initializers and operators:** `#1271 #1272 #1273 #1477`.
 - **Analyzer/RH51xx list scope (OQ):** `#1154 #1155 #1649 #1158 #1650 #1394 #1931` (#1931 asked together with #1155/#1649).
-- **Analyzer/new counterpart rules (OQ):** `#1739 #1159 #1637 #1638 #1560 #1827 #1930` (#1159 decided with #1739 in one change doc).
+- **Analyzer/new counterpart rules (OQ):** `#1739 #1159 #1637 #1638 #1560 #1827 #1930 #1988` (#1988 decided B, new rule or RH5205 widening open; #1159 decided with #1739 in one change doc).
 - **Analyzer/new layout rules (OQ):** `#1843 #1844` (one run).
 - **Analyzer/attribute placement and hole lines (OQ):** `#1445 #1033 #1628 #1612`.
 - **Formatter/directives and line ends (OQ):** `#960 #1579 #1658 #959 #1082 #1895` (#959 is large and splittable; #1895's premise unconfirmed).

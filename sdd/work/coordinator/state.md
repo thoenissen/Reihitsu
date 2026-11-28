@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-28 · #1982 #1988 #1989 #1990 #1994 · triage 1A except #1982: no milestone (maintainer). #1989 → 1.7.0 (`#1517 #1519 #1654 #862 #1937 #1989`); #1994 → 1.6.0 own tests run. 2B (#1988): anonymous-method block reported and aligned under `delegate`; new rule or widening RH5205 decided in the run; → 1.10.0 counterpart run. 3B (#1990): RH2001 fix writes `new { Value = _value }`; 1.6.0 own analyzer run; #1589 also waits for it. Commented on #1589 #1982 #1988 #1989 #1990 #1994.
 - 2026-11-27 · #1970 #1971 #1972 #1977 #1978 · triage 1A: all → 1.6.0; #1970 own tests run; #1972 own docs run (FMT-USING-004 only); #1971 own run after #1972, #1589 after #1971; #1977 own tooling run; #1978 joins `#1087 #1088 #1978`. 2A (#1971: fixes and formatter sort a block whose directives all stand before its first using). 3A (#1978: RH4105 reports query range variables, title widens; fix only if safe). Commented on #1589 #1971 #1972 #1977 #1978.
 - 2026-11-26 · #1960 · 3C: the formatter removes a `;` behind a type's closing brace (new structural transform); 4A: with a comment, directive, or disabled text between `}` and `;` the `;` stays, nothing indented, the blank line in front of the comment stays (FMT-BLANK-011). Commented on #1960 and #1959 (RH5404 fix result without `;`).
 - 2026-11-26 · #1956–#1963 · triage 1A: #1956 #1958 #1963 → 1.6.0 (`/squad #1956 #1958 #1963`, start now); #1957 #1961 → 1.8.0 (shared-line run); #1959 #1960 → 1.7.0 (extension-block run); #1962 closed as duplicate of #962 (input added to #962). #1959: 2A (RH5404 reports and fixes `class C { int _x; };`). #1960: questions 3/4 open — the maintainer asked whether the formatter could simply remove the `;`.
@@ -37,6 +38,7 @@ Notes for the runs (evidence in the batch file, not decided): #1607 narrows to i
 
 ## Status
 
+Status 2026-11-28 (c): triage answered (1A, #1982 no milestone; 2B; 3B); milestones set (#1988 → 1.10.0, #1989 → 1.7.0, #1990 #1994 → 1.6.0); roadmap updated; commented on six issues. Plan not rebuilt: merges #1983–#1987 #1991–#1993 since the last batch — `/coordinator batch` next.
 Status 2026-11-28 (b): triage asked (`inventory/triage-2026-11-28.md`, main at 13b0ed23). 1 placements: #1982 → Maintenance (4), no squad run, measure once ~10 run notes exist; #1989 → 1.7.0 joins `#1517 #1519 #1654 #862 #1937`; #1994 → 1.6.0 own tests run, start now; #1988 by question 2; #1990 by question 3 (1A apply / 1B change rows; rec. 1A). 2 #1988 new RH5205 counterpart for anonymous-method blocks: A no rule, close not planned (rec.), B new rule, joins 1.10.0 counterpart run. 3 #1990 RH2001 fix where a reference names an anonymous-object member: A unchanged (docs fix scoping SHARED-CASING-015, then close), B fix writes `new { Value = _value }` (rec.), 1.6.0 own analyzer run, start now, #1589 also waits for it.
 Status 2026-11-28 (a): triage of #1982 #1988 #1989 #1990 #1994 started; assessment delegated (`inventory/triage-2026-11-28.md`, main at 13b0ed23). Nothing asked yet.
 Status 2026-11-27 (z): batch finished — graph rebuilt (`inventory/batch-2026-11-27.md`); start-now set of 7 runs given; no closes proposed; side find `class C;` is specified (FMT-STRUCT-017).
@@ -65,4 +67,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-`/coordinator triage` for #1979 (no milestone, PR #1980 in progress). On reports of merges: `/coordinator batch`.
+`/coordinator batch`: read the merges #1980 #1983–#1987 #1991–#1993 and rebuild the graph with #1990 and #1994 (#1589 waits for #1971, #1990 and the code-fix runs).
