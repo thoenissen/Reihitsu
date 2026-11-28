@@ -31,6 +31,7 @@
 | 7 | Skeptic | Region-formatting Non-goals says region inside a member is refused without "active" | Adjacent fix in this run | Same statement as choice 1, one line, same component | Spec text only | (spec author amendment) |
 | 8 | Skeptic | Extra tests | Test set: spec author's three + r3 (inactive region in member, off column) + `static async x => {…}` + d1, d2 (inactive non-region directives keep column); FC-017 and FC-033 apply | None of them is pinned today | Characterization tests of today's output | (test implementer) |
 | 9 | Lead | Continue or fresh spec author for the amendment | Fresh | Earlier agent's cache cold and context large (~107k tokens) | Process only | – |
+| 10 | Spec author (amendment) | Retitle FMT-INDENT-011; also fix FMT-REGION-005's "region inside a member" sentence; add `static () =>` to FMT-INDENT-028 example; tab examples in prose | Accept | Keeps no false sentence next to a corrected one; examples cover the new wording | Spec text only | 4f3df83 |
 
 ## Follow-up candidates
 
@@ -38,4 +39,4 @@
 
 ## Worklist / next step
 
-- Claim done (48e5073, PR #2002). Spec author done (d9ba2be): verdict needs a test; no output or open questions, so no output-question batch. Lane widened to tests (decision 2). Skeptic done (57ef020): proceed, no output questions. Next: spec author amendment (decisions 5–7), then test implementer, cleaner, spec checker, validator.
+- Claim done (48e5073, PR #2002). Spec author done (d9ba2be): verdict needs a test; no output or open questions, so no output-question batch. Lane widened to tests (decision 2). Skeptic done (57ef020): proceed, no output questions. Spec author amendment done (4f3df83): six characterization tests needed (03-spec-author). No output questions, so no batch stop. Next: test implementer, then cleaner, spec checker, validator.
