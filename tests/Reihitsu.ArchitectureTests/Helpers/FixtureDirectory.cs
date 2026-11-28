@@ -2,34 +2,33 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Reihitsu.ArchitectureTests.General;
+namespace Reihitsu.ArchitectureTests.Helpers;
 
 /// <summary>
-/// Creates and cleans up a temporary directory holding disposable fixture files for one
-/// <see cref="SelfReferentialTrackerReferenceTests"/> or <see cref="ResourceTextLiteralTests"/> test
+/// Creates and cleans up a temporary directory holding the disposable fixture files of one self-test of a scan
 /// </summary>
-internal sealed class TrackerReferenceFixtureDirectory : IDisposable
+internal sealed class FixtureDirectory : IDisposable
 {
     #region Properties
 
     /// <summary>
     /// Full path of the temporary directory
     /// </summary>
-    public string Path { get; } = Directory.CreateTempSubdirectory("ReihitsuTrackerReferenceTest").FullName;
+    public string Path { get; } = Directory.CreateTempSubdirectory("ReihitsuArchitectureTest").FullName;
 
     #endregion // Properties
 
     #region Methods
 
     /// <summary>
-    /// Writes a fixture file, creating any intermediate directories it needs
+    /// Writes a fixture file as UTF-8 without a byte order mark, creating any intermediate directories it needs
     /// </summary>
-    /// <param name="relativePath">File path relative to the temporary directory</param>
+    /// <param name="relativePath">File path relative to the temporary directory, with forward slashes or the platform separator</param>
     /// <param name="content">File content</param>
     /// <returns>The full path of the written file</returns>
     public string WriteFile(string relativePath, string content)
     {
-        var fullPath = System.IO.Path.Combine(Path, relativePath);
+        var fullPath = System.IO.Path.Combine(Path, relativePath.Replace('/', System.IO.Path.DirectorySeparatorChar));
         var directory = System.IO.Path.GetDirectoryName(fullPath);
 
         if (string.IsNullOrEmpty(directory) == false)

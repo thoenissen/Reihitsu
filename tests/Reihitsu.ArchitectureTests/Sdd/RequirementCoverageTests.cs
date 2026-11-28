@@ -5,6 +5,8 @@ using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
@@ -48,7 +50,7 @@ public sealed class RequirementCoverageTests
     public void EveryRequirementReferenceNamesAnActiveRequirement()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindReferenceProblems(repositoryRoot);
@@ -64,7 +66,7 @@ public sealed class RequirementCoverageTests
     public void EveryRequirementOfAnEnforcedSpecIsCovered()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindUncoveredRequirements(repositoryRoot, ExemptedSpecs);
@@ -93,7 +95,7 @@ public sealed class RequirementCoverageTests
     public void EveryExemptionNamesASpecFile()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindExemptionsWithoutSpecFile(repositoryRoot, ExemptedSpecs);
@@ -110,7 +112,7 @@ public sealed class RequirementCoverageTests
     public void ReportCoverageOfExemptedSpecs()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var report = DescribeCoverageOfExemptedSpecs(repositoryRoot, ExemptedSpecs);
@@ -127,7 +129,7 @@ public sealed class RequirementCoverageTests
     public void ReferenceCheckReportsUnknownId()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/ProgramTests.cs", CreateTestSource("[Requirement(\"CLI-099\")]"));
@@ -149,7 +151,7 @@ public sealed class RequirementCoverageTests
     public void ReferenceCheckReportsRetiredId()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/cli/reihitsu-format.md", "### CLI-001 — Title\n\nStatus: Retired — superseded.\n");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/ProgramTests.cs", CreateTestSource("[Requirement(\"CLI-001\")]"));
@@ -171,7 +173,7 @@ public sealed class RequirementCoverageTests
     public void ReferenceCheckReportsNonLiteralArgument()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/ProgramTests.cs", CreateTestSource("[Requirement(Ids.First)]"));
@@ -192,7 +194,7 @@ public sealed class RequirementCoverageTests
     public void ReferenceCheckReportsAttributeOutsideTestMethod()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/ProgramTests.cs", "internal class ProgramTests\n{\n    [Requirement(\"CLI-001\")]\n    private void Helper() { }\n}\n");
@@ -214,7 +216,7 @@ public sealed class RequirementCoverageTests
     public void ReferenceCheckRecognizesEveryAttributeSpelling()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001", "CLI-002", "CLI-003");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/ProgramTests.cs",
@@ -239,7 +241,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckReportsUncoveredRequirementOfEnforcedSpec()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001", "CLI-002");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/ProgramTests.cs", CreateTestSource("[Requirement(\"CLI-001\")]"));
@@ -262,7 +264,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckEnforcesEverySpecByDefault()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("analyzer/RH3202.md", "`Analyzer`", "RH3202-001");
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
@@ -294,7 +296,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckEnforcesSharedRequirementThatNoSpecUses()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("shared/policy.md", "`Policy`", "SHARED-P-001", "SHARED-P-002");
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
@@ -319,7 +321,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckIgnoresRetiredRequirements()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/cli/reihitsu-format.md", "### CLI-001 — Title\n\nStatus: Retired — superseded.\n\n### CLI-002 — Title\n\nThe CLI MUST do it.\n");
 
@@ -340,7 +342,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckSkipsOnlyTheExemptedSpec()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteSpec("formatter/indentation.md", "`IndentationPhase`", "FMT-INDENT-001");
@@ -362,7 +364,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckDoesNotExemptTheSpecsOfAnExemptedDirectory()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteSpec("formatter/indentation.md", "`IndentationPhase`", "FMT-INDENT-001");
@@ -386,7 +388,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckEnforcesExemptedSharedRequirementsThatAnEnforcedSpecUses()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("shared/policy.md", "`Policy`", "SHARED-P-001", "SHARED-P-002");
             fixture.WriteFile("sdd/specs/new-area/surface.md",
@@ -410,7 +412,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckDoesNotEnforceExemptedSharedRequirementsThatOnlyAnExemptedSpecUses()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("shared/policy.md", "`Policy`", "SHARED-P-001");
             fixture.WriteFile("sdd/specs/cli/reihitsu-format.md",
@@ -434,7 +436,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckCountsOnlyTestMethodsInTestProjects()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001", "CLI-002", "CLI-003", "CLI-004");
             fixture.WriteFile("src/Reihitsu.Cli/Program.cs", CreateTestSource("[Requirement(\"CLI-001\")]"));
@@ -534,7 +536,7 @@ public sealed class RequirementCoverageTests
         // Arrange
         string report;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("shared/casing.md", "`CasingUtilities`", "SHARED-CASING-001", "SHARED-CASING-002");
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
@@ -561,7 +563,7 @@ public sealed class RequirementCoverageTests
         // Arrange
         string report;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("shared/casing.md", "`CasingUtilities`", "SHARED-CASING-001");
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
@@ -583,7 +585,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckEnforcesExemptedRequirementsOutsideSharedThatAnEnforcedSpecUses()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001", "FMT-CLEAN-002");
             fixture.WriteFile("sdd/specs/analyzer/RH6006.md",
@@ -608,7 +610,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckDoesNotEnforceExemptedRequirementsOutsideSharedThatOnlyAnExemptedSpecUses()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteFile("sdd/specs/analyzer/RH6006.md",
@@ -632,7 +634,7 @@ public sealed class RequirementCoverageTests
     public void CoverageCheckDoesNotEnforceExemptedRequirementsOutsideSharedThatNoSpecUses()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteSpec("formatter/indentation.md", "`IndentationPhase`", "FMT-INDENT-001");
@@ -656,7 +658,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsMisspelledSpecPath()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -676,7 +678,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsDirectoryKey()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -696,7 +698,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsDirectoryKeyWithoutSlash()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -716,7 +718,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsSpecIndexKey()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteFile("sdd/specs/README.md", "# Specs\n");
@@ -738,7 +740,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsLedgerKey()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteFile("sdd/specs/requirement-ids.txt", "FMT-CLEAN-001\n");
@@ -760,7 +762,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsKeyInOtherCase()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -781,7 +783,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsKeyWithBackslash()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -801,7 +803,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckAcceptsSpecPaths()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
             fixture.WriteSpec("top-level.md", "`TopLevel`", "TOP-001");
@@ -824,7 +826,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionCheckReportsEveryKeyWithoutSpecFile()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -848,7 +850,7 @@ public sealed class RequirementCoverageTests
     public void ExemptionSpecFileCheckAcceptsEmptyList()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
 
@@ -870,7 +872,7 @@ public sealed class RequirementCoverageTests
         // Arrange
         string report;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/formatter/cleanup.md", "### FMT-CLEAN-001 — Title\n\nStatus: Retired — superseded.\n");
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
@@ -895,7 +897,7 @@ public sealed class RequirementCoverageTests
         // Arrange
         string report;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
 
@@ -1123,27 +1125,6 @@ public sealed class RequirementCoverageTests
     private static string DescribeFindings(string title, IEnumerable<string> findings)
     {
         return $"{title}:{Environment.NewLine}{string.Join(Environment.NewLine, findings.Select(finding => $"  {finding}"))}";
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

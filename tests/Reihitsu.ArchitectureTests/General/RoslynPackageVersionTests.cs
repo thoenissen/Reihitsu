@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.ArchitectureTests.Helpers;
 
 namespace Reihitsu.ArchitectureTests.General;
 
@@ -41,7 +42,7 @@ public sealed class RoslynPackageVersionTests
     public void EveryRoslynPackageItemUsesTheRepositoryVersionProperty()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var (items, violations) = RoslynVersionOwnership.Check(repositoryRoot);
@@ -66,24 +67,24 @@ public sealed class RoslynPackageVersionTests
     public void ItemsNamingTheVersionPropertyAreAccepted()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj",
-                          Project("""
-                                  <PackageReference Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
-                                  <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
-                                  <PackageReference Include="SonarAnalyzer.CSharp" Version="10.36.0.15337" />
-                                  """));
-            fixture.Write("src/B/B.csproj",
-                          Project("""
-                                  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
-                                  <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
-                                  <PackageReference Remove="Microsoft.CodeAnalysis.CSharp.Workspaces" />
-                                  """));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj",
+                              Project("""
+                                      <PackageReference Include="Microsoft.CodeAnalysis" Version="$(RoslynVersion)" />
+                                      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
+                                      <PackageReference Include="SonarAnalyzer.CSharp" Version="10.36.0.15337" />
+                                      """));
+            fixture.WriteFile("src/B/B.csproj",
+                              Project("""
+                                      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+                                      <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+                                      <PackageReference Remove="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+                                      """));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -98,14 +99,14 @@ public sealed class RoslynPackageVersionTests
     public void LiteralVersionInProjectIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
-            fixture.Write("src/B/B.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.12.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("src/B/B.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.12.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/B/B.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp.Workspaces");
@@ -119,18 +120,18 @@ public sealed class RoslynPackageVersionTests
     public void UpdateItemWithLiteralVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
-            fixture.Write("src/B/B.csproj",
-                          Project("""
-                                  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
-                                  <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
-                                  """));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("src/B/B.csproj",
+                              Project("""
+                                      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+                                      <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
+                                      """));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/B/B.csproj:2: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -144,23 +145,23 @@ public sealed class RoslynPackageVersionTests
     public void ReferenceInPropsFileWithLiteralVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props",
-                          """
-                          <Project>
-                            <PropertyGroup>
-                              <RoslynVersion>5.12.0</RoslynVersion>
-                            </PropertyGroup>
-                            <ItemGroup>
-                              <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="5.6.0" />
-                            </ItemGroup>
-                          </Project>
-                          """);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("Directory.Build.props",
+                              """
+                              <Project>
+                                <PropertyGroup>
+                                  <RoslynVersion>5.12.0</RoslynVersion>
+                                </PropertyGroup>
+                                <ItemGroup>
+                                  <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="5.6.0" />
+                                </ItemGroup>
+                              </Project>
+                              """);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Build.props:6: PackageReference Microsoft.CodeAnalysis.Workspaces.Common");
@@ -174,13 +175,13 @@ public sealed class RoslynPackageVersionTests
     public void ReferenceInTargetsFileWithLiteralVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/build/A.targets", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/build/A.targets", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/build/A.targets:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -194,13 +195,13 @@ public sealed class RoslynPackageVersionTests
     public void CentralPackageVersionWithLiteralVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("Directory.Packages.props", Project("""<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("Directory.Packages.props", Project("""<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Packages.props:1: PackageVersion Microsoft.CodeAnalysis.CSharp");
@@ -214,13 +215,13 @@ public sealed class RoslynPackageVersionTests
     public void VersionOverrideAttributeIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" VersionOverride="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" VersionOverride="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -234,13 +235,13 @@ public sealed class RoslynPackageVersionTests
     public void VersionMetadataElementIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><VersionOverride>5.6.0</VersionOverride></PackageReference>"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><VersionOverride>5.6.0</VersionOverride></PackageReference>"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -254,13 +255,13 @@ public sealed class RoslynPackageVersionTests
     public void RoslynPackageInIncludeListIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="SonarAnalyzer.CSharp; Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="SonarAnalyzer.CSharp; Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -274,22 +275,22 @@ public sealed class RoslynPackageVersionTests
     public void ConditionedVersionPropertyIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props",
-                          """
-                          <Project>
-                            <PropertyGroup>
-                              <RoslynVersion Condition="'$(MSBuildProjectName)'=='B'">5.6.0</RoslynVersion>
-                              <RoslynVersion Condition="'$(RoslynVersion)'==''">5.12.0</RoslynVersion>
-                            </PropertyGroup>
-                          </Project>
-                          """);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
-            fixture.Write("src/B/B.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("Directory.Build.props",
+                              """
+                              <Project>
+                                <PropertyGroup>
+                                  <RoslynVersion Condition="'$(MSBuildProjectName)'=='B'">5.6.0</RoslynVersion>
+                                  <RoslynVersion Condition="'$(RoslynVersion)'==''">5.12.0</RoslynVersion>
+                                </PropertyGroup>
+                              </Project>
+                              """);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("src/B/B.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.Contains("RoslynVersion is defined 2 times: Directory.Build.props:3, Directory.Build.props:4", violations);
@@ -306,19 +307,19 @@ public sealed class RoslynPackageVersionTests
     public void VersionPropertyInConditionedPropertyGroupIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props",
-                          """
-                          <Project>
-                            <PropertyGroup Condition="'$(Configuration)'=='Release'">
-                              <RoslynVersion>5.12.0</RoslynVersion>
-                            </PropertyGroup>
-                          </Project>
-                          """);
+            fixture.WriteFile("Directory.Build.props",
+                              """
+                              <Project>
+                                <PropertyGroup Condition="'$(Configuration)'=='Release'">
+                                  <RoslynVersion>5.12.0</RoslynVersion>
+                                </PropertyGroup>
+                              </Project>
+                              """);
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Build.props:3: RoslynVersion is defined under a condition");
@@ -332,23 +333,23 @@ public sealed class RoslynPackageVersionTests
     public void VersionPropertyInChooseBranchIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props",
-                          """
-                          <Project>
-                            <Choose>
-                              <When Condition="'$(Configuration)'=='Release'">
-                                <PropertyGroup>
-                                  <RoslynVersion>5.12.0</RoslynVersion>
-                                </PropertyGroup>
-                              </When>
-                            </Choose>
-                          </Project>
-                          """);
+            fixture.WriteFile("Directory.Build.props",
+                              """
+                              <Project>
+                                <Choose>
+                                  <When Condition="'$(Configuration)'=='Release'">
+                                    <PropertyGroup>
+                                      <RoslynVersion>5.12.0</RoslynVersion>
+                                    </PropertyGroup>
+                                  </When>
+                                </Choose>
+                              </Project>
+                              """);
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Build.props:5: RoslynVersion is defined under a condition");
@@ -362,14 +363,14 @@ public sealed class RoslynPackageVersionTests
     public void RedefinitionInNestedPropsIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/B/Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/B/B.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/B/Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/B/B.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.Contains("RoslynVersion is defined 2 times: Directory.Build.props:3, src/B/Directory.Build.props:3", violations);
@@ -385,12 +386,12 @@ public sealed class RoslynPackageVersionTests
     public void VersionPropertyOutsideRootPropsIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("src/Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/Directory.Build.props", RootPropsWithVersion);
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/Directory.Build.props:3: RoslynVersion is defined outside the root Directory.Build.props");
@@ -404,12 +405,12 @@ public sealed class RoslynPackageVersionTests
     public void MissingVersionPropertyIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Build.props: RoslynVersion is not defined");
@@ -423,12 +424,12 @@ public sealed class RoslynPackageVersionTests
     public void VersionPropertyNamingAnotherPropertyIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", """<Project><PropertyGroup><RoslynVersion>$(CompilerVersion)</RoslynVersion></PropertyGroup></Project>""");
+            fixture.WriteFile("Directory.Build.props", """<Project><PropertyGroup><RoslynVersion>$(CompilerVersion)</RoslynVersion></PropertyGroup></Project>""");
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Build.props:1: RoslynVersion must be a literal version");
@@ -442,14 +443,14 @@ public sealed class RoslynPackageVersionTests
     public void ItemNamesInAnotherCasingNamingTheVersionPropertyAreAccepted()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<packagereference Include="Microsoft.CodeAnalysis.CSharp" version="$(RoslynVersion)" />"""));
-            fixture.Write("Directory.Packages.props", Project("""<PACKAGEVERSION Include="Microsoft.CodeAnalysis.CSharp" VERSION="$(RoslynVersion)" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<packagereference Include="Microsoft.CodeAnalysis.CSharp" version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("Directory.Packages.props", Project("""<PACKAGEVERSION Include="Microsoft.CodeAnalysis.CSharp" VERSION="$(RoslynVersion)" />"""));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -464,13 +465,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageReferenceItemTypeInAnotherCasingIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<packagereference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<packagereference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: packagereference Microsoft.CodeAnalysis.CSharp");
@@ -484,13 +485,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageVersionItemTypeInAnotherCasingIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("Directory.Packages.props", Project("""<packageversion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("Directory.Packages.props", Project("""<packageversion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "Directory.Packages.props:1: packageversion Microsoft.CodeAnalysis.CSharp");
@@ -504,13 +505,13 @@ public sealed class RoslynPackageVersionTests
     public void VersionMetadataElementInAnotherCasingIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><version>5.6.0</version></PackageReference>"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><version>5.6.0</version></PackageReference>"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -524,14 +525,14 @@ public sealed class RoslynPackageVersionTests
     public void VersionMetadataElementInAnotherCasingOnUpdateItemIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
-            fixture.Write("src/B/B.props", Project("""<PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><version>5.6.0</version></PackageReference>"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.WriteFile("src/B/B.props", Project("""<PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><version>5.6.0</version></PackageReference>"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/B/B.props:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -545,13 +546,13 @@ public sealed class RoslynPackageVersionTests
     public void VersionOverrideAttributeInAnotherCasingIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" versionoverride="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" versionoverride="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -565,13 +566,13 @@ public sealed class RoslynPackageVersionTests
     public void SecondVersionAttributeInAnotherCasingIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -585,13 +586,13 @@ public sealed class RoslynPackageVersionTests
     public void LoneVersionAttributeInAnotherCasingWithLiteralIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" version="5.6.0" />"""));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
@@ -605,15 +606,15 @@ public sealed class RoslynPackageVersionTests
     public void BuildOutputAndDotDirectoriesAreSkipped()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/obj/A.csproj.nuget.g.props", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
-            fixture.Write("src/A/bin/Release/A.targets", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
-            fixture.Write(".tools/Tool.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/obj/A.csproj.nuget.g.props", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile("src/A/bin/Release/A.targets", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+            fixture.WriteFile(".tools/Tool.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -628,13 +629,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveAtTheRepositoryVersionIsAccepted()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/proof/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/proof/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0"));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -650,13 +651,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveWithAnotherVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/proof/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/proof/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/proof/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
@@ -670,21 +671,21 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveIsComparedWithTheDefinedVersion()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props",
-                          """
-                          <Project>
-                            <PropertyGroup>
-                              <RoslynVersion>5.6.0</RoslynVersion>
-                            </PropertyGroup>
-                          </Project>
-                          """);
-            fixture.Write("scripts/A.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
-            fixture.Write("scripts/B.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0"));
+            fixture.WriteFile("Directory.Build.props",
+                              """
+                              <Project>
+                                <PropertyGroup>
+                                  <RoslynVersion>5.6.0</RoslynVersion>
+                                </PropertyGroup>
+                              </Project>
+                              """);
+            fixture.WriteFile("scripts/A.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.WriteFile("scripts/B.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0"));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/B.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
@@ -698,13 +699,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveWithFloatingVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.*"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.*"));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
@@ -718,13 +719,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveWithLongerVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0-beta1"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0-beta1"));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
@@ -738,13 +739,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveWithoutVersionIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp"));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
@@ -759,17 +760,17 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveWithoutVersionOutsideTheRoslynVersionLineIsAccepted()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs",
-                          FileBasedProgram("""
-                                           #:package SonarAnalyzer.CSharp
-                                           #:package Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
-                                           """));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs",
+                              FileBasedProgram("""
+                                               #:package SonarAnalyzer.CSharp
+                                               #:package Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
+                                               """));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -784,20 +785,20 @@ public sealed class RoslynPackageVersionTests
     public void EveryPackageDirectiveOfAProgramIsCheckedOnItsLine()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs",
-                          FileBasedProgram("""
-                                           #!/usr/bin/env dotnet
-                                           #:sdk Microsoft.NET.Sdk
-                                           #:property LangVersion=preview
-                                           #:package Microsoft.CodeAnalysis.CSharp@5.12.0
-                                           #:package Microsoft.CodeAnalysis.Workspaces.Common@5.6.0
-                                           """));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs",
+                              FileBasedProgram("""
+                                               #!/usr/bin/env dotnet
+                                               #:sdk Microsoft.NET.Sdk
+                                               #:property LangVersion=preview
+                                               #:package Microsoft.CodeAnalysis.CSharp@5.12.0
+                                               #:package Microsoft.CodeAnalysis.Workspaces.Common@5.6.0
+                                               """));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/Tool.cs:5: #:package Microsoft.CodeAnalysis.Workspaces.Common");
@@ -812,13 +813,13 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveInAnotherCasingIsReported()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package microsoft.codeanalysis.csharp@5.6.0"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs", FileBasedProgram("#:package microsoft.codeanalysis.csharp@5.6.0"));
 
             // Act
-            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package microsoft.codeanalysis.csharp");
@@ -832,18 +833,18 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectivesOutsideTheRoslynVersionLineAreAccepted()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/Tool.cs",
-                          FileBasedProgram("""
-                                           #:package Microsoft.CodeAnalysis.CSharp.Analyzer.Testing@1.1.4
-                                           #:package Microsoft.CodeAnalysisExtras@1.0.0
-                                           #:package SonarAnalyzer.CSharp@10.36.0.15337
-                                           """));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/Tool.cs",
+                              FileBasedProgram("""
+                                               #:package Microsoft.CodeAnalysis.CSharp.Analyzer.Testing@1.1.4
+                                               #:package Microsoft.CodeAnalysisExtras@1.0.0
+                                               #:package SonarAnalyzer.CSharp@10.36.0.15337
+                                               """));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -858,23 +859,23 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectiveTextAfterTheFirstTokenIsNotRead()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("src/A/Fixture.cs",
-                          """"
-                          namespace A;
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("src/A/Fixture.cs",
+                              """"
+                              namespace A;
 
-                          internal static class Fixture
-                          {
-                              internal const string Text = """
-                          #:package Microsoft.CodeAnalysis.CSharp@5.6.0
-                          """;
-                          }
-                          """");
+                              internal static class Fixture
+                              {
+                                  internal const string Text = """
+                              #:package Microsoft.CodeAnalysis.CSharp@5.6.0
+                              """;
+                              }
+                              """");
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -889,15 +890,15 @@ public sealed class RoslynPackageVersionTests
     public void PackageDirectivesInBuildOutputAndDotDirectoriesAreSkipped()
     {
         // Arrange
-        using (var fixture = new RoslynVersionFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
-            fixture.Write("Directory.Build.props", RootPropsWithVersion);
-            fixture.Write("scripts/obj/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
-            fixture.Write("scripts/bin/Release/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
-            fixture.Write(".tools/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.WriteFile("Directory.Build.props", RootPropsWithVersion);
+            fixture.WriteFile("scripts/obj/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.WriteFile("scripts/bin/Release/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.WriteFile(".tools/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
 
             // Act
-            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Path);
 
             // Assert
             Assert.IsEmpty(violations, string.Join("; ", violations));
@@ -934,27 +935,6 @@ public sealed class RoslynPackageVersionTests
     private static string FileBasedProgram(string directives)
     {
         return $"{directives}\n\nSystem.Console.WriteLine();\n";
-    }
-
-    /// <summary>
-    /// Locates the repository root by walking up from the test assembly
-    /// </summary>
-    /// <returns>The repository root directory</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

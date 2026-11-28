@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
 using Reihitsu.ArchitectureTests.Sdd;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
@@ -77,7 +78,7 @@ public sealed class PhaseOwnershipDocumentationTests
     public void OwnershipMapMatchesRuntimePhaseOrder()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var expectedBlock = ExtractOwnershipMap(Path.Combine(repositoryRoot, "AGENTS.md"));
 
         // Act
@@ -112,7 +113,7 @@ public sealed class PhaseOwnershipDocumentationTests
     public void EveryGuardNameInOwnershipMapResolves()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindUnresolvedGuardNames(repositoryRoot);
@@ -653,10 +654,7 @@ public sealed class PhaseOwnershipDocumentationTests
         {
             foreach (var file in Directory.EnumerateFiles(projectDirectory, "*.cs", SearchOption.AllDirectories))
             {
-                var segments = Path.GetRelativePath(projectDirectory, file).Replace('\\', '/').Split('/');
-
-                if (segments.Contains("bin", StringComparer.Ordinal)
-                    || segments.Contains("obj", StringComparer.Ordinal))
+                if (BuildOutputDirectories.Contains(projectDirectory, file))
                 {
                     continue;
                 }
@@ -809,7 +807,7 @@ public sealed class PhaseOwnershipDocumentationTests
     /// <c>OtherPhase</c>
     /// </param>
     /// <returns>The fixture directory</returns>
-    private static SpecFixtureDirectory CreateGuardFixture(params string[] guardCells)
+    private static FixtureDirectory CreateGuardFixture(params string[] guardCells)
     {
         return CreateGuardFixture(true, guardCells);
     }
@@ -820,7 +818,7 @@ public sealed class PhaseOwnershipDocumentationTests
     /// <param name="formatterReferencesCore">Whether the formatter project references the core project</param>
     /// <param name="guardCells">Guard cell of each row</param>
     /// <returns>The fixture directory</returns>
-    private static SpecFixtureDirectory CreateGuardFixture(bool formatterReferencesCore, string[] guardCells)
+    private static FixtureDirectory CreateGuardFixture(bool formatterReferencesCore, string[] guardCells)
     {
         string[] phases = ["SamplePhase", "OtherPhase"];
         var map = new StringBuilder();
@@ -837,7 +835,7 @@ public sealed class PhaseOwnershipDocumentationTests
         map.Append(EndMarker)
            .Append('\n');
 
-        var fixture = new SpecFixtureDirectory();
+        var fixture = new FixtureDirectory();
 
         fixture.WriteFile("AGENTS.md", map.ToString());
         fixture.WriteFile($"src/{FormatterProjectFile}",
@@ -868,7 +866,7 @@ public sealed class PhaseOwnershipDocumentationTests
     /// </summary>
     /// <param name="guardCell">Guard cell of the only row, which belongs to <c>SamplePhase</c></param>
     /// <returns>The fixture directory</returns>
-    private static SpecFixtureDirectory CreateGuardFixtureWithoutCoreReference(string guardCell)
+    private static FixtureDirectory CreateGuardFixtureWithoutCoreReference(string guardCell)
     {
         return CreateGuardFixture(false, [guardCell]);
     }
@@ -882,27 +880,6 @@ public sealed class PhaseOwnershipDocumentationTests
     private static string DescribeFindings(string title, IEnumerable<string> findings)
     {
         return $"{title}:{Environment.NewLine}{string.Join(Environment.NewLine, findings.Select(finding => $"  {finding}"))}";
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     /// <summary>

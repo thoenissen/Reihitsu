@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
@@ -62,7 +64,7 @@ public sealed class SpecStructureTests
     public void EveryRequirementIdCarriesItsSpecPrefix()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindIdPrefixProblems(repositoryRoot);
@@ -78,7 +80,7 @@ public sealed class SpecStructureTests
     public void SpecIndexListsEverySpecWithItsHeader()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindIndexProblems(repositoryRoot);
@@ -95,7 +97,7 @@ public sealed class SpecStructureTests
     public void UsesListsExactlyTheReferencedRequirements()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindUsesProblems(repositoryRoot);
@@ -111,7 +113,7 @@ public sealed class SpecStructureTests
     public void LedgerIsSorted()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindLedgerOrderProblems(repositoryRoot);
@@ -127,7 +129,7 @@ public sealed class SpecStructureTests
     public void EveryTypeIsCodeOwnerOfAtMostOneSpec()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindSharedCodeOwners(repositoryRoot);
@@ -144,7 +146,7 @@ public sealed class SpecStructureTests
     public void AnalyzerSpecHeaderMatchesItsRule()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var rules = DiscoverRules();
 
         // Act
@@ -161,7 +163,7 @@ public sealed class SpecStructureTests
     public void IdPrefixCheckReportsForeignPrefixAndMalformedNumber()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/formatter/a.md", CreateSpec("FMT-A", "—", "FMT-A-001", "FMT-B-002", "FMT-A-03"));
 
@@ -183,7 +185,7 @@ public sealed class SpecStructureTests
     public void UsesCheckReportsMissingAndUnusedEntries()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/shared/s.md", CreateSpec("SHARED-S", "—", "SHARED-S-001", "SHARED-S-002", "SHARED-S-003"));
             fixture.WriteFile("sdd/specs/formatter/a.md",
@@ -207,7 +209,7 @@ public sealed class SpecStructureTests
     public void UsesCheckReportsRetiredRequirement()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/shared/s.md",
                               "# S\n\n| | |\n|---|---|\n| ID prefix | SHARED-S |\n| Uses | — |\n\n## Requirements\n\n### SHARED-S-001 — Title\n\nStatus: Retired — reason.\n");
@@ -230,7 +232,7 @@ public sealed class SpecStructureTests
     public void LedgerOrderCheckReportsUnsortedId()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/requirement-ids.txt", "CLI-001\nCLI-003\nCLI-002\n");
 
@@ -250,7 +252,7 @@ public sealed class SpecStructureTests
     public void CodeOwnerOwnershipCheckReportsTypeOfTwoSpecs()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/a.md", "`Shared`, `OnlyA`");
             fixture.WriteSpec("shared/b.md", "`Shared`");
@@ -274,7 +276,7 @@ public sealed class SpecStructureTests
     public void IndexCheckReportsMissingSpecAndStaleRow()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/formatter/a.md", CreateSpec("FMT-A", "`A`", "FMT-A-001"));
             fixture.WriteFile("sdd/specs/formatter/b.md", CreateSpec("FMT-B", "`B`", "FMT-B-001"));
@@ -585,27 +587,6 @@ public sealed class SpecStructureTests
     private static string DescribeFindings(string title, IEnumerable<string> findings)
     {
         return $"{title}:{Environment.NewLine}{string.Join(Environment.NewLine, findings.Select(finding => $"  {finding}"))}";
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods
