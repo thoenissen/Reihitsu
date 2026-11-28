@@ -31,7 +31,7 @@
 ## Worklist / next step
 
 - Spec author 01 done (616e3b6), skeptic 02 done (d50eb50): verdict output question.
-- Spec author 03 done (3830bc4, Accepted). Question 7 answered B; spec author 04 done (941db66): a conditional directive (#if/#elif/#else/#endif) in front of the first using keeps the block unsafe. Test implementer 05 done (da2b661). Implementer 06 done (5051cca). Cleaner 07 clean (2dae196), spec checker 08 consistent (6c9f538). Next: auditor (09).
+- Spec author 03 done (3830bc4, Accepted). Question 7 answered B; spec author 04 done (941db66): a conditional directive (#if/#elif/#else/#endif) in front of the first using keeps the block unsafe. Test implementer 05 done (da2b661). Implementer 06 done (5051cca). Cleaner 07 clean (2dae196), spec checker 08 consistent (6c9f538). Auditor 09 pass, no findings (audited SHA 55bb071, handover 107d943); its two hints (weak #else/#elif tests that no input separates; RH72xx -004 wording) need no action. Next: validator (10), then publish.
 - Batch 1 fully answered (incl. 3A 4B).
 - Next: fresh spec author amends change doc + specs per answers 2–3 and decision 3, sets Status: Accepted; then test implementer.
 - Was: waiting for the maintainer on batch 1 (questions 1–6: cases 2, 4, 5, 6, 7 and escalation 10 on declaring directives inside a using block unsupported).
