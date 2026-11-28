@@ -15,6 +15,7 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Test implementer | How to tell a new compile error from one the fixture already had | Compare errors as a set of (ID, message): a fix result is invalid only when it carries an error whose ID and message the original did not have; repeats of an existing error do not count | A count- or ID-only comparison flags realistic fixtures, e.g. a field split of an unknown type repeats CS0246, or misses a new CS0246 for another name | Tooling only; no analyzer, formatter, or CLI output changes | de445df |
 
 ## Follow-up candidates
 
@@ -22,5 +23,5 @@ None yet.
 
 ## State
 
-- Last step: claim, lane claimed.
-- Next: test implementer.
+- Last step: test implementer (01-test-implementer.md, de445df) — 5 failing tests reproduce.
+- Next: implementer; it also updates scripts/README.md, the `FixtureOutcome.InvalidResult` doc comment, and the `RunAsync` languageVersion doc.
