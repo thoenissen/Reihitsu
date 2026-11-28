@@ -20,24 +20,23 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 - 2026-11-21 · #1088 · local constants follow camelCase (option A); the run is ordinary: `#1087 #1088` after #1090 merges.
 ## Plan
 
-Open in 1.6.0 (7): #1399 #1400 #1589 #1936 #1971 #1990 #1994.
+Open in 1.6.0 (3): #1400 #1589 #1936.
 
-Merged since the previous batch: #1980 (#1979), #1983, #1984 (#1607), #1985 (#1568 #1698 #1567), #1986 (#1085), #1987 (#1087 #1088 #1978), #1991 (#1972), #1992 (#1970), #1993 (#1977).
+Merged since the previous batch: #1995 (#1399), #1996 (#1971), #1997 (#1990), #1998 (#1994).
 
 Runs in progress: none (no PR open).
 
-Dependency graph: rebuilt directly (main at 13b0ed23); previous graph `inventory/batch-2026-11-27.md`.
+Dependency graph: rebuilt directly (main at c3377002).
 
-Start now: `#1399` · `#1971` · `#1990` · `#1994`. File sets: #1399 `indentation.md`, `LayoutComputer.cs` and formatter tests; #1971 `UsingDirectiveOrderingSafety.cs`, RH72xx analyzers/fixes, `using-directives.md`, `using-directive-ordering.md`; #1990 RH2001 fix, `RH2001.md` spec, `casing.md` (SHARED-CASING-015); #1994 the 15 test files holding `FindRepositoryRoot` and the fixture-directory types (architecture, analyzer self-hosting, formatter ownership, tooling tests). No shared file found; #1994's `LayoutContributorOwnershipTests.cs` is no file #1399 is known to change.
+Start now: `#1400 #1936` · `#1589`. File sets: `#1400 #1936` docs lane — `indentation.md` (FMT-INDENT-010, -021, -028), `horizontal-spacing.md` (FMT-SPACE-001/-013), possibly characterization tests; #1589 code-fix audit — fixes under `Reihitsu.Analyzer.CodeFixes`, `shared/code-fixes.md`, analyzer tests. No shared file; `#1400 #1936` is no code-fix run, so #1589 need not wait.
 
-After merges:
-- after #1399 → `#1400 #1936` (`indentation.md`)
-- after #1971 and #1990 → `#1589` (audits the RH72xx guard #1971 changes and the RH2001 case #1990 adds; its file set is open, so it starts when no code-fix run is open)
+After merges: none — these are the last runs of 1.6.0; after both merge, `/coordinator finish`.
 
-Notes for the runs: #1399 untouched by #1985 (different constructs). #1994 picks one bin/obj skip rule (see its comment).
+Notes for the runs: #1400 item 22 cites FMT-INDENT-010, which #1995 renamed ("indented like the members around them") when it declared a region inside a member unsupported; its example (`#region` in an inactive `#if` group) is re-checked against the new text. #1936's `Why:` is unchanged on main (premise holds).
 
 ## Status
 
+Status 2026-11-28 (h): batch — merges #1995–#1998 read (closed #1399 #1971 #1990 #1994); graph rebuilt; start-now set of 2 runs given (`#1400 #1936`, `#1589`); no closes proposed; nothing after them in 1.6.0.
 Status 2026-11-28 (g): triage answered 1A, 2B; #1999 #2000 closed, #2001 → 1.10.0; roadmap updated; commented on all three. Batch next in the same session.
 Status 2026-11-28 (f): triage asked (`inventory/triage-2026-11-28b.md`, main at c3377002). 1 placements: #1999 close as completed (test `FixKeepsTheLayoutAndCommentsOfAMultiLineAnonymousObjectMember` already on main); #2000 close as not planned (providers decide differently: shared one re-analyzes, casing one checks collisions up front); #2001 by question 2 (1A apply / 1B change rows; rec. 1A). 2 #2001 new rule for multi-line array-initializer braces: A no rule, close not planned; B new rule + fix (rec.), joins 1.10.0 counterpart run `#1739 #1159 #1637 #1638 #1560 #1827 #1930 #1988`, after #1876 (1.7.0) and #1774 (1.8.0).
 Status 2026-11-28 (e): triage of #1999 #2000 #2001 started; assessment delegated (`inventory/triage-2026-11-28b.md`, main at c3377002). Nothing asked yet. Side find: #1995 #1996 #1997 #1998 merged since the last batch — batch after the triage answer.
@@ -71,4 +70,4 @@ Status 2026-11-21 (d): finished 1.5.0 (close-out after the fact: #1917 merged, b
 
 ## Next
 
-On reports of merges: `/coordinator batch`. On new issues without a milestone (other than #1982, which stays without one): `/coordinator triage`.
+On reports of merges: `/coordinator batch`; when #1400/#1936 and #1589 have merged and nothing is open, `/coordinator finish`. On new issues without a milestone (other than #1982, which stays without one): `/coordinator triage`.
