@@ -128,12 +128,13 @@ public static class FixtureRunner
             state.Current = iteration.AppliedSource;
             state.DocumentPath = iteration.AppliedDocumentPath;
 
-            // A fix result is invalid when it parses or compiles worse than the fixture: an error whose ID and message the
-            // fixture did not have. The fixture parses, so every parse error of the result counts as new; an error the
-            // fixture already had does not, however often the result repeats it
+            // A fix result is invalid when it parses or compiles worse than the fixture: for some error ID, it carries more
+            // distinct messages than the fixture did, and an ID the fixture lacks counts from zero. The fixture parses, so
+            // every parse error of the result counts as new. Repeats of one message count once, and a rename that only
+            // changes the symbol name an existing error's message shows keeps that ID's count
             var resultErrors = await GetCompileErrorsAsync(state.Current, state.DocumentPath, languageVersion, cancellationToken).ConfigureAwait(false);
 
-            if (resultErrors.IsSubsetOf(originalErrors) == false)
+            if (resultErrors.Any(error => error.Value > originalErrors.GetValueOrDefault(error.Key)))
             {
                 return Create(FixtureOutcome.InvalidResult,
                               state.Iterations,
@@ -163,18 +164,18 @@ public static class FixtureRunner
     }
 
     /// <summary>
-    /// Compiles the source in the same ad-hoc project the analyzer and the code fix run in and collects its errors, parse
-    /// errors included, as a set of diagnostic ID and message, so that repeats of one error count once
+    /// Compiles the source in the same ad-hoc project the analyzer and the code fix run in and counts its errors, parse
+    /// errors included, as the number of distinct messages per diagnostic ID, so that repeats of one error count once
     /// </summary>
     /// <param name="source">Source to compile</param>
     /// <param name="documentPath">Forward-slash separated document path the source is compiled under</param>
     /// <param name="languageVersion">C# language version of the project's parse options</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The ID and invariant-culture message of every distinct compile error</returns>
-    private static async Task<ImmutableHashSet<(string Id, string Message)>> GetCompileErrorsAsync(string source,
-                                                                                                   string documentPath,
-                                                                                                   LanguageVersion languageVersion,
-                                                                                                   CancellationToken cancellationToken)
+    /// <returns>For every compile error ID, the number of its distinct invariant-culture messages</returns>
+    private static async Task<ImmutableDictionary<string, int>> GetCompileErrorsAsync(string source,
+                                                                                      string documentPath,
+                                                                                      LanguageVersion languageVersion,
+                                                                                      CancellationToken cancellationToken)
     {
         using (var workspace = new AdhocWorkspace())
         {
@@ -185,8 +186,12 @@ public static class FixtureRunner
 
             return compilation.GetDiagnostics(cancellationToken)
                               .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
-                              .Select(diagnostic => (diagnostic.Id, diagnostic.GetMessage(CultureInfo.InvariantCulture)))
-                              .ToImmutableHashSet();
+                              .GroupBy(diagnostic => diagnostic.Id, StringComparer.Ordinal)
+                              .ToImmutableDictionary(group => group.Key,
+                                                     group => group.Select(diagnostic => diagnostic.GetMessage(CultureInfo.InvariantCulture))
+                                                                   .Distinct(StringComparer.Ordinal)
+                                                                   .Count(),
+                                                     StringComparer.Ordinal);
         }
     }
 
