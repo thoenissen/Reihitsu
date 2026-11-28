@@ -21,6 +21,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | 04 | Skeptic 04's internal spec choices (FMT-PIPE-018 deferral, cite FMT-BREAK-016, AGENTS table completeness, context input for WithContext, `stackalloc[]`) | Accepted, routed to spec author 05 | Consistency with unchanged requirements | Spec wording only | b15784d |
+| 2 | 05 | 05 Q2: does 2B reach regions around usings and inside types in a top-level-statement file | Yes, literal reading | The maintainer confirmed 'any region in a file with top-level statements' | Covered by a maintainer answer | b15784d |
 
 ## Follow-up candidates
 
@@ -36,7 +38,8 @@
 
 - Last step finished: spec author (01, c9404e4; change doc Draft; open output question 1 + several change-doc entries needing answers).
 - Skeptic (02, c1f75f2): verdict output question; premise holds, reachable via CLI; no architecture findings; escalation 10 not an option (deletes no special case).
-- Skeptic 04 done (3d7023b): spec states answers correctly; 2 new output questions; internal choices for spec author (FMT-INDENT-010 sentence defers to FMT-PIPE-018; cite FMT-BREAK-016; AGENTS table summary completeness; FMT-UNSUP-023 input = context for WithContext; stackalloc[] implicit form). Batch 2 answered. Next: fresh spec author (05) applies batch 2 + skeptic 04 internal choices, sets change doc Accepted; then test implementer (06).
+- Skeptic 04 done (3d7023b): spec states answers correctly; 2 new output questions; internal choices for spec author (FMT-INDENT-010 sentence defers to FMT-PIPE-018; cite FMT-BREAK-016; AGENTS table summary completeness; FMT-UNSUP-023 input = context for WithContext; stackalloc[] implicit form). Spec author 05 done (b15784d; change doc Accepted). 05 Q2 (reach of 2B: regions around usings/inside types in a top-level file) decided as covered by the maintainer's follow-up answer 'any region in a file with top-level statements … is unsupported' — spec's literal reading stands. 05 Q1 (comments next to other braces) asked as batch 3. Next after answer: test implementer (06).
+- Earlier: fresh spec author (05) applies batch 2 + skeptic 04 internal choices, sets change doc Accepted; then test implementer (06).
 - Spec author 03 done (2956db2): FMT-UNSUP-023 (region inside a member), FMT-BREAK-046 (array-initializer braces); 5 open output questions in 03; scope warning ~217 test literals hold a region inside a member. Next: skeptic 04, then batch 2.
 - Batches 1, 1b, 1c answered. Earlier plan: fresh spec author (03) rewrites change doc + specs per answers; then fresh skeptic (04) on the amended diff; then any new output questions; then test implementer.
 - Old: batch 1b (scope of the declaration, timing, reach of the initializer line rule).
