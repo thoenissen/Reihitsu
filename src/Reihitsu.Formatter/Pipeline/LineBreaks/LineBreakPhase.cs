@@ -45,7 +45,6 @@ internal sealed class LineBreakPhase : IFormattingPhase
                    new AttachedPartLineStartRewriter(cancellationToken),
                    new ContinuationJoinRewriter(context, cancellationToken),
                    new ListElementInteriorJoinRewriter(context, cancellationToken),
-                   new ArrayInitializerBraceLineBreakRewriter(context, gapNormalizer, bracePlacer, cancellationToken),
                    new LineBreakListRewriter(context, cancellationToken),
                    new PropertyLayoutLineBreakRewriter(accessorListLayout, cancellationToken),
                    new GenericConstraintLineBreakRewriter(context, cancellationToken),
@@ -55,7 +54,8 @@ internal sealed class LineBreakPhase : IFormattingPhase
                    new BinaryOperatorLineBreakRewriter(context, cancellationToken),
                    new ChainLineBreakRewriter(context, cancellationToken),
                    new TernaryLineBreakRewriter(context, cancellationToken),
-                   new SwitchCaseWhenLineBreakRewriter(context, cancellationToken)
+                   new SwitchCaseWhenLineBreakRewriter(context, cancellationToken),
+                   new ArrayInitializerBraceLineBreakRewriter(context, gapNormalizer, bracePlacer, cancellationToken)
                ];
     }
 

@@ -18,20 +18,26 @@ internal sealed partial class PrecheckPhase
     /// token other than the positions between members (FMT-UNSUP-023): the node's first token, the first token of a member
     /// declaration, a using directive, an extern alias, or a file's attribute list, the closing brace of a type, an extension
     /// block, an enum, or a namespace, and the end of the file. A whole file that holds a top-level statement excepts none of
-    /// them. A region directive in an inactive branch is no directive of the build being formatted and is not found
+    /// them. A region directive in an inactive branch is no directive of the build being formatted and is not found. A node
+    /// without a directive is left at once, and a token's position is only decided when its leading trivia holds a region
+    /// directive
     /// </summary>
     /// <param name="node">The node the precheck decides on</param>
     /// <returns>The first such directive, or <see langword="null"/></returns>
     private static SyntaxTrivia? FindRegionDirectiveInsideMember(SyntaxNode node)
     {
+        if (node.ContainsDirectives == false)
+        {
+            return null;
+        }
+
         var exceptsMemberPositions = node is not CompilationUnitSyntax compilationUnit
                                      || compilationUnit.Members.Any(static member => member is GlobalStatementSyntax) == false;
         var firstToken = node.GetFirstToken();
 
         foreach (var token in node.DescendantTokens())
         {
-            if (token.HasLeadingTrivia == false
-                || (exceptsMemberPositions && (token == firstToken || StandsBetweenMembers(token))))
+            if (token.HasLeadingTrivia == false)
             {
                 continue;
             }
@@ -41,6 +47,12 @@ internal sealed partial class PrecheckPhase
                 if (SyntaxTriviaUtilities.IsRegionDirective(trivia)
                     && SyntaxTriviaUtilities.IsInactiveDirective(trivia) == false)
                 {
+                    if (exceptsMemberPositions
+                        && (token == firstToken || StandsBetweenMembers(token)))
+                    {
+                        break;
+                    }
+
                     return trivia;
                 }
             }

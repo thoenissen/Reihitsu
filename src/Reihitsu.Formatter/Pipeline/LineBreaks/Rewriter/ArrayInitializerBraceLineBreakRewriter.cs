@@ -17,10 +17,10 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// as it is, and so is every other line break between the elements
 /// </summary>
 /// <remarks>
-/// The rewriter runs after the rewriters that join or break lines inside an element and before
-/// <see cref="LineBreakListRewriter"/>, so each initializer is judged on the lines the joins and the layouts of its elements
-/// leave, and a list whose element it makes multi-line is decided as the multi-line list it becomes. A comment keeps its
-/// line: a brace or an element that has to start its line moves onto the line below the comment in front of it
+/// The rewriter runs last in the line-break phase, so each initializer is judged on the lines every other rewriter of the phase
+/// leaves, after their joins and line breaks. It only adds line breaks inside an initializer that already spans several
+/// lines, so no construct around it changes from one line to several. A comment keeps its line: a brace or an element that
+/// has to start its line, the closing brace included, moves onto the line below the comment in front of it
 /// </remarks>
 internal sealed class ArrayInitializerBraceLineBreakRewriter : CSharpSyntaxRewriter
 {
@@ -182,7 +182,9 @@ internal sealed class ArrayInitializerBraceLineBreakRewriter : CSharpSyntaxRewri
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = PlaceMultiLineRows(node);
 
-        return _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBraceToken, static (owner, token) => owner.WithCloseBraceToken(token));
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBraceToken, static (owner, token) => owner.WithCloseBraceToken(token));
+
+        return MoveTokenBelowItsLine(node, node.CloseBraceToken);
     }
 
     /// <inheritdoc/>
