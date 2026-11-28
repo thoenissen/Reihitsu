@@ -902,6 +902,56 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
         await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a block with a preprocessor directive in front of its first directive is fixed, with the directive at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveIsFixedWithTheDirectiveAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using Microsoft.CodeAnalysis;
+                                using {|RH7201:System|};
+
+                                class C
+                                {
+                                }
+
+                                namespace Microsoft.CodeAnalysis
+                                {
+                                    class Placeholder
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+
+                                 using Microsoft.CodeAnalysis;
+
+                                 class C
+                                 {
+                                 }
+
+                                 namespace Microsoft.CodeAnalysis
+                                 {
+                                     class Placeholder
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

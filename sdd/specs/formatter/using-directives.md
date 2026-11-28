@@ -142,8 +142,8 @@ Why: Splitting a line moves no directive across a preprocessor directive and cha
 Example:
 
 ```csharp
-#nullable enable
 using System.Linq; using System;
+#pragma warning disable CS0105
 using Microsoft.CodeAnalysis;
 
 class C
@@ -153,10 +153,37 @@ class C
 ```
 
 ```csharp
-#nullable enable
 using System.Linq;
 using System;
+#pragma warning disable CS0105
 using Microsoft.CodeAnalysis;
+
+class C
+{
+    int x;
+}
+```
+
+and a block with a conditional group in front of it is unsafe as well (SHARED-USING-009), so only its shared line is split; in a build that does not define `DEBUG`:
+
+```csharp
+#if DEBUG
+using System.Diagnostics;
+#endif
+using System.Linq; using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#if DEBUG
+using System.Diagnostics;
+#endif
+using System.Linq;
+using System;
 
 class C
 {
@@ -346,7 +373,7 @@ class C
 
 ### FMT-USING-009 — The header above the first directive stays at the top
 
-When the reorder moves the block's original first directive away from the top, the comments in its leading trivia up to and including the last blank line among them MUST stay at the top of the block, and only the comments after that blank line MUST move with the directive. When no blank line separates the comments from the directive, all of them MUST stay at the top. What counts as a blank line is SHARED-BLANK-001.
+When the reorder moves the block's original first directive away from the top, the comments in its leading trivia up to and including the last blank line among them MUST stay at the top of the block, and only the comments after that blank line MUST move with the directive. When no blank line separates the comments from the directive, all of them MUST stay at the top. What counts as a blank line is SHARED-BLANK-001. When that leading trivia holds a preprocessor directive, FMT-USING-012 applies instead.
 
 Why: The comments above the first using of a file are most often a file header — a copyright banner or a description of the file — and do not belong to whichever using happens to be first. A blank line is the only signal that separates a header from a comment written for the directive; without it, keeping the comment in place is the conservative choice.
 
@@ -774,3 +801,149 @@ class C
 ```
 
 Formatting the whole document then moves the comment and both directives to column 0 (FMT-INDENT); the code fixes do not.
+
+### FMT-USING-012 — The leading trivia of a block with a directive in front stays at the top
+
+When the leading trivia of a reordered block's original first directive holds a preprocessor directive (SHARED-USING-009) and the reorder moves that using directive away from the top, the whole leading trivia — every preprocessor directive, comment, and blank line in it — MUST stay at the top of the block, in its order, and none of it moves with the using directive. FMT-USING-009's split at the last blank line does not apply to such trivia; it applies unchanged to a leading trivia that holds no preprocessor directive. The trivia that stays at the top is the header of FMT-USING-009, so FMT-USING-010 and FMT-USING-011 treat it as they treat that header. A block whose first directive keeps its position keeps its leading trivia as written, as FMT-USING-009 states.
+
+Why: A preprocessor directive in front of the block stands in front of every directive of the block; only because it stays at the top does a reorder move no using across it (SHARED-USING-009), so no split may carry it away with the using directive, also when it follows a header's blank line. The maintainer decided that the comments around it stay at the top as well, also a comment behind a blank line below the directive, rather than splitting the trivia once more behind the last directive: a block with a directive in front keeps its whole header together, which is one rule with no second split point.
+
+Example — a directive behind a header's blank line stays at the top, where FMT-USING-009 alone would move it with `System.Linq`:
+
+```csharp
+// Header
+
+#nullable enable
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+// Header
+
+#nullable enable
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a blank line behind the directive stays behind it:
+
+```csharp
+#nullable enable
+
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#nullable enable
+
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a comment directly below the directive stays at the top, with no blank line added:
+
+```csharp
+#nullable enable
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#nullable enable
+// About Linq
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+and a comment behind a blank line below the directive stays at the top as well, where FMT-USING-009 alone would move it with `System.Linq`:
+
+```csharp
+#nullable enable
+
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#nullable enable
+
+// About Linq
+using System;
+using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+Example — the formatter frames a `#region` in front of the block as any region (FMT-BLANK-013); the `#endregion` behind the block is the leading trivia of `class C` and stays where it is:
+
+```csharp
+#region Usings
+using System.Linq;
+using System;
+#endregion
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+#region Usings
+
+using System;
+using System.Linq;
+
+#endregion // Usings
+
+class C
+{
+    int x;
+}
+```
+
+The output of FMT-PIPE-030, which the RH7201–RH7207 code fixes use, keeps the region as written: `#region Usings` directly above `using System;`, and `#endregion` directly below `using System.Linq;`.
+
+A leading trivia without a preprocessor directive keeps FMT-USING-009's split: a comment behind the header's blank line moves with its directive, as FMT-USING-009's examples show.

@@ -7,8 +7,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Core.Test;
 
 /// <summary>
-/// Contains unit tests for <see cref="UsingDirectiveOrderingSafety"/>: only a preprocessor directive anywhere in the trivia of
-/// a block's directives makes the block unsafe, while a line of a delimited comment that starts with <c>#</c> is comment text
+/// Contains unit tests for <see cref="UsingDirectiveOrderingSafety"/>: a preprocessor directive between a block's directives or
+/// between the tokens of one makes the block unsafe, and so does a conditional directive in front of the block, while any other
+/// directive in front of the block does not, and a line of a delimited comment that starts with <c>#</c> is comment text
 /// </summary>
 [TestClass]
 public class UsingDirectiveOrderingSafetyTests
@@ -284,17 +285,370 @@ public class UsingDirectiveOrderingSafetyTests
     }
 
     /// <summary>
-    /// Verifies that a directive in the leading trivia of the first using directive makes the block unsafe
+    /// Verifies that a <c>#nullable</c> directive in the leading trivia of the first token of the block's first directive stands in front of the block and does not make it unsafe
     /// </summary>
     /// <param name="endOfLine">Line ending of the source</param>
     [TestMethod]
     [Requirement("SHARED-USING-009")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public void NullableDirectiveBeforeFirstDirectiveIsUnsafe(string endOfLine)
+    public void NullableDirectiveBeforeFirstDirectiveIsSafe(string endOfLine)
     {
         const string source = """
                               #nullable enable
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive with a blank line below it in front of the block does not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void NullableDirectiveFollowedByBlankLineBeforeFirstDirectiveIsSafe(string endOfLine)
+    {
+        const string source = """
+                              #nullable enable
+
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma warning disable</c> directive in front of the block does not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void PragmaDirectiveBeforeFirstDirectiveIsSafe(string endOfLine)
+    {
+        const string source = """
+                              #pragma warning disable CS0105
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#define</c> directive in front of the block does not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void DefineDirectiveBeforeFirstDirectiveIsSafe(string endOfLine)
+    {
+        const string source = """
+                              #define TRACE_X
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#region</c> directive that opens the block, with its <c>#endregion</c> behind the block, does not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void RegionDirectiveBeforeFirstDirectiveIsSafe(string endOfLine)
+    {
+        const string source = """
+                              #region Usings
+                              using System.Linq;
+                              using System;
+                              #endregion
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment header, a blank line, and two directives in front of the block, with a directive behind the block, do not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void HeaderCommentAndTwoDirectivesBeforeFirstDirectiveAreSafe(string endOfLine)
+    {
+        const string source = """
+                              // <copyright file="C.cs">
+                              // Header
+                              // </copyright>
+
+                              #nullable enable
+                              #pragma warning disable CS0105
+                              using System.Linq;
+                              using System;
+                              #pragma warning restore CS0105
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive between an extern alias and the block's first directive stands in front of the block and does not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void NullableDirectiveBehindExternAliasBeforeFirstDirectiveIsSafe(string endOfLine)
+    {
+        const string source = """
+                              extern alias Foo;
+                              #nullable enable
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive in front of a block whose first directive starts with <c>global</c> does not make it unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void NullableDirectiveBeforeFirstGlobalDirectiveIsSafe(string endOfLine)
+    {
+        const string source = """
+                              #nullable enable
+                              global using System.Linq;
+                              global using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive in front of the block of a namespace with a body does not make the namespace's block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void NullableDirectiveBeforeFirstDirectiveOfBlockNamespaceIsSafe(string endOfLine)
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  #nullable enable
+                                  using System.Linq;
+                                  using System;
+                              }
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive in front of the block of a file-scoped namespace does not make the namespace's block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void NullableDirectiveBeforeFirstDirectiveOfFileScopedNamespaceIsSafe(string endOfLine)
+    {
+        const string source = """
+                              namespace N;
+                              #nullable enable
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsTrue(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a directive in front of the block does not keep a directive in the leading trivia of a later directive from making the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void HeaderDirectiveWithDirectiveInLeadingTriviaOfLaterDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #nullable enable
+                              using System.Linq;
+                              #pragma warning disable CS0105
+                              using System;
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>#pragma</c> directive in the leading trivia of a later token of the block's first directive stands between that directive's tokens and makes the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void PragmaBetweenTokensOfFirstDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              using
+                              #pragma warning disable CS0105
+                                  System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a directive in front of the block does not keep a directive between the tokens of the block's first directive from making the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void HeaderDirectiveWithPragmaBetweenTokensOfFirstDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #nullable enable
+                              using
+                              #pragma warning disable CS0105
+                                  System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group that ends in front of the block, with its excluded code as disabled text in the leading trivia of the block's first directive, makes the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void ConditionalGroupBeforeFirstDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #if DEBUG
+                              using System.Diagnostics;
+                              #endif
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> in front of the block whose <c>#endif</c> stands behind the block makes the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void ConditionalGroupEnclosingTheBlockIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #if !LEGACY
+                              using System.Linq;
+                              using System;
+                              #endif
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#endif</c> in front of the block, whose <c>#if</c> stands in front of an extern alias, makes the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void EndIfDirectiveBeforeFirstDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #if !A
+                              extern alias Foo;
+                              #endif
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#else</c> and its <c>#endif</c> in front of the block, whose <c>#if</c> stands in front of an extern alias, make the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void ElseDirectiveBeforeFirstDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #if !A
+                              extern alias Foo;
+                              #else
+                              extern alias Bar;
+                              #endif
+                              using System.Linq;
+                              using System;
+                              """;
+
+        Assert.IsFalse(CanSafelyReorder(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#elif</c> and its <c>#endif</c> in front of the block, whose <c>#if</c> stands in front of an extern alias, make the block unsafe
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public void ElifDirectiveBeforeFirstDirectiveIsUnsafe(string endOfLine)
+    {
+        const string source = """
+                              #if !A
+                              extern alias Foo;
+                              #elif B
+                              extern alias Bar;
+                              #endif
                               using System.Linq;
                               using System;
                               """;

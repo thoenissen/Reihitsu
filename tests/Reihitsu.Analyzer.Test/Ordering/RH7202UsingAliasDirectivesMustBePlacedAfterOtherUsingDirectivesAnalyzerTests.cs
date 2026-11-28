@@ -355,6 +355,42 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a block with a preprocessor directive in front of its first directive is fixed, with the directive at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7202-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveIsFixedWithTheDirectiveAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using {|RH7202:A|} = System.Text;
+                                using System;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+
+                                 using A = System.Text;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

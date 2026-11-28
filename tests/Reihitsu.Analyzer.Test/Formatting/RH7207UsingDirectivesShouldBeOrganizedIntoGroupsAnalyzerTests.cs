@@ -1955,15 +1955,17 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifies the specification example: a <c>#nullable</c> directive in front of the first directive makes the block unsafe,
-    /// so its order is reported without a code fix
+    /// Verifies the specification example: a <c>#nullable</c> directive in front of the first directive does not make the block unsafe, so its order is reported and the code fix reorders it with the directive at the top
     /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7207-001")]
     [Requirement("RH7207-004")]
     [Requirement("SHARED-USING-009")]
-    public async Task BlockLedByANullableDirectiveIsReportedWithoutCodeFix()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveIsReportedAndFixed(string endOfLine)
     {
         const string testCode = """
                                 #nullable enable
@@ -1976,7 +1978,344 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testCode);
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a block led by a <c>#nullable</c> directive is checked for its blank lines, so a block in canonical order without the blank line between its groups is reported, and the code fix adds the blank line
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveInCanonicalOrderIsReportedForAMissingBlankLineAndFixed(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using {|RH7207:System|};
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+
+                                 using Microsoft.Win32;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a block opened by a <c>#region</c> whose <c>#endregion</c> stands behind it is checked for its blank lines, and the code fix adds the blank line between its groups and keeps the region as written
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockOpenedByARegionInCanonicalOrderIsReportedForAMissingBlankLineAndFixed(string endOfLine)
+    {
+        const string testCode = """
+                                #region Usings
+                                using {|RH7207:System|};
+                                using Microsoft.Win32;
+                                #endregion
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #region Usings
+                                 using System;
+
+                                 using Microsoft.Win32;
+                                 #endregion
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an organized block led by a <c>#nullable</c> directive is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task OrganizedBlockLedByANullableDirectiveIsNotReported(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System;
+
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a header directive does not make a block checked for its blank lines when the block also holds a directive in front of a later directive
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task BlockLedByANullableDirectiveWithADirectiveInFrontOfALaterDirectiveIsNotReportedForAMissingBlankLine(string endOfLine)
+    {
+        const string testCode = """
+                                #nullable enable
+                                using System;
+                                #pragma warning disable CS0105
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a block behind a conditional group is not checked for its blank lines, so a block in canonical order without the blank line between its groups is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupInFrontOfABlockInCanonicalOrderIsNotReportedForAMissingBlankLine(string endOfLine)
+    {
+        const string testCode = """
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using System;
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a block a conditional group encloses is not checked for its blank lines, so a block in canonical order without the blank line between its groups is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupEnclosingABlockInCanonicalOrderIsNotReportedForAMissingBlankLine(string endOfLine)
+    {
+        const string testCode = """
+                                #if !LEGACY
+                                using System;
+                                using Microsoft.Win32;
+                                #endif
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a build that does not define the symbol, a conditional group in front of the block makes it unsafe, so its order is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupInFrontOfTheBlockIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                using {|RH7207:System.Linq|};
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an <c>#if</c> in front of the block whose <c>#endif</c> stands behind it makes the block unsafe, so its order is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupEnclosingTheBlockIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                #if !LEGACY
+                                using {|RH7207:System.Linq|};
+                                using System;
+                                #endif
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a directive between the tokens of the block's first directive makes the block unsafe, so its order is reported without a code fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task PragmaBetweenTokensOfTheFirstDirectiveIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testCode = """
+                                using
+                                #pragma warning disable CS0105
+                                    {|RH7207:System.Linq|};
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All adds the missing group blank line to a compilation-unit block and a namespace block that are both led by a header directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-009")]
+    public async Task FixAllAddsTheGroupBlankLinesOfTwoBlocksLedByHeaderDirectives()
+    {
+        const string testCode = """
+                                #nullable enable
+                                using {|RH7207:System|};
+                                using Microsoft.Win32;
+
+                                namespace N
+                                {
+                                    #pragma warning disable CS0105
+                                    using {|RH7207:System.IO|};
+                                    using Microsoft.Win32;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 #nullable enable
+                                 using System;
+
+                                 using Microsoft.Win32;
+
+                                 namespace N
+                                 {
+                                     #pragma warning disable CS0105
+                                     using System.IO;
+
+                                     using Microsoft.Win32;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
     }
 
     /// <summary>
