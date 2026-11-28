@@ -92,7 +92,7 @@ public static class CodeFixRunCommand
     /// <param name="diagnosticId">Diagnostic ID whose code fix is exercised</param>
     /// <param name="directory">Fixture directory</param>
     /// <param name="maximumIterations">Maximum number of code actions per fixture arm</param>
-    /// <param name="languageVersion">Resolved C# language version of every parse</param>
+    /// <param name="languageVersion">Resolved C# language version of every parse and compilation</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="error">Standard error writer</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -153,7 +153,7 @@ public static class CodeFixRunCommand
     /// <param name="fullDirectory">Absolute fixture directory</param>
     /// <param name="target">Resolved analyzer and code fix target</param>
     /// <param name="maximumIterations">Maximum code actions per fixture arm</param>
-    /// <param name="languageVersion">Resolved C# language version of every parse</param>
+    /// <param name="languageVersion">Resolved C# language version of every parse and compilation</param>
     /// <param name="output">Standard output writer</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Outcome counters and line-ending drift count</returns>
