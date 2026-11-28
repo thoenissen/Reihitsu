@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
@@ -53,9 +55,9 @@ public sealed class ApplyFixWrapperPositionalArgumentTests
             return;
         }
 
-        using (var scope = new ApplyFixWrapperFixtureDirectoryScope())
+        using (var scope = new FixtureDirectory())
         {
-            scope.CreateFixture("--no-install", "Sample.cs");
+            CreateFixture(scope, "--no-install", "Sample.cs");
 
             // Act
             var (exitCode, _, error) = await RunAsync(bash,
@@ -84,9 +86,9 @@ public sealed class ApplyFixWrapperPositionalArgumentTests
             return;
         }
 
-        using (var scope = new ApplyFixWrapperFixtureDirectoryScope())
+        using (var scope = new FixtureDirectory())
         {
-            var directory = scope.CreateFixture("plain", "Sample.cs");
+            var directory = CreateFixture(scope, "plain", "Sample.cs");
 
             // Act
             var (exitCode, _, error) = await RunAsync(bash,
@@ -134,19 +136,21 @@ public sealed class ApplyFixWrapperPositionalArgumentTests
     /// <returns>The absolute script path</returns>
     private static string FindScript(string scriptName)
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
+        return Path.Combine(RepositoryRoot.Find(), "scripts", scriptName);
+    }
 
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return Path.Combine(current.FullName, "scripts", scriptName);
-            }
+    /// <summary>
+    /// Creates a fixture subdirectory containing one trivial C# file
+    /// </summary>
+    /// <param name="fixture">Fixture directory the subdirectory is created in</param>
+    /// <param name="relativeDirectory">Directory name relative to the fixture directory, which may itself look like an option</param>
+    /// <param name="fileName">Fixture file name</param>
+    /// <returns>The full path of the created subdirectory</returns>
+    private static string CreateFixture(FixtureDirectory fixture, string relativeDirectory, string fileName)
+    {
+        var filePath = fixture.WriteFile(Path.Combine(relativeDirectory, fileName), "internal class Sample\n{\n}\n");
 
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
+        return Path.GetDirectoryName(filePath);
     }
 
     /// <summary>

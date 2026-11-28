@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
@@ -44,7 +46,7 @@ public sealed class ShellScriptExecutableModeTests
     public async Task EveryTrackedShellScriptIsExecutable()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         if (FindExecutable("git") is not { } git)
         {
@@ -119,27 +121,6 @@ public sealed class ShellScriptExecutableModeTests
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Locates the repository root by walking up from the test assembly
-    /// </summary>
-    /// <returns>The repository root directory</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     /// <summary>

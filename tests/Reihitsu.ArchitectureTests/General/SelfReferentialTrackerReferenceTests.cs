@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
 using Reihitsu.Core;
 
 namespace Reihitsu.ArchitectureTests.General;
@@ -41,8 +42,7 @@ public sealed class SelfReferentialTrackerReferenceTests
     /// File-name suffixes that mark generated source excluded from the scan, matching
     /// <c>Reihitsu.Cli.GeneratedFileUtilities.IsGeneratedFile</c>. That helper is <see langword="internal"/> to
     /// <c>Reihitsu.Cli</c> with no <c>InternalsVisibleTo</c> to this project — hence no resolvable <c>cref</c>
-    /// above — so this repeats the list rather than referencing it, the same intentional duplication this
-    /// project already accepts for <see cref="FindRepositoryRoot"/>
+    /// above — so this repeats the list rather than referencing it
     /// </summary>
     private static readonly string[] _generatedFileSuffixes = [".Designer.cs", ".g.cs", ".g.i.cs"];
 
@@ -74,7 +74,7 @@ public sealed class SelfReferentialTrackerReferenceTests
     public void RepositoryCommentsContainNoSelfReferentialTrackerReferences()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = ScanForCommentReferences(repositoryRoot);
@@ -91,7 +91,7 @@ public sealed class SelfReferentialTrackerReferenceTests
     public void RepositoryDeclaredNamesContainNoSelfReferentialTrackerReferences()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = ScanForNameReferences(repositoryRoot);
@@ -110,7 +110,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs", "internal class Sample\n{\n    // issue #123\n    // PR #721\n    // #636).\n}\n");
 
@@ -134,7 +134,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "#nullable enable\n"
@@ -161,7 +161,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "internal class Sample\n"
@@ -190,7 +190,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "internal class Sample\n"
@@ -219,7 +219,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "internal class Sample\n"
@@ -251,7 +251,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "internal class Sample\n"
@@ -281,7 +281,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         IReadOnlyList<TrackerReference> findings;
         string trackedRelativePath;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile(Path.Combine("obj", "Release", "Sample.cs"), "internal class Sample\n{\n    // issue #123\n}\n");
             fixture.WriteFile(Path.Combine("bin", "Debug", "Sample.cs"), "internal class Sample\n{\n    // issue #123\n}\n");
@@ -299,6 +299,30 @@ public sealed class SelfReferentialTrackerReferenceTests
     }
 
     /// <summary>
+    /// Verifies that the comment scan still reads a scanned root that itself lies under a <c>bin</c> or <c>obj</c>
+    /// directory, such as a checkout or a temporary directory below one, and skips only the build output below
+    /// that root
+    /// </summary>
+    [TestMethod]
+    public void CommentScanReadsRootUnderBuildOutputDirectory()
+    {
+        // Arrange and act
+        IReadOnlyList<TrackerReference> findings;
+
+        using (var fixture = new FixtureDirectory())
+        {
+            fixture.WriteFile("obj/Checkout/Project/Sample.cs", "internal class Sample\n{\n    // issue #123\n}\n");
+            fixture.WriteFile("obj/Checkout/Project/bin/Debug/Sample.cs", "internal class Sample\n{\n    // issue #123\n}\n");
+
+            findings = ScanForCommentReferences(Path.Combine(fixture.Path, "obj", "Checkout"));
+        }
+
+        // Assert
+        Assert.HasCount(1, findings);
+        Assert.AreEqual(Path.Combine("Project", "Sample.cs"), findings[0].FilePath);
+    }
+
+    /// <summary>
     /// Verifies that a link to another project's tracker is exempt while the same URL shape pointing at this
     /// repository is reported
     /// </summary>
@@ -308,7 +332,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "internal class Sample\n"
@@ -335,7 +359,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs", "internal class Sample\n{\n    // Roslyn issue #41610\n}\n");
 
@@ -357,7 +381,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Issue999Tests.cs", "internal class Issue999Tests\n{\n    public void VerifyIssue999Works()\n    {\n    }\n}\n");
 
@@ -380,7 +404,7 @@ public sealed class SelfReferentialTrackerReferenceTests
         // Arrange and act
         IReadOnlyList<TrackerReference> findings;
 
-        using (var fixture = new TrackerReferenceFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("Sample.cs",
                               "internal class RH5201MethodChainsShouldBeAlignedAnalyzerTests\n"
@@ -584,7 +608,7 @@ public sealed class SelfReferentialTrackerReferenceTests
     {
         foreach (var filePath in Directory.EnumerateFiles(rootDirectory, "*.cs", SearchOption.AllDirectories))
         {
-            if (IsExcludedFromScan(filePath))
+            if (IsExcludedFromScan(rootDirectory, filePath))
             {
                 continue;
             }
@@ -594,33 +618,16 @@ public sealed class SelfReferentialTrackerReferenceTests
     }
 
     /// <summary>
-    /// Determines whether a file sits under a build-output directory or matches a generated-file suffix.
-    /// <c>FormatCommandHandler.IsInBuildOutputDirectory</c> implements the same policy — skip <c>bin</c>/<c>obj</c>
-    /// — but is <see langword="private"/> in a different assembly, so this repeats the policy rather than
-    /// referencing it. The two checks differ in scope on purpose: the CLI's own check walks only the segments
-    /// between a selection root and the file, using the platform-specific path comparer a real file-system scan
-    /// needs, while this repository-wide scan compares every segment with <see cref="StringComparison.OrdinalIgnoreCase"/>
-    /// because both trees it runs against — the checked-out repository and this test's own disposable fixtures —
-    /// use the same separator regardless of host platform
+    /// Determines whether a file sits under a build-output directory below the scanned root, as
+    /// <see cref="BuildOutputDirectories.Contains"/> decides, or matches a generated-file suffix
     /// </summary>
+    /// <param name="rootDirectory">Directory the scan walks</param>
     /// <param name="filePath">File path to check</param>
     /// <returns><see langword="true"/> if the file is excluded from the scan; otherwise, <see langword="false"/></returns>
-    private static bool IsExcludedFromScan(string filePath)
+    private static bool IsExcludedFromScan(string rootDirectory, string filePath)
     {
-        // The array is intentional: passing the two chars as separate params arguments resolves to the unrelated
-        // string.Split(char, int, StringSplitOptions) overload instead, silently treating the second separator as
-        // a result-count limit (see the earlier S3220 finding this shape fixes)
-#pragma warning disable S3878 // Passing params arguments here would resolve to the wrong Split overload
-        var segments = filePath.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]);
-#pragma warning restore S3878
-
-        if (segments.Any(segment => string.Equals(segment, "bin", StringComparison.OrdinalIgnoreCase)
-                                    || string.Equals(segment, "obj", StringComparison.OrdinalIgnoreCase)))
-        {
-            return true;
-        }
-
-        return _generatedFileSuffixes.Any(suffix => filePath.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+        return BuildOutputDirectories.Contains(rootDirectory, filePath)
+               || _generatedFileSuffixes.Any(suffix => filePath.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -662,27 +669,6 @@ public sealed class SelfReferentialTrackerReferenceTests
                                                + "State the invariant it protects, or the behavior it names, instead; link another project's tracker by full URL.");
 
         return $"Found {findings.Count} self-referential tracker {kind} reference(s):\n{string.Join("\n", lines)}";
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
@@ -53,7 +55,7 @@ public sealed class TestScriptProjectSelectionTests
     public void ShellAllIncludesEverySolutionTestProjectExceptSelfHosting()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var script = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
 
         // Act and assert
@@ -69,7 +71,7 @@ public sealed class TestScriptProjectSelectionTests
     public void NamedArchitectureAndToolingSelectionsRemainNarrow()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var shell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
 
         // Act and assert
@@ -88,7 +90,7 @@ public sealed class TestScriptProjectSelectionTests
     public void ShellAllLeavesOutTheSelfHostingProject()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var shell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
 
         // Act
@@ -105,7 +107,7 @@ public sealed class TestScriptProjectSelectionTests
     public void NamedSelfHostingSelectionSelectsOnlyTheSelfHostingProject()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var shell = File.ReadAllText(Path.Combine(repositoryRoot, "scripts", "test.sh"));
 
         // Act and assert
@@ -120,7 +122,7 @@ public sealed class TestScriptProjectSelectionTests
     public void SolutionListsTheSelfHostingTestProject()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var solutionProjects = SolutionTestProjects(repositoryRoot);
@@ -137,7 +139,7 @@ public sealed class TestScriptProjectSelectionTests
     public void SonarCloudTestLoopRunsEverySolutionTestProjectExceptArchitecture()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
         var expected = SolutionTestProjects(repositoryRoot).Where(path => path != ArchitectureTestProject)
                                                            .ToArray();
 
@@ -155,7 +157,7 @@ public sealed class TestScriptProjectSelectionTests
     public void SonarCloudTestLoopRunsTheSelfHostingProject()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var looped = SonarCloudLoopProjects(repositoryRoot);
@@ -259,27 +261,6 @@ public sealed class TestScriptProjectSelectionTests
                        .Where(path => File.ReadAllText(Path.Combine(repositoryRoot, path.Replace('/', Path.DirectorySeparatorChar)))
                                           .Contains("Microsoft.NET.Test.Sdk", StringComparison.Ordinal))
                        .ToArray();
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

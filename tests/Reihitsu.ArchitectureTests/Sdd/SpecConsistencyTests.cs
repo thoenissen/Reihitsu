@@ -5,6 +5,8 @@ using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.ArchitectureTests.Helpers;
+
 namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
@@ -27,7 +29,7 @@ public sealed class SpecConsistencyTests
     public void EveryCodeOwnerNamesAnExistingType()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindCodeOwnerProblems(repositoryRoot);
@@ -43,7 +45,7 @@ public sealed class SpecConsistencyTests
     public void EveryRequirementIdIsUniqueAcrossSpecs()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindDuplicateRequirementIds(repositoryRoot);
@@ -60,7 +62,7 @@ public sealed class SpecConsistencyTests
     public void RequirementIdLedgerMatchesSpecs()
     {
         // Arrange
-        var repositoryRoot = FindRepositoryRoot();
+        var repositoryRoot = RepositoryRoot.Find();
 
         // Act
         var findings = FindLedgerProblems(repositoryRoot);
@@ -78,7 +80,7 @@ public sealed class SpecConsistencyTests
         // Arrange
         List<string> findings;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
             fixture.WriteFile($"sdd/specs/{SpecCatalog.LedgerFileName}", "CLI-001\nCLI-002\n");
@@ -102,7 +104,7 @@ public sealed class SpecConsistencyTests
         // Arrange
         List<string> findings;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/cli/reihitsu-format.md", "### CLI-001 — Title\n\nStatus: Retired — superseded.\n");
             fixture.WriteFile($"sdd/specs/{SpecCatalog.LedgerFileName}", "CLI-001\n");
@@ -124,7 +126,7 @@ public sealed class SpecConsistencyTests
         // Arrange
         List<string> findings;
 
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001", "CLI-002");
             fixture.WriteFile($"sdd/specs/{SpecCatalog.LedgerFileName}", "CLI-001\nCLI-001\n");
@@ -146,7 +148,7 @@ public sealed class SpecConsistencyTests
     public void CodeOwnerCheckReportsMissingTypeWithSpecAndName()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`, `RemovedRewriter`");
             fixture.WriteFile("src/Reihitsu.Formatter/CleanupPhase.cs", "internal sealed class CleanupPhase { }\n");
@@ -168,7 +170,7 @@ public sealed class SpecConsistencyTests
     public void CodeOwnerCheckMatchesGenericArity()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("analyzer/RH0001.md", "`Base<T>`, `Other<T>`");
             fixture.WriteFile("src/Reihitsu.Analyzer/Types.cs", "internal class Base<T> { }\ninternal class Other { }\n");
@@ -190,7 +192,7 @@ public sealed class SpecConsistencyTests
     public void CodeOwnerCheckAcceptsEveryKindOfTypeDeclaration()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("playground/playground.md", "`R`, `S`, `I`, `E`, `D`, `Nested`, `Home`");
             fixture.WriteFile("src/Reihitsu.Playground/Types.cs",
@@ -212,7 +214,7 @@ public sealed class SpecConsistencyTests
     public void CodeOwnerCheckIgnoresTestProjectsAndBuildOutput()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`FromTest`, `FromArchitectureTests`, `FromObj`, `FromBin`");
             fixture.WriteFile("tests/Reihitsu.Cli.Test/FromTest.cs", "internal class FromTest { }\n");
@@ -236,7 +238,7 @@ public sealed class SpecConsistencyTests
     public void CodeOwnerCheckReportsSpecWithoutCodeOwnersRow()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/README.md", "# Spec index\n");
             fixture.WriteFile("sdd/specs/shared/policy.md", "# Policy\n\n| | |\n|---|---|\n| ID prefix | SHARED-X |\n");
@@ -258,7 +260,7 @@ public sealed class SpecConsistencyTests
     public void RequirementIdCheckReportsDuplicateAcrossSpecs()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("formatter/a.md", "`A`", "FMT-X-001", "FMT-X-002");
             fixture.WriteSpec("formatter/b.md", "`B`", "FMT-X-002", "FMT-Y-001");
@@ -281,7 +283,7 @@ public sealed class SpecConsistencyTests
     public void RequirementIdCheckReportsDuplicateWithinSpec()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001", "CLI-001");
 
@@ -301,7 +303,7 @@ public sealed class SpecConsistencyTests
     public void RequirementScanSkipsFencedCodeBlocks()
     {
         // Arrange
-        using (var fixture = new SpecFixtureDirectory())
+        using (var fixture = new FixtureDirectory())
         {
             fixture.WriteFile("sdd/specs/formatter/a.md", "### FMT-X-001 — Title\n\n```markdown\n### FMT-X-001 — Title\n```\n");
 
@@ -393,27 +395,6 @@ public sealed class SpecConsistencyTests
     private static string DescribeFindings(string title, IEnumerable<string> findings)
     {
         return $"{title}:{Environment.NewLine}{string.Join(Environment.NewLine, findings.Select(finding => $"  {finding}"))}";
-    }
-
-    /// <summary>
-    /// Finds the repository root from the test output directory
-    /// </summary>
-    /// <returns>Absolute repository-root path</returns>
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (current != null)
-        {
-            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods
