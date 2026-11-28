@@ -18,9 +18,10 @@
 
 ## Follow-up candidates
 
-(none yet)
+- F1 (01-spec-author): blank line inserted after an opening `[`/`(` before a `#region` and before a closing `]`/`)` after an `#endregion`, but not for `{`/`}` — blank-line phase.
+- F2 (01-spec-author): a region inside a wrapped method chain, binary expression, or query takes the statement column; spec leaves it unspecified.
 
 ## State
 
-- Last step finished: claim, lane.
-- Next: spec author (01).
+- Last step finished: spec author (01, c9404e4; change doc Draft; open output question 1 + several change-doc entries needing answers).
+- Next: skeptic (02), then output-question batch.
