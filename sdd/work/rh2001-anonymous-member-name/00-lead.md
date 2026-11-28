@@ -40,6 +40,7 @@ The maintainer answered the issue's output question in an issue comment: option 
 ## Audited SHA
 
 - Audit 1: ae16c90 vs main 13b0ed2 — findings (repair round 1).
+- Audit 2 (repair only): d15f73f vs main 13b0ed2 — pass (2d636ba). Audited SHA: d15f73f.
 
 ## Open worklist / next step
 
@@ -55,4 +56,5 @@ The maintainer answered the issue's output question in an issue comment: option 
 - Repair 1 test implementer done (0f63e34).
 - Repair 1 cleaner done (a16d4e5): clean.
 - Repair 1 spec checker done: consistent.
-- Next: auditor (repair only).
+- Repair 1 audit passed.
+- Next: validator (final tree) and issue manager (two follow-up candidates), then publish.
