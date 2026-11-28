@@ -37,6 +37,7 @@ Notes for the runs (evidence in the batch file, not decided): #1607 narrows to i
 
 ## Status
 
+Status 2026-11-28 (b): triage asked (`inventory/triage-2026-11-28.md`, main at 13b0ed23). 1 placements: #1982 → Maintenance (4), no squad run, measure once ~10 run notes exist; #1989 → 1.7.0 joins `#1517 #1519 #1654 #862 #1937`; #1994 → 1.6.0 own tests run, start now; #1988 by question 2; #1990 by question 3 (1A apply / 1B change rows; rec. 1A). 2 #1988 new RH5205 counterpart for anonymous-method blocks: A no rule, close not planned (rec.), B new rule, joins 1.10.0 counterpart run. 3 #1990 RH2001 fix where a reference names an anonymous-object member: A unchanged (docs fix scoping SHARED-CASING-015, then close), B fix writes `new { Value = _value }` (rec.), 1.6.0 own analyzer run, start now, #1589 also waits for it.
 Status 2026-11-28 (a): triage of #1982 #1988 #1989 #1990 #1994 started; assessment delegated (`inventory/triage-2026-11-28.md`, main at 13b0ed23). Nothing asked yet.
 Status 2026-11-27 (z): batch finished — graph rebuilt (`inventory/batch-2026-11-27.md`); start-now set of 7 runs given; no closes proposed; side find `class C;` is specified (FMT-STRUCT-017).
 Status 2026-11-27 (y): batch started — merges #1965–#1969 #1973–#1976 read (closed: #1956 #1958 #1963 #1086 #1089 #1090 #1771 #1836 #1912 #1924 #1949 #1948); PR #1980 open (claim for #1979, squad tool allow-lists, no milestone); re-check and graph delegated (`inventory/batch-2026-11-27.md`, main at 4bbb3ceb).
