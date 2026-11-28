@@ -66,6 +66,18 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
         }
     }
 
+    /// <summary>
+    /// Determines whether an initializer is a row of a multi-dimensional array: an array initializer whose parent is an array
+    /// initializer (FMT-INDENT-023)
+    /// </summary>
+    /// <param name="initializer">The initializer</param>
+    /// <returns><see langword="true"/> if the initializer is a row</returns>
+    private static bool IsRow(InitializerExpressionSyntax initializer)
+    {
+        return initializer.IsKind(SyntaxKind.ArrayInitializerExpression)
+               && initializer.Parent.IsKind(SyntaxKind.ArrayInitializerExpression);
+    }
+
     #endregion // Methods
 
     #region ILayoutContributor
@@ -135,8 +147,11 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                 break;
 
             case InitializerExpressionSyntax initializer when initializer.Parent is EqualsValueClauseSyntax
-                                                              || initializer.IsKind(SyntaxKind.ComplexElementInitializerExpression):
+                                                              || initializer.IsKind(SyntaxKind.ComplexElementInitializerExpression)
+                                                              || IsRow(initializer):
                 {
+                    // A declaration's array initializer, a complex element initializer, and a row of a multi-dimensional
+                    // array are anchored to their own opening brace (FMT-INDENT-023)
                     var anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
 
                     AlignInitializerToColumn(anchorColumn, initializer, model, alignOpenBrace: false);

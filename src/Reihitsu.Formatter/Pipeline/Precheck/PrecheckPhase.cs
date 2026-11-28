@@ -182,6 +182,12 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// </summary>
     internal const string NameEqualsCommentReason = "a comment or directive behind the = of an attribute argument or a using alias";
 
+    /// <summary>
+    /// The reason given for an active region directive inside a member, in the header of a type, or anywhere in a file with
+    /// top-level statements (FMT-UNSUP-023)
+    /// </summary>
+    internal const string RegionInsideMemberReason = "a region directive inside a member";
+
     #endregion // Constants
 
     #region Methods
@@ -676,7 +682,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// Adds the candidates of the shapes listed after every other shape, in this order: a gap the line-break phase joins
     /// (FMT-UNSUP-017), a list of omitted type arguments (FMT-UNSUP-018), the gap behind an assignment operator or the
     /// <c>=</c> of an equals-value clause (FMT-UNSUP-020), the gap behind the <c>=&gt;</c> of a switch-expression arm
-    /// (FMT-UNSUP-021), and the gap behind the <c>=</c> of an attribute argument or a using alias (FMT-UNSUP-022)
+    /// (FMT-UNSUP-021), the gap behind the <c>=</c> of an attribute argument or a using alias (FMT-UNSUP-022), and a region
+    /// directive inside a member (FMT-UNSUP-023)
     /// </summary>
     /// <param name="node">The node the precheck decides on</param>
     /// <param name="candidates">The candidates in their order of precedence</param>
@@ -736,8 +743,83 @@ internal sealed class PrecheckPhase : IFormattingPhase
                                 (firstOmittedTypeArgumentTrivia, OmittedTypeArgumentCommentReason),
                                 (firstAssignmentTrivia, AssignmentCommentReason),
                                 (firstSwitchArmTrivia, SwitchArmExpressionCommentReason),
-                                (firstNameEqualsTrivia, NameEqualsCommentReason)
+                                (firstNameEqualsTrivia, NameEqualsCommentReason),
+                                (FindRegionDirectiveInsideMember(node), RegionInsideMemberReason)
                             ]);
+    }
+
+    /// <summary>
+    /// Finds the first active <c>#region</c> or <c>#endregion</c> directive of a node that stands in the leading trivia of a
+    /// token other than the positions between members (FMT-UNSUP-023): the node's first token, the first token of a member
+    /// declaration, a using directive, an extern alias, or a file's attribute list, the closing brace of a type, an extension
+    /// block, an enum, or a namespace, and the end of the file. A whole file that holds a top-level statement excepts none of
+    /// them. A region directive in an inactive branch is no directive of the build being formatted and is not found
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <returns>The first such directive, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindRegionDirectiveInsideMember(SyntaxNode node)
+    {
+        var exceptsMemberPositions = node is not CompilationUnitSyntax compilationUnit
+                                     || compilationUnit.Members.Any(static member => member is GlobalStatementSyntax) == false;
+        var firstToken = node.GetFirstToken();
+
+        foreach (var token in node.DescendantTokens())
+        {
+            if (token.HasLeadingTrivia == false
+                || (exceptsMemberPositions && (token == firstToken || StandsBetweenMembers(token))))
+            {
+                continue;
+            }
+
+            foreach (var trivia in token.LeadingTrivia)
+            {
+                if (SyntaxTriviaUtilities.IsRegionDirective(trivia)
+                    && SyntaxTriviaUtilities.IsInactiveDirective(trivia) == false)
+                {
+                    return trivia;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines whether a region directive in the leading trivia of a token stands between members (FMT-UNSUP-023): the token
+    /// is the end of the file, the closing brace of a type, an extension block, an enum, or a namespace, or the first token of a
+    /// member declaration other than a top-level statement, of a using directive, of an extern alias, or of a file's attribute
+    /// list. The node a token begins or closes contains the token, so the decision reads only the token's ancestors
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns><see langword="true"/> when the token's leading trivia stands between members</returns>
+    private static bool StandsBetweenMembers(SyntaxToken token)
+    {
+        if (token.IsKind(SyntaxKind.EndOfFileToken))
+        {
+            return true;
+        }
+
+        if (token.IsKind(SyntaxKind.CloseBraceToken))
+        {
+            return token.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax;
+        }
+
+        for (var ancestor = token.Parent; ancestor != null && ancestor.GetFirstToken() == token; ancestor = ancestor.Parent)
+        {
+            switch (ancestor)
+            {
+                case GlobalStatementSyntax:
+                    return false;
+
+                case MemberDeclarationSyntax:
+                case UsingDirectiveSyntax:
+                case ExternAliasDirectiveSyntax:
+                case AttributeListSyntax { Parent: CompilationUnitSyntax }:
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
