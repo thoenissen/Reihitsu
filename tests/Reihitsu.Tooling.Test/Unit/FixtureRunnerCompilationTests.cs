@@ -11,8 +11,9 @@ namespace Reihitsu.Tooling.Test.Unit;
 
 /// <summary>
 /// Tests for the check of <see cref="FixtureRunner"/> that a fix result compiles under the chosen language version: a result
-/// that brings in a compile error the fixture did not have is an invalid result, even when it parses, while a result that
-/// compiles, or whose compile errors the fixture already had, is fixed
+/// is an invalid result, even when it parses, when for some error ID it carries more distinct messages than the fixture (an
+/// ID the fixture lacks counts from zero), while a result that compiles, keeps or repeats the fixture's errors, or only
+/// renames a symbol that the message of an existing error names, is fixed
 /// </summary>
 [TestClass]
 public sealed class FixtureRunnerCompilationTests
@@ -226,7 +227,7 @@ public sealed class FixtureRunnerCompilationTests
 
     /// <summary>
     /// Verifies that a fix result which brings in a compile error with the same ID as the fixture's own (CS0246) but for
-    /// another name is an invalid result: the fixture did not have that error
+    /// another name is an invalid result: the ID now carries two distinct messages where the fixture had one
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
@@ -234,6 +235,99 @@ public sealed class FixtureRunnerCompilationTests
     {
         // Act
         var result = await RunMarkerFixAsync(UnknownTypeSource, "Other other = null;\n\n        return 1;", "return 1;");
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.InvalidResult, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a fix result which renames the type that contains a member named in an existing error (CS0161 names
+    /// <c>sample.M()</c>, then <c>Sample.M()</c>) is fixed: the error's ID keeps one distinct message
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsFixedWhenTheFixRenamesTheContainingTypeOfAMemberAnExistingErrorNames()
+    {
+        // Act
+        var result = await RunReplacingFixAsync("internal class sample\n{\n    internal int M()\n    {\n    }\n}\n",
+                                                "class sample",
+                                                "class Sample");
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+        Assert.AreEqual("internal class Sample\n{\n    internal int M()\n    {\n    }\n}\n", result.FinalSource);
+    }
+
+    /// <summary>
+    /// Verifies that a fix result which renames the member an existing error names (CS0161 names <c>Sample.compute()</c>,
+    /// then <c>Sample.Compute()</c>) is fixed
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsFixedWhenTheFixRenamesTheMemberAnExistingErrorNames()
+    {
+        // Act
+        var result = await RunReplacingFixAsync("internal class Sample\n{\n    internal int compute()\n    {\n    }\n}\n",
+                                                "int compute(",
+                                                "int Compute(");
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a fix result which renames the parameter an existing error names (CS0177 names the out parameter
+    /// <c>Value</c>, then <c>value</c>) is fixed
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsFixedWhenTheFixRenamesTheParameterAnExistingErrorNames()
+    {
+        // Act
+        var result = await RunReplacingFixAsync("internal class Sample\n{\n    internal void M(out int Value)\n    {\n    }\n}\n",
+                                                "out int Value",
+                                                "out int value");
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.Fixed, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a fix result which renames the type named in an existing error and also brings in a second error of the
+    /// same ID (CS0161 for another member) is an invalid result: the ID now carries two distinct messages where the fixture
+    /// had one, although each message differs from the fixture's anyway
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsInvalidResultWhenTheFixRenamesATypeAndAddsAnErrorWithTheSameId()
+    {
+        // Act
+        var result = await RunReplacingFixAsync("internal class sample\n{\n    internal int M()\n    {\n    }\n}\n",
+                                                "class sample\n{\n",
+                                                "class Sample\n{\n    internal int N()\n    {\n    }\n\n");
+
+        // Assert
+        Assert.AreEqual(FixtureOutcome.InvalidResult, result.Outcome);
+        Assert.AreEqual(1, result.Iterations);
+    }
+
+    /// <summary>
+    /// Verifies that a fix result which drops the fixture's error (CS0246) and brings in one of another ID (CS0103) is an
+    /// invalid result, although the result has as many distinct errors as the fixture: the distinct messages are counted per
+    /// ID, not in total
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task RunAsyncReportsInvalidResultWhenTheFixReplacesAnExistingErrorWithOneOfAnotherId()
+    {
+        // Act
+        var result = await RunReplacingFixAsync(UnknownTypeSource,
+                                                "private Missing _field;",
+                                                "private int _field = missing;");
 
         // Assert
         Assert.AreEqual(FixtureOutcome.InvalidResult, result.Outcome);
@@ -275,6 +369,29 @@ public sealed class FixtureRunnerCompilationTests
         var target = new CodeFixTarget(FakeDiagnostic.Id,
                                        [new TextReportingFakeAnalyzer(text => text.Contains(ReportedMarker, StringComparison.Ordinal))],
                                        new SourceTransformingFakeCodeFix(text => text.Replace(markerBlock, replacement, StringComparison.Ordinal)));
+
+        return await FixtureRunner.RunAsync(target,
+                                            source,
+                                            FixtureLineEndings.LineFeed,
+                                            10,
+                                            "Fixture.cs",
+                                            LanguageVersion.Latest,
+                                            TestContext.CancellationToken);
+    }
+
+    /// <summary>
+    /// Runs a fix over a line-feed fixture that is reported while it contains the provided text and that replaces this text
+    /// with the provided replacement, which ends the diagnostic
+    /// </summary>
+    /// <param name="source">Fixture source</param>
+    /// <param name="reportedText">Text whose presence is reported and which the fix replaces</param>
+    /// <param name="replacement">Text the fix writes in place of <paramref name="reportedText"/></param>
+    /// <returns>The fixture run result</returns>
+    private async Task<FixtureRunResult> RunReplacingFixAsync(string source, string reportedText, string replacement)
+    {
+        var target = new CodeFixTarget(FakeDiagnostic.Id,
+                                       [new TextReportingFakeAnalyzer(text => text.Contains(reportedText, StringComparison.Ordinal))],
+                                       new SourceTransformingFakeCodeFix(text => text.Replace(reportedText, replacement, StringComparison.Ordinal)));
 
         return await FixtureRunner.RunAsync(target,
                                             source,

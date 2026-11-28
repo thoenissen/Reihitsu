@@ -92,8 +92,7 @@ public sealed class FixtureRunnerTests
     }
 
     /// <summary>
-    /// Verifies that source which does not parse is detected. This is the same check that classifies a fixture as
-    /// a parse error and that guards against reporting an unparseable fix result as a success
+    /// Verifies that source which does not parse is detected. This is the check that classifies a fixture as a parse error
     /// </summary>
     [TestMethod]
     public void HasSyntaxErrorsDetectsUnparseableSource()
