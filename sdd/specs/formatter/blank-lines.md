@@ -5,7 +5,7 @@
 | ID prefix | FMT-BLANK |
 | Status | Active |
 | Code owners | `BlankLinePhase`, `BlankLineTokenCleanupRewriter`, `BlankLineTriviaBoundaryRewriter`, `BlankLineRegionDirectiveRewriter`, `BlankLineStatementSpacingRewriter`, `BlankLineBreakSpacingRewriter`, `BlankLineCollapser`, `BlankLineEditor`, `BraceBlankLinePolicy` |
-| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-INDENT-025, FMT-BREAK-030, FMT-BREAK-033, FMT-UNSUP-020, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
+| Uses | FMT-PIPE-002, FMT-BREAK-019, FMT-BREAK-022, FMT-INDENT-025, FMT-BREAK-030, FMT-BREAK-033, FMT-UNSUP-020, FMT-UNSUP-023, SHARED-USING-011, SHARED-BLANK-001, SHARED-BLANK-002, SHARED-BLANK-003, SHARED-BLANK-004, SHARED-BLANK-005, SHARED-BLANK-006, SHARED-BLANK-007, SHARED-COMMENT-012, FMT-DOC-001, FMT-DOC-003, FMT-BREAK-006, FMT-PIPE-001, FMT-PIPE-025, RH5011-002 |
 
 This spec covers `BlankLinePhase`: where the formatter inserts a blank line (before statements and comments, after closing braces and `break`, around region directives), where it removes one (next to braces, closing brackets, chained keywords, and documentation comments, and between a comment and the brace or bracket behind it), and how it collapses runs of blank lines. The phase runs after the line-break and switch-brace phases (FMT-PIPE-001), so it decides every blank line on the lines the output keeps. What counts as a blank line, the closing-brace and terminal-`break` rules, and the region-directive rules are shared with the analyzer and specified in SHARED-BLANK.
 
@@ -599,7 +599,7 @@ class C
 
 ### FMT-BLANK-009 — Around a directive, only the blank line next to the token is removed
 
-When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two; this holds before a closing brace, the closing bracket of a collection expression or list pattern, and the closing parenthesis of a parenthesized pattern or a positional pattern clause alike. In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
+When a non-region directive or disabled text stands in the gap before a brace or a chained keyword covered by FMT-BLANK-007 or FMT-BLANK-008 — not the opening brace of a block statement that FMT-BLANK-017 names — or before a closing bracket or parenthesis covered by FMT-BLANK-019, the formatter MUST keep the blank line before the directive, collapsed to one, and MUST remove the blank lines between the last directive and the token when nothing but whitespace stands between the two. When a comment stands between the last directive and the token, the blank lines between the directive and the comment are kept, and FMT-BLANK-020 decides the ones between the comment and the token. The formatter MUST NOT insert a blank line in front of the first non-region directive or disabled text of such a gap when the author wrote none, also when a region directive ends the gap and FMT-BLANK-013 inserts the blank line between the two. A region directive ends such a gap only in front of the closing brace of a type or a namespace: inside a member, in front of a block's closing brace, a closing bracket, or a closing parenthesis, the formatter refuses it (FMT-UNSUP-023). In front of a directive that stands directly below a region directive, FMT-BLANK-013 decides (SHARED-BLANK-006).
 
 Why: The blank line above the directive is the author's separator in front of the conditional code, not a blank line next to the brace, and the analyzer rules do not report it. Only the blank line that actually touches the token is the one RH5024–RH5027 forbid. No rule asks for a blank line in front of the directive; one inserted there would separate the directive from the code the author grouped with it, as FMT-BLANK-016 states for the blank lines the statement rules insert. A region directive at the end of the gap is framed by its own blank lines and does not change that.
 
@@ -731,7 +731,7 @@ class C
 
 is left unchanged.
 
-When a region directive ends the gap, no blank line is inserted in front of the first directive; the blank line between the two is the region's, kept in the type body and inserted in the method body. The same holds in front of the `]` of a collection expression and the `)` of a parenthesized pattern:
+When a region directive ends the gap, no blank line is inserted in front of the first directive; the blank line between the two is the region's, kept where the author wrote it and inserted where the author wrote none:
 
 ```csharp
 class C
@@ -747,14 +747,11 @@ class C
 
 class D
 {
-    void M(int a)
-    {
-        #region R
+    #region R
 
-        a++;
+    int _a;
 #pragma warning disable CS0168
-        #endregion // R
-    }
+    #endregion // R
 }
 ```
 
@@ -772,15 +769,12 @@ class C
 
 class D
 {
-    void M(int a)
-    {
-        #region R
+    #region R
 
-        a++;
+    int _a;
 #pragma warning disable CS0168
 
-        #endregion // R
-    }
+    #endregion // R
 }
 ```
 
@@ -1316,46 +1310,7 @@ class C
 }
 ```
 
-A switch label is not an opening brace, so a region directly below it is separated:
-
-```csharp
-class C
-{
-    void M(int a)
-    {
-        switch (a)
-        {
-            case 1:
-                #region R
-
-                a++;
-                break;
-
-            #endregion // R
-        }
-    }
-}
-```
-
-```csharp
-class C
-{
-    void M(int a)
-    {
-        switch (a)
-        {
-            case 1:
-
-                #region R
-
-                a++;
-                break;
-
-            #endregion // R
-        }
-    }
-}
-```
+A region directive inside a member — below a switch label, in a block, or in an initializer — reaches no phase: the formatter refuses the input (FMT-UNSUP-023).
 
 A comment that is the first content after an opening brace needs no blank line above it (FMT-BLANK-011), but it does not stand in for the blank line above a region directive below it:
 
@@ -2112,17 +2067,17 @@ public class TestClass2
 Behind a region directive, the blank line SHARED-BLANK-006 requires is inserted above the glued comment; behind another directive, the blank lines are kept as written, and none is inserted in front of the directive:
 
 ```csharp
+class D
+{
+    #region R
+
+    int _a;
+
+    #endregion // R
+/* d */ }
+
 class C
 {
-    void M(int a)
-    {
-        #region R
-
-        a++;
-
-        #endregion // R
-    /* d */ }
-
     void N(int a)
     {
         a++;
@@ -2133,18 +2088,18 @@ class C
 ```
 
 ```csharp
+class D
+{
+    #region R
+
+    int _a;
+
+    #endregion // R
+
+/* d */ }
+
 class C
 {
-    void M(int a)
-    {
-        #region R
-
-        a++;
-
-        #endregion // R
-
-    /* d */ }
-
     void N(int a)
     {
         a++;

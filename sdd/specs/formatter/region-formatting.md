@@ -5,7 +5,7 @@
 | ID prefix | FMT-REGION |
 | Status | Active |
 | Code owners | `RegionFormattingPhase`, `RegionNamingRewriter`, `RegionDirectiveUtilities` |
-| Uses | FMT-PIPE-002, FMT-PIPE-005, FMT-TAB-002 |
+| Uses | FMT-PIPE-002, FMT-PIPE-005, FMT-TAB-002, FMT-UNSUP-023 |
 
 This spec covers the region phase: the capitalization of `#region` descriptions, the form of a `#region` line with a description, the `// Description` comment on the matching `#endregion`, the space in front of the text of an `#endregion` whose `#region` has no description, the start of every region directive line, where `#` and the keyword stand together, and the end of every region directive line, which ends at its text. The phase changes only the text of region directives; it never adds, removes, or moves one. Its requirements apply when a whole document or syntax tree is formatted.
 
@@ -13,7 +13,7 @@ This spec covers the region phase: the capitalization of `#region` descriptions,
 
 - Indentation of region directives — FMT-INDENT.
 - Blank lines around region directives — FMT-BLANK.
-- Whether a region is placed sensibly, for example straddling a member body. The formatter keeps a misplaced region; removing it is an explicit analyzer code-fix action.
+- Whether a region is placed sensibly, for example straddling a type body; a region directive inside a member is refused as unsupported (FMT-UNSUP-023). The formatter keeps a misplaced region; removing it is an explicit analyzer code-fix action.
 - Unbalanced regions. A `#region` without `#endregion` (or the reverse) is a syntax error, so the whole file is left unchanged under FMT-PIPE-005.
 - Any directive other than `#region` and `#endregion`.
 - Region directives in the code a node-level entry point formats: no requirement of this spec applies there; what node-level formatting still does to them is stated in FMT-PIPE-028.
@@ -276,9 +276,9 @@ class C
 
 ### FMT-REGION-005 — Region directives are never added, removed, or moved
 
-The formatter MUST keep every `#region` and `#endregion` directive at its position in the token stream, including a region whose directives sit in different element bodies, and MUST still name such a pair under FMT-REGION-001 and FMT-REGION-002.
+The formatter MUST keep every `#region` and `#endregion` directive at its position in the token stream, including a region whose directives sit in different type bodies, and MUST still name such a pair under FMT-REGION-001 and FMT-REGION-002. A region directive inside a member reaches no phase: the formatter refuses the input (FMT-UNSUP-023).
 
-Why: Removing or relocating a region changes the structure the author chose and, for a region that straddles a member body, can orphan one of its directives. Correcting a misplaced region is a decision for the user, offered by the analyzer's code fix, not a layout normalization.
+Why: Removing or relocating a region changes the structure the author chose and, for a region that straddles a type body, can orphan one of its directives. Correcting a misplaced region is a decision for the user, offered by the analyzer's code fix, not a layout normalization.
 
 Example:
 
@@ -287,9 +287,9 @@ class C
 {
     #region members
 
-    void M()
+    class D
     {
-        var x = 1;
+        int _x;
 
         #endregion
     }
@@ -301,9 +301,9 @@ class C
 {
     #region Members
 
-    void M()
+    class D
     {
-        var x = 1;
+        int _x;
 
         #endregion // Members
     }

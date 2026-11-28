@@ -1,52 +1,44 @@
-# A region inside an initializer, a pattern, or a wrapped list takes the elements' column; the rows of a multi-dimensional array are laid out like complex element initializers
+# A region directive inside a member is unsupported; a multi-line array initializer puts its braces on lines of their own
 
 | | |
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-INDENT-010 (changed), FMT-INDENT-023 (changed) |
+| Affected requirements | FMT-UNSUP-023 (added), FMT-BREAK-046 (added), FMT-BREAK-021 (changed), FMT-INDENT-010 (changed), FMT-INDENT-023 (changed), FMT-UNSUP-022 (clarified), FMT-BLANK-009 (clarified), FMT-BLANK-013 (clarified), FMT-BLANK-018 (clarified), FMT-REGION-005 (clarified) |
 
 ## What
 
-**Region directives.** An active `#region` or `#endregion` directive whose line stands inside an initializer, an anonymous object, a collection expression, a list pattern, a positional pattern, a property pattern, a parenthesized pattern, a switch expression, or a list that FMT-INDENT-012 aligns (arguments, bracketed arguments, parameters, attribute arguments, tuple elements) is indented to the column of that construct's elements — the column a comment on its own line takes in the same position (FMT-INDENT-006) — instead of the block indentation of the enclosing statement or member. In front of the construct's closing delimiter the directive takes the column of the elements that delimiter closes. The innermost construct or block that holds the directive decides, so a directive in the block body of a lambda passed as an argument keeps that block's statement column. Positions in types, blocks, and switch statements keep their columns. FMT-INDENT-010 also names the positions it decides and leaves the column inside other constructs that are not block scopes, such as a wrapped method chain, unspecified.
+**Region directives inside a member.** The formatter refuses, as unsupported, every input that holds an active `#region` or `#endregion` directive inside a member: in its body, an accessor, a lambda, a switch section, a field or property initializer, a parameter list, the arguments of the member's attributes, between its attribute lists or modifiers, and in the header of a type (FMT-UNSUP-023). Supported are the positions between members: in front of the first token of a member (a nested type, a namespace, and each top-level statement included), of a using directive, an extern alias, or an `[assembly: …]` list; in front of the closing brace of a type, an enum, or a namespace; at the end of the file; and in front of the first token of a node-level input. Every entry point returns a refused input unchanged and reports it; the CLI leaves the file unchanged and reports it; every code fix whose formatted node holds such a directive is withheld (SHARED-FIX-010). FMT-INDENT-010 now states one column, the members' column.
 
-**Rows of a multi-dimensional array.** An array initializer whose parent is another array initializer — a row `{ 1, 2 }` of `int[,] a = { … }` or `new int[,] { … }` — is laid out as FMT-INDENT-023 lays out a complex element initializer: its closing brace in the column of its opening brace, its elements one level deeper than that brace, and, when a comment leads the line of the opening brace, the brace's own column behind the comment as the anchor. Until now the elements stood one level deeper than the line the row starts on and the closing brace stood with them.
+**Array initializers.** Every array initializer — of `new T[…]`, `new[]`, `stackalloc`, of a declaration, and every row of a multi-dimensional array — is judged on its own: written on one line, it stays as written; spanning several lines, its opening brace and its closing brace stand on lines of their own (FMT-BREAK-046). The opening brace of a declaration's initializer stays on the line of the `=`; with `new` or `stackalloc` and for a row it starts its own line. The line breaks between the elements stay as written. A row is laid out like a complex element initializer: its elements one level deeper than its brace, and its closing brace under its opening brace (FMT-INDENT-023).
 
 ## Why
 
-The maintainer decided both cases in round 9 of the SDD open questions (thoenissen/Reihitsu#912, items 20 and 21, both option b; sources thoenissen/Reihitsu#1370 Q-I1 and Q-I2), tracked in thoenissen/Reihitsu#1399.
+The issue (thoenissen/Reihitsu#1399) asked, after round 9 of the SDD open questions (thoenissen/Reihitsu#912, items 20 and 21), for a region inside an initializer, a collection expression, a switch expression, or an argument list to take the elements' column, and for the rows of a multi-dimensional array to be laid out like complex element initializers.
 
-FMT-INDENT-010's own reason is that a region belongs to the structure it groups and must not look as if it belonged to an outer scope. Inside an initializer, a pattern, a switch expression, or a wrapped list, the grouped elements stand at an aligned column, not at the block indentation, so the block indentation puts the directive far to the left of what it groups: 8 columns in an object initializer whose members stand at 20. Comments on their own line in those positions already follow the elements (FMT-INDENT-006); the directives now do the same.
+The maintainer answered this run's output questions differently from the issue (batches 1, 1b, 1c in the run's lead note):
 
-A row of a multi-dimensional array matched none of the anchors FMT-INDENT-022 and FMT-INDENT-023 name, so its closing brace stood with its elements, one level right of its opening brace. A row is a brace-delimited group of elements with neither a keyword nor a target, which is exactly the shape of a complex element initializer.
+- A region inside a member is declared unsupported in this run, instead of a column being decided for each construct. A region groups members. Inside a member it groups statements, elements, or arms that stand at aligned columns, where the right column for the directive is unclear. RH7303 reports a region inside executable code, so such input is rare. A nested type is not a member in this sense, so the regions between its members stay supported.
+- Every array initializer is either single-line or multi-line, judged for each initializer when they are nested. A multi-line one puts its `{` and `}` on lines of their own. Behind the `=` of a declaration the `{` stays on the `=` line; with `new[]` or `new T[…]` it goes on its own line under `new`. Element line breaks inside are not decided by this rule.
 
-The issue reported, for the rows, that the elements and the closing brace fell to the statement column. On this branch's base the elements already stand one level deeper than the row's line (the continuation indentation of FMT-INDENT-034), and only the closing brace and the comment-led shape still differ from a complex element initializer.
+The maintainer confirmed eight concrete outputs (lead note, *Confirmed examples*); the examples below and in FMT-BREAK-046 are those outputs.
+
+The issue's description of today's rows is out of date. On the base, a row's elements already stand one level deeper than the row's line. What differs is the row's closing brace and the shapes `{ {`, `}, {`, and `} };`.
 
 ## Visible output changes
 
-Each "before" is the output of `scripts/format.sh` on this branch's base (4a91817, whose production code is that of 13b0ed2), and every "before" is stable under a second run. Each "after" is the layout this change specifies; it is not built yet. The blank lines around the directives and the `// Name` behind `#endregion` come from the blank-line and region phases and do not change. Only the lines that move are shown in full; the surrounding declarations are those of the input.
+Each "before" is the output of `scripts/format.sh` (whole document, CLI) or `scripts/apply-fix.sh` on this branch's base, 4a91817, whose production code is that of 13b0ed2. A second run left every "before" unchanged. Each "after" is specified by this change and not built yet. Its unchanged lines match today's output.
 
-### 1. Object initializer
+### 1. A region in a method body
 
 ```csharp
-class P
-{
-    public int X { get; set; }
-
-    public int Y { get; set; }
-}
-
 class C
 {
-    void M()
+    void M(int x)
     {
-        var p = new P
-                {
-                    #region X
-                    X = 1,
-                    #endregion
-                    Y = 2
-                };
+        #region Setup
+        var a = x;
+        #endregion
     }
 }
 ```
@@ -54,36 +46,26 @@ class C
 Before:
 
 ```csharp
-        var p = new P
-                {
-        #region X
+class C
+{
+    void M(int x)
+    {
+        #region Setup
 
-                    X = 1,
+        var a = x;
 
-        #endregion // X
-
-                    Y = 2
-                };
+        #endregion // Setup
+    }
+}
 ```
 
-After:
+After: the input unchanged.
 
-```csharp
-        var p = new P
-                {
-                    #region X
-
-                    X = 1,
-
-                    #endregion // X
-
-                    Y = 2
-                };
+```text
+error: <file>(5,9): unsupported syntax: a region directive inside a member. The file was left unchanged.
 ```
 
-The same holds in a collection initializer (`new List<int> { #region R 1, #endregion 2 }`: before at 8, after at 20, the elements' column) and in an anonymous object (`new { #region R X = 1, #endregion Y = 2 }`: before at 8, after at 20).
-
-### 2. Collection expression
+### 2. A region in a field's initializer
 
 ```csharp
 class C
@@ -100,6 +82,8 @@ class C
 Before:
 
 ```csharp
+class C
+{
     int[] F = [
 
     #region R
@@ -110,37 +94,25 @@ Before:
 
                   2
               ];
+}
 ```
 
-After:
+After: the input unchanged.
 
-```csharp
-    int[] F = [
-
-                  #region R
-
-                  1,
-
-                  #endregion // R
-
-                  2
-              ];
+```text
+error: <file>(4,19): unsupported syntax: a region directive inside a member. The file was left unchanged.
 ```
 
-### 3. Switch expression
+### 3. A region in a parameter list
 
 ```csharp
 class C
 {
-    int M(int x)
+    void M(int a,
+           #region R
+           int b)
+           #endregion
     {
-        return x switch
-               {
-                   #region R
-                   1 => 1,
-                   #endregion
-                   _ => 0
-               };
     }
 }
 ```
@@ -148,306 +120,28 @@ class C
 Before:
 
 ```csharp
-        return x switch
-               {
-        #region R
-
-                   1 => 1,
-
-        #endregion // R
-
-                   _ => 0
-               };
-```
-
-After:
-
-```csharp
-        return x switch
-               {
-                   #region R
-
-                   1 => 1,
-
-                   #endregion // R
-
-                   _ => 0
-               };
-```
-
-### 4. Argument list
-
-```csharp
 class C
 {
-    void N(int a, int b, int c)
-    {
-    }
+    void M(int a,
 
-    void M()
+    #region R
+
+           int b)
+
+    #endregion // R
+
     {
-        N(1,
-          #region R
-          2,
-          #endregion
-          3);
     }
 }
 ```
 
-Before:
+After: the input unchanged.
 
-```csharp
-        N(1,
-
-        #region R
-
-          2,
-
-        #endregion // R
-
-          3);
+```text
+error: <file>(4,12): unsupported syntax: a region directive inside a member. The file was left unchanged.
 ```
 
-After:
-
-```csharp
-        N(1,
-
-          #region R
-
-          2,
-
-          #endregion // R
-
-          3);
-```
-
-### 5. List pattern, property pattern, parenthesized pattern
-
-Three inputs, each the only statement of its method; `P` is the class of entry 1:
-
-```csharp
-    bool M(int[] a)
-    {
-        return a is [
-                        #region R
-                        1,
-                        #endregion
-                        2
-                    ];
-    }
-```
-
-```csharp
-    bool M(P p)
-    {
-        return p is {
-                        #region R
-                        X: 1,
-                        #endregion
-                        Y: 2
-                    };
-    }
-```
-
-```csharp
-    bool M(int x)
-    {
-        return x is (
-                        #region R
-                        > 1
-                        #endregion
-                        and < 5
-                    );
-    }
-```
-
-Before: every directive at column 8.
-
-```csharp
-        return a is [
-
-        #region R
-
-                        1,
-
-        #endregion // R
-
-                        2
-                    ];
-```
-
-```csharp
-        return p is
-                 {
-        #region R
-
-                     X: 1,
-
-        #endregion // R
-
-                     Y: 2
-                 };
-```
-
-```csharp
-        return x is
-                 (
-
-        #region R
-
-                     > 1
-
-        #endregion // R
-
-                     and < 5
-                 );
-```
-
-After: the directives at the column of the elements, subpatterns, and the pattern inside the parentheses — 24, 21, and 21.
-
-```csharp
-        return a is [
-
-                        #region R
-
-                        1,
-
-                        #endregion // R
-
-                        2
-                    ];
-```
-
-```csharp
-        return p is
-                 {
-                     #region R
-
-                     X: 1,
-
-                     #endregion // R
-
-                     Y: 2
-                 };
-```
-
-```csharp
-        return x is
-                 (
-
-                     #region R
-
-                     > 1
-
-                     #endregion // R
-
-                     and < 5
-                 );
-```
-
-### 6. `#endregion` in front of a closing delimiter
-
-```csharp
-class P
-{
-    public int X { get; set; }
-}
-
-class C
-{
-    void N(int a)
-    {
-    }
-
-    void M()
-    {
-        var p = new P
-                {
-                    #region X
-                    X = 1
-                    #endregion
-                };
-        int[] a = [
-                      #region R
-                      1
-                      #endregion
-                  ];
-        N(
-          #region S
-          1
-          #endregion
-          );
-    }
-}
-```
-
-Before: every directive at column 8.
-
-```csharp
-        var p = new P
-                {
-        #region X
-
-                    X = 1
-
-        #endregion // X
-                };
-        int[] a = [
-
-        #region R
-
-                      1
-
-        #endregion // R
-
-                  ];
-        N(
-
-        #region S
-
-          1
-
-        #endregion // S
-
-          );
-```
-
-After: each `#endregion` in the column of the elements its delimiter closes, like its `#region`.
-
-```csharp
-        var p = new P
-                {
-                    #region X
-
-                    X = 1
-
-                    #endregion // X
-                };
-        int[] a = [
-
-                      #region R
-
-                      1
-
-                      #endregion // R
-
-                  ];
-        N(
-
-          #region S
-
-          1
-
-          #endregion // S
-
-          );
-```
-
-### 7. The other lists FMT-INDENT-012 aligns: parameters, tuple elements, bracketed arguments, attribute arguments
-
-The issue and the decision name argument lists; the same column rule is applied to every list FMT-INDENT-012 aligns, since they share the alignment.
+### 4. A region in a member's attribute arguments
 
 ```csharp
 class A : System.Attribute
@@ -459,23 +153,6 @@ class A : System.Attribute
 
 class C
 {
-    void M(int a,
-           #region R
-           int b)
-           #endregion
-    {
-        var t = (1,
-                 #region T
-                 2,
-                 #endregion
-                 3);
-        var d = new int[3];
-        var e = d[0,
-                  #region E
-                  1];
-                  #endregion
-    }
-
     [A(1,
        #region At
        2)]
@@ -489,34 +166,8 @@ class C
 Before:
 
 ```csharp
-    void M(int a,
-
-    #region R
-
-           int b)
-
-    #endregion // R
-
-    {
-        var t = (1,
-
-        #region T
-
-                 2,
-
-        #endregion // T
-
-                 3);
-        var d = new int[3];
-        var e = d[0,
-
-        #region E
-
-                  1];
-
-        #endregion // E
-    }
-
+class C
+{
     [A(1,
 
     #region At
@@ -526,57 +177,189 @@ Before:
     #endregion // At
 
     void N()
+    {
+    }
+}
 ```
 
-After: each `#region` at the column of the element behind it (11, 17, 18, 7); each `#endregion` that stands behind the list's closing delimiter is outside the list and keeps its column.
+After: the input unchanged.
+
+```text
+error: <file>(11,8): unsupported syntax: a region directive inside a member. The file was left unchanged.
+```
+
+### 5. Regions between members, also of a nested type: unchanged
 
 ```csharp
-    void M(int a,
+class C
+{
+    #region Types
 
-           #region R
-
-           int b)
-
-    #endregion // R
-
+    class D
     {
-        var t = (1,
+        #region Fields
 
-                 #region T
+        private int _a;
 
-                 2,
-
-                 #endregion // T
-
-                 3);
-        var d = new int[3];
-        var e = d[0,
-
-                  #region E
-
-                  1];
-
-        #endregion // E
+        #endregion // Fields
     }
 
-    [A(1,
-
-       #region At
-
-       2)]
-
-    #endregion // At
-
-    void N()
+    #endregion // Types
+}
 ```
 
-### 8. Rows of a multi-dimensional array
+Before and after: unchanged, formatted as written.
+
+### 6. Code fixes on a member that holds a region
+
+A code fix whose formatted node holds a region directive inside a member is no longer offered; the diagnostic stays. Run through `scripts/apply-fix.sh` on the base:
+
+- RH5305, on `int[] a = [⏎    #region R⏎    1,⏎    #endregion⏎    2⏎    ];` in a method body. Before, the fix was offered and wrote the directives at 18 (the column of `[`) and the elements at 22. After: no fix offered.
+- RH5206, on `return x switch⏎{⏎#region R ... };` with the braces at 8. Before, the fix was offered and wrote the directives at 15 (the column of the braces) and the arms at 19. After: no fix offered.
+
+Every other fix that formats such a node through the formatter is withheld in the same way: RH5101, RH5304, RH5306, RH5307, and the fixes that format a whole member or type. Those were not run. Fixes that edit region trivia without the formatter (RH7301, RH7302, RH7303, RH7304, RH7306, RH7310, RH5031, RH5032) are not affected.
+
+### 7. A multi-line array initializer behind `=`, with a multi-line and a single-line row
 
 ```csharp
 class C
 {
     void M()
     {
+        int[,] b = { {
+        1, 2
+        }, { 3, 4 } };
+    }
+}
+```
+
+Before:
+
+```csharp
+        int[,] b = { {
+            1, 2
+            }, { 3, 4 } };
+```
+
+After:
+
+```csharp
+        int[,] b = {
+                       {
+                           1, 2
+                       },
+                       { 3, 4 }
+                   };
+```
+
+### 8. `new[]` spanning several lines
+
+```csharp
+        var e = new[] {
+        1, 2
+        };
+```
+
+Before:
+
+```csharp
+        var e = new[] {
+                    1, 2
+                };
+```
+
+After:
+
+```csharp
+        var e = new[]
+                {
+                    1, 2
+                };
+```
+
+### 9. `new int[,]` with a single-line and a multi-line row
+
+```csharp
+        var f = new int[,] { { 1, 2 }, {
+        3, 4
+        } };
+```
+
+Before:
+
+```csharp
+        var f = new int[,] { { 1, 2 }, {
+            3, 4
+            } };
+```
+
+After:
+
+```csharp
+        var f = new int[,]
+                {
+                    { 1, 2 },
+                    {
+                        3, 4
+                    }
+                };
+```
+
+### 10. A row whose element list wraps
+
+```csharp
+        int[,] g = { { 1,
+        2 }, { 3, 4 } };
+```
+
+Before:
+
+```csharp
+        int[,] g = { { 1,
+            2 }, { 3, 4 } };
+```
+
+After: the element line break stays as written.
+
+```csharp
+        int[,] g = {
+                       {
+                           1,
+                           2
+                       },
+                       { 3, 4 }
+                   };
+```
+
+### 11. A field's array initializer
+
+```csharp
+class C
+{
+    int[] F = { 1,
+    2 };
+}
+```
+
+Before:
+
+```csharp
+    int[] F = { 1,
+                  2 };
+```
+
+After:
+
+```csharp
+    int[] F = {
+                  1,
+                  2
+              };
+```
+
+### 12. Rows already on lines of their own
+
+```csharp
         int[,] a = {
                        {
                        1, 2
@@ -585,8 +368,6 @@ class C
                        3, 4
                        }
                    };
-    }
-}
 ```
 
 Before:
@@ -602,7 +383,7 @@ Before:
                    };
 ```
 
-After:
+After: the closing brace of each row under its opening brace.
 
 ```csharp
         int[,] a = {
@@ -615,141 +396,65 @@ After:
                    };
 ```
 
-The same holds for the rows of `new int[,] { … }` (before: `}` at 24 under the elements, after: `}` at 20 under the row's `{`) and for each level of a three-dimensional array:
+### 13. Single-line array initializers: unchanged
 
 ```csharp
-        int[,,] c = {
-                        {
-                        {
-                        1
-                        }
-                        }
-                    };
+        int[,] a = { { 1, 2 }, { 3, 4 } };
+        var h = new[] { 1, 2 };
 ```
 
-Before:
+Before and after: unchanged.
 
-```csharp
-        int[,,] c = {
-                        {
-                            {
-                                1
-                                }
-                            }
-                    };
-```
+### Code-fix results for array initializers
 
-After:
+The code fixes that format a node holding a multi-line array initializer give the layout of entries 7–12, measured from where the node stands: RH5101 and the fixes that format a whole member or type. Those were not run. RH5410 (trailing comma in an array initializer) edits the comma without the formatter. On `new int[] { 1,⏎2, }` it removes the comma and leaves the braces as written, before and after the change.
 
-```csharp
-        int[,,] c = {
-                        {
-                            {
-                                1
-                            }
-                        }
-                    };
-```
+## Special cases
 
-### 9. A row that opens behind another token
+### Deleted
 
-```csharp
-class C
-{
-    void M()
-    {
-        int[,] b = { {
-        1, 2
-        }, {
-        3, 4
-        } };
-    }
-}
-```
+- **The column of a region directive inside a construct.** The run's earlier draft of FMT-INDENT-010 needed this. Inside an initializer, an anonymous object, a collection expression, a pattern, a switch expression, or a wrapped list, the directive would take the elements' column: a list of constructs in the indentation phase, beside the comment rule of FMT-INDENT-006, and a column of its own in front of each closing delimiter. The declaration removes it from the spec and keeps it out of the code.
+- **Pairing a switch section's `#endregion` with its `#region`.** An `#endregion` after a section's last statement stands four columns left of a `#region` among the statements. Giving it the statement column needs the matching `#region`'s position, which the indentation phase does not have. The declaration removes the case.
+- **FMT-INDENT-010's statement column and label column.** These are no longer stated for whole documents. They remain only for the region directive in the leading trivia of a node-level input's first token.
+- **The in-member clauses of the blank-line and region specs.** These are FMT-BLANK-009's sentence on a region directive ending the gap in front of a closing bracket or parenthesis, FMT-BLANK-013's switch-label example, and FMT-REGION-005's region straddling a member body. These positions are refused now. The examples are moved between members where the requirement's point survives there.
+- **The RH7304 ping-pong at member level.** For a region in a field's collection expression or object initializer, the CLI wrote the member column and RH7304's fix wrote the column of the region's first token. The CLI now refuses such a file and leaves it unchanged.
 
-Before:
+### Checked and kept
 
-```csharp
-        int[,] b = { {
-            1, 2
-            }, {
-                3, 4
-                } };
-```
-
-After: each row's elements one level deeper than the column its opening brace stands in (21, then 24), and its closing brace in that column.
-
-```csharp
-        int[,] b = { {
-                         1, 2
-                     }, {
-                            3, 4
-                        } };
-```
-
-### 10. A row whose opening brace is led by a comment
-
-```csharp
-class C
-{
-    int[,] F = {
-                   /* c */ {
-                   3,
-                   4
-                   }
-               };
-}
-```
-
-Before:
-
-```csharp
-    int[,] F = {
-                   /* c */ {
-                       3,
-                       4
-                       }
-               };
-```
-
-After: the elements and the closing brace follow the brace's column, 27, not the comment's (as FMT-INDENT-023 already states for a complex element initializer).
-
-```csharp
-    int[,] F = {
-                   /* c */ {
-                               3,
-                               4
-                           }
-               };
-```
-
-### Code-fix results
-
-The code fixes that format a node holding such a construct give the same columns, measured from where the node stands. Run through `scripts/apply-fix.sh` on the base:
-
-- RH5305 (collection expressions), on `int[] a = [⏎    #region R⏎    1,⏎    #endregion⏎    2⏎    ];` in a method body: before, the directives at 18 (the column of `[`) and the elements at 22; after, the directives at 22.
-- RH5206 (switch-expression braces), on `return x switch⏎{⏎#region R ... };` with the braces at 8: before, the directives at 15 (the column of the braces) and the arms at 19; after, the directives at 19.
-- RH5102 offers no fix when a directive stands in the argument list, on the base and after the change.
-
-Every other code fix whose formatted node holds a region directive in one of these constructs, or a row of a multi-dimensional array, gives the new columns wherever it offers a fix for such a node; the fixes that format such constructs are RH5101, RH5304, RH5306, and RH5307 besides the two above, and the fixes that format a whole member or type. Those were not run.
+- `LayoutComputer.SetDirectiveIndentation` and `SyntaxIndentationUtilities.GetTriviaIndentLevel` are kept. They place the directives between members at every depth, and the one in front of a node-level input's first token. The switch-section interval of `GetIndentingScopeRange` serves statements as well.
+- `IndentationRewriter`'s split between region and non-region directives is kept: non-region directives still go to column 0 (FMT-INDENT-009).
+- `BlankLineRegionDirectiveRewriter`, `BlankLineEditor.EnsureBlankLineBeforeRegionDirectives`/`IsMissingRequiredBlankLineBeforeRegionDirective`, `BlankLineTriviaBoundaryRewriter`'s `#endregion` check, and `BlankLineTokenCleanupRewriter.RemoveBlankLinesAfterTrailingEndRegion` are kept. They serve the regions between members and in front of a type's closing brace, through one path that serves the in-member positions as well. None of them holds a branch for a block's brace, a bracket, or a parenthesis that could go.
+- The region clause of `ExpressionBodyRewriteUtilities.BlocksRewrite` is kept. So is the region clause of `GetOnlyMemberExpressionBodyRewriteUtilities.ContainsBlockingDirective`. Both are unreachable from the formatter after the declaration, but both predicates are shared with the analyzers RH3202, RH3203, the expression-body analyzer base, and the get-only-member analyzer and code fix. The analyzers decide their report with them independently of the precheck. A formatter-only copy without the clause would be a second statement of the predicate.
+- `SwitchCaseBraceRewriter.SectionCarriesDirectives` is kept: it refuses every directive, and conditional directives still reach it.
+- `SyntaxTriviaUtilities.ContainsUnbalancedRegionDirectives` in `OrderingMoveSafety` is kept: it guards member moves across regions between members, which stay supported.
+- `RegionNamingRewriter` is kept: it names regions in disabled text inside members, which this shape does not refuse.
 
 ## Decisions
 
-### The directive follows the comment rule of its position
+### The shape is the positions that are not between members
 
-A region directive inside these constructs takes the column FMT-INDENT-006 gives a comment on its own line in the same position. That states the column once, for the element in front of which the directive stands and for the closing delimiter, and it already agrees with FMT-INDENT-010 in types, blocks, and switch statements, where the comment rule and the block indentation give the same column.
+The requirement lists what is supported — the first token of a member, a using, an extern alias, an `[assembly: …]` list, a type's or namespace's closing brace, the end of the file, the input's first token — and refuses every other region directive. Each exception is read from the token and the node it begins or closes. That node lies in the input whenever the token is not the input's first one, so the check is local (FMT-UNSUP-003). A node-level input below a member, such as a collection expression a code fix formats, refuses a region directive inside it, so the fix is withheld.
 
-### The constructs are named by the requirements that align them
+### The input's first token is excepted
 
-The decision names initializers, collection expressions, switch expressions, and argument lists; the issue's later comments add anonymous objects, list patterns, and parenthesized patterns. FMT-INDENT-010 names the constructs by the alignment requirements that place their elements (FMT-INDENT-012 and FMT-INDENT-022 to FMT-INDENT-027), so property patterns, positional patterns, and every list of FMT-INDENT-012 follow too, and leaves every other construct that is not a block scope unspecified rather than claiming the statement column for it.
+A region directive above a statement or a member that a code fix formats stands in the leading trivia of the fix's first token. Refusing it would withhold fixes on common code (`#region Methods` above an attributed method). It keeps the column it gets today.
 
-### A row is an array initializer whose parent is an array initializer
+### The header of a type is not between members
 
-The row is recognized by its parent in the syntax tree. An array creation inside an array initializer (`new[] { 5 }` in a jagged array) keeps its `new` anchor (FMT-INDENT-022).
+A region directive in a base list, a primary-constructor parameter list, or in front of a type's `{` groups no members. It is refused on the same terms as one inside a member (handover output question 1).
+
+### Each top-level statement is a member
+
+A region between top-level statements stands at column 0, like a region between types, and is supported. One inside a top-level statement's block is refused (handover output question 2).
+
+### An array initializer is judged by every line break in its text
+
+An initializer spans several lines when any line break stands between its braces: in trivia, a `//` comment's end included, or inside a token such as a verbatim string. This needs no other definition (handover output question 4).
 
 ## Alternatives considered
 
-- **Keep the statement column (round 9, option a)** — rejected by the maintainer's decision: the directive would keep standing far left of what it groups.
-- **Leave the directive's column as written inside these constructs** — rejected: the input's column would survive formatting, so two files with the same structure would format differently, and the decided column is a cheap read of the column the comment rule already computes.
-- **The column of the construct's opening delimiter** — rejected: it puts the directive one level left of the elements it groups, which is what node-level formatting writes today (*Code-fix results*).
-- **Give a row the continuation indentation and only align its closing brace with the elements' line start** — rejected: the decision lays out a row like a complex element initializer, whose brace is its anchor.
+- **The elements' column for a region inside a construct (the issue's request, round 9 option b).** The maintainer replaced it with the declaration: it needs a list of constructs and a column for each closing delimiter.
+- **The statement column, as today (round 9 option a).** Rejected by round 9: the directive stands far left of what it groups.
+- **Declaring only the constructs that are not block scopes.** This would refuse regions in initializers, lists, and patterns, and keep regions in blocks and switch sections. The maintainer chose the whole member (batch 1b, 1A).
+- **Rows only.** The maintainer chose every array initializer for the brace rule (batch 1b, 3A).
+- **The opening brace on its own line also behind `=`.** Rejected in batch 1c: behind the `=` of a declaration the brace stays on the `=` line, and RH5111 reports a value that starts on a later line than the `=`.

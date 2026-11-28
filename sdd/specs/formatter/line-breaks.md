@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `AttachedPartLineStartRewriter`, `AttachedPartGapUtilities`, `ContinuationJoinRewriter`, `JoinedGap`, `JoinedGapUtilities`, `PatternLineStartUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-016, FMT-INDENT-019, FMT-INDENT-026, FMT-INDENT-028, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-024, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-009, FMT-SPACE-017, FMT-SPACE-022, FMT-SPACE-026, FMT-STRUCT-001, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-SWITCH-017, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-016, FMT-INDENT-019, FMT-INDENT-022, FMT-INDENT-023, FMT-INDENT-026, FMT-INDENT-028, FMT-INDENT-032, FMT-INDENT-034, FMT-INDENT-035, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-024, FMT-PIPE-025, FMT-PIPE-026, FMT-PIPE-034, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-009, FMT-SPACE-017, FMT-SPACE-022, FMT-SPACE-026, FMT-STRUCT-001, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-017, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-SWITCH-017, FMT-UNSUP-008, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-014, FMT-UNSUP-015, FMT-UNSUP-016, FMT-UNSUP-017, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-ATTR-014, SHARED-ATTR-018, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -1632,7 +1632,7 @@ class C
 
 ### FMT-BREAK-021 — Object initializers are always laid out over several lines
 
-The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout, apart from a comma that starts a line, which FMT-BREAK-038 moves. The commas of every initializer this requirement names are FMT-BREAK-038's.
+The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout, apart from the lines of their braces, which FMT-BREAK-046 decides, and a comma that starts a line, which FMT-BREAK-038 moves. The commas of every initializer this requirement names are FMT-BREAK-038's.
 
 Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. A `with` initializer sets values the same way. Array initializers are often long lists of literal data, for which one element per line would explode the file. Moving a comma that starts a line keeps the number of lines: only the side of the comma the line break stands on changes, so the array keeps its author's line count (FMT-BREAK-038). RH5301 and RH5303 report the same shapes, apart from the `with` initializer, which no rule reports.
 
@@ -1704,6 +1704,84 @@ class C
                       X = 1,
                       Y = 2
                   };
+    }
+}
+```
+
+### FMT-BREAK-046 — A multi-line array initializer puts its braces on lines of their own
+
+The array initializers are the initializer of an array creation (`new int[] { … }`, `new int[2] { … }`, `new int[,] { … }`), of an implicit array creation (`new[] { … }`), and of a `stackalloc` array creation, the array initializer of a declaration (`int[] a = { … }`, the value of an equals-value clause), and a row of a multi-dimensional array (an array initializer whose parent is an array initializer). Each of them is judged on its own, also when it stands inside another one:
+
+- **Written on one line** — no line break stands in the text from the end of its opening brace to the start of its closing brace, in the trivia between its tokens or inside one of its tokens: the formatter MUST NOT break a line inside it. `{ 3, 4 }` inside a multi-line initializer is written on one line; `{ 1,⏎2 }` is not, and neither is `{ "x", // c⏎"y" }`, whose `//` comment ends its line, nor `{ @"a⏎b" }`, whose verbatim string holds a line break.
+- **Spanning several lines** — the formatter MUST put the opening brace on a line of its own: the brace starts its line, and the first element starts the line behind it. When the initializer is the value of a declaration's `=` (`int[,] b = { … }`), the opening brace instead stays on the line of the `=` and still ends its line; with `new[]`, `new T[…]`, or `stackalloc`, and for a row, the brace starts its own line, where FMT-INDENT-022 and FMT-INDENT-023 give it its column. The formatter MUST put the closing brace on a line of its own as well: the brace starts its line, and when it is an element of an enclosing array initializer, the element behind the comma that follows it starts the next line. A token behind the closing brace that is not an element of the enclosing initializer — the `,` or `}` of that initializer, the `;` of a declaration, a `)` — stays on the brace's line.
+
+Every other line break between the elements stays as written (FMT-BREAK-021), apart from a comma that starts a line (FMT-BREAK-038): the rule decides only the lines of the braces, so `{ 1,⏎2 }` keeps `1,` and `2` on lines of their own, and `{⏎1, 2⏎}` keeps `1, 2` on one line. A comment in front of an opening brace on its line stays there; the brace counts as starting its line behind it (FMT-INDENT-023).
+
+Why: The maintainer decided that every array initializer is either written on one line or laid out with its braces on lines of their own, judged for each initializer, so that a multi-line array reads like a block of rows: a brace that shares its line with an element or another brace (`{ {`, `}, {`, `} };`) hides where a row starts and ends. A brace behind the `=` of a declaration stays there because it is the declaration's value: the `{` then starts the value on the line of the `=`, as the `[` of a collection expression does, and RH5111 reports a value that starts on a later line than the `=`. With `new` the brace goes below the creation, as a collection initializer's does (FMT-BREAK-021). The element lists themselves keep the author's layout, because array initializers are often long lists of literal data.
+
+Example:
+
+```csharp
+class C
+{
+    int[] F = { 1,
+    2 };
+
+    void M()
+    {
+        int[,] b = { {
+        1, 2
+        }, { 3, 4 } };
+        var e = new[] {
+        1, 2
+        };
+        var f = new int[,] { { 1, 2 }, {
+        3, 4
+        } };
+        int[,] g = { { 1,
+        2 }, { 3, 4 } };
+        int[,] a = { { 1, 2 }, { 3, 4 } };
+        var h = new[] { 1, 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    int[] F = {
+                  1,
+                  2
+              };
+
+    void M()
+    {
+        int[,] b = {
+                       {
+                           1, 2
+                       },
+                       { 3, 4 }
+                   };
+        var e = new[]
+                {
+                    1, 2
+                };
+        var f = new int[,]
+                {
+                    { 1, 2 },
+                    {
+                        3, 4
+                    }
+                };
+        int[,] g = {
+                       {
+                           1,
+                           2
+                       },
+                       { 3, 4 }
+                   };
+        int[,] a = { { 1, 2 }, { 3, 4 } };
+        var h = new[] { 1, 2 };
     }
 }
 ```

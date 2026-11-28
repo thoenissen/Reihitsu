@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `ContinuationLineContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `QueryClauseContributor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BLANK-011, FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-BREAK-044, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
+| Uses | FMT-BLANK-011, FMT-BREAK-001, FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-022, FMT-BREAK-037, FMT-BREAK-038, FMT-BREAK-041, FMT-BREAK-042, FMT-BREAK-043, FMT-BREAK-044, FMT-BREAK-046, FMT-DOC-003, FMT-DOC-012, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, FMT-PIPE-023, FMT-PIPE-024, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-RAW-010, FMT-SWITCH-001, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-011, FMT-UNSUP-017, FMT-UNSUP-018, FMT-UNSUP-020, FMT-UNSUP-021, FMT-UNSUP-023, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -623,269 +623,64 @@ class C
 }
 ```
 
-### FMT-INDENT-010 — Region directives are indented like the code around them
+### FMT-INDENT-010 — Region directives are indented like the members around them
 
-The formatter MUST indent an active `#region` or `#endregion` directive to the block indentation of the position it is in: the member column inside a type, the statement column inside a block and between the statements of a switch section, and the label column between the sections of a switch statement. A region directive in disabled text MUST NOT be touched.
+The formatter MUST indent an active `#region` or `#endregion` directive to the member column of the position it is in: the column of the members of the type, the namespace, or the file whose members it stands between, also in front of the closing brace of a type or a namespace, where it takes the column of the members that brace closes. A region directive in disabled text MUST NOT be touched.
 
-When the token whose leading trivia holds the directive belongs to one of the following constructs below its opening delimiter — it is a token of one of the construct's elements, or the construct's closing delimiter — the formatter MUST instead indent the directive to the column of the construct's elements, which is the column FMT-INDENT-006 gives a comment that starts its line in the same position: the column of the element the directive stands in front of, and, in front of the closing delimiter, the column of the elements that delimiter closes. The constructs are an object, collection, array, implicit array, target-typed `new`, `with`, or `stackalloc` initializer, a nested initializer assigned to a member, and a complex element initializer (FMT-INDENT-022, FMT-INDENT-023); an anonymous object creation (FMT-INDENT-024); a collection expression, a list pattern, and the positional pattern clause of a recursive pattern (FMT-INDENT-025); a property pattern and a parenthesized pattern (FMT-INDENT-026); a switch expression (FMT-INDENT-027); and every list that FMT-INDENT-012 aligns. When several of these constructs and blocks hold the token, the innermost one decides: a directive in a block inside such a construct, such as the block body of a lambda passed as an argument, takes the statement column of that block, and a directive in front of the statement that holds such a construct takes the statement column of the statement's block.
+A region directive inside a member — behind the member's first token, up to its last token — reaches no phase in whole-document formatting: the formatter refuses such an input (FMT-UNSUP-023). The one region directive inside a member that the phases receive stands in the leading trivia of the first token of a node-level input (FMT-UNSUP-023 excepts it); it keeps the block indentation of its position, the statement column inside a block and the label column between the sections of a switch statement.
 
-This requirement decides the column of a region directive only in the positions it names; inside any other construct that is not a block scope, such as a wrapped method chain, a wrapped binary expression, or an attribute list, it leaves the column unspecified.
+Why: Regions group members and belong to the structure they group, so they take that structure's column; a misindented region would otherwise look as if it belonged to an outer or inner scope. A region inside a member groups statements or the elements of an expression, where the column of what it groups has no single answer; the maintainer declared that shape unsupported instead of deciding a column for it. Disabled text is never rewritten (FMT-INDENT-011).
 
-Why: Regions group members, statements, or the elements of a construct and belong to the structure they group, so they take that structure's column; a misindented region would otherwise look as if it belonged to an outer or inner scope. Inside an initializer, a collection expression, a pattern, a switch expression, or a wrapped list the grouped elements stand at an aligned column rather than at the block indentation, so the directive follows the elements, as a comment on its own line does in the same position. Disabled text is never rewritten (FMT-INDENT-011).
-
-Example:
+Example — the regions of a namespace, a type, and a nested type take the column of the members they stand between:
 
 ```csharp
-class C
+namespace N
 {
+      #region Types
+  class C
+  {
+  #region Fields
+          private int _a;
+          #endregion
+     class D
+     {
+     #region Methods
+         void M()
+         {
+         }
+             #endregion
+     }
+  }
+          #endregion
+}
+```
+
+```csharp
+namespace N
+{
+    #region Types
+
+    class C
+    {
         #region Fields
 
-    private int _x;
+        private int _a;
 
-  #endregion // Fields
+        #endregion // Fields
 
-    void M(int x)
-    {
-        switch (x)
+        class D
         {
-                #region Cases
+            #region Methods
 
-            case 1:
-                break;
+            void M()
+            {
+            }
 
-        #endregion // Cases
+            #endregion // Methods
         }
     }
-}
-```
 
-```csharp
-class C
-{
-    #region Fields
-
-    private int _x;
-
-    #endregion // Fields
-
-    void M(int x)
-    {
-        switch (x)
-        {
-            #region Cases
-
-            case 1:
-                break;
-
-            #endregion // Cases
-        }
-    }
-}
-```
-
-Example — directives in front of the elements of an object initializer, an argument list, and a switch expression take the elements' column; the region in front of the statement keeps the statement column:
-
-```csharp
-class P
-{
-    public int X { get; set; }
-
-    public int Y { get; set; }
-}
-
-class C
-{
-    void N(int a, int b, int c)
-    {
-    }
-
-    int M(int x)
-    {
-        #region Creation
-
-        var p = new P
-                {
-        #region X
-
-                    X = 1,
-
-        #endregion // X
-
-                    Y = 2
-                };
-
-        #endregion // Creation
-
-        N(1,
-
-        #region Second
-
-          2,
-
-        #endregion // Second
-
-          3);
-
-        return x switch
-               {
-        #region One
-
-                   1 => 1,
-
-        #endregion // One
-
-                   _ => 0
-               };
-    }
-}
-```
-
-```csharp
-class P
-{
-    public int X { get; set; }
-
-    public int Y { get; set; }
-}
-
-class C
-{
-    void N(int a, int b, int c)
-    {
-    }
-
-    int M(int x)
-    {
-        #region Creation
-
-        var p = new P
-                {
-                    #region X
-
-                    X = 1,
-
-                    #endregion // X
-
-                    Y = 2
-                };
-
-        #endregion // Creation
-
-        N(1,
-
-          #region Second
-
-          2,
-
-          #endregion // Second
-
-          3);
-
-        return x switch
-               {
-                   #region One
-
-                   1 => 1,
-
-                   #endregion // One
-
-                   _ => 0
-               };
-    }
-}
-```
-
-Example — an `#endregion` in front of the closing delimiter of a collection expression or an object initializer takes the column of the elements, while the directives in the block body of a lambda passed as an argument take that block's statement column:
-
-```csharp
-class P
-{
-    public int X { get; set; }
-}
-
-class C
-{
-    void Run(int a, System.Action b)
-    {
-    }
-
-    void M()
-    {
-        int[] b = [
-                      1,
-
-        #region Last
-
-                      2
-
-        #endregion // Last
-
-                  ];
-        var p = new P
-                {
-        #region X
-
-                    X = 1
-
-        #endregion // X
-                };
-
-        Run(1,
-            () =>
-            {
-        #region Body
-
-                M();
-
-        #endregion // Body
-            });
-    }
-}
-```
-
-```csharp
-class P
-{
-    public int X { get; set; }
-}
-
-class C
-{
-    void Run(int a, System.Action b)
-    {
-    }
-
-    void M()
-    {
-        int[] b = [
-                      1,
-
-                      #region Last
-
-                      2
-
-                      #endregion // Last
-
-                  ];
-        var p = new P
-                {
-                    #region X
-
-                    X = 1
-
-                    #endregion // X
-                };
-
-        Run(1,
-            () =>
-            {
-                #region Body
-
-                M();
-
-                #endregion // Body
-            });
-    }
+    #endregion // Types
 }
 ```
 
@@ -1538,7 +1333,7 @@ class C
 
 ### FMT-INDENT-023 — Initializers without a keyword align to their target or their brace
 
-For a nested initializer assigned to a member (`Child = { … }`), the formatter MUST indent an opening brace that starts a line to the column of the assigned member, and the closing brace to the same column as the opening brace. For an array initializer of a declaration (`int[] a = { … }`), for an array initializer whose parent is another array initializer (a row `{ 1, 2 }` of a multi-dimensional array, as in `int[,] a = { { 1, 2 } }` and `new int[,] { { 1, 2 } }`), and for a complex element initializer (`{ 1, 2 }` inside a collection initializer), the closing brace MUST be indented to the column of the opening brace. An array initializer that is the initializer of an array creation inside another array initializer, such as `new[] { 5 }` in `int[][] j = { new[] { 5 } }`, is not such a row: its braces align to its `new` (FMT-INDENT-022). In every case the members that start a line MUST be indented one level deeper than the opening brace's column.
+For a nested initializer assigned to a member (`Child = { … }`), the formatter MUST indent an opening brace that starts a line to the column of the assigned member, and the closing brace to the same column as the opening brace. For an array initializer of a declaration (`int[] a = { … }`), for an array initializer whose parent is another array initializer (a row `{ 1, 2 }` of a multi-dimensional array, as in `int[,] a = { { 1, 2 } }` and `new int[,] { { 1, 2 } }`), and for a complex element initializer (`{ 1, 2 }` inside a collection initializer), the closing brace MUST be indented to the column of the opening brace. An array initializer that is the initializer of an array creation inside another array initializer, such as `new[] { 5 }` in `int[][] j = { new[] { 5 } }`, is not such a row: its braces align to its `new` (FMT-INDENT-022). In every case the members that start a line MUST be indented one level deeper than the opening brace's column. Which lines the braces of an array initializer start is FMT-BREAK-046's.
 
 When a comment leads the line of the opening brace of a complex element initializer or of a row of a multi-dimensional array, the comment takes the column that line starts in, and the column of the opening brace is the column it stands in behind the comment (FMT-INDENT-030): the closing brace and the members follow that column, not the comment's. When the comment stands on a line above the brace, the brace starts its line, and its column is the column of that line. A comment in front of the opening brace of a nested initializer assigned to a member stands behind the `=` of the assignment, and one in front of the opening brace of a declaration's array initializer stands inside the declaration; the formatter refuses both (FMT-UNSUP-020, FMT-UNSUP-004).
 

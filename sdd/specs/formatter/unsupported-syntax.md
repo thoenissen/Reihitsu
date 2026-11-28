@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-014, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-021, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-BREAK-041, FMT-INDENT-013, FMT-INDENT-015, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, RH5111-005, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-014, FMT-BREAK-015, FMT-BREAK-016, FMT-BREAK-017, FMT-BREAK-019, FMT-BREAK-020, FMT-BREAK-021, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-BREAK-041, FMT-INDENT-006, FMT-INDENT-010, FMT-INDENT-013, FMT-INDENT-015, FMT-INDENT-034, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-REGION-005, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, RH5111-005, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-004, SHARED-CHAIN-006, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -1743,7 +1743,7 @@ The conditions, each with both sides:
 
 A node-level input holds the shape when it holds both the `=` and the comment, directive, or disabled text in the gap: the attribute argument, its attribute, and every node around them do, and so does the using directive. A node-level input that holds the value but not the `=` does not hold the shape, also with the comment in the leading trivia of its first token (FMT-UNSUP-003).
 
-Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after every other. So FMT-UNSUP-004 keeps its reason for a comment behind the `=` of an attribute argument of a field declaration (`[N(Name = /* c */ 1)] private int _e;`), and FMT-UNSUP-010 for a directive there in a field declaration with several declarators.
+Where another shape of this spec refuses the same comment, directive, or disabled text, its reason and location are given: this shape is listed after every other but FMT-UNSUP-023. So FMT-UNSUP-004 keeps its reason for a comment behind the `=` of an attribute argument of a field declaration (`[N(Name = /* c */ 1)] private int _e;`), and FMT-UNSUP-010 for a directive there in a field declaration with several declarators.
 
 The reason the formatter gives for this shape is `a comment or directive behind the = of an attribute argument or a using alias`, and its location is the span of the first comment, directive, or disabled text in that place.
 
@@ -1814,6 +1814,130 @@ class C
     void M()
     {
     }
+}
+```
+
+### FMT-UNSUP-023 — Region directives inside a member are unsupported
+
+An input MUST be refused when an active `#region` or `#endregion` directive stands in the leading trivia of a token of the input other than these:
+
+- **the first token of the input**;
+- **the first token of a member declaration** — a member of a type's, a namespace's, or the file's member list, with its attribute lists: a field, a method, a property, an event, a constructor, an operator, an indexer, a delegate, an enum member, a type, a namespace, and each top-level statement, which is a member of the file of its own — and the first token of a using directive, of an extern alias directive, and of an attribute list of the file (`[assembly: …]`);
+- **the closing brace of a type, an enum, or a namespace declaration**;
+- **the end of the file**.
+
+A directive is always leading trivia, so a region directive stands in front of the token that follows it. The exceptions are the positions between members: above a member, in front of the closing brace that ends a member list, and at the end of the file. Every other position is inside a member, behind its first token up to its last token, or inside the header of a type or a namespace in front of its member list. The conditions, each with both sides:
+
+- **Inside a member.** A region directive in a method's body, in an accessor, in a lambda or a local function, in a switch section, in a field's or a property's initializer, in a parameter list, in the argument list of an attribute of the member, between two attribute lists of the member, between its modifiers, or between the `)` of its parameter list and its body refuses the input. The `#endregion` of a region that ends behind a member's last token stands in front of the next member's first token, or in front of the closing brace of the type, and does not refuse it: `#region Methods⏎void M()⏎{⏎}⏎#endregion⏎}` is supported. A region whose `#region` stands between members and whose `#endregion` stands inside a member refuses the input at its `#endregion`.
+- **A nested type is no member in this sense.** A type declared inside a type is a member of the outer type, so a region directive above it is above a member; its own members are members as well, so the regions between them are supported, at every depth.
+- **The header of a type or a namespace.** A region directive in a type's base list, its type parameter list, its primary-constructor parameter list, its constraint clauses, between its attribute lists, or in front of its opening brace stands behind the type's first token and in front of no member: it refuses the input, as one in a namespace's name does.
+- **Top-level statements.** Each top-level statement is a member of the file, so a region directive between two top-level statements is supported, and one inside a top-level statement — in its block, its argument list, or its initializer — refuses the input.
+- **Active directives only.** A `#region` or `#endregion` in disabled text is no directive of the build being formatted and does not refuse the input; in a build that defines `X`, a region directive in the active branch of `#if X` inside a member refuses it. Other directives inside a member — `#if`, `#pragma`, `#nullable` — are no region directives and do not refuse it under this requirement.
+- **The first token of the input.** In a whole document the first token of the input is the first token of the file. A node-level input below a member, such as a statement or an expression, holds a region directive in the leading trivia of its first token without refusing it, and every other region directive in it refuses it (FMT-UNSUP-003): whether a token begins a member declaration, or closes a type or a namespace, is decided from the token and the node it begins or closes, which lie inside the input whenever the token is not the input's first one.
+
+Where another shape of this spec refuses the same directive, its reason and location are given: this shape is listed after every other. So FMT-UNSUP-010 keeps its reason for a region directive inside a field declaration with several declarators, FMT-UNSUP-009 for one between a list element and a comma on a later line, and FMT-UNSUP-012 for one between the `=>` of an expression body and its expression.
+
+The reason the formatter gives for this shape is `a region directive inside a member`, and its location is the span of the first region directive in that place.
+
+Why: The maintainer decided to declare this shape unsupported in this work. A region groups members; inside a member it groups statements, the elements of an initializer, a list, or a pattern, or the arms of a switch, where the elements stand at aligned columns and the column of a directive among them had no single answer: the block indentation put it far to the left of what it groups, and the column of a comment there depends on the construct (FMT-INDENT-006). RH7303 reports a region inside executable code, so such input is rare. Refusing the input instead of deciding a column for each construct leaves FMT-INDENT-010 one column, the members' column. The header of a type stands in front of the type's members and holds no member, so it is not between members either. The first token of a node-level input is excepted because the region directive in front of it stands above the node and is not part of its layout: a code fix that formats a statement or a member below a `#region` keeps its fix. No phase writes a region directive into a member (FMT-UNSUP-005): no phase adds, removes, or moves a region directive (FMT-REGION-005), and a phase that moves a member, a using directive, or a field it splits moves the leading trivia of the first token with it, which stays the leading trivia of a member's first token.
+
+Example — each region directive is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class A : System.Attribute
+{
+    public A(int a, int b)
+    {
+    }
+}
+
+class C
+{
+    void M(int x)
+    {
+        #region Setup
+        var a = x;
+        #endregion
+    }
+
+    int[] F = [
+                  #region R
+                  1,
+                  #endregion
+                  2
+              ];
+
+    void N(int a,
+           #region P
+           int b)
+           #endregion
+    {
+    }
+
+    [A(1,
+       #region At
+       2)]
+       #endregion
+    void O()
+    {
+    }
+}
+```
+
+The location is the span of `#region Setup`, which starts in line 12, column 9.
+
+Example — the other side: none of these region directives refuses the input, and the input is formatted:
+
+```csharp
+#region Usings
+
+using System;
+
+#endregion // Usings
+
+class C
+{
+    #region Types
+
+    class D
+    {
+        #region Fields
+
+        private int _a;
+
+        #endregion // Fields
+    }
+
+    #endregion // Types
+
+    #region Methods
+
+    void M()
+    {
+#if NEVER
+        #region Disabled
+        #endregion // Disabled
+#endif
+    }
+
+    #endregion // Methods
+}
+```
+
+Example — top-level statements: the regions between the statements are supported, and the one inside the `if` statement's block refuses the input:
+
+```csharp
+#region Setup
+
+var a = 1;
+
+#endregion // Setup
+
+if (a > 0)
+{
+    #region Body
+    a++;
+    #endregion
 }
 ```
 
