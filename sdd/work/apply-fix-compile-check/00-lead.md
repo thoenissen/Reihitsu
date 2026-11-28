@@ -1,0 +1,26 @@
+# Lead — apply-fix-compile-check
+
+- Issue: thoenissen/Reihitsu#1977 — `agent-filed` (goals are proposals). Labels: cli, maintenance.
+- Slug: `apply-fix-compile-check`
+- Branch: `claude/determined-mccarthy-dpombd`; draft PR thoenissen/Reihitsu#1993
+- Lane: **tooling** — the change is to `scripts/apply-fix.sh` and the code-fix runner in `src/Reihitsu.Tooling` (`FixtureRunner`), with tests in `tests/Reihitsu.Tooling.Test`; no analyzer, formatter, or CLI output changes.
+- Roles run: test implementer (the tool has tests), implementer, cleaner, spec checker, auditor, validator. Skipped: spec author and skeptic (the tooling lane runs neither; no spec under `sdd/specs/` covers the fixture runner).
+- Clarifications (issue comment by the maintainer's account): the gap in `FixtureRunner.HasSyntaxErrors` holds — it reads only parse diagnostics, while CS8967 comes from binding — but the issue's example no longer reproduces since thoenissen/Reihitsu#1976 (RH5301 no longer reports inside a non-verbatim hole under language version 10). The work is a safety net; the test needs a different trigger, such as a stub fix or a hand-made fix result in `Reihitsu.Tooling.Test`.
+
+## Maintainer answers
+
+None yet.
+
+## Decisions taken
+
+| # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
+|---|---|---|---|---|---|---|
+
+## Follow-up candidates
+
+None yet.
+
+## State
+
+- Last step: claim, lane claimed.
+- Next: test implementer.
