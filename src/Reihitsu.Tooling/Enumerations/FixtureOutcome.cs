@@ -45,7 +45,8 @@ public enum FixtureOutcome
     ParseError,
 
     /// <summary>
-    /// Applying the code fix produced source that no longer parses
+    /// Applying the code fix produced source that no longer parses or compiles: it carries a compile error, under the run's
+    /// language version, whose ID and message the fixture did not have
     /// </summary>
     InvalidResult
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -63,8 +64,8 @@ public static class FixtureRunner
     /// document identity the first iteration analyzes and to identify the fixture in tooling-failure messages
     /// </param>
     /// <param name="languageVersion">
-    /// C# language version of every parse: the check whether the fixture parses, the project in which the analyzer reports and
-    /// the code fix runs, and the check whether a fix result parses
+    /// C# language version of every parse and compilation: the check whether the fixture parses, the project in which the analyzer
+    /// reports and the code fix runs, and the check whether a fix result compiles without an error the fixture did not have
     /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The observations of this fixture and line-ending arm</returns>
@@ -83,6 +84,7 @@ public static class FixtureRunner
             return Create(FixtureOutcome.ParseError, 0, 0, normalized, normalized, lineEnding, fixturePath);
         }
 
+        var originalErrors = await GetCompileErrorsAsync(normalized, fixturePath, languageVersion, cancellationToken).ConfigureAwait(false);
         var state = (Current: normalized, DocumentPath: fixturePath, Iterations: 0, RegisteredActions: 0);
 
         while (true)
@@ -126,7 +128,12 @@ public static class FixtureRunner
             state.Current = iteration.AppliedSource;
             state.DocumentPath = iteration.AppliedDocumentPath;
 
-            if (HasSyntaxErrors(state.Current, languageVersion, cancellationToken))
+            // A fix result is invalid when it parses or compiles worse than the fixture: an error whose ID and message the
+            // fixture did not have. The fixture parses, so every parse error of the result counts as new; an error the
+            // fixture already had does not, however often the result repeats it
+            var resultErrors = await GetCompileErrorsAsync(state.Current, state.DocumentPath, languageVersion, cancellationToken).ConfigureAwait(false);
+
+            if (resultErrors.IsSubsetOf(originalErrors) == false)
             {
                 return Create(FixtureOutcome.InvalidResult,
                               state.Iterations,
@@ -153,6 +160,34 @@ public static class FixtureRunner
                                                     cancellationToken: cancellationToken);
 
         return syntaxTree.GetDiagnostics(cancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+    }
+
+    /// <summary>
+    /// Compiles the source in the same ad-hoc project the analyzer and the code fix run in and collects its errors, parse
+    /// errors included, as a set of diagnostic ID and message, so that repeats of one error count once
+    /// </summary>
+    /// <param name="source">Source to compile</param>
+    /// <param name="documentPath">Forward-slash separated document path the source is compiled under</param>
+    /// <param name="languageVersion">C# language version of the project's parse options</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The ID and invariant-culture message of every distinct compile error</returns>
+    private static async Task<ImmutableHashSet<(string Id, string Message)>> GetCompileErrorsAsync(string source,
+                                                                                                   string documentPath,
+                                                                                                   LanguageVersion languageVersion,
+                                                                                                   CancellationToken cancellationToken)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var (document, _, _) = CreateDocument(workspace, source, documentPath, languageVersion);
+
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false)
+                                  ?? throw new InvalidOperationException("Failed to compile the fixture document.");
+
+            return compilation.GetDiagnostics(cancellationToken)
+                              .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                              .Select(diagnostic => (diagnostic.Id, diagnostic.GetMessage(CultureInfo.InvariantCulture)))
+                              .ToImmutableHashSet();
+        }
     }
 
     /// <summary>
