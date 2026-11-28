@@ -3455,7 +3455,7 @@ class C
 }
 ```
 
-Example — in an array initializer the comma moves and the element behind it starts the next line; the array's other line breaks stay as written:
+Example — in an array initializer the comma moves and the element behind it starts the next line; the array's other line breaks between the elements stay as written, and its braces take lines of their own because it spans several lines (FMT-BREAK-046):
 
 ```csharp
 class C
@@ -3493,8 +3493,10 @@ class C
                     1, 2,
                     3, 4
                 };
-        int[] y = { 1,
-                      2 };
+        int[] y = {
+                      1,
+                      2
+                  };
     }
 }
 ```
