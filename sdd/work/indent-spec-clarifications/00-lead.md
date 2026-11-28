@@ -26,6 +26,11 @@
 | 2 | Spec author | Spec author needs three characterization tests (FMT-INDENT-010 two examples, FMT-INDENT-028 second example) | Widen lane docs → tests; add skeptic, test implementer, cleaner, validator | No existing test pins the off-column inactive region, the tab in front of it, or `static int (x)`/`static x` block lambdas; #1400 "Done when" allows characterization tests | Tests pin today's output; no output changes | d9ba2be |
 | 3 | Spec author | Item 24 left unedited | Accept | FMT-SPACE-001 already states it (issue comment of 2026-11-16); pinned by `MultiLineCommentGapSpacingTests` | Spec text only | d9ba2be |
 | 4 | Spec author | Inactive region called "a directive, not disabled text"; FMT-INDENT-021 `Why:` points at FMT-INDENT-034 | Accept | Matches the parser's model and the existing continuation rule | Spec text only | d9ba2be |
+| 5 | Skeptic | Choices 1–4 of 02-skeptic (qualify FMT-INDENT-010 region-in-member sentences with "active"; state "not re-indented" for every inactive directive once in FMT-INDENT-011 and refer to it from FMT-INDENT-010 (option a); narrow "whitespace and text rules" to the tab and region-text rules; FMT-INDENT-028 anchor wording "opening parenthesis of its parameter list or its single parameter") | Accept all, option (a) for choice 2 | Each removes a contradiction or overstatement the skeptic showed with fixtures; choice 2 matches #1400's own wording "a directive inside inactive code" | Spec text only; every statement describes today's output | (spec author amendment) |
+| 6 | Skeptic | #1936: "the colon that ends the label on the `when` line" false for a wrapped guard | Accept: "the colon that ends the label" | Fixture w2 | Spec text only | (spec author amendment) |
+| 7 | Skeptic | Region-formatting Non-goals says region inside a member is refused without "active" | Adjacent fix in this run | Same statement as choice 1, one line, same component | Spec text only | (spec author amendment) |
+| 8 | Skeptic | Extra tests | Test set: spec author's three + r3 (inactive region in member, off column) + `static async x => {…}` + d1, d2 (inactive non-region directives keep column); FC-017 and FC-033 apply | None of them is pinned today | Characterization tests of today's output | (test implementer) |
+| 9 | Lead | Continue or fresh spec author for the amendment | Fresh | Earlier agent's cache cold and context large (~107k tokens) | Process only | – |
 
 ## Follow-up candidates
 
@@ -33,4 +38,4 @@
 
 ## Worklist / next step
 
-- Claim done (48e5073, PR #2002). Spec author done (d9ba2be): verdict needs a test; no output or open questions, so no output-question batch. Lane widened to tests (decision 2). Next: skeptic, then test implementer, cleaner, spec checker, validator.
+- Claim done (48e5073, PR #2002). Spec author done (d9ba2be): verdict needs a test; no output or open questions, so no output-question batch. Lane widened to tests (decision 2). Skeptic done (57ef020): proceed, no output questions. Next: spec author amendment (decisions 5–7), then test implementer, cleaner, spec checker, validator.
