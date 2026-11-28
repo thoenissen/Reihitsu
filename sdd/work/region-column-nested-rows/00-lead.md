@@ -9,7 +9,10 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (after skeptic), answered:
+  - Q1–Q5 (region directive columns inside initializers, patterns, lists, switch sections): a region inside a member is to be declared **unsupported** (escalation 10, answered: declare). Scope of "inside a member" and whether it is declared in this run are asked back (batch 1b).
+  - Q6 (row opening behind `}, {`): neither option fits. Rule given instead: each initializer is either single-line or multi-line, judged per initializer when nested; a multi-line initializer puts its `{` and `}` on their own lines. Its reach (rows only vs every array initializer) is asked back (batch 1b).
+  - Q7, Q8: not answered; Q8 becomes moot under the declaration (fixes withheld, SHARED-FIX-010). Q7 (comment-led row brace) is a rare class: lead leaves it to local refusal / asks again only if needed.
 
 ## Decisions taken
 
@@ -26,4 +29,5 @@
 
 - Last step finished: spec author (01, c9404e4; change doc Draft; open output question 1 + several change-doc entries needing answers).
 - Skeptic (02, c1f75f2): verdict output question; premise holds, reachable via CLI; no architecture findings; escalation 10 not an option (deletes no special case).
-- Waiting: output-question batch 1 (Q1 scope A/B, Q2 switch-section #endregion, Q3 anonymous object, Q4 patterns, Q5 other aligned lists, Q6 entry 9, Q7 entry 10, Q8 code-fix results). Next after answers: route to spec author, then test implementer.
+- Batch 1 asked and answered (see above). Waiting: batch 1b (scope of the declaration, timing, reach of the initializer line rule).
+- Old: output-question batch 1 (Q1 scope A/B, Q2 switch-section #endregion, Q3 anonymous object, Q4 patterns, Q5 other aligned lists, Q6 entry 9, Q7 entry 10, Q8 code-fix results). Next after answers: route to spec author, then test implementer.
