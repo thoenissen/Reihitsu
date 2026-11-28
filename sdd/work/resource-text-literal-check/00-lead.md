@@ -24,9 +24,9 @@ None yet.
 
 ## Follow-up candidates
 
-- Give `FindRepositoryRoot` (eight private copies in `tests/Reihitsu.ArchitectureTests`) and the near-identical fixture-directory types one owner — `01-skeptic.md`.
+- Give `FindRepositoryRoot` (eight private copies in `tests/Reihitsu.ArchitectureTests`) and the near-identical fixture-directory types one owner — `01-skeptic.md`; extended by `02-test-implementer.md`: a ninth `FindRepositoryRoot` copy, a second `bin`/`obj` skip, and `TrackerReferenceFixtureDirectory` now serving two test classes under a name that fits one.
 
 ## State
 
-- Last step: skeptic, `proceed narrower`, no output questions.
-- Next: test implementer.
+- Last step: test implementer, `tests written` (c2ef612, 05a039e); lane check `tests` passes.
+- Next: cleaner.
