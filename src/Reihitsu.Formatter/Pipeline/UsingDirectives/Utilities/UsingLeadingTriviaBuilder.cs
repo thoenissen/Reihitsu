@@ -94,7 +94,9 @@ internal static class UsingLeadingTriviaBuilder
     /// stay pinned at the top of the scope and the remainder that continues to belong to the directive
     /// if it is reordered away from the first position. The header is whatever significant trivia is
     /// separated from the directive by a blank line; when no blank line separates the significant
-    /// trivia from the directive, the whole significant trivia is treated as the header. Any
+    /// trivia from the directive, the whole significant trivia is treated as the header. When the leading
+    /// trivia holds a preprocessor directive, the whole significant trivia is the header as well, whatever
+    /// blank lines it holds, so the directive in front of the block stays at the top (FMT-USING-012). Any
     /// whitespace or end-of-line trivia before the first significant trivia is excluded from the
     /// header: callers combine it with <see cref="GetWhitespacePrefix"/>, which already covers that
     /// same span, so including it here would duplicate it. When the header ends its last line (see
@@ -153,7 +155,8 @@ internal static class UsingLeadingTriviaBuilder
     /// <summary>
     /// Finds the index right after the last blank line within the significant trivia. Comments before
     /// that point are a header block separated from the directive by a blank line; when no blank line
-    /// exists, the split lands at the end of the list so the whole significant trivia becomes the header.
+    /// exists, or when the trivia holds a preprocessor directive (FMT-USING-012), the split lands at the end
+    /// of the list so the whole significant trivia becomes the header.
     /// What counts as a blank line is the shared measure of <see cref="TokenGapAnalysis"/>
     /// (SHARED-BLANK-001): a line that holds nothing but whitespace, also the line below a single-line
     /// documentation comment, which carries its own line break. A blank line always ends at an
@@ -165,6 +168,12 @@ internal static class UsingLeadingTriviaBuilder
     private static int GetHeaderSplitIndex(SyntaxTriviaList leadingTrivia, int firstSignificantTriviaIndex)
     {
         var splitIndex = leadingTrivia.Count;
+
+        if (leadingTrivia.Any(static trivia => trivia.IsDirective))
+        {
+            return splitIndex;
+        }
+
         var blankLineCount = 0;
 
         for (var triviaIndex = firstSignificantTriviaIndex; triviaIndex < leadingTrivia.Count; triviaIndex++)
