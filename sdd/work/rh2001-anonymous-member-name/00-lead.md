@@ -25,11 +25,13 @@ The maintainer answered the issue's output question in an issue comment: option 
 | 4 | skeptic | Architecture finding FC-015: RH2001's `GivesInferredMemberNameAsync` anonymous branch and `CasingAnonymousMemberUtilities.GetMemberNamedByReference` both decide which anonymous member takes its name from a reference | Change the structure in this run: RH2001 keeps no private copy of the anonymous-member decision and uses the casing helper; its tuple branch (RH2001-011) stays | The narrow fix would otherwise keep a second statement of the rule; within components the run changes | Same outputs as answer B | pending |
 | 5 | skeptic | Reword RH2001-012 to defer to SHARED-CASING-015 for the written name? | Yes | One statement of the rule | Differs only for escaped/verbatim identifiers (rare) | 204f576 |
 | 6 | skeptic | Issue's "Done when": Fix All test over the issue's input | Adjusted: single-fix test for the input plus Fix All over two properties (skeptic rows 17, 18) | The input has one diagnostic; Fix All needs two | Tests only | c808bf1 |
-| 7 | skeptic | Fix All on `new { Value.Name }` (row 18) may lose an edit in BatchFixer | Test implementer pins the RH2001-012 result with Fix All; decide on failure | Unsettled by reading | Expected output follows RH2001-012 | pending |
+| 7 | skeptic | Fix All on `new { Value.Name }` (row 18) may lose an edit in BatchFixer | Test implementer pins the RH2001-012 result with Fix All; decide on failure | Unsettled by reading | Expected output follows RH2001-012 | see 8 |
+| 8 | implementer | BatchFixer drops one of two RH2001 fixes (row 18 and the inherited Fix All scenario); options A sequential solution-scoped Fix All, B DocumentOrderFixAllProvider (loses partial-part renames), C two iterations + SHARED-FIX-002 exception | A. Prefer an opt-in solution-scoped mode of the existing `DocumentOrderFixAllProvider` (no new type, other users unchanged); else a private provider in RH2001 like the casing one. Over ~100 production lines: stop and report (escalation 9) | SHARED-FIX-002 (unchanged) demands one Fix All pass; B breaks partial parts; C needs a visible exception | Brings RH2001 Fix All to an unchanged requirement | pending |
+| 9 | implementer | Adjacent fix: `CasingAnonymousMemberUtilities.WriteMemberName` drops the elastic marker on `=` | Take it in (1 line, component the run changes, pinned by the RH2001 own-initializer test) | Without it the RH2001 result breaks layout | Casing tests unchanged and green | a13a255 |
 
 ## Follow-up candidates
 
-None yet.
+- A casing-fix test pinning the layout of a multi-line anonymous creation whose member name the fix writes (04-implementer.md).
 
 ## Audited SHA
 
@@ -41,4 +43,5 @@ None yet.
 - Skeptic done (02-skeptic.md, 6387aa5): proceed, no output questions.
 - Spec author amendment done (204f576); decision 5 carried out there; change doc Accepted.
 - Test implementer done (03-test-implementer.md, c808bf1): 23 red tests, intended.
-- Next: implementer (decision 4 structure; decision 7 row 18 to check).
+- Implementer round 1 (04-implementer.md, a13a255/b84af93): blocked on Fix All merge; decided 8 = A.
+- Next: implementer continues with decision 8.
