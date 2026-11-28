@@ -72,7 +72,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     }
 
     /// <summary>
-    /// Renames the annotated property to its backing field name when the name actually changes
+    /// Renames the annotated property to its backing field name when the name actually changes. Before the rename, the
+    /// name of every anonymous-object member that takes its name from a reference to the property is written explicitly,
+    /// so the member keeps its name (RH2001-012, SHARED-CASING-015)
     /// </summary>
     /// <param name="document">Document holding the annotated property</param>
     /// <param name="node">Original property declaration used to compute the field name</param>
@@ -90,9 +92,24 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
 
         var symbol = await GetAnnotatedPropertySymbolAsync(document, propertyAnnotation, cancellationToken).ConfigureAwait(false);
 
-        return symbol == null
-                   ? solution
-                   : await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
+        if (symbol == null)
+        {
+            return solution;
+        }
+
+        var namedSolution = await CasingAnonymousMemberUtilities.NameAnonymousObjectMembersAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+
+        if (namedSolution != solution)
+        {
+            symbol = await GetAnnotatedPropertySymbolAsync(namedSolution.GetDocument(document.Id), propertyAnnotation, cancellationToken).ConfigureAwait(false);
+
+            if (symbol == null)
+            {
+                return solution;
+            }
+        }
+
+        return await Renamer.RenameSymbolAsync(namedSolution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -127,7 +144,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
     /// <see langword="true"/> if the rename changes a binding, rewrites a reference to another symbol, or renames an
-    /// inferred anonymous-object member or tuple element, or its result cannot be checked
+    /// inferred tuple element, or its result cannot be checked
     /// </returns>
     /// <remarks>
     /// The check runs the rename and compares, in every document that can refer to the property, the references spelled
@@ -137,9 +154,10 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// binds to the renamed property disappears from the references to that symbol, and a renamed reference to the
     /// property that binds to another symbol adds one. A reference to the property that the renamer qualifies with
     /// <c>this.</c> or its type binds to the renamed property and is not compared, so the fix stays offered for it. The
-    /// references include the <c>cref</c> names of documentation comments. A reference to the property that gives an
-    /// anonymous-object member, or a tuple element whose tuple keeps that name in its type, its inferred name withholds the
-    /// fix, because the rename renames that member as well
+    /// references include the <c>cref</c> names of documentation comments. A reference to the property that gives a tuple
+    /// element whose tuple keeps that name in its type its inferred name withholds the fix, because the rename renames that
+    /// element as well. An anonymous-object member that takes its name from a reference to the property does not withhold
+    /// the fix: the rename writes the member's name first (RH2001-012)
     /// </remarks>
     private static async Task<bool> RenameChangesBindingAsync(Document document, PropertyDeclarationSyntax node, CancellationToken cancellationToken)
     {
@@ -170,7 +188,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
 
         foreach (var documentId in ExcludedCodeUtilities.GetReferringDocuments(renamedSolution, renamedSymbol).Select(static referringDocument => referringDocument.Id))
         {
-            if (await GivesInferredMemberNameAsync(originalSolution.GetDocument(documentId), originalSymbol, cancellationToken).ConfigureAwait(false))
+            if (await GivesInferredTupleElementNameAsync(originalSolution.GetDocument(documentId), originalSymbol, cancellationToken).ConfigureAwait(false))
             {
                 return true;
             }
@@ -188,14 +206,14 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     }
 
     /// <summary>
-    /// Checks whether a reference to the property gives an anonymous-object member without <c>Name =</c>, or a tuple
-    /// element without <c>Name:</c> whose tuple keeps that name in its type where it is used, its inferred name
+    /// Checks whether a reference to the property gives a tuple element without <c>Name:</c> whose tuple keeps that name in
+    /// its type where it is used its inferred name
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="property">Property before the rename</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> if a member or element takes its inferred name from a reference to the property</returns>
-    private static async Task<bool> GivesInferredMemberNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
+    /// <returns><see langword="true"/> if an element takes its inferred name from a reference to the property</returns>
+    private static async Task<bool> GivesInferredTupleElementNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
     {
         var root = document == null
                        ? null
@@ -208,19 +226,12 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
 
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        foreach (var expression in root.DescendantNodes().Select(static node => node switch
-                                                                                {
-                                                                                    AnonymousObjectMemberDeclaratorSyntax { NameEquals: null } declarator => declarator.Expression,
-                                                                                    ArgumentSyntax { NameColon: null, Parent: TupleExpressionSyntax } argument => argument.Expression,
-                                                                                    _ => null
-                                                                                }))
+        foreach (var argument in root.DescendantNodes().OfType<ArgumentSyntax>().Where(static argument => argument is { NameColon: null, Parent: TupleExpressionSyntax }))
         {
-            if (expression != null
-                && SyntaxFacts.TryGetInferredMemberName(expression) == property.Name
-                && expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().LastOrDefault() is { } name
+            if (SyntaxFacts.TryGetInferredMemberName(argument.Expression) == property.Name
+                && argument.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().LastOrDefault() is { } name
                 && SymbolEqualityComparer.Default.Equals(semanticModel?.GetSymbolInfo(name, cancellationToken).Symbol, property)
-                && (expression.Parent is not ArgumentSyntax argument
-                    || TupleTypeKeepsElementName(semanticModel, argument, property.Name, cancellationToken)))
+                && TupleTypeKeepsElementName(semanticModel, argument, property.Name, cancellationToken))
             {
                 return true;
             }
@@ -702,7 +713,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.CreateSolutionScoped(new RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer(), CodeFixResources.RH2001Title);
     }
 
     #endregion // CodeFixProvider
