@@ -6,6 +6,7 @@ Milestone numbers: 1.6.0 = 14, 1.7.0 = 15, 1.8.0 = 16, 1.9.0 = 17, 1.10.0 = 18, 
 
 ## Decisions
 
+- 2026-11-28 · #1999 #2000 #2001 · triage 1A: #1999 closed as completed (test already on main); #2000 closed as not planned. 2B (#2001): new rule + fix for multi-line array-initializer braces → 1.10.0 counterpart run, after #1876 and #1774. Commented on all three.
 - 2026-11-28 · #1982 #1988 #1989 #1990 #1994 · triage 1A except #1982: no milestone (maintainer). #1989 → 1.7.0 (`#1517 #1519 #1654 #862 #1937 #1989`); #1994 → 1.6.0 own tests run. 2B (#1988): anonymous-method block reported and aligned under `delegate`; new rule or widening RH5205 decided in the run; → 1.10.0 counterpart run. 3B (#1990): RH2001 fix writes `new { Value = _value }`; 1.6.0 own analyzer run; #1589 also waits for it. Commented on #1589 #1982 #1988 #1989 #1990 #1994.
 - 2026-11-27 · #1970 #1971 #1972 #1977 #1978 · triage 1A: all → 1.6.0; #1970 own tests run; #1972 own docs run (FMT-USING-004 only); #1971 own run after #1972, #1589 after #1971; #1977 own tooling run; #1978 joins `#1087 #1088 #1978`. 2A (#1971: fixes and formatter sort a block whose directives all stand before its first using). 3A (#1978: RH4105 reports query range variables, title widens; fix only if safe). Commented on #1589 #1971 #1972 #1977 #1978.
 - 2026-11-26 · #1960 · 3C: the formatter removes a `;` behind a type's closing brace (new structural transform); 4A: with a comment, directive, or disabled text between `}` and `;` the `;` stays, nothing indented, the blank line in front of the comment stays (FMT-BLANK-011). Commented on #1960 and #1959 (RH5404 fix result without `;`).
@@ -37,6 +38,7 @@ Notes for the runs: #1399 untouched by #1985 (different constructs). #1994 picks
 
 ## Status
 
+Status 2026-11-28 (g): triage answered 1A, 2B; #1999 #2000 closed, #2001 → 1.10.0; roadmap updated; commented on all three. Batch next in the same session.
 Status 2026-11-28 (f): triage asked (`inventory/triage-2026-11-28b.md`, main at c3377002). 1 placements: #1999 close as completed (test `FixKeepsTheLayoutAndCommentsOfAMultiLineAnonymousObjectMember` already on main); #2000 close as not planned (providers decide differently: shared one re-analyzes, casing one checks collisions up front); #2001 by question 2 (1A apply / 1B change rows; rec. 1A). 2 #2001 new rule for multi-line array-initializer braces: A no rule, close not planned; B new rule + fix (rec.), joins 1.10.0 counterpart run `#1739 #1159 #1637 #1638 #1560 #1827 #1930 #1988`, after #1876 (1.7.0) and #1774 (1.8.0).
 Status 2026-11-28 (e): triage of #1999 #2000 #2001 started; assessment delegated (`inventory/triage-2026-11-28b.md`, main at c3377002). Nothing asked yet. Side find: #1995 #1996 #1997 #1998 merged since the last batch — batch after the triage answer.
 Status 2026-11-28 (d): batch — merges #1980 #1983–#1987 #1991–#1993 read (closed #1085 #1087 #1088 #1567 #1568 #1607 #1698 #1970 #1972 #1977 #1978 #1979); graph rebuilt; start-now set of 4 runs given; no closes proposed. #1982 stays without a milestone (decided).
