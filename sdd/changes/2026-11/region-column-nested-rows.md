@@ -2,15 +2,15 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP-023 (added), FMT-BREAK-046 (added), FMT-BREAK-021 (changed), FMT-INDENT-010 (changed), FMT-INDENT-023 (changed), FMT-UNSUP-022 (clarified), FMT-BLANK-009 (clarified), FMT-BLANK-013 (clarified), FMT-BLANK-018 (clarified), FMT-REGION-005 (clarified) |
 
 ## What
 
-**Region directives inside a member.** The formatter refuses, as unsupported, every input that holds an active `#region` or `#endregion` directive inside a member: in its body, an accessor, a lambda, a switch section, a field or property initializer, a parameter list, the arguments of the member's attributes, between its attribute lists or modifiers, and in the header of a type (FMT-UNSUP-023). Supported are the positions between members: in front of the first token of a member (a nested type, a namespace, and each top-level statement included), of a using directive, an extern alias, or an `[assembly: …]` list; in front of the closing brace of a type, an enum, or a namespace; at the end of the file; and in front of the first token of a node-level input. Every entry point returns a refused input unchanged and reports it; the CLI leaves the file unchanged and reports it; every code fix whose formatted node holds such a directive is withheld (SHARED-FIX-010). FMT-INDENT-010 now states one column, the members' column.
+**Region directives inside a member.** The formatter refuses, as unsupported, every input that holds an active `#region` or `#endregion` directive inside a member: in its body, an accessor, a lambda, a switch section, a field or property initializer, a parameter list, the arguments of the member's attributes, between its attribute lists or modifiers, and in the header of a type or of an extension block (FMT-UNSUP-023). Supported are the positions between members: in front of the first token of a member (a nested type, an extension block, and a namespace included), of a using directive, an extern alias, or an `[assembly: …]` list; in front of the closing brace of a type, an extension block, an enum, or a namespace; at the end of the file; and in front of the first token of a node-level input. A file with top-level statements is refused for every region directive in it, also one between the statements. Every entry point returns a refused input unchanged and reports it; the CLI leaves the file unchanged and reports it; every code fix whose formatted node holds such a directive is withheld (SHARED-FIX-010). FMT-INDENT-010 now states one column, the members' column.
 
-**Array initializers.** Every array initializer — of `new T[…]`, `new[]`, `stackalloc`, of a declaration, and every row of a multi-dimensional array — is judged on its own: written on one line, it stays as written; spanning several lines, its opening brace and its closing brace stand on lines of their own (FMT-BREAK-046). The opening brace of a declaration's initializer stays on the line of the `=`; with `new` or `stackalloc` and for a row it starts its own line. The line breaks between the elements stay as written. A row is laid out like a complex element initializer: its elements one level deeper than its brace, and its closing brace under its opening brace (FMT-INDENT-023).
+**Array initializers.** Every array initializer — of `new T[…]`, `new[]`, `stackalloc T[]`, `stackalloc[]`, of a declaration, and every row of a multi-dimensional array — is judged on its own, on the lines the formatter's other line-break rules leave inside it: on one line, it stays as it is; spanning several lines, its opening brace and its closing brace stand on lines of their own (FMT-BREAK-046). A line break inside a string literal counts. The opening brace of a declaration's initializer stays on the line of the `=`; with `new` or `stackalloc` and for a row it starts its own line, also behind a comment, which keeps its line while the brace moves below it. The line breaks between the elements stay as written. A row is laid out like a complex element initializer: its elements one level deeper than its brace, and its closing brace under its opening brace (FMT-INDENT-023).
 
 ## Why
 
@@ -20,6 +20,7 @@ The maintainer answered this run's output questions differently from the issue (
 
 - A region inside a member is declared unsupported in this run, instead of a column being decided for each construct. A region groups members. Inside a member it groups statements, elements, or arms that stand at aligned columns, where the right column for the directive is unclear. RH7303 reports a region inside executable code, so such input is rare. A nested type is not a member in this sense, so the regions between its members stay supported.
 - Every array initializer is either single-line or multi-line, judged for each initializer when they are nested. A multi-line one puts its `{` and `}` on lines of their own. Behind the `=` of a declaration the `{` stays on the `=` line; with `new[]` or `new T[…]` it goes on its own line under `new`. Element line breaks inside are not decided by this rule.
+- Batch 2 settled the cases the first answers left open: a region in the header of a type is refused; in a file with top-level statements every region is refused, because all top-level statements count as one member; a comment in front of a multi-line row's `{` keeps its line and the `{` moves below it; a line break inside a string literal makes an initializer multi-line; `stackalloc T[] { … }` and `stackalloc[] { … }` follow the `new` rule; an initializer is judged on the lines the other line-break rules leave; and an extension block is treated like a nested type.
 
 The maintainer confirmed eight concrete outputs (lead note, *Confirmed examples*); the examples below and in FMT-BREAK-046 are those outputs.
 
@@ -27,7 +28,7 @@ The issue's description of today's rows is out of date. On the base, a row's ele
 
 ## Visible output changes
 
-Each "before" is the output of `scripts/format.sh` (whole document, CLI) or `scripts/apply-fix.sh` on this branch's base, 4a91817, whose production code is that of 13b0ed2. A second run left every "before" unchanged. Each "after" is specified by this change and not built yet. Its unchanged lines match today's output.
+Each "before" is the output of `scripts/format.sh` (whole document, CLI) or `scripts/apply-fix.sh` on this branch's base, 4a91817, whose production code is that of 13b0ed2; entries 14–20 were run on c64be37, whose production code is the same. A second run left every "before" unchanged. Each "after" is specified by this change and not built yet. Its unchanged lines match today's output.
 
 ### 1. A region in a method body
 
@@ -405,9 +406,287 @@ After: the closing brace of each row under its opening brace.
 
 Before and after: unchanged.
 
+### 14. A region in the header of a type
+
+```csharp
+interface I
+{
+}
+
+class B
+{
+}
+
+class C : B,
+          #region Interfaces
+          I
+          #endregion
+{
+}
+
+record R(int A,
+         #region More
+         int B);
+         #endregion
+```
+
+Before:
+
+```csharp
+interface I;
+
+class B;
+
+class C : B,
+
+#region Interfaces
+
+          I
+
+#endregion // Interfaces
+
+{
+}
+
+record R(int A,
+
+#region More
+
+         int B);
+
+#endregion // More
+```
+
+After: the input unchanged.
+
+```text
+error: <file>(10,11): unsupported syntax: a region directive inside a member. The file was left unchanged.
+```
+
+### 15. Regions in a file with top-level statements
+
+```csharp
+using System;
+
+#region Setup
+var a = 1;
+#endregion
+
+Console.WriteLine(a);
+
+class D
+{
+    #region Fields
+    private int _b;
+    #endregion
+}
+```
+
+Before:
+
+```csharp
+using System;
+
+#region Setup
+
+var a = 1;
+
+#endregion // Setup
+
+Console.WriteLine(a);
+
+class D
+{
+    #region Fields
+
+    private int _b;
+
+    #endregion // Fields
+}
+```
+
+After: the input unchanged.
+
+```text
+error: <file>(3,1): unsupported syntax: a region directive inside a member. The file was left unchanged.
+```
+
+Without the regions around `var a = 1;`, the file is refused at `#region Fields` all the same. A code fix that formats the class `D` alone still formats it, with its regions (FMT-UNSUP-003).
+
+### 16. Regions between the members of an extension block: unchanged
+
+```csharp
+static class Ext
+{
+    extension(int x)
+    {
+        #region Members
+        public int Twice() => x * 2;
+        #endregion
+    }
+}
+```
+
+Before and after:
+
+```csharp
+static class Ext
+{
+    extension(int x)
+    {
+        #region Members
+
+        public int Twice()
+        {
+            return x * 2;
+        }
+
+        #endregion // Members
+    }
+}
+```
+
+### 17. A comment in front of a multi-line row's opening brace
+
+```csharp
+class C
+{
+    int[,] F = {
+                   /* c */ { 3,
+                   4 }
+               };
+}
+```
+
+Before:
+
+```csharp
+    int[,] F = {
+                   /* c */ { 3,
+                       4 }
+               };
+```
+
+After: the comment keeps its line, and the brace moves below it.
+
+```csharp
+    int[,] F = {
+                   /* c */
+                   {
+                       3,
+                       4
+                   }
+               };
+```
+
+### 18. An array initializer whose only line break is inside a string literal
+
+```csharp
+class C
+{
+    int[] F = { @"a
+b".Length, 2 };
+}
+```
+
+Before: unchanged.
+
+After:
+
+```csharp
+class C
+{
+    int[] F = {
+                  @"a
+b".Length, 2
+              };
+}
+```
+
+### 19. `stackalloc` spanning several lines
+
+```csharp
+class C
+{
+    void M()
+    {
+        System.Span<int> s = stackalloc int[] { 1,
+        2 };
+        System.Span<int> t = stackalloc[] { 1,
+        2 };
+    }
+}
+```
+
+Before:
+
+```csharp
+        System.Span<int> s = stackalloc int[] { 1,
+                                 2 };
+        System.Span<int> t = stackalloc [] { 1,
+                                 2 };
+```
+
+After:
+
+```csharp
+        System.Span<int> s = stackalloc int[]
+                             {
+                                 1,
+                                 2
+                             };
+        System.Span<int> t = stackalloc []
+                             {
+                                 1,
+                                 2
+                             };
+```
+
+### 20. An array initializer the other line-break rules make multi-line or single-line
+
+```csharp
+class X
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    void M(int y)
+    {
+        var x = new[] { new X { A = 1 } };
+        var c = new[] { (int)
+            y };
+    }
+}
+```
+
+Before:
+
+```csharp
+        var x = new[] { new X
+                        {
+                            A = 1
+                        } };
+        var c = new[] { (int)y };
+```
+
+After: the object initializer is laid out over several lines, so the array initializer is multi-line; the cast is joined, so the other one is on one line.
+
+```csharp
+        var x = new[]
+                {
+                    new X
+                    {
+                        A = 1
+                    }
+                };
+        var c = new[] { (int)y };
+```
+
 ### Code-fix results for array initializers
 
-The code fixes that format a node holding a multi-line array initializer give the layout of entries 7–12, measured from where the node stands: RH5101 and the fixes that format a whole member or type. Those were not run. RH5410 (trailing comma in an array initializer) edits the comma without the formatter. On `new int[] { 1,⏎2, }` it removes the comma and leaves the braces as written, before and after the change.
+The code fixes that format a node holding a multi-line array initializer give the layout of entries 7–12 and 17–20, measured from where the node stands: RH5101 and the fixes that format a whole member or type. Those were not run. RH5410 (trailing comma in an array initializer) edits the comma without the formatter. On `new int[] { 1,⏎2, }` it removes the comma and leaves the braces as written, before and after the change.
 
 ## Special cases
 
@@ -415,7 +694,7 @@ The code fixes that format a node holding a multi-line array initializer give th
 
 - **The column of a region directive inside a construct.** The run's earlier draft of FMT-INDENT-010 needed this. Inside an initializer, an anonymous object, a collection expression, a pattern, a switch expression, or a wrapped list, the directive would take the elements' column: a list of constructs in the indentation phase, beside the comment rule of FMT-INDENT-006, and a column of its own in front of each closing delimiter. The declaration removes it from the spec and keeps it out of the code.
 - **Pairing a switch section's `#endregion` with its `#region`.** An `#endregion` after a section's last statement stands four columns left of a `#region` among the statements. Giving it the statement column needs the matching `#region`'s position, which the indentation phase does not have. The declaration removes the case.
-- **FMT-INDENT-010's statement column and label column.** These are no longer stated for whole documents. They remain only for the region directive in the leading trivia of a node-level input's first token.
+- **FMT-INDENT-010's statement column and label column.** These are no longer stated. The one region directive inside a member that the phases still receive, in the leading trivia of a node-level input's first token, is the target's leading trivia, which the node-in-document entry points write back as it stands (FMT-PIPE-018); FMT-INDENT-010 gives it no column.
 - **The in-member clauses of the blank-line and region specs.** These are FMT-BLANK-009's sentence on a region directive ending the gap in front of a closing bracket or parenthesis, FMT-BLANK-013's switch-label example, and FMT-REGION-005's region straddling a member body. These positions are refused now. The examples are moved between members where the requirement's point survives there.
 - **The RH7304 ping-pong at member level.** For a region in a field's collection expression or object initializer, the CLI wrote the member column and RH7304's fix wrote the column of the region's first token. The CLI now refuses such a file and leaves it unchanged.
 
@@ -433,23 +712,35 @@ The code fixes that format a node holding a multi-line array initializer give th
 
 ### The shape is the positions that are not between members
 
-The requirement lists what is supported — the first token of a member, a using, an extern alias, an `[assembly: …]` list, a type's or namespace's closing brace, the end of the file, the input's first token — and refuses every other region directive. Each exception is read from the token and the node it begins or closes. That node lies in the input whenever the token is not the input's first one, so the check is local (FMT-UNSUP-003). A node-level input below a member, such as a collection expression a code fix formats, refuses a region directive inside it, so the fix is withheld.
+The requirement lists what is supported — the first token of a member, a using, an extern alias, an `[assembly: …]` list, a type's, an extension block's, an enum's, or a namespace's closing brace, the end of the file, the input's first token — and refuses every other region directive, and every region directive of a whole file with top-level statements. Each exception is read from the token and the node it begins or closes. That node lies in the input whenever the token is not the input's first one, so the check is local (FMT-UNSUP-003). A node-level input below a member, such as a collection expression a code fix formats, refuses a region directive inside it, so the fix is withheld.
 
 ### The input's first token is excepted
 
-A region directive above a statement or a member that a code fix formats stands in the leading trivia of the fix's first token. Refusing it would withhold fixes on common code (`#region Methods` above an attributed method). It keeps the column it gets today.
+A region directive above a statement or a member that a code fix formats stands in the leading trivia of the fix's first token. Refusing it would withhold fixes on common code (`#region Methods` above an attributed method). The node-in-document entry points write it back as it stands in the document (FMT-PIPE-018).
 
-### The header of a type is not between members
+### A region in the header of a type or an extension block is refused
 
-A region directive in a base list, a primary-constructor parameter list, or in front of a type's `{` groups no members. It is refused on the same terms as one inside a member (handover output question 1).
+Batch 2, answer 1A, and answer 7A for an extension block's header. A region directive in a base list, a primary-constructor parameter list, `extension(…)`, or in front of the opening brace groups no members.
 
-### Each top-level statement is a member
+### Every region of a file with top-level statements is refused
 
-A region between top-level statements stands at column 0, like a region between types, and is supported. One inside a top-level statement's block is refused (handover output question 2).
+Batch 2, answer 2B, confirmed by a follow-up answer: all top-level statements of a file count as one member, the body of the entry point, so every region directive in such a file is refused, also one between the statements, around the usings, or between the members of a type the file declares. The check reads only whether the whole file holds a top-level statement. A node-level input is never a whole file: a type declared in such a file, formatted by a code fix, is decided by its own members (FMT-UNSUP-003), so the fix stays offered while the CLI refuses the file.
 
-### An array initializer is judged by every line break in its text
+### An extension block is treated like a nested type
 
-An initializer spans several lines when any line break stands between its braces: in trivia, a `//` comment's end included, or inside a token such as a verbatim string. This needs no other definition (handover output question 4).
+Batch 2, answer 7A. The regions between an extension block's members, and in front of its closing brace, stay supported at every depth.
+
+### A comment in front of a row's opening brace keeps its line
+
+Batch 2, answer 3B. The brace moves onto the line below the comment, and the row is laid out from that line. FMT-BREAK-046 states this for every opening brace that starts its line, with `new` and `stackalloc` as for a row, and for a comment behind the opening brace or behind the last element: a comment never changes its line, and the brace or the element on its other side moves (handover 05, output question 1).
+
+### An array initializer is judged on the lines the other line-break rules leave
+
+Batch 2, answer 6A. An object initializer, a block lambda, or a switch expression that the formatter lays out over several lines makes the array initializer around it multi-line; a join such as a cast's makes a wrapped one single-line. Judging the lines as written would move the braces again on the second pass. Batch 2, answer 4A: a line break counts wherever it stands between the braces, also inside a verbatim or raw string.
+
+### `stackalloc` follows the `new` rule
+
+Batch 2, answer 5A: `stackalloc T[] { … }` and `stackalloc[] { … }` put a multi-line initializer's opening brace on its own line under `stackalloc`.
 
 ## Alternatives considered
 
@@ -457,4 +748,8 @@ An initializer spans several lines when any line break stands between its braces
 - **The statement column, as today (round 9 option a).** Rejected by round 9: the directive stands far left of what it groups.
 - **Declaring only the constructs that are not block scopes.** This would refuse regions in initializers, lists, and patterns, and keep regions in blocks and switch sections. The maintainer chose the whole member (batch 1b, 1A).
 - **Rows only.** The maintainer chose every array initializer for the brace rule (batch 1b, 3A).
+- **Only the regions inside a top-level statement refused (batch 2, 2A).** Rejected: the maintainer counts all top-level statements as one member.
+- **A comment in front of a row's opening brace keeping the brace behind it (batch 2, 3A).** Rejected: every brace of a multi-line initializer starts its line.
+- **Judging an initializer on the lines as written, keeping it on one line by suppressing the other line-break rules inside it (batch 2, 6B).** Rejected: an object initializer inside an array would no longer be laid out over several lines, and a wrapped cast would get braces on lines of their own.
+- **The regions of an extension block refused (batch 2, 7B).** Rejected: an extension block holds members as a nested type does.
 - **The opening brace on its own line also behind `=`.** Rejected in batch 1c: behind the `=` of a declaration the brace stays on the `=` line, and RH5111 reports a value that starts on a later line than the `=`.

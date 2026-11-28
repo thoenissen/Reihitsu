@@ -1710,14 +1710,16 @@ class C
 
 ### FMT-BREAK-046 — A multi-line array initializer puts its braces on lines of their own
 
-The array initializers are the initializer of an array creation (`new int[] { … }`, `new int[2] { … }`, `new int[,] { … }`), of an implicit array creation (`new[] { … }`), and of a `stackalloc` array creation, the array initializer of a declaration (`int[] a = { … }`, the value of an equals-value clause), and a row of a multi-dimensional array (an array initializer whose parent is an array initializer). Each of them is judged on its own, also when it stands inside another one:
+The array initializers are the initializer of an array creation (`new int[] { … }`, `new int[2] { … }`, `new int[,] { … }`), of an implicit array creation (`new[] { … }`), of a `stackalloc` array creation (`stackalloc int[] { … }`), and of an implicit `stackalloc` array creation (`stackalloc[] { … }`), the array initializer of a declaration (`int[] a = { … }`, the value of an equals-value clause), and a row of a multi-dimensional array (an array initializer whose parent is an array initializer). Each of them is judged on its own, also when it stands inside another one, and on the lines the other requirements of this phase leave inside it, not on the lines the author wrote:
 
-- **Written on one line** — no line break stands in the text from the end of its opening brace to the start of its closing brace, in the trivia between its tokens or inside one of its tokens: the formatter MUST NOT break a line inside it. `{ 3, 4 }` inside a multi-line initializer is written on one line; `{ 1,⏎2 }` is not, and neither is `{ "x", // c⏎"y" }`, whose `//` comment ends its line, nor `{ @"a⏎b" }`, whose verbatim string holds a line break.
-- **Spanning several lines** — the formatter MUST put the opening brace on a line of its own: the brace starts its line, and the first element starts the line behind it. When the initializer is the value of a declaration's `=` (`int[,] b = { … }`), the opening brace instead stays on the line of the `=` and still ends its line; with `new[]`, `new T[…]`, or `stackalloc`, and for a row, the brace starts its own line, where FMT-INDENT-022 and FMT-INDENT-023 give it its column. The formatter MUST put the closing brace on a line of its own as well: the brace starts its line, and when it is an element of an enclosing array initializer, the element behind the comma that follows it starts the next line. A token behind the closing brace that is not an element of the enclosing initializer — the `,` or `}` of that initializer, the `;` of a declaration, a `)` — stays on the brace's line.
+- **On one line** — once the other requirements of this phase have placed and removed their line breaks inside it, no line break stands in the text from the end of its opening brace to the start of its closing brace, in the trivia between its tokens or inside one of its tokens: the formatter MUST NOT break a line inside it. `{ 3, 4 }` inside a multi-line initializer is on one line, and so is `new[] { (int)⏎x }`, whose cast FMT-BREAK-041 joins onto `x`'s line; `{ 1,⏎2 }` is not, and neither is `{ "x", // c⏎"y" }`, whose `//` comment ends its line, nor `{ @"a⏎b" }`, whose verbatim string holds a line break, nor `new[] { new X { A = 1 } }`, whose object initializer FMT-BREAK-021 lays out over several lines.
+- **Spanning several lines** — the formatter MUST put the opening brace on a line of its own: the brace starts its line, and the first element starts the line behind it. When the initializer is the value of a declaration's `=` (`int[,] b = { … }`), the opening brace instead stays on the line of the `=`, where FMT-BREAK-016 keeps or joins it, and still ends its line; with `new[]`, `new T[…]`, `stackalloc T[]`, or `stackalloc[]`, and for a row, the brace starts its own line, where FMT-INDENT-022 and FMT-INDENT-023 give it its column. The formatter MUST put the closing brace on a line of its own as well: the brace starts its line, and when it is an element of an enclosing array initializer, the element behind the comma that follows it starts the next line. A token behind the closing brace that is not an element of the enclosing initializer — the `,` or `}` of that initializer, the `;` of a declaration, a `)`, the `.` of a member access — stays on the brace's line.
 
-Every other line break between the elements stays as written (FMT-BREAK-021), apart from a comma that starts a line (FMT-BREAK-038): the rule decides only the lines of the braces, so `{ 1,⏎2 }` keeps `1,` and `2` on lines of their own, and `{⏎1, 2⏎}` keeps `1, 2` on one line. A comment in front of an opening brace on its line stays there; the brace counts as starting its line behind it (FMT-INDENT-023).
+Every other line break between the elements stays as written (FMT-BREAK-021), apart from a comma that starts a line (FMT-BREAK-038): the rule decides only the lines of the braces, so `{ 1,⏎2 }` keeps `1,` and `2` on lines of their own, and `{⏎1, 2⏎}` keeps `1, 2` on one line.
 
-Why: The maintainer decided that every array initializer is either written on one line or laid out with its braces on lines of their own, judged for each initializer, so that a multi-line array reads like a block of rows: a brace that shares its line with an element or another brace (`{ {`, `}, {`, `} };`) hides where a row starts and ends. A brace behind the `=` of a declaration stays there because it is the declaration's value: the `{` then starts the value on the line of the `=`, as the `[` of a collection expression does, and RH5111 reports a value that starts on a later line than the `=`. With `new` the brace goes below the creation, as a collection initializer's does (FMT-BREAK-021). The element lists themselves keep the author's layout, because array initializers are often long lists of literal data.
+A comment keeps its line. A comment in front of an opening brace that starts its line — the comment leads the line, or it stands behind the token in front of the brace — stays where it is, and the brace moves onto the line below it: `/* c */ { 3,⏎4 }` as a row becomes `/* c */`, then `{` on the next line. A comment behind the opening brace stays on the brace's line, and the first element starts the line below it; a comment behind the last element stays on that element's line, and the closing brace starts the line below it.
+
+Why: The maintainer decided that every array initializer is either on one line or laid out with its braces on lines of their own, judged for each initializer, so that a multi-line array reads like a block of rows: a brace that shares its line with an element or another brace (`{ {`, `}, {`, `} };`) hides where a row starts and ends. It is judged on the lines the other requirements leave, so the formatter decides the braces once: an initializer judged on the lines as written would get its braces moved again on the next pass when another requirement breaks or joins a line inside it (FMT-PIPE-004). The maintainer also decided that a comment in front of a row's brace leaves the brace on the line below it, so every brace of a multi-line initializer starts its line. A brace behind the `=` of a declaration stays there because it is the declaration's value: the `{` then starts the value on the line of the `=`, as the `[` of a collection expression does, and RH5111 reports a value that starts on a later line than the `=`. With `new` or `stackalloc` the brace goes below the creation, as a collection initializer's does (FMT-BREAK-021). The element lists themselves keep the author's layout, because array initializers are often long lists of literal data.
 
 Example:
 
@@ -1782,6 +1784,74 @@ class C
                    };
         int[,] a = { { 1, 2 }, { 3, 4 } };
         var h = new[] { 1, 2 };
+    }
+}
+```
+
+Example — the braces are decided on the lines the other requirements leave, for `stackalloc` as for `new`, and a comment in front of a row's opening brace keeps its line:
+
+```csharp
+class X
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    int[,] F = {
+                   /* c */ { 3,
+                   4 }
+               };
+
+    void M(int y)
+    {
+        var x = new[] { new X { A = 1 } };
+        var c = new[] { (int)
+            y };
+        System.Span<int> s = stackalloc int[] { 1,
+        2 };
+        System.Span<int> t = stackalloc[] { 1,
+        2 };
+    }
+}
+```
+
+```csharp
+class X
+{
+    public int A { get; set; }
+}
+
+class C
+{
+    int[,] F = {
+                   /* c */
+                   {
+                       3,
+                       4
+                   }
+               };
+
+    void M(int y)
+    {
+        var x = new[]
+                {
+                    new X
+                    {
+                        A = 1
+                    }
+                };
+        var c = new[] { (int)y };
+        System.Span<int> s = stackalloc int[]
+                             {
+                                 1,
+                                 2
+                             };
+        System.Span<int> t = stackalloc []
+                             {
+                                 1,
+                                 2
+                             };
     }
 }
 ```

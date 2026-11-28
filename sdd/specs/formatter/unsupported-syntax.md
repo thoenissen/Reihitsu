@@ -1822,24 +1822,27 @@ class C
 An input MUST be refused when an active `#region` or `#endregion` directive stands in the leading trivia of a token of the input other than these:
 
 - **the first token of the input**;
-- **the first token of a member declaration** — a member of a type's, a namespace's, or the file's member list, with its attribute lists: a field, a method, a property, an event, a constructor, an operator, an indexer, a delegate, an enum member, a type, a namespace, and each top-level statement, which is a member of the file of its own — and the first token of a using directive, of an extern alias directive, and of an attribute list of the file (`[assembly: …]`);
-- **the closing brace of a type, an enum, or a namespace declaration**;
+- **the first token of a member declaration** — a member of a type's, an extension block's, or a namespace's member list, or a type, a delegate, or a namespace in the file's member list, with its attribute lists: a field, a method, a property, an event, a constructor, an operator, an indexer, a delegate, an enum member, a type, an extension block, and a namespace, but not a top-level statement — and the first token of a using directive, of an extern alias directive, and of an attribute list of the file (`[assembly: …]`);
+- **the closing brace of a type, an extension block, an enum, or a namespace declaration**;
 - **the end of the file**.
 
-A directive is always leading trivia, so a region directive stands in front of the token that follows it. The exceptions are the positions between members: above a member, in front of the closing brace that ends a member list, and at the end of the file. Every other position is inside a member, behind its first token up to its last token, or inside the header of a type or a namespace in front of its member list. The conditions, each with both sides:
+An input that is a whole file holding a top-level statement MUST be refused when it holds an active `#region` or `#endregion` directive anywhere, none of these positions excepted.
+
+A directive is always leading trivia, so a region directive stands in front of the token that follows it. The exceptions are the positions between members: above a member, in front of the closing brace that ends a member list, and at the end of the file. Every other position is inside a member, behind its first token up to its last token, or inside the header of a type, an extension block, or a namespace in front of its member list. The conditions, each with both sides:
 
 - **Inside a member.** A region directive in a method's body, in an accessor, in a lambda or a local function, in a switch section, in a field's or a property's initializer, in a parameter list, in the argument list of an attribute of the member, between two attribute lists of the member, between its modifiers, or between the `)` of its parameter list and its body refuses the input. The `#endregion` of a region that ends behind a member's last token stands in front of the next member's first token, or in front of the closing brace of the type, and does not refuse it: `#region Methods⏎void M()⏎{⏎}⏎#endregion⏎}` is supported. A region whose `#region` stands between members and whose `#endregion` stands inside a member refuses the input at its `#endregion`.
 - **A nested type is no member in this sense.** A type declared inside a type is a member of the outer type, so a region directive above it is above a member; its own members are members as well, so the regions between them are supported, at every depth.
+- **An extension block is no member in this sense either.** An extension block (`extension(int x) { … }`) holds members as a nested type does: a region directive above it, between its members, and in front of its closing brace is supported, at every depth, and one in its header — in `extension(int x)`, its type parameter list, or its constraint clauses, or in front of its opening brace — refuses the input, as one in a type's header does.
 - **The header of a type or a namespace.** A region directive in a type's base list, its type parameter list, its primary-constructor parameter list, its constraint clauses, between its attribute lists, or in front of its opening brace stands behind the type's first token and in front of no member: it refuses the input, as one in a namespace's name does.
-- **Top-level statements.** Each top-level statement is a member of the file, so a region directive between two top-level statements is supported, and one inside a top-level statement — in its block, its argument list, or its initializer — refuses the input.
+- **Top-level statements.** All top-level statements of a file together are one member, the body of the program's entry point. A file that holds a top-level statement is refused for every active region directive in it: one between two top-level statements, one in front of the first top-level statement, one inside a top-level statement, and also one around a using directive or between the members of a type that the file declares; `#region Setup⏎var a = 1;⏎#endregion` is refused at `#region Setup`. A file without a top-level statement is decided by the positions above, and so is a node-level input, which is never a whole file: a statement of a top-level statement, or a node below it, is refused for every region directive in it but the one in front of its first token, and a type declared in a file with top-level statements is decided by its own members (FMT-UNSUP-003), whatever the rest of the file holds.
 - **Active directives only.** A `#region` or `#endregion` in disabled text is no directive of the build being formatted and does not refuse the input; in a build that defines `X`, a region directive in the active branch of `#if X` inside a member refuses it. Other directives inside a member — `#if`, `#pragma`, `#nullable` — are no region directives and do not refuse it under this requirement.
-- **The first token of the input.** In a whole document the first token of the input is the first token of the file. A node-level input below a member, such as a statement or an expression, holds a region directive in the leading trivia of its first token without refusing it, and every other region directive in it refuses it (FMT-UNSUP-003): whether a token begins a member declaration, or closes a type or a namespace, is decided from the token and the node it begins or closes, which lie inside the input whenever the token is not the input's first one.
+- **The first token of the input.** In a whole document the first token of the input is the first token of the file. A node-level input below a member, such as a statement or an expression, holds a region directive in the leading trivia of its first token without refusing it, and every other region directive in it refuses it (FMT-UNSUP-003): whether a token begins a member declaration, or closes a type or a namespace, is decided from the token and the node it begins or closes, which lie inside the input whenever the token is not the input's first one. For `FormatNodeInDocumentWithContextAsync` the input is the context, not the target (FMT-UNSUP-002), so the token excepted is the context's first token: with a method as context and one of its parameters as target, a region directive in front of the parameter refuses the input; with an enum as context and one of its members as target, a region directive in front of the member stands in front of a member's first token and does not refuse it.
 
 Where another shape of this spec refuses the same directive, its reason and location are given: this shape is listed after every other. So FMT-UNSUP-010 keeps its reason for a region directive inside a field declaration with several declarators, FMT-UNSUP-009 for one between a list element and a comma on a later line, and FMT-UNSUP-012 for one between the `=>` of an expression body and its expression.
 
 The reason the formatter gives for this shape is `a region directive inside a member`, and its location is the span of the first region directive in that place.
 
-Why: The maintainer decided to declare this shape unsupported in this work. A region groups members; inside a member it groups statements, the elements of an initializer, a list, or a pattern, or the arms of a switch, where the elements stand at aligned columns and the column of a directive among them had no single answer: the block indentation put it far to the left of what it groups, and the column of a comment there depends on the construct (FMT-INDENT-006). RH7303 reports a region inside executable code, so such input is rare. Refusing the input instead of deciding a column for each construct leaves FMT-INDENT-010 one column, the members' column. The header of a type stands in front of the type's members and holds no member, so it is not between members either. The first token of a node-level input is excepted because the region directive in front of it stands above the node and is not part of its layout: a code fix that formats a statement or a member below a `#region` keeps its fix. No phase writes a region directive into a member (FMT-UNSUP-005): no phase adds, removes, or moves a region directive (FMT-REGION-005), and a phase that moves a member, a using directive, or a field it splits moves the leading trivia of the first token with it, which stays the leading trivia of a member's first token.
+Why: The maintainer decided to declare this shape unsupported in this work, with the header of a type and of an extension block, and every region of a file with top-level statements. A region groups members; inside a member it groups statements, the elements of an initializer, a list, or a pattern, or the arms of a switch, where the elements stand at aligned columns and the column of a directive among them had no single answer: the block indentation put it far to the left of what it groups, and the column of a comment there depends on the construct (FMT-INDENT-006). RH7303 reports a region inside executable code, so such input is rare. Refusing the input instead of deciding a column for each construct leaves FMT-INDENT-010 one column, the members' column. The header of a type stands in front of the type's members and holds no member, so it is not between members either. An extension block holds members as a nested type does, so its members are grouped alike. The top-level statements of a file are the one body of its entry point, so a region between them stands inside that body as one between the statements of a method does; the maintainer refused every region of such a file, which needs no position between the statements, the types, and the usings of the file to be told apart. The first token of a node-level input is excepted because the region directive in front of it stands above the node and is not part of its layout: a code fix that formats a statement or a member below a `#region` keeps its fix. No phase writes a region directive into a member (FMT-UNSUP-005): no phase adds, removes, or moves a region directive (FMT-REGION-005), and a phase that moves a member, a using directive, or a field it splits moves the leading trivia of the first token with it, which stays the leading trivia of a member's first token.
 
 Example — each region directive is refused, and the input that holds it is returned unchanged:
 
@@ -1924,22 +1927,45 @@ class C
 }
 ```
 
-Example — top-level statements: the regions between the statements are supported, and the one inside the `if` statement's block refuses the input:
+Example — the regions of an extension block's members are supported, and the input is formatted:
 
 ```csharp
-#region Setup
-
-var a = 1;
-
-#endregion // Setup
-
-if (a > 0)
+static class Ext
 {
-    #region Body
-    a++;
+    extension(int x)
+    {
+        #region Members
+
+        public int Twice()
+        {
+            return x * 2;
+        }
+
+        #endregion // Members
+    }
+}
+```
+
+Example — a file with top-level statements: every region directive in it refuses the input, also the ones between the statements and between the members of the class, and the input is returned unchanged:
+
+```csharp
+using System;
+
+#region Setup
+var a = 1;
+#endregion
+
+Console.WriteLine(a);
+
+class D
+{
+    #region Fields
+    private int _b;
     #endregion
 }
 ```
+
+The location is the span of `#region Setup`, which starts in line 3, column 1.
 
 ### FMT-UNSUP-005 — Formatted output is never unsupported
 
